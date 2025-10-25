@@ -1,0 +1,60 @@
+{
+  "appName": "Schedfy",
+  "navigation": {
+    "dashboard": "Painel",
+    "bookings": "Agendamentos",
+    "services": "Serviços",
+    "reports": "Relatórios",
+    "settings": "Configurações",
+    "profile": "Perfil"
+  },
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "add": "Adicionar",
+    "create": "Criar",
+    "update": "Atualizar",
+    "close": "Fechar",
+    "confirm": "Confirmar",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar"
+  },
+  "status": {
+    "pending": "Pendente",
+    "confirmed": "Confirmado",
+    "completed": "Concluído",
+    "cancelled": "Cancelado",
+    "active": "Ativo",
+    "inactive": "Inativo"
+  },
+  "time": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "tomorrow": "Amanhã",
+    "thisWeek": "Esta Semana",
+    "thisMonth": "Este Mês",
+    "lastMonth": "Mês Passado"
+  },
+  "messages": {
+    "loading": "Carregando...",
+    "noData": "Nenhum dado disponível",
+    "error": "Ocorreu um erro",
+    "success": "Operação realizada com sucesso",
+    "confirmDelete": "Tem certeza que deseja excluir este item?",
+    "unsavedChanges": "Você tem alterações não salvas. Tem certeza que deseja sair?"
+  },
+  "currency": {
+    "brl": "R$",
+    "usd": "$",
+    "eur": "€"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema"
+  }
+}

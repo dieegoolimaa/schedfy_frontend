@@ -1,0 +1,28 @@
+{
+  "title": "Painel",
+  "welcome": "Bem-vindo de volta",
+  "overview": "Visão Geral",
+  "stats": {
+    "totalBookings": "Total de Agendamentos",
+    "todayBookings": "Agendamentos de Hoje",
+    "revenue": "Receita",
+    "clients": "Clientes Ativos"
+  },
+  "recentBookings": {
+    "title": "Agendamentos Recentes",
+    "viewAll": "Ver Todos",
+    "noBookings": "Nenhum agendamento recente"
+  },
+  "upcomingBookings": {
+    "title": "Próximos Agendamentos",
+    "viewAll": "Ver Todos",
+    "noBookings": "Nenhum agendamento próximo"
+  },
+  "quickActions": {
+    "title": "Ações Rápidas",
+    "newBooking": "Novo Agendamento",
+    "newService": "Novo Serviço",
+    "viewReports": "Ver Relatórios",
+    "manageClients": "Gerenciar Clientes"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome back",
+  "overview": "Overview",
+  "stats": {
+    "totalBookings": "Total Bookings",
+    "todayBookings": "Today's Bookings",
+    "revenue": "Revenue",
+    "clients": "Active Clients"
+  },
+  "recentBookings": {
+    "title": "Recent Bookings",
+    "viewAll": "View All",
+    "noBookings": "No recent bookings"
+  },
+  "upcomingBookings": {
+    "title": "Upcoming Bookings",
+    "viewAll": "View All",
+    "noBookings": "No upcoming bookings"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "newBooking": "New Booking",
+    "newService": "New Service",
+    "viewReports": "View Reports",
+    "manageClients": "Manage Clients"
+  }
+}
