@@ -100,7 +100,8 @@ export function ClientProfilePage() {
 
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
   const [newClient, setNewClient] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     birthDate: "",
@@ -212,15 +213,18 @@ export function ClientProfilePage() {
   const handleAddClientSubmit = async () => {
     try {
       await createClient({
-        name: newClient.name,
+        entityId,
+        firstName: newClient.firstName,
+        lastName: newClient.lastName,
         email: newClient.email,
         phone: newClient.phone || undefined,
-        address: newClient.address || undefined,
         notes: newClient.notes || undefined,
         dateOfBirth: newClient.birthDate || undefined,
+        createdBy: user?.id || entityId,
       });
       setNewClient({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         phone: "",
         birthDate: "",
@@ -306,16 +310,32 @@ export function ClientProfilePage() {
               <div className="grid gap-6 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="client-name">Full Name</Label>
+                    <Label htmlFor="client-firstName">First Name</Label>
                     <Input
-                      id="client-name"
-                      placeholder="Enter full name"
-                      value={newClient.name}
+                      id="client-firstName"
+                      placeholder="Enter first name"
+                      value={newClient.firstName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewClient({ ...newClient, name: e.target.value })
+                        setNewClient({
+                          ...newClient,
+                          firstName: e.target.value,
+                        })
                       }
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="client-lastName">Last Name</Label>
+                    <Input
+                      id="client-lastName"
+                      placeholder="Enter last name"
+                      value={newClient.lastName}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewClient({ ...newClient, lastName: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="client-email">Email</Label>
                     <Input
@@ -328,8 +348,6 @@ export function ClientProfilePage() {
                       }
                     />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="client-phone">Phone</Label>
                     <Input
@@ -341,6 +359,8 @@ export function ClientProfilePage() {
                       }
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="birth-date">Birth Date</Label>
                     <Input
@@ -355,17 +375,17 @@ export function ClientProfilePage() {
                       }
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    placeholder="Street address, city"
-                    value={newClient.address}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setNewClient({ ...newClient, address: e.target.value })
-                    }
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      placeholder="Street address, city"
+                      value={newClient.address}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewClient({ ...newClient, address: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="preferred-services">Preferred Services</Label>
@@ -926,7 +946,9 @@ export function ClientProfilePage() {
                       <div className="pt-2">
                         <Label className="text-sm">Loyalty Tier</Label>
                         <div
-                          className={`text-lg font-semibold ${getLoyaltyTier(selectedClient.loyaltyPoints).color}`}
+                          className={`text-lg font-semibold ${
+                            getLoyaltyTier(selectedClient.loyaltyPoints).color
+                          }`}
                         >
                           {getLoyaltyTier(selectedClient.loyaltyPoints).tier}
                         </div>
@@ -1097,7 +1119,9 @@ export function ClientProfilePage() {
                         <Label className="text-sm font-medium">Status</Label>
                         <Badge
                           variant="outline"
-                          className={`mt-1 ${getStatusColor(selectedClient.status)}`}
+                          className={`mt-1 ${getStatusColor(
+                            selectedClient.status
+                          )}`}
                         >
                           {selectedClient.status}
                         </Badge>

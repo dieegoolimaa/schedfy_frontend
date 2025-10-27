@@ -4,33 +4,106 @@ import { QueryParams, PaginatedResponse } from '../../types/api';
 export interface Client {
     id: string;
     entityId: string;
-    name: string;
+    firstName: string;
+    lastName: string;
+    name: string; // computed fullName from backend
     email: string;
     phone?: string;
-    address?: string;
+    dateOfBirth?: string;
+    gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+    status?: 'active' | 'inactive' | 'blocked';
+    preferences?: {
+        preferredContactMethod?: 'email' | 'phone' | 'sms';
+        allowMarketing?: boolean;
+        allowReminders?: boolean;
+        language?: string;
+    };
+    address?: {
+        street?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+    };
     notes?: string;
     tags?: string[];
-    dateOfBirth?: string;
-    preferences?: Record<string, any>;
+    source?: string;
+    stats?: {
+        totalBookings?: number;
+        completedBookings?: number;
+        cancelledBookings?: number;
+        noShowBookings?: number;
+        totalSpent?: number;
+        averageBookingValue?: number;
+        lastBookingDate?: string;
+        firstBookingDate?: string;
+    };
+    // Legacy/UI fields for compatibility
     totalBookings?: number;
     totalSpent?: number;
+    averageSpent?: number;
     lastVisit?: string;
+    avatar?: string;
+    joinDate?: string;
+    loyaltyPoints?: number;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface CreateClientDto {
-    name: string;
+    entityId: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone?: string;
-    address?: string;
+    dateOfBirth?: string;
+    gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+    status?: 'active' | 'inactive' | 'blocked';
+    preferences?: {
+        preferredContactMethod?: 'email' | 'phone' | 'sms';
+        allowMarketing?: boolean;
+        allowReminders?: boolean;
+        language?: string;
+    };
+    address?: {
+        street?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+    };
     notes?: string;
     tags?: string[];
-    dateOfBirth?: string;
-    preferences?: Record<string, any>;
+    source?: 'walk_in' | 'online_booking' | 'phone' | 'referral' | 'social_media' | 'google' | 'other';
+    createdBy: string;
 }
 
-export interface UpdateClientDto extends Partial<CreateClientDto> { }
+export interface UpdateClientDto {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    dateOfBirth?: string;
+    gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+    status?: 'active' | 'inactive' | 'blocked';
+    preferences?: {
+        preferredContactMethod?: 'email' | 'phone' | 'sms';
+        allowMarketing?: boolean;
+        allowReminders?: boolean;
+        language?: string;
+    };
+    address?: {
+        street?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+    };
+    notes?: string;
+    tags?: string[];
+    source?: 'walk_in' | 'online_booking' | 'phone' | 'referral' | 'social_media' | 'google' | 'other';
+    updatedBy?: string;
+}
 
 export interface ClientFilters extends QueryParams {
     entityId?: string;

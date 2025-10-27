@@ -111,12 +111,22 @@ export function ServicesPage() {
 
   const handleEditService = (service: any) => {
     setEditingService(service);
+    // Extract numeric duration value (in case it's an object or number)
+    const durationValue =
+      typeof service.duration === "object"
+        ? service.duration.duration
+        : service.duration;
+    const priceValue =
+      typeof service.price === "object"
+        ? service.price.basePrice
+        : service.price;
+
     setEditFormData({
       name: service.name,
       description: service.description,
       category: service.category,
-      duration: service.duration.toString(),
-      price: service.price.toString(),
+      duration: String(durationValue || ""),
+      price: String(priceValue || ""),
       isActive: service.isActive,
       isPublic: service.isPublic,
     });
@@ -144,14 +154,26 @@ export function ServicesPage() {
     try {
       setFormLoading(true);
       await createService({
+        entityId,
         name: createFormData.name,
         description: createFormData.description,
         category: createFormData.category,
-        duration: parseInt(createFormData.duration),
-        price: parseFloat(createFormData.price),
-        currency: "EUR",
-        isActive: createFormData.isActive,
-        isPublic: createFormData.isPublic,
+        duration: {
+          durationType: "fixed",
+          duration: parseInt(createFormData.duration),
+          bufferBefore: 0,
+          bufferAfter: 0,
+        },
+        pricing: {
+          basePrice: parseFloat(createFormData.price),
+          currency: "EUR",
+          priceType: "fixed",
+        },
+        status: createFormData.isActive ? "active" : "inactive",
+        seo: {
+          isPublic: createFormData.isPublic,
+        },
+        createdBy: user?.id || entityId,
       });
 
       // Reset form and close dialog
@@ -192,10 +214,22 @@ export function ServicesPage() {
         name: editFormData.name,
         description: editFormData.description,
         category: editFormData.category,
-        duration: parseInt(editFormData.duration),
-        price: parseFloat(editFormData.price),
-        isActive: editFormData.isActive,
-        isPublic: editFormData.isPublic,
+        duration: {
+          durationType: "fixed",
+          duration: parseInt(editFormData.duration),
+          bufferBefore: 0,
+          bufferAfter: 0,
+        },
+        pricing: {
+          basePrice: parseFloat(editFormData.price),
+          currency: "EUR",
+          priceType: "fixed",
+        },
+        status: editFormData.isActive ? "active" : "inactive",
+        seo: {
+          isPublic: editFormData.isPublic,
+        },
+        updatedBy: user?.id || entityId,
       });
 
       setIsEditDialogOpen(false);
@@ -220,24 +254,21 @@ export function ServicesPage() {
   };
 
   // Compute categories from services
-  const categories = services.reduce(
-    (acc, service) => {
-      const existing = acc.find(
-        (cat) => cat.id === service.category.toLowerCase()
-      );
-      if (existing) {
-        existing.count++;
-      } else {
-        acc.push({
-          id: service.category.toLowerCase(),
-          name: service.category,
-          count: 1,
-        });
-      }
-      return acc;
-    },
-    [] as Array<{ id: string; name: string; count: number }>
-  );
+  const categories = services.reduce((acc, service) => {
+    const existing = acc.find(
+      (cat) => cat.id === service.category.toLowerCase()
+    );
+    if (existing) {
+      existing.count++;
+    } else {
+      acc.push({
+        id: service.category.toLowerCase(),
+        name: service.category,
+        count: 1,
+      });
+    }
+    return acc;
+  }, [] as Array<{ id: string; name: string; count: number }>);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -880,7 +911,9 @@ export function ServicesPage() {
                           <div
                             className="bg-blue-600 h-2 rounded-full"
                             style={{
-                              width: `${(category.count / services.length) * 100}%`,
+                              width: `${
+                                (category.count / services.length) * 100
+                              }%`,
                             }}
                           ></div>
                         </div>

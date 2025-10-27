@@ -7,15 +7,40 @@ interface UseServicesOptions {
     autoFetch?: boolean;
 }
 
-// Transform API service to include UI-friendly fields
-function transformService(service: Service): Service {
+// Transform backend service structure to UI-friendly format
+function transformService(service: any): Service {
+    // Handle both old flat structure and new nested structure
+    const duration = typeof service.duration === 'object'
+        ? service.duration.duration
+        : service.duration;
+
+    const price = typeof service.pricing === 'object'
+        ? service.pricing.basePrice
+        : service.price;
+
+    const currency = typeof service.pricing === 'object'
+        ? service.pricing.currency
+        : (service.currency || 'EUR');
+
+    const isActive = service.status === 'active' || service.isActive === true;
+    const isPublic = service.seo?.isPublic ?? service.isPublic ?? true;
+
     return {
         ...service,
-        status: service.isActive ? 'active' : 'inactive',
-        bookings: service.bookingCount,
-        image: service.imageUrl,
+        duration,
+        price,
+        currency,
+        isActive,
+        isPublic,
+        status: service.status || (isActive ? 'active' : 'inactive'),
+        bookings: service.analytics?.totalBookings || service.bookingCount || 0,
+        bookingCount: service.analytics?.totalBookings || service.bookingCount || 0,
+        image: service.coverImage || service.imageUrl,
+        imageUrl: service.coverImage || service.imageUrl,
+        slug: service.seo?.slug || service.slug || '',
+        professionalIds: service.assignedProfessionals || service.professionalIds || [],
         // These would ideally come from backend analytics
-        rating: service.rating || 0,
+        rating: service.analytics?.averageRating || service.rating || 0,
         popularity: service.popularity || 0,
     };
 }

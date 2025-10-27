@@ -1,6 +1,58 @@
 import { apiClient } from './client';
 import { QueryParams, PaginatedResponse } from '../../types/api';
 
+// Backend response structure
+export interface ServiceBackend {
+    id: string;
+    entityId: string;
+    name: string;
+    description?: string;
+    category?: string;
+    status: 'active' | 'inactive' | 'draft';
+    duration: {
+        durationType: 'fixed' | 'variable';
+        duration: number;
+        minDuration?: number;
+        maxDuration?: number;
+        bufferBefore: number;
+        bufferAfter: number;
+    };
+    pricing: {
+        basePrice: number;
+        currency: string;
+        priceType: 'fixed' | 'starting_from';
+        discounts?: Array<{
+            name: string;
+            discountType: 'percentage' | 'fixed';
+            value: number;
+            conditions?: string;
+            validFrom?: Date;
+            validUntil?: Date;
+            isActive: boolean;
+        }>;
+    };
+    assignedProfessionals?: string[];
+    seo?: {
+        isPublic: boolean;
+        slug?: string;
+        metaDescription?: string;
+        seoTitle?: string;
+    };
+    sortOrder: number;
+    analytics?: {
+        totalBookings: number;
+        completedBookings: number;
+        cancelledBookings: number;
+        averageRating?: number;
+        totalRevenue: number;
+        lastBookingDate?: Date;
+    };
+    createdBy: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Frontend-friendly structure (flattened for UI consumption)
 export interface Service {
     id: string;
     entityId: string;
@@ -9,7 +61,7 @@ export interface Service {
     category: string;
     price: number;
     currency: string;
-    duration: number; // in minutes
+    duration: number; // in minutes (flattened from duration.duration)
     isActive: boolean;
     isPublic: boolean;
     imageUrl?: string;
@@ -28,20 +80,106 @@ export interface Service {
 }
 
 export interface CreateServiceDto {
+    entityId: string;
     name: string;
-    description: string;
-    category: string;
-    price: number;
-    currency?: string;
-    duration: number;
-    isActive?: boolean;
-    isPublic?: boolean;
-    imageUrl?: string;
-    professionalIds?: string[];
+    description?: string;
+    category?: string;
+    duration: {
+        durationType?: 'fixed' | 'variable';
+        duration: number; // in minutes
+        minDuration?: number;
+        maxDuration?: number;
+        bufferBefore?: number;
+        bufferAfter?: number;
+    };
+    pricing: {
+        basePrice: number;
+        currency: string;
+        priceType?: 'fixed' | 'starting_from';
+        discounts?: Array<{
+            name: string;
+            discountType: 'percentage' | 'fixed';
+            value: number;
+            conditions?: string;
+            validFrom?: Date;
+            validUntil?: Date;
+            isActive: boolean;
+        }>;
+    };
+    status?: 'active' | 'inactive' | 'draft';
+    assignedProfessionals?: string[];
+    bookingSettings?: {
+        maxAdvanceBookingDays?: number;
+        minAdvanceBookingHours?: number;
+        maxBookingsPerDay?: number;
+        allowOnlineBooking?: boolean;
+        requireDeposit?: boolean;
+        depositPercentage?: number;
+        cancellationPolicy?: string;
+        cancellationDeadlineHours?: number;
+    };
+    images?: string[];
+    coverImage?: string;
+    tags?: string[];
+    seo?: {
+        isPublic?: boolean;
+        slug?: string;
+        metaDescription?: string;
+        seoTitle?: string;
+    };
+    createdBy: string;
 }
 
-export interface UpdateServiceDto extends Partial<CreateServiceDto> {
+export interface UpdateServiceDto {
+    entityId?: string;
+    name?: string;
+    description?: string;
+    category?: string;
+    duration?: {
+        durationType?: 'fixed' | 'variable';
+        duration?: number;
+        minDuration?: number;
+        maxDuration?: number;
+        bufferBefore?: number;
+        bufferAfter?: number;
+    };
+    pricing?: {
+        basePrice?: number;
+        currency?: string;
+        priceType?: 'fixed' | 'starting_from';
+        discounts?: Array<{
+            name: string;
+            discountType: 'percentage' | 'fixed';
+            value: number;
+            conditions?: string;
+            validFrom?: Date;
+            validUntil?: Date;
+            isActive: boolean;
+        }>;
+    };
+    status?: 'active' | 'inactive' | 'draft';
+    assignedProfessionals?: string[];
+    bookingSettings?: {
+        maxAdvanceBookingDays?: number;
+        minAdvanceBookingHours?: number;
+        maxBookingsPerDay?: number;
+        allowOnlineBooking?: boolean;
+        requireDeposit?: boolean;
+        depositPercentage?: number;
+        cancellationPolicy?: string;
+        cancellationDeadlineHours?: number;
+    };
+    images?: string[];
+    coverImage?: string;
+    tags?: string[];
+    seo?: {
+        isPublic?: boolean;
+        slug?: string;
+        metaDescription?: string;
+        seoTitle?: string;
+    };
     sortOrder?: number;
+    updatedBy?: string;
 }
 
 export const servicesApi = {

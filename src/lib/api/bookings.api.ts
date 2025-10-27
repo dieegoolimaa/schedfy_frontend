@@ -33,23 +33,81 @@ export interface Booking {
 }
 
 export interface CreateBookingDto {
+    entityId: string;
     serviceId: string;
-    clientId: string;
     professionalId?: string;
-    startTime: string;
-    endTime: string;
+    clientId?: string;
+    clientInfo?: {
+        name: string;
+        email?: string;
+        phone?: string;
+        notes?: string;
+    };
+    startDateTime: string; // ISO string
+    endDateTime: string; // ISO string
+    status?: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
     notes?: string;
-    status?: 'pending' | 'confirmed';
+    internalNotes?: string;
+    pricing: {
+        basePrice: number;
+        discountAmount?: number;
+        discountReason?: string;
+        additionalCharges?: Array<{
+            name: string;
+            amount: number;
+            description?: string;
+        }>;
+        totalPrice: number;
+        currency: string;
+    };
+    payment?: {
+        status?: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
+        method?: string;
+        depositRequired?: boolean;
+        depositAmount?: number;
+        depositPaid?: boolean;
+        paidAmount?: number;
+    };
+    createdBy: string;
 }
 
 export interface UpdateBookingDto {
     serviceId?: string;
     clientId?: string;
     professionalId?: string;
-    startTime?: string;
-    endTime?: string;
+    clientInfo?: {
+        name?: string;
+        email?: string;
+        phone?: string;
+        notes?: string;
+    };
+    startDateTime?: string;
+    endDateTime?: string;
     notes?: string;
-    status?: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+    internalNotes?: string;
+    observations?: string;
+    status?: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+    pricing?: {
+        basePrice?: number;
+        discountAmount?: number;
+        discountReason?: string;
+        additionalCharges?: Array<{
+            name: string;
+            amount: number;
+            description?: string;
+        }>;
+        totalPrice?: number;
+        currency?: string;
+    };
+    payment?: {
+        status?: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
+        method?: string;
+        depositRequired?: boolean;
+        depositAmount?: number;
+        depositPaid?: boolean;
+        paidAmount?: number;
+    };
+    updatedBy?: string;
 }
 
 export interface BookingFilters extends QueryParams {
