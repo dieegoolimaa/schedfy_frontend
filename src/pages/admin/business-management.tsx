@@ -70,6 +70,32 @@ export function BusinessManagementPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [planFilter, setPlanFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
+  const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
+  const [viewDetailsOpen, setViewDetailsOpen] = useState(false);
+  const [editBusinessOpen, setEditBusinessOpen] = useState(false);
+  const [suspendConfirmOpen, setSuspendConfirmOpen] = useState(false);
+
+  const handleViewDetails = (business: any) => {
+    setSelectedBusiness(business);
+    setViewDetailsOpen(true);
+  };
+
+  const handleEditBusiness = (business: any) => {
+    setSelectedBusiness(business);
+    setEditBusinessOpen(true);
+  };
+
+  const handleSuspendBusiness = (business: any) => {
+    setSelectedBusiness(business);
+    setSuspendConfirmOpen(true);
+  };
+
+  const handleStatusChange = () => {
+    // TODO: Implement API call to update business status
+    console.log("Status changed for business:", selectedBusiness?.name);
+    setSuspendConfirmOpen(false);
+    setSelectedBusiness(null);
+  };
 
   // Mock businesses data
   const businesses = [
@@ -604,11 +630,15 @@ export function BusinessManagementPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleViewDetails(business)}
+                        >
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleEditBusiness(business)}
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Business
                         </DropdownMenuItem>
@@ -616,14 +646,20 @@ export function BusinessManagementPage() {
                         {(() => {
                           if (business.status === "active") {
                             return (
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleSuspendBusiness(business)}
+                              >
                                 <Ban className="mr-2 h-4 w-4" />
                                 Suspend
                               </DropdownMenuItem>
                             );
                           } else if (business.status === "suspended") {
                             return (
-                              <DropdownMenuItem className="text-green-600">
+                              <DropdownMenuItem
+                                className="text-green-600"
+                                onClick={() => handleSuspendBusiness(business)}
+                              >
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 Reactivate
                               </DropdownMenuItem>
@@ -640,6 +676,173 @@ export function BusinessManagementPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* View Details Dialog */}
+      <Dialog open={viewDetailsOpen} onOpenChange={setViewDetailsOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>
+              Business Details: {selectedBusiness?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Complete information about this business
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBusiness && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Owner</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBusiness.owner}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Email</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBusiness.email}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Phone</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBusiness.phone}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Address</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBusiness.address}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Plan</Label>
+                  <Badge variant="outline">{selectedBusiness.plan}</Badge>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Total Revenue</Label>
+                  <p className="text-sm text-muted-foreground">
+                    €{selectedBusiness.totalRevenue}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Monthly Revenue</Label>
+                  <p className="text-sm text-muted-foreground">
+                    €{selectedBusiness.monthlyRevenue}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Total Bookings</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBusiness.totalBookings}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Professionals</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBusiness.professionals}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Rating</Label>
+                  <p className="text-sm text-muted-foreground">
+                    ⭐ {selectedBusiness.rating}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Business Dialog */}
+      <Dialog open={editBusinessOpen} onOpenChange={setEditBusinessOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Business: {selectedBusiness?.name}</DialogTitle>
+            <DialogDescription>Update business information</DialogDescription>
+          </DialogHeader>
+          {selectedBusiness && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="businessName">Business Name</Label>
+                <Input id="businessName" defaultValue={selectedBusiness.name} />
+              </div>
+              <div>
+                <Label htmlFor="ownerName">Owner Name</Label>
+                <Input id="ownerName" defaultValue={selectedBusiness.owner} />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  defaultValue={selectedBusiness.email}
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" defaultValue={selectedBusiness.phone} />
+              </div>
+              <div>
+                <Label htmlFor="address">Address</Label>
+                <Textarea
+                  id="address"
+                  defaultValue={selectedBusiness.address}
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button onClick={() => setEditBusinessOpen(false)}>
+                  Save Changes
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setEditBusinessOpen(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Suspend/Reactivate Confirmation Dialog */}
+      <Dialog open={suspendConfirmOpen} onOpenChange={setSuspendConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedBusiness?.status === "active" ? "Suspend" : "Reactivate"}{" "}
+              Business
+            </DialogTitle>
+            <DialogDescription>
+              {selectedBusiness?.status === "active"
+                ? "Are you sure you want to suspend this business? They will lose access to all features."
+                : "Are you sure you want to reactivate this business? They will regain full access."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 pt-4">
+            <Button
+              variant={
+                selectedBusiness?.status === "active"
+                  ? "destructive"
+                  : "default"
+              }
+              onClick={handleStatusChange}
+            >
+              {selectedBusiness?.status === "active" ? "Suspend" : "Reactivate"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSuspendConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

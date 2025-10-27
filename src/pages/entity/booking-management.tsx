@@ -1,5 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { useClients } from "../../hooks/useClients";
+import { useServices } from "../../hooks/useServices";
+import { usersApi } from "../../lib/api";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -40,6 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { EditBookingDialog } from "../../components/dialogs/edit-dialogs";
 import {
   Clock,
   Plus,
@@ -52,144 +60,177 @@ import {
   AlertCircle,
   Edit,
   User,
+  X,
 } from "lucide-react";
+import { usePayments } from "../../hooks/usePayments";
+import PaymentForm from "../../components/payments/PaymentForm";
 
 export function BookingManagementPage() {
   const { t } = useTranslation();
+  const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
+  const { user } = useAuth();
+  const entityId = user?.businessId || user?.id || "";
+
+  // Use the bookings hook with real API
+  const {
+    bookings,
+    loading,
+    fetchBookings,
+    createBooking,
+    updateBooking,
+    cancelBooking,
+    confirmBooking,
+    completeBooking,
+    deleteBooking,
+  } = useBookings({ entityId, autoFetch: true });
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [clientSearchTerm, setClientSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("today");
+  const [editingBooking, setEditingBooking] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedBookingForPayment, setSelectedBookingForPayment] =
+    useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string>("card");
+  const [formLoading, setFormLoading] = useState(false);
 
-  // Mock bookings data with more detailed information
-  const bookings = [
+  // Enhanced batch booking states
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [bookingSlots, setBookingSlots] = useState([
     {
       id: 1,
-      client: {
-        name: "Maria Silva",
-        email: "maria@email.com",
-        phone: "+351 123 456 789",
-        avatar: "MS",
-        address: "Rua das Flores, 123, Lisboa",
-        isFirstTime: false,
-      },
-      service: {
-        name: "Haircut & Styling",
-        duration: 60,
-        price: 45,
-        category: "Hair",
-      },
-      professional: "João Santos",
-      date: "2024-01-15",
-      time: "10:00",
-      status: "confirmed",
-      notes: "Client prefers shorter layers",
-      paymentStatus: "paid",
-      createdAt: "2024-01-10T14:30:00Z",
+      service: "",
+      professional: "",
+      date: "",
+      time: "",
+      notes: "",
     },
-    {
-      id: 2,
-      client: {
-        name: "Ana Costa",
-        email: "ana@email.com",
-        phone: "+351 987 654 321",
-        avatar: "AC",
-        address: "Avenida da República, 456, Porto",
-        isFirstTime: true,
-      },
-      service: {
-        name: "Full Manicure",
-        duration: 90,
-        price: 35,
-        category: "Nails",
-      },
-      professional: "Sofia Oliveira",
-      date: "2024-01-15",
-      time: "14:00",
-      status: "pending",
-      notes: "First time client - allergic to certain products",
-      paymentStatus: "pending",
-      createdAt: "2024-01-12T09:15:00Z",
-    },
-    {
-      id: 3,
-      client: {
-        name: "Pedro Lima",
-        email: "pedro@email.com",
-        phone: "+351 555 123 456",
-        avatar: "PL",
-        address: "Praça do Comércio, 789, Lisboa",
-        isFirstTime: false,
-      },
-      service: {
-        name: "Deep Tissue Massage",
-        duration: 60,
-        price: 60,
-        category: "Massage",
-      },
-      professional: "Carlos Ferreira",
-      date: "2024-01-14",
-      time: "16:00",
-      status: "completed",
-      notes: "Regular client - prefers deep pressure",
-      paymentStatus: "paid",
-      createdAt: "2024-01-08T11:45:00Z",
-    },
-    {
-      id: 4,
-      client: {
-        name: "Luisa Santos",
-        email: "luisa@email.com",
-        phone: "+351 444 555 666",
-        avatar: "LS",
-        address: "Rua Augusta, 321, Lisboa",
-        isFirstTime: false,
-      },
-      service: {
-        name: "Facial Treatment",
-        duration: 75,
-        price: 55,
-        category: "Skincare",
-      },
-      professional: "Maria Rodrigues",
-      date: "2024-01-16",
-      time: "11:30",
-      status: "confirmed",
-      notes: "Sensitive skin - use hypoallergenic products",
-      paymentStatus: "paid",
-      createdAt: "2024-01-13T16:20:00Z",
-    },
-    {
-      id: 5,
-      client: {
-        name: "Ricardo Oliveira",
-        email: "ricardo@email.com",
-        phone: "+351 777 888 999",
-        avatar: "RO",
-        address: "Alameda dos Oceanos, 654, Lisboa",
-        isFirstTime: false,
-      },
-      service: {
-        name: "Beard Trim",
-        duration: 30,
-        price: 25,
-        category: "Hair",
-      },
-      professional: "João Santos",
-      date: "2024-01-13",
-      time: "09:30",
-      status: "cancelled",
-      notes: "Client cancelled due to illness",
-      paymentStatus: "refunded",
-      createdAt: "2024-01-05T13:10:00Z",
-    },
-  ];
+  ]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [showClientResults, setShowClientResults] = useState(false);
 
+  // Additional filter states
+  const [serviceFilter, setServiceFilter] = useState("all");
+  const [professionalFilter, setProfessionalFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
+
+  // Enhanced batch booking functions
+  const addBookingSlot = () => {
+    const newSlot = {
+      id: Date.now(),
+      service: "",
+      professional: "",
+      date: "",
+      time: "",
+      notes: "",
+    };
+    setBookingSlots([...bookingSlots, newSlot]);
+  };
+
+  const removeBookingSlot = (id: number) => {
+    setBookingSlots(bookingSlots.filter((slot) => slot.id !== id));
+  };
+
+  const updateBookingSlot = (id: number, field: string, value: string) => {
+    setBookingSlots(
+      bookingSlots.map((slot) =>
+        slot.id === id ? { ...slot, [field]: value } : slot
+      )
+    );
+  };
+
+  const selectClient = (client: any) => {
+    setSelectedClient(client);
+    setClientSearch(client.name);
+    setShowClientResults(false);
+  };
+
+  const resetBookingForm = () => {
+    setSelectedClient(null);
+    setClientSearch("");
+    setBookingSlots([
+      {
+        id: 1,
+        service: "",
+        professional: "",
+        date: "",
+        time: "",
+        notes: "",
+      },
+    ]);
+    setShowClientResults(false);
+  };
+
+  const handlePaymentClick = (booking: any) => {
+    setSelectedBookingForPayment(booking);
+    setPaymentDialogOpen(true);
+  };
+
+  // payments hook is used inside PaymentForm for in-app card flow
+
+  // Mock data for services, clients, professionals (will be replaced with API later)
   const services = [
     { id: 1, name: "Haircut & Styling", duration: 60, price: 45 },
     { id: 2, name: "Beard Trim", duration: 30, price: 25 },
     { id: 3, name: "Full Manicure", duration: 90, price: 35 },
     { id: 4, name: "Deep Tissue Massage", duration: 60, price: 60 },
     { id: 5, name: "Facial Treatment", duration: 75, price: 55 },
+  ];
+
+  // Mock clients data for search
+  const mockClients = [
+    {
+      id: 1,
+      name: "Maria Silva",
+      email: "maria@email.com",
+      phone: "+351 123 456 789",
+      avatar: "https://i.pravatar.cc/150?img=1",
+      address: "Rua das Flores, 123, Lisboa",
+    },
+    {
+      id: 2,
+      name: "Ana Costa",
+      email: "ana@email.com",
+      phone: "+351 987 654 321",
+      avatar: "https://i.pravatar.cc/150?img=2",
+      address: "Avenida da República, 456, Porto",
+    },
+    {
+      id: 3,
+      name: "Pedro Lima",
+      email: "pedro@email.com",
+      phone: "+351 555 123 456",
+      avatar: "https://i.pravatar.cc/150?img=3",
+      address: "Praça do Comércio, 789, Lisboa",
+    },
+    {
+      id: 4,
+      name: "Sofia Martins",
+      email: "sofia@email.com",
+      phone: "+351 777 888 999",
+      avatar: "https://i.pravatar.cc/150?img=4",
+      address: "Rua Augusta, 321, Lisboa",
+    },
+    {
+      id: 5,
+      name: "João Fernandes",
+      email: "joao@email.com",
+      phone: "+351 666 777 888",
+      avatar: "https://i.pravatar.cc/150?img=5",
+      address: "Rua de Santa Catarina, 654, Porto",
+    },
+    {
+      id: 6,
+      name: "Carla Santos",
+      email: "carla@email.com",
+      phone: "+351 444 555 666",
+      avatar: "https://i.pravatar.cc/150?img=6",
+      address: "Avenida dos Aliados, 987, Porto",
+    },
   ];
 
   const professionals = [
@@ -268,35 +309,153 @@ export function BookingManagementPage() {
     }
   };
 
-  const filteredBookings = bookings.filter((booking) => {
+  // Fetch related entities so we can display names instead of raw IDs
+  const { clients } = useClients({ entityId, autoFetch: true });
+  const { services: servicesFromApi } = useServices({
+    entityId,
+    autoFetch: true,
+  });
+
+  const [professionalsList, setProfessionalsList] = useState<any[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res: any = await usersApi.getUsers();
+        const data = res?.data || [];
+        if (mounted) setProfessionalsList(data);
+      } catch (e) {
+        // ignore - optional
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Derive bookings with populated client/service/professional objects when available
+  const displayBookings = useMemo(() => {
+    return bookings.map((b) => {
+      // Resolve client
+      const clientObj =
+        b.client && typeof b.client === "object"
+          ? b.client
+          : clients.find((c: any) => String(c.id) === String(b.clientId)) ||
+            (b.client ? { id: b.client, name: String(b.client) } : undefined);
+
+      // Resolve service
+      const serviceObj =
+        b.service && typeof b.service === "object"
+          ? b.service
+          : servicesFromApi.find(
+              (s: any) => String(s.id) === String(b.serviceId)
+            ) ||
+            (b.serviceId
+              ? { id: b.serviceId, name: String(b.serviceId), price: 0 }
+              : undefined);
+
+      // Resolve professional
+      const professionalObj =
+        b.professional && typeof b.professional === "object"
+          ? b.professional
+          : professionalsList.find(
+              (p: any) => String(p.id) === String(b.professionalId)
+            ) ||
+            (b.professionalId
+              ? { id: b.professionalId, name: String(b.professionalId) }
+              : undefined);
+
+      return {
+        ...b,
+        client: clientObj,
+        service: serviceObj,
+        professional: professionalObj,
+      };
+    });
+  }, [bookings, clients, servicesFromApi, professionalsList]);
+
+  const filteredBookings = displayBookings.filter((booking) => {
     const matchesSearch =
-      booking.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.professional.toLowerCase().includes(searchTerm.toLowerCase());
+      (booking.client?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (booking.service?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (booking.professional?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesClientSearch =
+      clientSearchTerm === "" ||
+      (booking.client?.name || "")
+        .toLowerCase()
+        .includes(clientSearchTerm.toLowerCase()) ||
+      (booking.client?.email || "")
+        .toLowerCase()
+        .includes(clientSearchTerm.toLowerCase()) ||
+      (booking.client?.phone || "").includes(clientSearchTerm);
 
     const matchesStatus =
       statusFilter === "all" || booking.status === statusFilter;
 
-    const today = "2024-01-15";
+    const today = new Date().toISOString().split("T")[0];
+    const bookingDate = booking.startTime.split("T")[0];
     const matchesDate =
       dateFilter === "all" ||
-      (dateFilter === "today" && booking.date === today) ||
-      (dateFilter === "upcoming" && new Date(booking.date) > new Date(today)) ||
-      (dateFilter === "past" && new Date(booking.date) < new Date(today));
+      (dateFilter === "today" && bookingDate === today) ||
+      (dateFilter === "upcoming" && new Date(bookingDate) > new Date(today)) ||
+      (dateFilter === "past" && new Date(bookingDate) < new Date(today));
 
-    return matchesSearch && matchesStatus && matchesDate;
+    const matchesService =
+      serviceFilter === "all" || booking.service?.name === serviceFilter;
+
+    const matchesProfessional =
+      professionalFilter === "all" ||
+      booking.professional?.name === professionalFilter;
+
+    // Payment status removed as it's not in the Booking model
+    const matchesPayment = paymentFilter === "all"; // Placeholder
+
+    return (
+      matchesSearch &&
+      matchesClientSearch &&
+      matchesStatus &&
+      matchesDate &&
+      matchesService &&
+      matchesProfessional &&
+      matchesPayment
+    );
   });
 
   const stats = {
-    total: bookings.length,
-    confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    pending: bookings.filter((b) => b.status === "pending").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
-    cancelled: bookings.filter((b) => b.status === "cancelled").length,
-    revenue: bookings
-      .filter((b) => b.paymentStatus === "paid")
-      .reduce((sum, b) => sum + b.service.price, 0),
+    total: displayBookings.length,
+    confirmed: displayBookings.filter((b) => b.status === "confirmed").length,
+    pending: displayBookings.filter((b) => b.status === "pending").length,
+    completed: displayBookings.filter((b) => b.status === "completed").length,
+    cancelled: displayBookings.filter((b) => b.status === "cancelled").length,
+    revenue: displayBookings
+      .filter((b) => b.service)
+      .reduce((sum, b) => sum + (b.service?.price || 0), 0),
   };
+
+  // Show loading skeleton
+  if (loading && bookings.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col gap-4">
+          <div className="h-10 w-64 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-96 bg-muted animate-pulse rounded" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+          ))}
+        </div>
+        <div className="h-96 bg-muted animate-pulse rounded-lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -314,117 +473,375 @@ export function BookingManagementPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Booking
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Booking</DialogTitle>
                 <DialogDescription>
-                  Schedule a new appointment for a client.
+                  Select a client and schedule one or multiple services with
+                  different dates and times.
                 </DialogDescription>
               </DialogHeader>
+
               <div className="grid gap-6 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client-name">Client Name</Label>
-                    <Input id="client-name" placeholder="Enter client name" />
+                {/* Client Selection Section */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">
+                    Client Selection
+                  </Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by name, email, or phone..."
+                        className="pl-9"
+                        value={clientSearch}
+                        onChange={(e) => {
+                          setClientSearch(e.target.value);
+                          setShowClientResults(e.target.value.length > 0);
+                        }}
+                        onFocus={() =>
+                          setShowClientResults(clientSearch.length > 0)
+                        }
+                      />
+                    </div>
+                    <Button variant="outline" type="button">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Client
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="client-email">Email</Label>
-                    <Input
-                      id="client-email"
-                      type="email"
-                      placeholder="client@email.com"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client-phone">Phone</Label>
-                    <Input id="client-phone" placeholder="+351 123 456 789" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="service">Service</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select service" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem
-                            key={service.id}
-                            value={service.id.toString()}
+
+                  {/* Client Search Results */}
+                  {showClientResults && (
+                    <div className="border rounded-lg bg-white shadow-sm max-h-48 overflow-y-auto">
+                      {mockClients
+                        .filter(
+                          (client) =>
+                            client.name
+                              .toLowerCase()
+                              .includes(clientSearch.toLowerCase()) ||
+                            client.email
+                              .toLowerCase()
+                              .includes(clientSearch.toLowerCase()) ||
+                            client.phone.includes(clientSearch)
+                        )
+                        .slice(0, 5)
+                        .map((client) => (
+                          <button
+                            key={client.id}
+                            className="w-full p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 text-left"
+                            onClick={() => selectClient(client)}
                           >
-                            {service.name} - {service.duration}min - €
-                            {service.price}
-                          </SelectItem>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={client.avatar} />
+                                <AvatarFallback>
+                                  {client.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="font-medium">{client.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {client.email}
+                                </div>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {client.phone}
+                              </div>
+                            </div>
+                          </button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                    </div>
+                  )}
+
+                  {/* Selected Client Display */}
+                  {selectedClient && (
+                    <div className="border rounded-lg p-4 bg-green-50 border-green-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={selectedClient.avatar} />
+                            <AvatarFallback>
+                              {selectedClient.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">
+                              {selectedClient.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {selectedClient.email} • {selectedClient.phone}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedClient(null);
+                            setClientSearch("");
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Booking Slots Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold">
+                      Service Bookings
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addBookingSlot}
+                      disabled={!selectedClient}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Another Service
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {bookingSlots.map((slot, index) => (
+                      <div
+                        key={slot.id}
+                        className="border rounded-lg p-4 space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">Service {index + 1}</h4>
+                          {bookingSlots.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeBookingSlot(slot.id)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Service</Label>
+                            <Select
+                              value={slot.service}
+                              onValueChange={(value) =>
+                                updateBookingSlot(slot.id, "service", value)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select service" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {services.map((service) => (
+                                  <SelectItem
+                                    key={service.id}
+                                    value={service.id.toString()}
+                                  >
+                                    <div className="flex flex-col">
+                                      <span>{service.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {service.duration}min
+                                        {canViewPricing &&
+                                          ` • €${service.price}`}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Professional</Label>
+                            <Select
+                              value={slot.professional}
+                              onValueChange={(value) =>
+                                updateBookingSlot(
+                                  slot.id,
+                                  "professional",
+                                  value
+                                )
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select professional" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {professionals.map((professional) => (
+                                  <SelectItem
+                                    key={professional.id}
+                                    value={professional.id.toString()}
+                                  >
+                                    {professional.name} -{" "}
+                                    {professional.speciality}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Date</Label>
+                            <Input
+                              type="date"
+                              value={slot.date}
+                              onChange={(e) =>
+                                updateBookingSlot(
+                                  slot.id,
+                                  "date",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Time</Label>
+                            <Select
+                              value={slot.time}
+                              onValueChange={(value) =>
+                                updateBookingSlot(slot.id, "time", value)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select time" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {timeSlots.map((time) => (
+                                  <SelectItem key={time} value={time}>
+                                    {time}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Notes (Optional)</Label>
+                          <Textarea
+                            placeholder="Any special requests or notes for this service..."
+                            rows={2}
+                            value={slot.notes}
+                            onChange={(e) =>
+                              updateBookingSlot(
+                                slot.id,
+                                "notes",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="professional">Professional</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select professional" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {professionals.map((professional) => (
-                          <SelectItem
-                            key={professional.id}
-                            value={professional.id.toString()}
-                          >
-                            {professional.name} - {professional.speciality}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="time">Time</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeSlots.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                {/* Summary Section */}
+                <div className="border-t pt-4">
+                  <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Booking Summary</span>
+                      <span className="text-sm text-muted-foreground">
+                        {bookingSlots.length} service
+                        {bookingSlots.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+
+                    {selectedClient && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Client:</span>{" "}
+                        {selectedClient.name}
+                      </div>
+                    )}
+
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">
+                        Total Services:
+                      </span>{" "}
+                      {bookingSlots.length}
+                    </div>
+
+                    {bookingSlots.some((slot) => slot.service) &&
+                      canViewPricing && (
+                        <div className="text-sm">
+                          <span className="text-muted-foreground">
+                            Estimated Total:
+                          </span>{" "}
+                          €
+                          {bookingSlots
+                            .filter((slot) => slot.service)
+                            .reduce((total, slot) => {
+                              const service = services.find(
+                                (s) => s.id.toString() === slot.service
+                              );
+                              return total + (service?.price || 0);
+                            }, 0)
+                            .toFixed(2)}
+                        </div>
+                      )}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="client-address">Client Address</Label>
-                  <Input
-                    id="client-address"
-                    placeholder="Client address (optional)"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Any special requests or notes..."
-                    rows={3}
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline">Cancel</Button>
-                  <Button>Create Booking</Button>
+
+                {/* Action Buttons */}
+                <div className="flex justify-between gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsCreateDialogOpen(false);
+                      resetBookingForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // Process the booking creation
+                      console.log("Creating bookings:", {
+                        client: selectedClient,
+                        slots: bookingSlots,
+                      });
+                      setIsCreateDialogOpen(false);
+                      resetBookingForm();
+                    }}
+                    disabled={
+                      !selectedClient ||
+                      bookingSlots.filter(
+                        (slot) => slot.service && slot.date && slot.time
+                      ).length === 0
+                    }
+                  >
+                    Create {bookingSlots.filter((slot) => slot.service).length}{" "}
+                    Booking
+                    {bookingSlots.filter((slot) => slot.service).length === 1
+                      ? ""
+                      : "s"}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
@@ -472,12 +889,14 @@ export function BookingManagementPage() {
             <p className="text-xs text-muted-foreground">Cancelled</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">€{stats.revenue}</div>
-            <p className="text-xs text-muted-foreground">Revenue</p>
-          </CardContent>
-        </Card>
+        {canViewPricing && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">€{stats.revenue}</div>
+              <p className="text-xs text-muted-foreground">Revenue</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Filters */}
@@ -487,7 +906,20 @@ export function BookingManagementPage() {
           <Input
             placeholder="Search bookings..."
             value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSearchTerm(e.target.value)
+            }
+            className="pl-10"
+          />
+        </div>
+        <div className="relative flex-1 md:flex-initial md:w-64">
+          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search clients..."
+            value={clientSearchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setClientSearchTerm(e.target.value)
+            }
             className="pl-10"
           />
         </div>
@@ -515,10 +947,112 @@ export function BookingManagementPage() {
               <SelectItem value="past">Past</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            More Filters
-          </Button>
+          <Dialog
+            open={isFilterDialogOpen}
+            onOpenChange={setIsFilterDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                More Filters
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Advanced Filters</DialogTitle>
+                <DialogDescription>
+                  Apply additional filters to refine your booking search
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="service-filter">Service</Label>
+                  <Select
+                    value={serviceFilter}
+                    onValueChange={setServiceFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Services" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Services</SelectItem>
+                      <SelectItem value="Haircut & Styling">
+                        Haircut & Styling
+                      </SelectItem>
+                      <SelectItem value="Full Manicure">
+                        Full Manicure
+                      </SelectItem>
+                      <SelectItem value="Deep Tissue Massage">
+                        Deep Tissue Massage
+                      </SelectItem>
+                      <SelectItem value="Color Treatment">
+                        Color Treatment
+                      </SelectItem>
+                      <SelectItem value="Facial Treatment">
+                        Facial Treatment
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="professional-filter">Professional</Label>
+                  <Select
+                    value={professionalFilter}
+                    onValueChange={setProfessionalFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Professionals" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Professionals</SelectItem>
+                      <SelectItem value="João Santos">João Santos</SelectItem>
+                      <SelectItem value="Sofia Oliveira">
+                        Sofia Oliveira
+                      </SelectItem>
+                      <SelectItem value="Carlos Ferreira">
+                        Carlos Ferreira
+                      </SelectItem>
+                      <SelectItem value="Maria Silva">Maria Silva</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {canViewPaymentDetails && (
+                  <div>
+                    <Label htmlFor="payment-filter">Payment Status</Label>
+                    <Select
+                      value={paymentFilter}
+                      onValueChange={setPaymentFilter}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Payments" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="partial">Partial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setServiceFilter("all");
+                      setProfessionalFilter("all");
+                      setPaymentFilter("all");
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                  <Button onClick={() => setIsFilterDialogOpen(false)}>
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -539,8 +1073,8 @@ export function BookingManagementPage() {
                 <TableHead>Professional</TableHead>
                 <TableHead>Date & Time</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Revenue</TableHead>
+                {canViewPaymentDetails && <TableHead>Payment</TableHead>}
+                {canViewPricing && <TableHead>Revenue</TableHead>}
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -552,16 +1086,18 @@ export function BookingManagementPage() {
                       <Avatar className="h-8 w-8">
                         <AvatarImage src="" />
                         <AvatarFallback className="text-xs">
-                          {booking.client.avatar}
+                          {booking.client?.avatar}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{booking.client.name}</div>
+                        <div className="font-medium">
+                          {booking.client?.name}
+                        </div>
                         <div className="text-sm text-muted-foreground flex items-center">
                           <Phone className="h-3 w-3 mr-1" />
-                          {booking.client.phone}
+                          {booking.client?.phone}
                         </div>
-                        {booking.client.isFirstTime && (
+                        {booking.client?.isFirstTime && (
                           <Badge variant="secondary" className="text-xs mt-1">
                             First Time
                           </Badge>
@@ -571,17 +1107,17 @@ export function BookingManagementPage() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{booking.service.name}</div>
+                      <div className="font-medium">{booking.service?.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {booking.service.duration}min •{" "}
-                        {booking.service.category}
+                        {booking.service?.duration}min •{" "}
+                        {booking.service?.category}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <User className="h-3 w-3 mr-1 text-muted-foreground" />
-                      {booking.professional}
+                      {booking.professional?.name}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -602,20 +1138,67 @@ export function BookingManagementPage() {
                       <span className="ml-1 capitalize">{booking.status}</span>
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getPaymentStatusColor(booking.paymentStatus)}
-                    >
-                      {booking.paymentStatus}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">€{booking.service.price}</div>
-                  </TableCell>
+                  {canViewPaymentDetails && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={getPaymentStatusColor(
+                            booking.paymentStatus
+                          )}
+                        >
+                          {booking.paymentStatus}
+                        </Badge>
+                        {booking.paymentStatus === "pending" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePaymentClick(booking)}
+                          >
+                            Process
+                          </Button>
+                        )}
+                        {booking.paymentStatus === "paid" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePaymentClick(booking)}
+                          >
+                            Details
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
+                  {canViewPricing && (
+                    <TableCell>
+                      <div className="font-medium">
+                        €{booking.service?.price}
+                      </div>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <div className="flex space-x-1">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingBooking({
+                            id: booking.id.toString(),
+                            clientName: booking.client?.name,
+                            clientEmail: booking.client?.email,
+                            serviceName: booking.service?.name,
+                            professionalName: booking.professional?.name,
+                            date: booking.date,
+                            time: booking.time,
+                            duration: booking.service?.duration,
+                            price: booking.service?.price,
+                            status: booking.status,
+                            notes: booking.notes || "",
+                          });
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm">
@@ -629,6 +1212,170 @@ export function BookingManagementPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <EditBookingDialog
+        booking={editingBooking}
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditingBooking(null);
+        }}
+        onSave={(updatedBooking) => {
+          // Handle booking update here
+          console.log("Updated booking:", updatedBooking);
+          setIsEditDialogOpen(false);
+          setEditingBooking(null);
+        }}
+      />
+
+      {/* Payment Dialog */}
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Payment Management</DialogTitle>
+            <DialogDescription>
+              Manage payment for {selectedBookingForPayment?.client.name}'s
+              booking
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBookingForPayment && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Booking Details</Label>
+                  <div className="mt-2 p-3 bg-muted rounded-lg">
+                    <p className="text-sm">
+                      <strong>Service:</strong>{" "}
+                      {selectedBookingForPayment.service.name}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Professional:</strong>{" "}
+                      {selectedBookingForPayment.professional}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Date:</strong> {selectedBookingForPayment.date} at{" "}
+                      {selectedBookingForPayment.time}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Duration:</strong>{" "}
+                      {selectedBookingForPayment.service.duration}min
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">
+                    Payment Information
+                  </Label>
+                  <div className="mt-2 p-3 bg-muted rounded-lg">
+                    <p className="text-sm">
+                      <strong>Amount:</strong> €
+                      {selectedBookingForPayment.service.price}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Status:</strong>
+                      <Badge
+                        variant="outline"
+                        className={`ml-2 ${getPaymentStatusColor(selectedBookingForPayment.paymentStatus)}`}
+                      >
+                        {selectedBookingForPayment.paymentStatus}
+                      </Badge>
+                    </p>
+                    {selectedBookingForPayment.paymentStatus === "paid" && (
+                      <p className="text-sm">
+                        <strong>Paid at:</strong>{" "}
+                        {new Date().toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {selectedBookingForPayment.paymentStatus === "pending" && (
+                <div className="space-y-4">
+                  <Label htmlFor="payment-method">Payment Method</Label>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={(v) => setPaymentMethod(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="card">Credit/Debit Card</SelectItem>
+                      <SelectItem value="transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="mbway">MB Way</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {paymentMethod === "card" ? (
+                    // In-app card flow using Stripe Elements
+                    <PaymentForm
+                      bookingId={selectedBookingForPayment.id}
+                      clientName={selectedBookingForPayment.client?.name}
+                      onSuccess={async () => {
+                        try {
+                          await completeBooking(
+                            String(selectedBookingForPayment.id)
+                          );
+                        } catch (err) {
+                          console.error(err);
+                        } finally {
+                          await fetchBookings();
+                          setPaymentDialogOpen(false);
+                        }
+                      }}
+                      onCancel={() => setPaymentDialogOpen(false)}
+                    />
+                  ) : (
+                    <div>
+                      <div className="space-y-2">
+                        <Label htmlFor="payment-notes">Payment Notes</Label>
+                        <Textarea
+                          id="payment-notes"
+                          placeholder="Add any payment-related notes..."
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="flex gap-2 pt-4">
+                        <Button
+                          onClick={async () => {
+                            try {
+                              // For non-card methods we mark booking as completed.
+                              await completeBooking(
+                                String(selectedBookingForPayment.id)
+                              );
+                              await fetchBookings();
+                              toast.success(
+                                "Booking completed and payment recorded"
+                              );
+                            } catch (err) {
+                              console.error(err);
+                              toast.error("Failed to complete booking");
+                            } finally {
+                              setPaymentDialogOpen(false);
+                            }
+                          }}
+                        >
+                          Mark as Paid
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setPaymentDialogOpen(false)}
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

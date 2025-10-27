@@ -157,12 +157,11 @@ export function SimpleServicesPage() {
     total: services.length,
     active: services.filter((s) => s.active).length,
     inactive: services.filter((s) => !s.active).length,
-    avgPrice: services.reduce((sum, s) => sum + s.price, 0) / services.length,
+    avgDuration:
+      services.reduce((sum, s) => sum + s.duration, 0) / services.length,
     totalBookings: services.reduce((sum, s) => sum + s.totalBookings, 0),
-    totalRevenue: services.reduce(
-      (sum, s) => sum + s.totalBookings * s.price,
-      0
-    ),
+    avgPopularity:
+      services.reduce((sum, s) => sum + s.popularity, 0) / services.length,
   };
 
   const getPopularityColor = (popularity: number) => {
@@ -308,9 +307,9 @@ export function SimpleServicesPage() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">
-              €{stats.avgPrice.toFixed(0)}
+              {Math.round(stats.avgDuration)}min
             </div>
-            <p className="text-xs text-muted-foreground">Avg. Price</p>
+            <p className="text-xs text-muted-foreground">Avg. Duration</p>
           </CardContent>
         </Card>
         <Card>
@@ -322,9 +321,9 @@ export function SimpleServicesPage() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">
-              €{stats.totalRevenue.toLocaleString()}
+              {Math.round(stats.avgPopularity)}%
             </div>
-            <p className="text-xs text-muted-foreground">Total Revenue</p>
+            <p className="text-xs text-muted-foreground">Avg. Popularity</p>
           </CardContent>
         </Card>
       </div>

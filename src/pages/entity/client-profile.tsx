@@ -1,4 +1,15 @@
-import { useState } from "react";
+import {
+  JSXElementConstructor,
+  Key,
+  ReactElement,
+  ReactNode,
+  ReactPortal,
+  useState,
+  useEffect,
+} from "react";
+import { useAuth } from "../../contexts/auth-context";
+import { useClients } from "../../hooks/useClients";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -60,126 +71,170 @@ import {
   Heart,
   Users,
 } from "lucide-react";
+import { Skeleton } from "../../components/ui/skeleton";
 
 export function ClientProfilePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [showClientDetails, setShowClientDetails] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [editingClientData, setEditingClientData] = useState<any>(null);
+  const [clientToDelete, setClientToDelete] = useState<any>(null);
 
-  // Mock clients data
-  const clients = [
-    {
-      id: 1,
-      name: "Ana Silva",
-      email: "ana.silva@email.com",
-      phone: "+351 123 456 789",
-      avatar: "AS",
-      status: "active",
-      joinDate: "2023-01-15",
-      lastVisit: "2024-01-20",
-      totalBookings: 24,
-      totalSpent: 980,
-      averageSpent: 40.83,
-      preferredServices: ["Haircut & Styling", "Hair Coloring"],
-      notes: "Prefers appointments in the morning. Allergic to ammonia.",
-      address: "Rua das Flores, 123, Lisboa",
-      birthDate: "1985-03-15",
-      loyaltyPoints: 245,
-      referrals: 3,
-    },
-    {
-      id: 2,
-      name: "João Santos",
-      email: "joao.santos@email.com",
-      phone: "+351 987 654 321",
-      avatar: "JS",
-      status: "active",
-      joinDate: "2023-03-10",
-      lastVisit: "2024-01-18",
-      totalBookings: 15,
-      totalSpent: 450,
-      averageSpent: 30,
-      preferredServices: ["Haircut", "Beard Trim"],
-      notes: "Regular client, comes every 3 weeks.",
-      address: "Avenida da Liberdade, 456, Lisboa",
-      birthDate: "1978-07-22",
-      loyaltyPoints: 150,
-      referrals: 1,
-    },
-    {
-      id: 3,
-      name: "Maria Oliveira",
-      email: "maria.oliveira@email.com",
-      phone: "+351 555 123 456",
-      avatar: "MO",
-      status: "active",
-      joinDate: "2022-11-20",
-      lastVisit: "2024-01-19",
-      totalBookings: 42,
-      totalSpent: 1890,
-      averageSpent: 45,
-      preferredServices: ["Hair Coloring", "Hair Treatment", "Styling"],
-      notes: "VIP client. Prefers Sofia as stylist.",
-      address: "Rua Augusta, 789, Lisboa",
-      birthDate: "1990-12-05",
-      loyaltyPoints: 420,
-      referrals: 5,
-    },
-    {
-      id: 4,
-      name: "Pedro Costa",
-      email: "pedro.costa@email.com",
-      phone: "+351 444 555 666",
-      avatar: "PC",
-      status: "inactive",
-      joinDate: "2023-06-01",
-      lastVisit: "2023-11-15",
-      totalBookings: 8,
-      totalSpent: 240,
-      averageSpent: 30,
-      preferredServices: ["Haircut"],
-      notes: "Has not visited in over 2 months.",
-      address: "Praça do Comércio, 321, Lisboa",
-      birthDate: "1992-04-18",
-      loyaltyPoints: 80,
-      referrals: 0,
-    },
-  ];
+  const { user } = useAuth();
+  const entityId = user?.businessId || user?.id || "";
 
-  const recentBookings = [
-    {
-      id: 1,
-      clientId: 1,
-      clientName: "Ana Silva",
-      service: "Haircut & Styling",
-      date: "2024-01-20",
-      time: "10:00",
-      professional: "Sofia Oliveira",
-      amount: 35,
-      status: "completed",
-    },
-    {
-      id: 2,
-      clientId: 2,
-      clientName: "João Santos",
-      service: "Beard Trim",
-      date: "2024-01-20",
-      time: "14:30",
-      professional: "Carlos Ferreira",
-      amount: 15,
-      status: "completed",
-    },
-    {
-      id: 3,
-      clientId: 3,
-      clientName: "Maria Oliveira",
-      service: "Hair Coloring",
-      date: "2024-01-19",
-      time: "09:00",
-      professional: "Sofia Oliveira",
-      amount: 85,
-      status: "completed",
-    },
-  ];
+  const {
+    clients,
+    loading: clientsLoading,
+    error: clientsError,
+    fetchClients,
+    getClientWithBookings,
+    getClientStats,
+    createClient,
+    updateClient,
+    deleteClient,
+  } = useClients({ entityId, autoFetch: true });
+
+  const [recentBookings, setRecentBookings] = useState<any[]>([]);
+  const [newClient, setNewClient] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    birthDate: "",
+    address: "",
+    notes: "",
+  });
+
+  const handleViewClient = async (client: any) => {
+    try {
+      const full = await getClientWithBookings(String(client.id));
+      setSelectedClient(full);
+      setShowClientDetails(true);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load client details");
+    }
+  };
+
+  const openEditClient = (client: any) => {
+    setEditingClientData({ ...client });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditClientSave = async () => {
+    if (!editingClientData || !editingClientData.id) return;
+    try {
+      await updateClient(String(editingClientData.id), {
+        name: editingClientData.name,
+        email: editingClientData.email,
+        phone: editingClientData.phone,
+        address: editingClientData.address,
+        notes: editingClientData.notes,
+        dateOfBirth: editingClientData.birthDate,
+      });
+      setIsEditDialogOpen(false);
+      fetchClients();
+      toast.success("Client updated");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update client");
+    }
+  };
+
+  const confirmDeleteClient = (client: any) => {
+    setClientToDelete(client);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteClient = async () => {
+    if (!clientToDelete?.id) return;
+    try {
+      await deleteClient(String(clientToDelete.id));
+      setIsDeleteDialogOpen(false);
+      setClientToDelete(null);
+      fetchClients();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete client");
+    }
+  };
+
+  const getClientBookings = (clientId: number) => {
+    return recentBookings.filter((booking) => booking.clientId === clientId);
+  };
+
+  // Build a small recent bookings feed by fetching bookings for the first
+  // few clients (kept lightweight). This populates the "Recent Activity" tab.
+  useEffect(() => {
+    let cancelled = false;
+    if (!clients || clients.length === 0) {
+      setRecentBookings([]);
+      return;
+    }
+
+    (async () => {
+      try {
+        const topClients = clients.slice(0, 10);
+        const results = await Promise.all(
+          topClients.map((c: any) =>
+            getClientWithBookings(String(c.id)).catch(() => null)
+          )
+        );
+
+        const bookings = results
+          .filter(Boolean)
+          .flatMap((res: any) =>
+            (res.bookings || []).map((b: any) => ({
+              ...b,
+              clientName: res.name,
+            }))
+          )
+          .sort(
+            (a: any, b: any) =>
+              new Date(b.date).getTime() - new Date(a.date).getTime()
+          )
+          .slice(0, 20);
+
+        if (!cancelled) setRecentBookings(bookings as any[]);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [clients, getClientWithBookings]);
+
+  const handleAddClientSubmit = async () => {
+    try {
+      await createClient({
+        name: newClient.name,
+        email: newClient.email,
+        phone: newClient.phone || undefined,
+        address: newClient.address || undefined,
+        notes: newClient.notes || undefined,
+        dateOfBirth: newClient.birthDate || undefined,
+      });
+      setNewClient({
+        name: "",
+        email: "",
+        phone: "",
+        birthDate: "",
+        address: "",
+        notes: "",
+      });
+      // refresh list (createClient already appends but ensure consistency)
+      fetchClients();
+      toast.success("Client created successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to create client");
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -252,7 +307,14 @@ export function ClientProfilePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="client-name">Full Name</Label>
-                    <Input id="client-name" placeholder="Enter full name" />
+                    <Input
+                      id="client-name"
+                      placeholder="Enter full name"
+                      value={newClient.name}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewClient({ ...newClient, name: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="client-email">Email</Label>
@@ -260,22 +322,50 @@ export function ClientProfilePage() {
                       id="client-email"
                       type="email"
                       placeholder="client@email.com"
+                      value={newClient.email}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewClient({ ...newClient, email: e.target.value })
+                      }
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="client-phone">Phone</Label>
-                    <Input id="client-phone" placeholder="+351 123 456 789" />
+                    <Input
+                      id="client-phone"
+                      placeholder="+351 123 456 789"
+                      value={newClient.phone}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewClient({ ...newClient, phone: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="birth-date">Birth Date</Label>
-                    <Input id="birth-date" type="date" />
+                    <Input
+                      id="birth-date"
+                      type="date"
+                      value={newClient.birthDate}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewClient({
+                          ...newClient,
+                          birthDate: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
-                  <Input id="address" placeholder="Street address, city" />
+                  <Input
+                    id="address"
+                    placeholder="Street address, city"
+                    value={newClient.address}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewClient({ ...newClient, address: e.target.value })
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="preferred-services">Preferred Services</Label>
@@ -297,11 +387,15 @@ export function ClientProfilePage() {
                     id="notes"
                     placeholder="Special notes, preferences, allergies..."
                     rows={3}
+                    value={newClient.notes}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setNewClient({ ...newClient, notes: e.target.value })
+                    }
                   />
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline">Cancel</Button>
-                  <Button>Add Client</Button>
+                  <Button onClick={handleAddClientSubmit}>Add Client</Button>
                 </div>
               </div>
             </DialogContent>
@@ -311,52 +405,61 @@ export function ClientProfilePage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Total Clients</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.active}
-            </div>
-            <p className="text-xs text-muted-foreground">Active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.inactive}
-            </div>
-            <p className="text-xs text-muted-foreground">Inactive</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {stats.vip}
-            </div>
-            <p className="text-xs text-muted-foreground">VIP Clients</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              €{stats.totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Total Revenue</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              €{stats.averageSpent.toFixed(0)}
-            </div>
-            <p className="text-xs text-muted-foreground">Avg. Spent</p>
-          </CardContent>
-        </Card>
+        {clientsLoading ? (
+          // show skeletons while loading
+          Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-16" />
+          ))
+        ) : (
+          <>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold">{stats.total}</div>
+                <p className="text-xs text-muted-foreground">Total Clients</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.active}
+                </div>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-red-600">
+                  {stats.inactive}
+                </div>
+                <p className="text-xs text-muted-foreground">Inactive</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-purple-600">
+                  {stats.vip}
+                </div>
+                <p className="text-xs text-muted-foreground">VIP Clients</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold">
+                  €{stats.totalRevenue.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Revenue</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold">
+                  €{stats.averageSpent.toFixed(0)}
+                </div>
+                <p className="text-xs text-muted-foreground">Avg. Spent</p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Filters */}
@@ -366,7 +469,9 @@ export function ClientProfilePage() {
           <Input
             placeholder="Search clients..."
             value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSearchTerm(e.target.value)
+            }
             className="pl-10"
           />
         </div>
@@ -420,91 +525,142 @@ export function ClientProfilePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClients.map((client) => {
-                    const loyaltyInfo = getLoyaltyTier(client.loyaltyPoints);
-                    return (
-                      <TableRow key={client.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src="" />
-                              <AvatarFallback className="text-xs">
-                                {client.avatar}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{client.name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                Member since{" "}
-                                {new Date(client.joinDate).toLocaleDateString()}
+                  {clientsLoading
+                    ? Array.from({ length: 4 }).map((_, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell>
+                            <Skeleton className="h-6 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-32" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-16" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-16" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-12" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-20" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : filteredClients.map((client) => {
+                        const loyaltyInfo = getLoyaltyTier(
+                          client.loyaltyPoints
+                        );
+                        return (
+                          <TableRow key={client.id}>
+                            <TableCell>
+                              <div className="flex items-center space-x-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src="" />
+                                  <AvatarFallback className="text-xs">
+                                    {client.avatar}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">
+                                    {client.name}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    Member since{" "}
+                                    {new Date(
+                                      client.joinDate
+                                    ).toLocaleDateString()}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center text-sm">
-                              <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
-                              {client.email}
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {client.phone}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="font-medium">
-                              {client.totalBookings} bookings
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              Last:{" "}
-                              {new Date(client.lastVisit).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className={`font-medium ${loyaltyInfo.color}`}>
-                              {loyaltyInfo.tier}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {client.loyaltyPoints} points
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="font-medium">
-                              €{client.totalSpent}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              Avg: €{client.averageSpent.toFixed(2)}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={getStatusColor(client.status)}
-                          >
-                            {client.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="flex items-center text-sm">
+                                  <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
+                                  {client.email}
+                                </div>
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                  <Phone className="h-3 w-3 mr-1" />
+                                  {client.phone}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="font-medium">
+                                  {client.totalBookings} bookings
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Last:{" "}
+                                  {new Date(
+                                    client.lastVisit
+                                  ).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div
+                                  className={`font-medium ${loyaltyInfo.color}`}
+                                >
+                                  {loyaltyInfo.tier}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {client.loyaltyPoints} points
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="font-medium">
+                                  €{client.totalSpent}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Avg: €{client.averageSpent.toFixed(2)}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={getStatusColor(client.status)}
+                              >
+                                {client.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewClient(client)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditClient(client)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => confirmDeleteClient(client)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -675,6 +831,418 @@ export function ClientProfilePage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Client Details Dialog */}
+      <Dialog open={showClientDetails} onOpenChange={setShowClientDetails}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src="" />
+                <AvatarFallback>{selectedClient?.avatar}</AvatarFallback>
+              </Avatar>
+              <div>
+                <div>{selectedClient?.name}</div>
+                <div className="text-sm text-muted-foreground font-normal">
+                  Client Profile & Booking History
+                </div>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedClient && (
+            <Tabs defaultValue="profile" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="bookings">Booking History</TabsTrigger>
+                <TabsTrigger value="preferences">Preferences</TabsTrigger>
+              </TabsList>
+
+              {/* Profile Tab */}
+              <TabsContent value="profile" className="space-y-4">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contact Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span>{selectedClient.email}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span>{selectedClient.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          Born:{" "}
+                          {new Date(
+                            selectedClient.birthDate
+                          ).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="pt-2">
+                        <Label className="text-sm font-medium">Address</Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {selectedClient.address}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Client Statistics</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm">Total Bookings</Label>
+                          <p className="text-2xl font-bold">
+                            {selectedClient.totalBookings}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Total Spent</Label>
+                          <p className="text-2xl font-bold">
+                            €{selectedClient.totalSpent}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Average Spent</Label>
+                          <p className="text-xl font-semibold">
+                            €{selectedClient.averageSpent}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Loyalty Points</Label>
+                          <p className="text-xl font-semibold">
+                            {selectedClient.loyaltyPoints}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="pt-2">
+                        <Label className="text-sm">Loyalty Tier</Label>
+                        <div
+                          className={`text-lg font-semibold ${getLoyaltyTier(selectedClient.loyaltyPoints).color}`}
+                        >
+                          {getLoyaltyTier(selectedClient.loyaltyPoints).tier}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm">{selectedClient.notes}</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Booking History Tab */}
+              <TabsContent value="bookings" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Booking History</CardTitle>
+                    <CardDescription>
+                      Complete history of {selectedClient.name}'s appointments
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Service</TableHead>
+                          <TableHead>Professional</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {getClientBookings(selectedClient.id).length > 0 ? (
+                          getClientBookings(selectedClient.id).map(
+                            (booking) => (
+                              <TableRow key={booking.id}>
+                                <TableCell className="font-medium">
+                                  {booking.service}
+                                </TableCell>
+                                <TableCell>{booking.professional}</TableCell>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <div className="flex items-center">
+                                      <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                                      {new Date(
+                                        booking.date
+                                      ).toLocaleDateString()}
+                                    </div>
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      {booking.time}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="font-medium">
+                                    €{booking.amount}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      booking.status === "completed"
+                                        ? "bg-green-100 text-green-800 border-green-200"
+                                        : "bg-blue-100 text-blue-800 border-blue-200"
+                                    }
+                                  >
+                                    {booking.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            )
+                          )
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={5}
+                              className="text-center py-8 text-muted-foreground"
+                            >
+                              No bookings found for this client
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Preferences Tab */}
+              <TabsContent value="preferences" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Service Preferences</CardTitle>
+                    <CardDescription>
+                      {selectedClient.name}'s preferred services and
+                      professionals
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">
+                        Preferred Services
+                      </Label>
+                      <div className="flex gap-2 mt-2">
+                        {selectedClient.preferredServices.map(
+                          (
+                            service:
+                              | string
+                              | number
+                              | boolean
+                              | ReactElement<
+                                  any,
+                                  string | JSXElementConstructor<any>
+                                >
+                              | Iterable<ReactNode>
+                              | ReactPortal
+                              | Iterable<ReactNode>
+                              | null
+                              | undefined,
+                            index: Key | null | undefined
+                          ) => (
+                            <Badge key={index} variant="outline">
+                              {service}
+                            </Badge>
+                          )
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label className="text-sm font-medium">
+                          Client Since
+                        </Label>
+                        <p className="text-sm mt-1">
+                          {new Date(
+                            selectedClient.joinDate
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">
+                          Last Visit
+                        </Label>
+                        <p className="text-sm mt-1">
+                          {new Date(
+                            selectedClient.lastVisit
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">
+                          Referrals Made
+                        </Label>
+                        <p className="text-sm mt-1">
+                          {selectedClient.referrals} clients
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Status</Label>
+                        <Badge
+                          variant="outline"
+                          className={`mt-1 ${getStatusColor(selectedClient.status)}`}
+                        >
+                          {selectedClient.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Client Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Client</DialogTitle>
+            <DialogDescription>Update client information</DialogDescription>
+          </DialogHeader>
+          {editingClientData && (
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Full Name</Label>
+                  <Input
+                    value={editingClientData.name}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setEditingClientData({
+                        ...editingClientData,
+                        name: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={editingClientData.email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setEditingClientData({
+                        ...editingClientData,
+                        email: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input
+                    value={editingClientData.phone}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setEditingClientData({
+                        ...editingClientData,
+                        phone: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Birth Date</Label>
+                  <Input
+                    type="date"
+                    value={editingClientData.birthDate}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setEditingClientData({
+                        ...editingClientData,
+                        birthDate: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Address</Label>
+                <Input
+                  value={editingClientData.address}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setEditingClientData({
+                      ...editingClientData,
+                      address: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Notes</Label>
+                <Textarea
+                  rows={3}
+                  value={editingClientData.notes}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setEditingClientData({
+                      ...editingClientData,
+                      notes: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleEditClientSave}>Save</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Client</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {clientToDelete?.name}? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 text-white"
+              onClick={handleDeleteClient}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

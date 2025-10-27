@@ -483,277 +483,536 @@ export function DataAnalyticsPage() {
 
         {/* Service Performance */}
         <TabsContent value="services">
-          <Card>
-            <CardHeader>
-              <CardTitle>Service Performance Analysis</CardTitle>
-              <CardDescription>
-                Revenue breakdown and profitability by service type
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Revenue</TableHead>
-                    <TableHead>Bookings</TableHead>
-                    <TableHead>Avg. Value</TableHead>
-                    <TableHead>Market Share</TableHead>
-                    <TableHead>Performance</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Revenue Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue by Service</CardTitle>
+                <CardDescription>
+                  Visual breakdown of service contribution to total revenue
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
                   {revenueByService.map((service) => (
-                    <TableRow key={service.service}>
-                      <TableCell className="font-medium">
-                        {service.service}
-                      </TableCell>
-                      <TableCell>€{service.revenue.toLocaleString()}</TableCell>
-                      <TableCell>{service.bookings}</TableCell>
-                      <TableCell>
-                        €{(service.revenue / service.bookings).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Progress
-                            value={service.percentage}
-                            className="w-20"
-                          />
-                          <span className="text-sm">{service.percentage}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            service.percentage > 25
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }
-                        >
-                          {service.percentage > 25 ? "High" : "Normal"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                    <div key={service.service} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">{service.service}</span>
+                        <span className="text-muted-foreground">
+                          €{service.revenue.toLocaleString()} (
+                          {service.percentage}%)
+                        </span>
+                      </div>
+                      <Progress value={service.percentage} className="h-2" />
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </div>
+                <div className="pt-4 border-t">
+                  <div className="flex justify-between text-sm font-medium">
+                    <span>Total Revenue</span>
+                    <span>
+                      €
+                      {revenueByService
+                        .reduce((sum, s) => sum + s.revenue, 0)
+                        .toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Professional Performance */}
-        <TabsContent value="professionals">
-          <Card>
-            <CardHeader>
-              <CardTitle>Professional Performance</CardTitle>
-              <CardDescription>
-                Individual performance metrics and client satisfaction
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Professional</TableHead>
-                    <TableHead>Revenue</TableHead>
-                    <TableHead>Bookings</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Satisfaction</TableHead>
-                    <TableHead>Efficiency</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topProfessionals.map((professional) => (
-                    <TableRow key={professional.name}>
-                      <TableCell className="font-medium">
-                        {professional.name}
-                      </TableCell>
-                      <TableCell>
-                        €{professional.revenue.toLocaleString()}
-                      </TableCell>
-                      <TableCell>{professional.bookings}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                          {professional.rating}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Progress
-                            value={professional.clientSatisfaction}
-                            className="w-16"
-                          />
-                          <span className="text-sm">
-                            {professional.clientSatisfaction}%
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Progress
-                            value={professional.efficiency}
-                            className="w-16"
-                          />
-                          <span className="text-sm">
-                            {professional.efficiency}%
-                          </span>
-                        </div>
-                      </TableCell>
+            {/* Service Performance Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Service Metrics</CardTitle>
+                <CardDescription>
+                  Detailed performance metrics for each service
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Revenue</TableHead>
+                      <TableHead>Bookings</TableHead>
+                      <TableHead>Avg. Value</TableHead>
+                      <TableHead>Market Share</TableHead>
+                      <TableHead>Performance</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Time Analysis */}
-        <TabsContent value="time">
-          <Card>
-            <CardHeader>
-              <CardTitle>Peak Hours Analysis</CardTitle>
-              <CardDescription>
-                Booking patterns and revenue distribution by time
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Time Slot</TableHead>
-                    <TableHead>Bookings</TableHead>
-                    <TableHead>Revenue</TableHead>
-                    <TableHead>Avg. Value</TableHead>
-                    <TableHead>Utilization</TableHead>
-                    <TableHead>Performance</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {busyHours.map((hour) => {
-                    const maxBookings = Math.max(
-                      ...busyHours.map((h) => h.bookings)
-                    );
-                    const utilization = (hour.bookings / maxBookings) * 100;
-
-                    const getUtilizationColor = () => {
-                      if (utilization > 80) return "bg-red-100 text-red-800";
-                      if (utilization > 60)
-                        return "bg-green-100 text-green-800";
-                      return "bg-blue-100 text-blue-800";
-                    };
-
-                    const getUtilizationText = () => {
-                      if (utilization > 80) return "Busy";
-                      if (utilization > 60) return "Optimal";
-                      return "Available";
-                    };
-
-                    return (
-                      <TableRow key={hour.hour}>
+                  </TableHeader>
+                  <TableBody>
+                    {revenueByService.map((service) => (
+                      <TableRow key={service.service}>
                         <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {hour.hour}
-                          </div>
+                          {service.service}
                         </TableCell>
-                        <TableCell>{hour.bookings}</TableCell>
-                        <TableCell>€{hour.revenue}</TableCell>
                         <TableCell>
-                          €{(hour.revenue / hour.bookings).toFixed(2)}
+                          €{service.revenue.toLocaleString()}
+                        </TableCell>
+                        <TableCell>{service.bookings}</TableCell>
+                        <TableCell>
+                          €{(service.revenue / service.bookings).toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Progress value={utilization} className="w-20" />
+                            <Progress
+                              value={service.percentage}
+                              className="w-20"
+                            />
                             <span className="text-sm">
-                              {utilization.toFixed(0)}%
+                              {service.percentage}%
                             </span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant="outline"
-                            className={getUtilizationColor()}
+                            className={
+                              service.percentage > 25
+                                ? "bg-green-100 text-green-800"
+                                : "bg-blue-100 text-blue-800"
+                            }
                           >
-                            {getUtilizationText()}
+                            {service.percentage > 25 ? "High" : "Normal"}
                           </Badge>
                         </TableCell>
                       </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Professional Performance */}
+        <TabsContent value="professionals">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Performance Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Professional Performance Ranking</CardTitle>
+                <CardDescription>
+                  Revenue and satisfaction rankings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {topProfessionals.map((professional, index) => (
+                  <div key={professional.name} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0
+                              ? "bg-yellow-100 text-yellow-800"
+                              : index === 1
+                                ? "bg-gray-100 text-gray-800"
+                                : index === 2
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                        <span className="font-medium">{professional.name}</span>
+                      </div>
+                      <div className="text-right text-sm">
+                        <div className="font-semibold">
+                          €{professional.revenue.toLocaleString()}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {professional.bookings} bookings
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div className="flex justify-between">
+                          <span>Rating</span>
+                          <span className="font-medium">
+                            {professional.rating}/5.0
+                          </span>
+                        </div>
+                        <Progress
+                          value={professional.rating * 20}
+                          className="h-1 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex justify-between">
+                          <span>Satisfaction</span>
+                          <span className="font-medium">
+                            {professional.clientSatisfaction}%
+                          </span>
+                        </div>
+                        <Progress
+                          value={professional.clientSatisfaction}
+                          className="h-1 mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Detailed Metrics Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Detailed Metrics</CardTitle>
+                <CardDescription>
+                  Complete performance breakdown
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Professional</TableHead>
+                      <TableHead>Revenue</TableHead>
+                      <TableHead>Bookings</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Satisfaction</TableHead>
+                      <TableHead>Efficiency</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topProfessionals.map((professional) => (
+                      <TableRow key={professional.name}>
+                        <TableCell className="font-medium">
+                          {professional.name}
+                        </TableCell>
+                        <TableCell>
+                          €{professional.revenue.toLocaleString()}
+                        </TableCell>
+                        <TableCell>{professional.bookings}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                            {professional.rating}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Progress
+                              value={professional.clientSatisfaction}
+                              className="w-16"
+                            />
+                            <span className="text-sm">
+                              {professional.clientSatisfaction}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Progress
+                              value={professional.efficiency}
+                              className="w-16"
+                            />
+                            <span className="text-sm">
+                              {professional.efficiency}%
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Time Analysis */}
+        <TabsContent value="time">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Peak Hours Visualization */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Peak Hours Chart</CardTitle>
+                <CardDescription>
+                  Visual representation of booking patterns throughout the day
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {busyHours.map((hour) => {
+                    const maxBookings = Math.max(
+                      ...busyHours.map((h) => h.bookings)
+                    );
+                    const utilization = (hour.bookings / maxBookings) * 100;
+
+                    return (
+                      <div key={hour.hour} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-medium">{hour.hour}</span>
+                          </div>
+                          <span className="text-muted-foreground">
+                            {hour.bookings} bookings (€{hour.revenue})
+                          </span>
+                        </div>
+                        <div className="relative">
+                          <Progress value={utilization} className="h-3" />
+                          <Badge
+                            variant="outline"
+                            className={`absolute right-0 -top-6 text-xs ${
+                              utilization > 80
+                                ? "bg-red-50 text-red-700 border-red-200"
+                                : utilization > 60
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : "bg-blue-50 text-blue-700 border-blue-200"
+                            }`}
+                          >
+                            {utilization > 80
+                              ? "Peak"
+                              : utilization > 60
+                                ? "Active"
+                                : "Quiet"}
+                          </Badge>
+                        </div>
+                      </div>
                     );
                   })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                </div>
+                <div className="pt-4 border-t">
+                  <div className="text-center">
+                    <p className="text-sm font-medium">
+                      Peak Performance: 14:00-16:00
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Consider additional staff during these hours
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Time Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Hourly Breakdown</CardTitle>
+                <CardDescription>
+                  Detailed metrics for each time slot
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Time Slot</TableHead>
+                      <TableHead>Bookings</TableHead>
+                      <TableHead>Revenue</TableHead>
+                      <TableHead>Avg. Value</TableHead>
+                      <TableHead>Utilization</TableHead>
+                      <TableHead>Performance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {busyHours.map((hour) => {
+                      const maxBookings = Math.max(
+                        ...busyHours.map((h) => h.bookings)
+                      );
+                      const utilization = (hour.bookings / maxBookings) * 100;
+
+                      const getUtilizationColor = () => {
+                        if (utilization > 80) return "bg-red-100 text-red-800";
+                        if (utilization > 60)
+                          return "bg-green-100 text-green-800";
+                        return "bg-blue-100 text-blue-800";
+                      };
+
+                      const getUtilizationText = () => {
+                        if (utilization > 80) return "Busy";
+                        if (utilization > 60) return "Optimal";
+                        return "Available";
+                      };
+
+                      return (
+                        <TableRow key={hour.hour}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                              {hour.hour}
+                            </div>
+                          </TableCell>
+                          <TableCell>{hour.bookings}</TableCell>
+                          <TableCell>€{hour.revenue}</TableCell>
+                          <TableCell>
+                            €{(hour.revenue / hour.bookings).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Progress value={utilization} className="w-20" />
+                              <span className="text-sm">
+                                {utilization.toFixed(0)}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={getUtilizationColor()}
+                            >
+                              {getUtilizationText()}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Client Segments */}
         <TabsContent value="clients">
-          <Card>
-            <CardHeader>
-              <CardTitle>Client Segmentation</CardTitle>
-              <CardDescription>
-                Client behavior analysis and lifetime value metrics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Segment</TableHead>
-                    <TableHead>Clients</TableHead>
-                    <TableHead>Revenue</TableHead>
-                    <TableHead>Avg. Spent</TableHead>
-                    <TableHead>Retention</TableHead>
-                    <TableHead>LTV Score</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Client Segments Visualization */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Client Value Distribution</CardTitle>
+                <CardDescription>
+                  Lifetime value and spending patterns across client segments
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
                   {clientSegments.map((segment) => (
-                    <TableRow key={segment.segment}>
-                      <TableCell className="font-medium">
-                        {segment.segment}
-                      </TableCell>
-                      <TableCell>{segment.count}</TableCell>
-                      <TableCell>€{segment.revenue.toLocaleString()}</TableCell>
-                      <TableCell>€{segment.avgSpent}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Progress
-                            value={segment.retention}
-                            className="w-16"
-                          />
-                          <span className="text-sm">{segment.retention}%</span>
+                    <div key={segment.segment} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">{segment.segment}</span>
+                        <span className="text-muted-foreground">
+                          {segment.count} clients (€
+                          {segment.revenue.toLocaleString()})
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="text-center p-2 bg-muted rounded">
+                          <div className="font-semibold">
+                            €{segment.avgSpent}
+                          </div>
+                          <div className="text-muted-foreground">
+                            Avg. Spent
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={(() => {
-                            if (segment.retention > 90)
-                              return "bg-purple-100 text-purple-800";
-                            if (segment.retention > 80)
-                              return "bg-green-100 text-green-800";
-                            if (segment.retention > 60)
-                              return "bg-blue-100 text-blue-800";
-                            return "bg-yellow-100 text-yellow-800";
-                          })()}
-                        >
-                          {(() => {
-                            if (segment.retention > 90) return "Excellent";
-                            if (segment.retention > 80) return "High";
-                            if (segment.retention > 60) return "Medium";
-                            return "Low";
-                          })()}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                        <div className="text-center p-2 bg-muted rounded">
+                          <div className="font-semibold">
+                            {segment.retention}%
+                          </div>
+                          <div className="text-muted-foreground">Retention</div>
+                        </div>
+                        <div className="text-center p-2 bg-muted rounded">
+                          <div className="font-semibold">
+                            {Math.round(
+                              (segment.avgSpent * segment.retention) / 10
+                            )}
+                            /10
+                          </div>
+                          <div className="text-muted-foreground">LTV Score</div>
+                        </div>
+                      </div>
+                      <Progress
+                        value={
+                          (segment.revenue /
+                            clientSegments.reduce(
+                              (sum, s) => sum + s.revenue,
+                              0
+                            )) *
+                          100
+                        }
+                        className="h-2"
+                      />
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                </div>
+                <div className="pt-4 border-t">
+                  <div className="text-center">
+                    <p className="text-sm font-medium">
+                      VIP clients generate 45% of total revenue
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Focus on retention programs for high-value segments
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Segment Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Segment Details</CardTitle>
+                <CardDescription>
+                  Complete breakdown of client segment performance
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Segment</TableHead>
+                      <TableHead>Clients</TableHead>
+                      <TableHead>Revenue</TableHead>
+                      <TableHead>Avg. Spent</TableHead>
+                      <TableHead>Retention</TableHead>
+                      <TableHead>LTV Score</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {clientSegments.map((segment) => (
+                      <TableRow key={segment.segment}>
+                        <TableCell className="font-medium">
+                          {segment.segment}
+                        </TableCell>
+                        <TableCell>{segment.count}</TableCell>
+                        <TableCell>
+                          €{segment.revenue.toLocaleString()}
+                        </TableCell>
+                        <TableCell>€{segment.avgSpent}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Progress
+                              value={segment.retention}
+                              className="w-16"
+                            />
+                            <span className="text-sm">
+                              {segment.retention}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={(() => {
+                              if (segment.retention > 90)
+                                return "bg-purple-100 text-purple-800";
+                              if (segment.retention > 80)
+                                return "bg-green-100 text-green-800";
+                              if (segment.retention > 60)
+                                return "bg-blue-100 text-blue-800";
+                              return "bg-yellow-100 text-yellow-800";
+                            })()}
+                          >
+                            {(() => {
+                              if (segment.retention > 90) return "Excellent";
+                              if (segment.retention > 80) return "High";
+                              if (segment.retention > 60) return "Medium";
+                              return "Low";
+                            })()}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* AI Insights */}

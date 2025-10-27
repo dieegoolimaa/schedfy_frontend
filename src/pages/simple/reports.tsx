@@ -46,36 +46,35 @@ import {
 } from "recharts";
 import {
   TrendingUp,
-  TrendingDown,
   Calendar,
-  Euro,
   Users,
   BarChart3,
   Download,
   Star,
   Award,
+  CheckCircle,
 } from "lucide-react";
 
 export function SimpleReportsPage() {
   const { t } = useTranslation();
   const [dateRange, setDateRange] = useState("month");
 
-  // Mock data for Simple Plan - basic metrics only
+  // Mock data for Simple Plan - basic metrics only (no financial data)
   const monthlyData = [
-    { month: "Jan", bookings: 45, revenue: 1350, clients: 28 },
-    { month: "Feb", bookings: 52, revenue: 1560, clients: 31 },
-    { month: "Mar", bookings: 38, revenue: 1140, clients: 25 },
-    { month: "Apr", bookings: 61, revenue: 1830, clients: 37 },
-    { month: "May", bookings: 58, revenue: 1740, clients: 34 },
-    { month: "Jun", bookings: 67, revenue: 2010, clients: 42 },
+    { month: "Jan", bookings: 45, completed: 42, clients: 28 },
+    { month: "Feb", bookings: 52, completed: 49, clients: 31 },
+    { month: "Mar", bookings: 38, completed: 36, clients: 25 },
+    { month: "Apr", bookings: 61, completed: 58, clients: 37 },
+    { month: "May", bookings: 58, completed: 55, clients: 34 },
+    { month: "Jun", bookings: 67, completed: 64, clients: 42 },
   ];
 
   const serviceData = [
-    { name: "Haircut", bookings: 125, revenue: 3750, percentage: 35 },
-    { name: "Styling", bookings: 89, revenue: 2670, percentage: 25 },
-    { name: "Coloring", bookings: 76, revenue: 6080, percentage: 22 },
-    { name: "Beard Trim", bookings: 45, revenue: 675, percentage: 13 },
-    { name: "Other", bookings: 18, revenue: 450, percentage: 5 },
+    { name: "Haircut", bookings: 125, completed: 118, percentage: 35 },
+    { name: "Styling", bookings: 89, completed: 84, percentage: 25 },
+    { name: "Coloring", bookings: 76, completed: 72, percentage: 22 },
+    { name: "Beard Trim", bookings: 45, completed: 43, percentage: 13 },
+    { name: "Other", bookings: 18, completed: 17, percentage: 5 },
   ];
 
   const pieColors = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#8dd1e1"];
@@ -125,16 +124,16 @@ export function SimpleReportsPage() {
 
   const currentStats = {
     totalBookings: 321,
-    totalRevenue: 13635,
+    totalCompleted: 304,
     totalClients: 197,
-    averageBookingValue: 42.5,
+    averageRating: 4.8,
     thisMonth: {
       bookings: 67,
-      revenue: 2010,
+      completed: 64,
       clients: 42,
       growth: {
         bookings: 12.5,
-        revenue: 8.3,
+        completed: 8.3,
         clients: 15.2,
       },
     },
@@ -216,22 +215,22 @@ export function SimpleReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Total Revenue
+                  Completed Sessions
                 </p>
                 <p className="text-2xl font-bold">
-                  €{currentStats.totalRevenue.toLocaleString()}
+                  {currentStats.totalCompleted.toLocaleString()}
                 </p>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   <span className="text-green-600">
-                    +{currentStats.thisMonth.growth.revenue}%
+                    +{currentStats.thisMonth.growth.completed}%
                   </span>
                   <span className="text-muted-foreground ml-1">
                     from last month
                   </span>
                 </div>
               </div>
-              <Euro className="h-8 w-8 text-muted-foreground" />
+              <CheckCircle className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -266,14 +265,14 @@ export function SimpleReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Avg. Booking Value
+                  Average Rating
                 </p>
                 <p className="text-2xl font-bold">
-                  €{currentStats.averageBookingValue}
+                  {currentStats.averageRating}
                 </p>
                 <div className="flex items-center text-sm">
-                  <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
-                  <span className="text-red-600">-2.1%</span>
+                  <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                  <span className="text-green-600">+0.2</span>
                   <span className="text-muted-foreground ml-1">
                     from last month
                   </span>
@@ -322,9 +321,9 @@ export function SimpleReportsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Revenue Trend</CardTitle>
+                <CardTitle>Booking Completion Trend</CardTitle>
                 <CardDescription>
-                  Monthly revenue over the last 6 months
+                  Monthly booking completion rate over the last 6 months
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -336,7 +335,7 @@ export function SimpleReportsPage() {
                     <Tooltip />
                     <Line
                       type="monotone"
-                      dataKey="revenue"
+                      dataKey="completed"
                       stroke="#82ca9d"
                       strokeWidth={2}
                     />
@@ -394,8 +393,8 @@ export function SimpleReportsPage() {
                     <TableRow>
                       <TableHead>Service</TableHead>
                       <TableHead>Bookings</TableHead>
-                      <TableHead>Revenue</TableHead>
-                      <TableHead>Avg. Price</TableHead>
+                      <TableHead>Completed</TableHead>
+                      <TableHead>Success Rate</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -405,11 +404,13 @@ export function SimpleReportsPage() {
                           {service.name}
                         </TableCell>
                         <TableCell>{service.bookings}</TableCell>
+                        <TableCell>{service.completed}</TableCell>
                         <TableCell>
-                          €{service.revenue.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          €{(service.revenue / service.bookings).toFixed(2)}
+                          {(
+                            (service.completed / service.bookings) *
+                            100
+                          ).toFixed(1)}
+                          %
                         </TableCell>
                       </TableRow>
                     ))}

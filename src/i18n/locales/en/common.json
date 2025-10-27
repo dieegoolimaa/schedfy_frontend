@@ -6,7 +6,21 @@
     "services": "Services",
     "reports": "Reports",
     "settings": "Settings",
-    "profile": "Profile"
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "financialReports": "Financial Reports",
+    "ai": "AI Premium",
+    "loyalty": "Loyalty",
+    "featureManagement": "Feature Management",
+    "communications": "Communications",
+    "subscriptions": "Subscriptions",
+    "support": "Support",
+    "entities": "Entities",
+    "users": "Users",
+    "management": "Management",
+    "operations": "Operations",
+    "financial": "Financial",
+    "features": "Features"
   },
   "actions": {
     "save": "Save",

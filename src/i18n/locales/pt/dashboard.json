@@ -1,11 +1,19 @@
 {
   "title": "Painel",
   "welcome": "Bem-vindo de volta",
+  "subtitle": "Aqui está o que está acontecendo com seu negócio hoje",
   "overview": "Visão Geral",
+  "fromLastMonth": "do mês passado",
+  "viewCalendar": "Ver Calendário",
+  "today": "Hoje",
   "stats": {
     "totalBookings": "Total de Agendamentos",
     "todayBookings": "Agendamentos de Hoje",
     "revenue": "Receita",
+    "totalrevenue": "Receita Total",
+    "appointmentstoday": "Agendamentos Hoje",
+    "activeclients": "Clientes Ativos",
+    "averagerating": "Avaliação Média",
     "clients": "Clientes Ativos"
   },
   "recentBookings": {
@@ -24,5 +32,9 @@
     "newService": "Novo Serviço",
     "viewReports": "Ver Relatórios",
     "manageClients": "Gerenciar Clientes"
-  }
+  },
+  "revenueOverview": "Visão Geral da Receita",
+  "monthlyRevenue": "Tendências mensais de receita e agendamentos",
+  "recentActivity": "Atividade Recente",
+  "upcomingAppointments": "Próximos Agendamentos"
 }

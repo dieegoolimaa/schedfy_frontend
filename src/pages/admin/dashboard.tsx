@@ -35,13 +35,11 @@ import {
   TrendingDown,
   Users,
   Building2,
-  CreditCard,
   AlertTriangle,
   CheckCircle,
   Clock,
   Euro,
   Calendar,
-  Activity,
   Globe,
   Shield,
   Database,
@@ -664,14 +662,14 @@ export function AdminDashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center space-x-4 p-4 border rounded-lg">
                   <div className="p-2 bg-green-100 rounded-full">
-                    <Activity className="h-4 w-4 text-green-600" />
+                    <Building2 className="h-4 w-4 text-green-600" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">
                       New business registration
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Bella Vista Salon joined the platform
+                      Bella Vista Salon joined the platform (Business Plan)
                     </p>
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -681,33 +679,67 @@ export function AdminDashboardPage() {
 
                 <div className="flex items-center space-x-4 p-4 border rounded-lg">
                   <div className="p-2 bg-blue-100 rounded-full">
-                    <CreditCard className="h-4 w-4 text-blue-600" />
+                    <TrendingUp className="h-4 w-4 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Payment processed</p>
+                    <p className="text-sm font-medium">
+                      New subscription upgrade
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      Monthly subscription payment for Modern Cuts
+                      Modern Cuts upgraded from Individual to Business Plan
                     </p>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    5 minutes ago
+                    12 minutes ago
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-4 p-4 border rounded-lg">
-                  <div className="p-2 bg-yellow-100 rounded-full">
-                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <Building2 className="h-4 w-4 text-green-600" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">
-                      Support ticket created
+                      New business registration
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Payment processing issue reported by Elite Barbershop
+                      Wellness Center joined the platform (Simple Plan)
                     </p>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    15 minutes ago
+                    28 minutes ago
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4 p-4 border rounded-lg">
+                  <div className="p-2 bg-purple-100 rounded-full">
+                    <Euro className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">New subscription</p>
+                    <p className="text-xs text-muted-foreground">
+                      Elite Barbershop started Individual Plan subscription
+                    </p>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    45 minutes ago
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4 p-4 border rounded-lg">
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <Building2 className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      New business registration
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Estética Moderna joined the platform (Business Plan)
+                    </p>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    1 hour ago
                   </div>
                 </div>
               </div>

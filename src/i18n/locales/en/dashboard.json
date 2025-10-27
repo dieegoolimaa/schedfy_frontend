@@ -1,11 +1,19 @@
 {
   "title": "Dashboard",
   "welcome": "Welcome back",
+  "subtitle": "Here's what's happening with your business today",
   "overview": "Overview",
+  "fromLastMonth": "from last month",
+  "viewCalendar": "View Calendar",
+  "today": "Today",
   "stats": {
     "totalBookings": "Total Bookings",
     "todayBookings": "Today's Bookings",
     "revenue": "Revenue",
+    "totalrevenue": "Total Revenue",
+    "appointmentstoday": "Appointments Today",
+    "activeclients": "Active Clients",
+    "averagerating": "Average Rating",
     "clients": "Active Clients"
   },
   "recentBookings": {
@@ -24,5 +32,9 @@
     "newService": "New Service",
     "viewReports": "View Reports",
     "manageClients": "Manage Clients"
-  }
+  },
+  "revenueOverview": "Revenue Overview",
+  "monthlyRevenue": "Monthly revenue and appointment trends",
+  "recentActivity": "Recent Activity",
+  "upcomingAppointments": "Upcoming Appointments"
 }

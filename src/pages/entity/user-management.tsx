@@ -57,6 +57,37 @@ export function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Handlers
+  const handleEditUser = (userId: number) => {
+    console.log("Edit user:", userId);
+    // TODO: Implement edit user functionality
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    console.log("Delete user:", userId);
+    // TODO: Implement delete user functionality
+  };
+
+  const handleToggleUserStatus = (userId: number, currentStatus: string) => {
+    console.log("Toggle user status:", userId, currentStatus);
+    // TODO: Implement toggle user status functionality
+  };
+
+  const handleResetPassword = (userId: number) => {
+    console.log("Reset password for user:", userId);
+    // TODO: Implement reset password functionality
+  };
+
+  const handleViewActivity = (userId: number) => {
+    console.log("View activity for user:", userId);
+    // TODO: Implement view activity functionality
+  };
+
+  const handleAddUser = (formData: any) => {
+    console.log("Add user:", formData);
+    // TODO: Implement add user functionality
+  };
+
   // Mock users data
   const users = [
     {
@@ -375,7 +406,9 @@ export function UserManagementPage() {
           <Input
             placeholder="Search users..."
             value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSearchTerm(e.target.value)
+            }
             className="pl-10"
           />
         </div>
@@ -507,13 +540,25 @@ export function UserManagementPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-1">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditUser(user.id)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleResetPassword(user.id)}
+                      >
                         <Key className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewActivity(user.id)}
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </div>

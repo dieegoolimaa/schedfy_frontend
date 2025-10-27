@@ -6,7 +6,21 @@
     "services": "Serviços",
     "reports": "Relatórios",
     "settings": "Configurações",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "notifications": "Notificações",
+    "financialReports": "Relatórios Financeiros",
+    "ai": "IA Premium",
+    "loyalty": "Fidelidade",
+    "featureManagement": "Gestão de Recursos",
+    "communications": "Comunicações",
+    "subscriptions": "Subscrições",
+    "support": "Suporte",
+    "entities": "Entidades",
+    "users": "Utilizadores",
+    "management": "Gestão",
+    "operations": "Operações",
+    "financial": "Financeiro",
+    "features": "Recursos"
   },
   "actions": {
     "save": "Salvar",

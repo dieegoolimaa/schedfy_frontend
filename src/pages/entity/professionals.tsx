@@ -68,6 +68,32 @@ export function ProfessionalsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Handlers
+  const handleEditProfessional = (professionalId: number) => {
+    console.log("Edit professional:", professionalId);
+    // TODO: Implement edit functionality
+  };
+
+  const handleDeleteProfessional = (professionalId: number) => {
+    console.log("Delete professional:", professionalId);
+    // TODO: Implement delete functionality
+  };
+
+  const handleViewOptions = (professionalId: number) => {
+    console.log("View options for professional:", professionalId);
+    // TODO: Implement options menu
+  };
+
+  const handleUploadPhoto = () => {
+    console.log("Upload photo");
+    // TODO: Implement photo upload
+  };
+
+  const handleAddProfessional = (formData: any) => {
+    console.log("Add professional:", formData);
+    // TODO: Implement add professional functionality
+  };
+
   // Mock professionals data
   const professionals = [
     {
@@ -294,7 +320,11 @@ export function ProfessionalsPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUploadPhoto}
+                    >
                       <Camera className="h-4 w-4 mr-2" />
                       Upload Photo
                     </Button>
@@ -419,7 +449,9 @@ export function ProfessionalsPage() {
           <Input
             placeholder="Search professionals..."
             value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSearchTerm(e.target.value)
+            }
             className="pl-10"
           />
         </div>
@@ -453,115 +485,152 @@ export function ProfessionalsPage() {
 
         {/* Grid View */}
         <TabsContent value="grid" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredProfessionals.map((professional) => (
-              <Card
-                key={professional.id}
-                className="hover:shadow-md transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src="" />
-                        <AvatarFallback>{professional.avatar}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {professional.name}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          {professional.role}
+          {filteredProfessionals.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <User className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  No Professionals Found
+                </h3>
+                <p className="text-muted-foreground text-center max-w-sm mb-4">
+                  {searchTerm || statusFilter !== "all"
+                    ? "No professionals match your current filters. Try adjusting your search or filters."
+                    : "No professionals have been added yet. Start by adding your first professional."}
+                </p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Professional
+                    </Button>
+                  </DialogTrigger>
+                  {/* Add Professional Dialog content would be here */}
+                </Dialog>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredProfessionals.map((professional) => (
+                <Card
+                  key={professional.id}
+                  className="hover:shadow-md transition-shadow"
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src="" />
+                          <AvatarFallback>{professional.avatar}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <CardTitle className="text-lg">
+                            {professional.name}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {professional.role}
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className={getStatusColor(professional.status)}
+                          >
+                            {professional.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            handleEditProfessional(professional.id)
+                          }
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewOptions(professional.id)}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm">
+                        <Mail className="h-3 w-3 mr-2 text-muted-foreground" />
+                        {professional.email}
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Phone className="h-3 w-3 mr-2 text-muted-foreground" />
+                        {professional.phone}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Specialities</div>
+                      <div className="flex flex-wrap gap-1">
+                        {professional.specialities.map((speciality) => (
+                          <Badge
+                            key={speciality}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {speciality}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                          <span className="font-medium">
+                            {professional.stats.thisMonthBookings}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          This Month
                         </p>
-                        <Badge
-                          variant="outline"
-                          className={getStatusColor(professional.status)}
-                        >
-                          {professional.status}
-                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <Euro className="h-3 w-3 mr-1 text-muted-foreground" />
+                          <span className="font-medium">
+                            €{professional.stats.thisMonthRevenue}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Revenue</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <Star className="h-3 w-3 mr-1 text-muted-foreground" />
+                          <span className="font-medium">
+                            {professional.stats.averageRating.toFixed(1)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Rating</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <TrendingUp className="h-3 w-3 mr-1 text-muted-foreground" />
+                          <span className="font-medium">
+                            {professional.stats.completedBookings}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Completed
+                        </p>
                       </div>
                     </div>
-                    <div className="flex space-x-1">
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center text-sm">
-                      <Mail className="h-3 w-3 mr-2 text-muted-foreground" />
-                      {professional.email}
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <Phone className="h-3 w-3 mr-2 text-muted-foreground" />
-                      {professional.phone}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Specialities</div>
-                    <div className="flex flex-wrap gap-1">
-                      {professional.specialities.map((speciality) => (
-                        <Badge
-                          key={speciality}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {speciality}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="space-y-1">
-                      <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                        <span className="font-medium">
-                          {professional.stats.thisMonthBookings}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        This Month
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center">
-                        <Euro className="h-3 w-3 mr-1 text-muted-foreground" />
-                        <span className="font-medium">
-                          €{professional.stats.thisMonthRevenue}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Revenue</p>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center">
-                        <Star className="h-3 w-3 mr-1 text-muted-foreground" />
-                        <span className="font-medium">
-                          {professional.stats.averageRating.toFixed(1)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Rating</p>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-1 text-muted-foreground" />
-                        <span className="font-medium">
-                          {professional.stats.completedBookings}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Completed</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* Table View */}
@@ -588,76 +657,106 @@ export function ProfessionalsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProfessionals.map((professional) => (
-                    <TableRow key={professional.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src="" />
-                            <AvatarFallback className="text-xs">
-                              {professional.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">
-                              {professional.name}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {professional.specialities.join(", ")}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{professional.role}</TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm">{professional.email}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {professional.phone}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">
-                            {professional.stats.thisMonthBookings} bookings
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            €{professional.stats.thisMonthRevenue}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">
-                          €{professional.stats.totalRevenue.toLocaleString()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Star className="h-3 w-3 mr-1 text-yellow-500" />
-                          {professional.stats.averageRating.toFixed(1)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={getStatusColor(professional.status)}
-                        >
-                          {professional.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                  {filteredProfessionals.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <div className="flex flex-col items-center">
+                          <User className="h-12 w-12 text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">
+                            No Professionals Found
+                          </h3>
+                          <p className="text-muted-foreground mb-4">
+                            {searchTerm || statusFilter !== "all"
+                              ? "No professionals match your current filters."
+                              : "No professionals have been added yet."}
+                          </p>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredProfessionals.map((professional) => (
+                      <TableRow key={professional.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src="" />
+                              <AvatarFallback className="text-xs">
+                                {professional.avatar}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">
+                                {professional.name}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {professional.specialities.join(", ")}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{professional.role}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="text-sm">{professional.email}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {professional.phone}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {professional.stats.thisMonthBookings} bookings
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              €{professional.stats.thisMonthRevenue}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            €{professional.stats.totalRevenue.toLocaleString()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                            {professional.stats.averageRating.toFixed(1)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={getStatusColor(professional.status)}
+                          >
+                            {professional.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleEditProfessional(professional.id)
+                              }
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleDeleteProfessional(professional.id)
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

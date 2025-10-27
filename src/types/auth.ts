@@ -32,6 +32,7 @@ export interface RegisterData {
     lastName?: string;
     email: string;
     password: string;
+    plan?: "simple" | "individual" | "business";
     businessName?: string;
     businessType?: string;
     region?: string;

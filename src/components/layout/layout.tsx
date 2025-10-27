@@ -18,7 +18,9 @@ export function Layout({ children, className }: Readonly<LayoutProps>) {
     >
       <div className="relative flex min-h-screen flex-col">
         <Navigation />
-        <main className="flex-1">{children || <Outlet />}</main>
+        <main className="flex-1 container mx-auto px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8">
+          {children || <Outlet />}
+        </main>
       </div>
     </div>
   );

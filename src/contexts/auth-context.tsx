@@ -5,13 +5,8 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import {
-  AuthState,
-  User,
-  LoginCredentials,
-  RegisterData,
-  AuthTokens,
-} from "../types/auth";
+import { AuthState, User, LoginCredentials, RegisterData } from "../types/auth";
+import { authApi } from "../lib/api/auth.api";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -19,6 +14,8 @@ interface AuthContextType extends AuthState {
   logout: () => void;
   refreshToken: () => Promise<void>;
   oauthLogin: (provider: string) => Promise<void>;
+  // Development helper function
+  switchRole: (role: string) => void;
 }
 
 type AuthAction =
@@ -89,22 +86,18 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       if (token) {
         try {
           dispatch({ type: "AUTH_LOADING" });
-          // TODO: Verify token with backend
-          const response = await fetch("/api/auth/me", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          // Verify token with backend
+          const response = await authApi.getProfile();
 
-          if (response.ok) {
-            const user = await response.json();
-            dispatch({ type: "AUTH_SUCCESS", payload: user });
+          if (response.data) {
+            dispatch({ type: "AUTH_SUCCESS", payload: response.data as User });
           } else {
             localStorage.removeItem("schedfy-access-token");
             localStorage.removeItem("schedfy-refresh-token");
             dispatch({ type: "AUTH_LOGOUT" });
           }
         } catch (error) {
+          console.error("Auth check failed:", error);
           localStorage.removeItem("schedfy-access-token");
           localStorage.removeItem("schedfy-refresh-token");
           dispatch({ type: "AUTH_LOGOUT" });
@@ -119,29 +112,30 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     try {
       dispatch({ type: "AUTH_LOADING" });
 
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
-      });
+      const response = await authApi.login(credentials);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Login failed");
+      console.log("Login response:", response);
+      console.log("Response data:", response.data);
+
+      if (!response.data) {
+        throw new Error("Login failed - no data received");
       }
 
-      const data: { user: User; tokens: AuthTokens } = await response.json();
+      const { user } = response.data;
 
-      localStorage.setItem("schedfy-access-token", data.tokens.accessToken);
-      localStorage.setItem("schedfy-refresh-token", data.tokens.refreshToken);
+      console.log("User from response:", user);
 
-      dispatch({ type: "AUTH_SUCCESS", payload: data.user });
-    } catch (error) {
+      if (!user) {
+        throw new Error("Login failed - no user in response");
+      }
+
+      dispatch({ type: "AUTH_SUCCESS", payload: user });
+    } catch (error: any) {
+      console.error("Login error:", error);
+      const errorMessage = error.message || "Login failed";
       dispatch({
         type: "AUTH_ERROR",
-        payload: error instanceof Error ? error.message : "Login failed",
+        payload: errorMessage,
       });
       throw error;
     }
@@ -151,29 +145,38 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     try {
       dispatch({ type: "AUTH_LOADING" });
 
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+      const regionMap: Record<string, "PT" | "BR" | "US"> = {
+        PT: "PT",
+        BR: "BR",
+        US: "US",
+        Portugal: "PT",
+        Brazil: "BR",
+        USA: "US",
+      };
+
+      const region = regionMap[data.region || data.country || "PT"] || "PT";
+
+      const response = await authApi.register({
+        name: data.name || data.firstName || "",
+        email: data.email,
+        password: data.password,
+        plan: data.plan || "simple",
+        role: "owner", // Default role for registration
+        region,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Registration failed");
+      if (!response.data) {
+        throw new Error("Registration failed - no data received");
       }
 
-      const result: { user: User; tokens: AuthTokens } = await response.json();
+      const { user } = response.data;
 
-      localStorage.setItem("schedfy-access-token", result.tokens.accessToken);
-      localStorage.setItem("schedfy-refresh-token", result.tokens.refreshToken);
-
-      dispatch({ type: "AUTH_SUCCESS", payload: result.user });
-    } catch (error) {
+      dispatch({ type: "AUTH_SUCCESS", payload: user });
+    } catch (error: any) {
+      const errorMessage = error.message || "Registration failed";
       dispatch({
         type: "AUTH_ERROR",
-        payload: error instanceof Error ? error.message : "Registration failed",
+        payload: errorMessage,
       });
       throw error;
     }
@@ -192,22 +195,21 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("No refresh token available");
       }
 
-      const response = await fetch("/api/auth/refresh", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken: refreshTokenValue }),
-      });
+      const response = await authApi.refreshToken(refreshTokenValue);
 
-      if (!response.ok) {
+      if (!response.data) {
         throw new Error("Token refresh failed");
       }
 
-      const data: { tokens: AuthTokens } = await response.json();
+      const { access_token, refresh_token } = response.data;
 
-      localStorage.setItem("schedfy-access-token", data.tokens.accessToken);
-      localStorage.setItem("schedfy-refresh-token", data.tokens.refreshToken);
+      if (access_token) {
+        localStorage.setItem("schedfy-access-token", access_token);
+        localStorage.setItem("schedfy-token", access_token);
+      }
+      if (refresh_token) {
+        localStorage.setItem("schedfy-refresh-token", refresh_token);
+      }
     } catch (error) {
       logout();
       throw error;
@@ -227,6 +229,80 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     }
   };
 
+  // Development helper to switch between roles for testing
+  const switchRole = (role: string) => {
+    if (process.env.NODE_ENV === "development") {
+      const mockUsers = {
+        platform_admin: {
+          id: "1",
+          email: "admin@schedfy.com",
+          name: "Platform Administrator",
+          role: "platform_admin" as const,
+          plan: "business" as const,
+          businessId: undefined,
+          country: "PT" as const,
+          timezone: "Europe/Lisbon",
+          locale: "en",
+          isEmailVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          avatar: undefined,
+        },
+        owner: {
+          id: "2",
+          email: "business@schedfy.com",
+          name: "Business Owner",
+          role: "owner" as const,
+          plan: "business" as const,
+          businessId: "business-1",
+          country: "PT" as const,
+          timezone: "Europe/Lisbon",
+          locale: "en",
+          isEmailVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          avatar: undefined,
+        },
+        professional: {
+          id: "3",
+          email: "pro@schedfy.com",
+          name: "Professional User",
+          role: "professional" as const,
+          plan: "individual" as const,
+          businessId: "business-1",
+          country: "PT" as const,
+          timezone: "Europe/Lisbon",
+          locale: "en",
+          isEmailVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          avatar: undefined,
+        },
+        client: {
+          id: "4",
+          email: "user@schedfy.com",
+          name: "Simple User",
+          role: "owner" as const, // Simple users are still owners but with simple plan
+          plan: "simple" as const,
+          businessId: undefined,
+          country: "PT" as const,
+          timezone: "Europe/Lisbon",
+          locale: "en",
+          isEmailVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          avatar: undefined,
+        },
+      };
+
+      const mockUser = mockUsers[role as keyof typeof mockUsers];
+      if (mockUser) {
+        dispatch({ type: "AUTH_SUCCESS", payload: mockUser as User });
+        localStorage.setItem("schedfy-dev-role", role);
+      }
+    }
+  };
+
   const value = useMemo(
     () => ({
       ...state,
@@ -235,6 +311,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       logout,
       refreshToken,
       oauthLogin,
+      switchRole,
     }),
     [state]
   );
