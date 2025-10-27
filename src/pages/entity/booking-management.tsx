@@ -69,7 +69,7 @@ export function BookingManagementPage() {
   const { t } = useTranslation();
   const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
   const { user } = useAuth();
-  const entityId = user?.businessId || user?.id || "";
+  const entityId = user?.entityId || user?.id || "";
 
   // Use the bookings hook with real API
   const {
@@ -1276,7 +1276,9 @@ export function BookingManagementPage() {
                       <strong>Status:</strong>
                       <Badge
                         variant="outline"
-                        className={`ml-2 ${getPaymentStatusColor(selectedBookingForPayment.paymentStatus)}`}
+                        className={`ml-2 ${getPaymentStatusColor(
+                          selectedBookingForPayment.paymentStatus
+                        )}`}
                       >
                         {selectedBookingForPayment.paymentStatus}
                       </Badge>

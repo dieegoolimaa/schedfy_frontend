@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
 import {
   Card,
   CardContent,
@@ -53,91 +55,166 @@ import {
   Star,
   Award,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 
 export function SimpleReportsPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
   const [dateRange, setDateRange] = useState("month");
 
-  // Mock data for Simple Plan - basic metrics only (no financial data)
-  const monthlyData = [
-    { month: "Jan", bookings: 45, completed: 42, clients: 28 },
-    { month: "Feb", bookings: 52, completed: 49, clients: 31 },
-    { month: "Mar", bookings: 38, completed: 36, clients: 25 },
-    { month: "Apr", bookings: 61, completed: 58, clients: 37 },
-    { month: "May", bookings: 58, completed: 55, clients: 34 },
-    { month: "Jun", bookings: 67, completed: 64, clients: 42 },
-  ];
+  const { bookings, loading } = useBookings({ entityId, autoFetch: true });
 
-  const serviceData = [
-    { name: "Haircut", bookings: 125, completed: 118, percentage: 35 },
-    { name: "Styling", bookings: 89, completed: 84, percentage: 25 },
-    { name: "Coloring", bookings: 76, completed: 72, percentage: 22 },
-    { name: "Beard Trim", bookings: 45, completed: 43, percentage: 13 },
-    { name: "Other", bookings: 18, completed: 17, percentage: 5 },
-  ];
+  // Calculate real stats from bookings data
+  const stats = useMemo(() => {
+    // Total stats
+    const totalBookings = bookings.length;
+    const totalCompleted = bookings.filter(
+      (b) => b.status === "completed"
+    ).length;
+
+    // Get unique clients
+    const uniqueClients = new Set(
+      bookings.map((b) => b.clientId).filter(Boolean)
+    );
+    const totalClients = uniqueClients.size;
+
+    // This month stats
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthBookings = bookings.filter(
+      (b) => new Date(b.createdAt) >= thisMonthStart
+    );
+    const thisMonthCompleted = thisMonthBookings.filter(
+      (b) => b.status === "completed"
+    ).length;
+    const thisMonthClients = new Set(
+      thisMonthBookings.map((b) => b.clientId).filter(Boolean)
+    ).size;
+
+    // Last month for comparison
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const lastMonthBookings = bookings.filter((b) => {
+      const date = new Date(b.createdAt);
+      return date >= lastMonthStart && date <= lastMonthEnd;
+    });
+    const lastMonthCompleted = lastMonthBookings.filter(
+      (b) => b.status === "completed"
+    ).length;
+    const lastMonthClients = new Set(
+      lastMonthBookings.map((b) => b.clientId).filter(Boolean)
+    ).size;
+
+    // Calculate growth percentages
+    const bookingsGrowth =
+      lastMonthBookings.length > 0
+        ? ((thisMonthBookings.length - lastMonthBookings.length) /
+            lastMonthBookings.length) *
+          100
+        : 0;
+    const completedGrowth =
+      lastMonthCompleted > 0
+        ? ((thisMonthCompleted - lastMonthCompleted) / lastMonthCompleted) * 100
+        : 0;
+    const clientsGrowth =
+      lastMonthClients > 0
+        ? ((thisMonthClients - lastMonthClients) / lastMonthClients) * 100
+        : 0;
+
+    return {
+      totalBookings,
+      totalCompleted,
+      totalClients,
+      thisMonth: {
+        bookings: thisMonthBookings.length,
+        completed: thisMonthCompleted,
+        clients: thisMonthClients,
+        growth: {
+          bookings: bookingsGrowth,
+          completed: completedGrowth,
+          clients: clientsGrowth,
+        },
+      },
+    };
+  }, [bookings]);
+
+  // Calculate monthly data for charts (last 6 months)
+  const monthlyData = useMemo(() => {
+    const months = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+      const monthBookings = bookings.filter((b) => {
+        const date = new Date(b.createdAt);
+        return date >= monthDate && date <= monthEnd;
+      });
+
+      const completed = monthBookings.filter(
+        (b) => b.status === "completed"
+      ).length;
+      const clients = new Set(
+        monthBookings.map((b) => b.clientId).filter(Boolean)
+      ).size;
+
+      months.push({
+        month: monthDate.toLocaleDateString("en-US", { month: "short" }),
+        bookings: monthBookings.length,
+        completed,
+        clients,
+      });
+    }
+
+    return months;
+  }, [bookings]);
+
+  // Calculate service distribution
+  const serviceData = useMemo(() => {
+    const serviceMap = new Map<
+      string,
+      { bookings: number; completed: number }
+    >();
+
+    bookings.forEach((booking) => {
+      const serviceName = booking.service?.name || "Other";
+      const existing = serviceMap.get(serviceName) || {
+        bookings: 0,
+        completed: 0,
+      };
+      existing.bookings++;
+      if (booking.status === "completed") {
+        existing.completed++;
+      }
+      serviceMap.set(serviceName, existing);
+    });
+
+    const total = bookings.length || 1;
+    return Array.from(serviceMap.entries())
+      .map(([name, data]) => ({
+        name,
+        bookings: data.bookings,
+        completed: data.completed,
+        percentage: Math.round((data.bookings / total) * 100),
+      }))
+      .sort((a, b) => b.bookings - a.bookings)
+      .slice(0, 5); // Top 5 services
+  }, [bookings]);
+
+  // Recent bookings (last 5 completed)
+  const recentBookings = useMemo(() => {
+    return bookings
+      .filter((b) => b.status === "completed")
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+      .slice(0, 5);
+  }, [bookings]);
 
   const pieColors = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#8dd1e1"];
-
-  const recentBookings = [
-    {
-      id: 1,
-      client: "Ana Silva",
-      service: "Haircut & Styling",
-      date: "2024-01-20",
-      amount: 35,
-      status: "completed",
-    },
-    {
-      id: 2,
-      client: "João Santos",
-      service: "Beard Trim",
-      date: "2024-01-20",
-      amount: 15,
-      status: "completed",
-    },
-    {
-      id: 3,
-      client: "Maria Oliveira",
-      service: "Hair Coloring",
-      date: "2024-01-19",
-      amount: 85,
-      status: "completed",
-    },
-    {
-      id: 4,
-      client: "Pedro Costa",
-      service: "Haircut",
-      date: "2024-01-19",
-      amount: 25,
-      status: "completed",
-    },
-    {
-      id: 5,
-      client: "Luisa Fernandes",
-      service: "Styling",
-      date: "2024-01-18",
-      amount: 30,
-      status: "completed",
-    },
-  ];
-
-  const currentStats = {
-    totalBookings: 321,
-    totalCompleted: 304,
-    totalClients: 197,
-    averageRating: 4.8,
-    thisMonth: {
-      bookings: 67,
-      completed: 64,
-      clients: 42,
-      growth: {
-        bookings: 12.5,
-        completed: 8.3,
-        clients: 15.2,
-      },
-    },
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -184,7 +261,7 @@ export function SimpleReportsPage() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -193,12 +270,12 @@ export function SimpleReportsPage() {
                   Total Bookings
                 </p>
                 <p className="text-2xl font-bold">
-                  {currentStats.totalBookings}
+                  {stats.totalBookings}
                 </p>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   <span className="text-green-600">
-                    +{currentStats.thisMonth.growth.bookings}%
+                    +{stats.thisMonth.growth.bookings.toFixed(1)}%
                   </span>
                   <span className="text-muted-foreground ml-1">
                     from last month
@@ -218,12 +295,12 @@ export function SimpleReportsPage() {
                   Completed Sessions
                 </p>
                 <p className="text-2xl font-bold">
-                  {currentStats.totalCompleted.toLocaleString()}
+                  {stats.totalCompleted.toLocaleString()}
                 </p>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   <span className="text-green-600">
-                    +{currentStats.thisMonth.growth.completed}%
+                    +{stats.thisMonth.growth.completed.toFixed(1)}%
                   </span>
                   <span className="text-muted-foreground ml-1">
                     from last month
@@ -243,12 +320,12 @@ export function SimpleReportsPage() {
                   Total Clients
                 </p>
                 <p className="text-2xl font-bold">
-                  {currentStats.totalClients}
+                  {stats.totalClients}
                 </p>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   <span className="text-green-600">
-                    +{currentStats.thisMonth.growth.clients}%
+                    +{stats.thisMonth.growth.clients.toFixed(1)}%
                   </span>
                   <span className="text-muted-foreground ml-1">
                     from last month
@@ -259,18 +336,7 @@ export function SimpleReportsPage() {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Average Rating
-                </p>
-                <p className="text-2xl font-bold">
-                  {currentStats.averageRating}
-                </p>
-                <div className="flex items-center text-sm">
+      </div>
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   <span className="text-green-600">+0.2</span>
                   <span className="text-muted-foreground ml-1">

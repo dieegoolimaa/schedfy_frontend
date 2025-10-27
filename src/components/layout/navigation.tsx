@@ -4,7 +4,6 @@ import { useAuth } from "../../contexts/auth-context";
 import { useFeatureFlags } from "../../contexts/feature-flags-context";
 import { Button } from "../ui/button";
 import { useTheme } from "../theme-provider";
-import { DevRoleSwitcher } from "../dev/role-switcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -258,7 +257,7 @@ export function Navigation() {
             <Link
               key={item.path}
               to={item.path}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 location.pathname === item.path
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -272,7 +271,7 @@ export function Navigation() {
           {(navItems.management || navItems.operations) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium">
+                <Button variant="ghost" className="text-sm font-medium h-10">
                   {navItems.management
                     ? t("nav.management", "Management")
                     : t("nav.operations", "Operations")}
@@ -299,7 +298,7 @@ export function Navigation() {
           {navItems.financial && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium">
+                <Button variant="ghost" className="text-sm font-medium h-10">
                   {t("nav.financial", "Financial")}
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
@@ -324,7 +323,7 @@ export function Navigation() {
           {navItems.features && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium">
+                <Button variant="ghost" className="text-sm font-medium h-10">
                   {t("nav.features", "Features")}
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
@@ -349,7 +348,7 @@ export function Navigation() {
           {navItems.settings && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium">
+                <Button variant="ghost" className="text-sm font-medium h-10">
                   {t("nav.settings", "Settings")}
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
@@ -591,7 +590,6 @@ export function Navigation() {
               <Menu className="h-5 w-5" />
             </Button>
 
-            <DevRoleSwitcher />
             <Button
               variant="ghost"
               size="sm"

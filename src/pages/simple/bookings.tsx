@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { useServices } from "../../hooks/useServices";
 import {
   Card,
   CardContent,
@@ -41,6 +44,14 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
   Plus,
   Search,
   Calendar,
@@ -50,98 +61,135 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Loader2,
   MoreHorizontal,
-  Edit,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export function SimpleBookingsPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
+
+  const {
+    bookings,
+    loading,
+    createBooking,
+    cancelBooking,
+    confirmBooking,
+    fetchBookings,
+  } = useBookings({ entityId, autoFetch: true });
+
+  const { services, fetchServices } = useServices({ entityId });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Mock bookings data for Simple Plan - limited features
-  const bookings = [
-    {
-      id: 1,
-      clientName: "Ana Silva",
-      clientPhone: "+351 123 456 789",
-      clientEmail: "ana.silva@email.com",
-      service: "Haircut & Styling",
-      date: "2024-01-20",
-      time: "10:00",
-      duration: 60,
-      price: 35,
-      status: "confirmed",
-      notes: "First time client",
-      createdAt: "2024-01-15T09:30:00Z",
-    },
-    {
-      id: 2,
-      clientName: "João Santos",
-      clientPhone: "+351 987 654 321",
-      clientEmail: "joao.santos@email.com",
-      service: "Beard Trim",
-      date: "2024-01-20",
-      time: "14:30",
-      duration: 30,
-      price: 15,
-      status: "pending",
-      notes: "",
-      createdAt: "2024-01-18T11:15:00Z",
-    },
-    {
-      id: 3,
-      clientName: "Maria Oliveira",
-      clientPhone: "+351 555 123 456",
-      clientEmail: "maria.oliveira@email.com",
-      service: "Hair Coloring",
-      date: "2024-01-21",
-      time: "09:00",
-      duration: 120,
-      price: 85,
-      status: "confirmed",
-      notes: "Allergic to ammonia",
-      createdAt: "2024-01-16T14:20:00Z",
-    },
-    {
-      id: 4,
-      clientName: "Pedro Costa",
-      clientPhone: "+351 444 555 666",
-      clientEmail: "pedro.costa@email.com",
-      service: "Haircut",
-      date: "2024-01-19",
-      time: "16:00",
-      duration: 45,
-      price: 25,
-      status: "completed",
-      notes: "",
-      createdAt: "2024-01-12T10:45:00Z",
-    },
-    {
-      id: 5,
-      clientName: "Sofia Fernandes",
-      clientPhone: "+351 777 888 999",
-      clientEmail: "sofia.fernandes@email.com",
-      service: "Styling",
-      date: "2024-01-18",
-      time: "11:30",
-      duration: 40,
-      price: 30,
-      status: "cancelled",
-      notes: "Client cancelled due to illness",
-      createdAt: "2024-01-14T16:00:00Z",
-    },
-  ];
+  // Form state
+  const [formData, setFormData] = useState({
+    clientName: "",
+    clientPhone: "",
+    clientEmail: "",
+    serviceId: "",
+    date: "",
+    time: "",
+    notes: "",
+  });
 
-  const services = [
-    "Haircut",
-    "Haircut & Styling",
-    "Hair Coloring",
-    "Beard Trim",
-    "Styling",
-    "Shampoo & Blow Dry",
-  ];
+  useEffect(() => {
+    if (entityId) {
+      fetchBookings();
+      fetchServices();
+    }
+  }, [entityId, fetchBookings, fetchServices]);
+
+  // Reset form
+  const resetForm = () => {
+    setFormData({
+      clientName: "",
+      clientPhone: "",
+      clientEmail: "",
+      serviceId: "",
+      date: "",
+      time: "",
+      notes: "",
+    });
+  };
+
+  // Handle create booking
+  const handleCreateBooking = async () => {
+    if (
+      !formData.clientName ||
+      !formData.serviceId ||
+      !formData.date ||
+      !formData.time
+    ) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Find the selected service
+    const selectedService = services.find((s) => s.id === formData.serviceId);
+    if (!selectedService) {
+      toast.error("Please select a valid service");
+      return;
+    }
+
+    try {
+      // Combine date and time into ISO datetime strings
+      const startDateTime = new Date(`${formData.date}T${formData.time}`);
+      const endDateTime = new Date(startDateTime);
+      endDateTime.setMinutes(
+        startDateTime.getMinutes() + (selectedService.duration || 60)
+      );
+
+      await createBooking({
+        entityId,
+        serviceId: formData.serviceId,
+        clientInfo: {
+          name: formData.clientName,
+          email: formData.clientEmail || undefined,
+          phone: formData.clientPhone || undefined,
+          notes: formData.notes || undefined,
+        },
+        startDateTime: startDateTime.toISOString(),
+        endDateTime: endDateTime.toISOString(),
+        status: "pending",
+        notes: formData.notes || undefined,
+        pricing: {
+          basePrice: selectedService.price || 0,
+          totalPrice: selectedService.price || 0,
+          currency: selectedService.currency || "EUR",
+        },
+        createdBy: user?.id || "",
+      });
+
+      setIsCreateDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error("Failed to create booking:", error);
+    }
+  };
+
+  // Handle confirm booking
+  const handleConfirmBooking = async (bookingId: string) => {
+    try {
+      await confirmBooking(bookingId);
+    } catch (error) {
+      console.error("Failed to confirm booking:", error);
+    }
+  };
+
+  // Handle cancel booking
+  const handleCancelBooking = async (bookingId: string) => {
+    try {
+      await cancelBooking(bookingId, "Cancelled by user");
+    } catch (error) {
+      console.error("Failed to cancel booking:", error);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -175,15 +223,22 @@ export function SimpleBookingsPage() {
 
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
-      booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.clientPhone.includes(searchTerm);
+      (booking.client?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (booking.service?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (booking.client?.phone || "").includes(searchTerm) ||
+      (booking.client?.email || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || booking.status === statusFilter;
 
     const today = new Date();
-    const bookingDate = new Date(booking.date);
+    const bookingDate = new Date(booking.startTime);
     let matchesDate = true;
 
     if (dateFilter === "today") {
@@ -208,7 +263,7 @@ export function SimpleBookingsPage() {
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
     totalRevenue: bookings
       .filter((b) => b.status === "completed")
-      .reduce((sum, b) => sum + b.price, 0),
+      .reduce((sum, b) => sum + (b.service?.price || 0), 0),
   };
 
   return (
@@ -224,9 +279,12 @@ export function SimpleBookingsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={resetForm} disabled={loading}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Booking
               </Button>
@@ -241,12 +299,29 @@ export function SimpleBookingsPage() {
               <div className="grid gap-6 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="client-name">Client Name</Label>
-                    <Input id="client-name" placeholder="Enter client name" />
+                    <Label htmlFor="client-name">Client Name *</Label>
+                    <Input
+                      id="client-name"
+                      placeholder="Enter client name"
+                      value={formData.clientName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, clientName: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="client-phone">Phone Number</Label>
-                    <Input id="client-phone" placeholder="+351 123 456 789" />
+                    <Input
+                      id="client-phone"
+                      placeholder="+351 123 456 789"
+                      value={formData.clientPhone}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          clientPhone: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -255,21 +330,28 @@ export function SimpleBookingsPage() {
                     id="client-email"
                     type="email"
                     placeholder="client@email.com"
+                    value={formData.clientEmail}
+                    onChange={(e) =>
+                      setFormData({ ...formData, clientEmail: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="service">Service</Label>
-                  <Select>
+                  <Label htmlFor="service">Service *</Label>
+                  <Select
+                    value={formData.serviceId}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, serviceId: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select service" />
                     </SelectTrigger>
                     <SelectContent>
                       {services.map((service) => (
-                        <SelectItem
-                          key={service}
-                          value={service.toLowerCase().split(" ").join("-")}
-                        >
-                          {service}
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.name} - €{service.price} ({service.duration}{" "}
+                          min)
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -277,32 +359,53 @@ export function SimpleBookingsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="time">Time</Label>
-                    <Input id="time" type="time" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="duration">Duration (minutes)</Label>
-                    <Input id="duration" type="number" placeholder="60" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price (€)</Label>
+                    <Label htmlFor="date">Date *</Label>
                     <Input
-                      id="price"
-                      type="number"
-                      placeholder="35.00"
-                      step="0.01"
+                      id="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) =>
+                        setFormData({ ...formData, date: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Time *</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={formData.time}
+                      onChange={(e) =>
+                        setFormData({ ...formData, time: e.target.value })
+                      }
                     />
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Input
+                    id="notes"
+                    placeholder="Any special requirements..."
+                    value={formData.notes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, notes: e.target.value })
+                    }
+                  />
+                </div>
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline">Cancel</Button>
-                  <Button>Create Booking</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateBooking} disabled={loading}>
+                    {loading && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    Create Booking
+                  </Button>
                 </div>
               </div>
             </DialogContent>
@@ -426,74 +529,135 @@ export function SimpleBookingsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredBookings.map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">
-                            {booking.clientName}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            <div className="flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {booking.clientPhone}
-                            </div>
-                            {booking.clientEmail && (
-                              <div className="flex items-center">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {booking.clientEmail}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{booking.service}</div>
-                        {booking.notes && (
-                          <div className="text-sm text-muted-foreground">
-                            {booking.notes}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                            {new Date(booking.date).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {booking.time}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{booking.duration} min</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">€{booking.price}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`${getStatusColor(booking.status)} flex items-center gap-1 w-fit`}
-                        >
-                          {getStatusIcon(booking.status)}
-                          {booking.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </div>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Loading bookings...
+                        </p>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : filteredBookings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <p className="text-muted-foreground">
+                          No bookings found
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredBookings.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {booking.client?.name || "Unknown"}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {booking.client?.phone && (
+                                <div className="flex items-center">
+                                  <Phone className="h-3 w-3 mr-1" />
+                                  {booking.client.phone}
+                                </div>
+                              )}
+                              {booking.client?.email && (
+                                <div className="flex items-center">
+                                  <Mail className="h-3 w-3 mr-1" />
+                                  {booking.client.email}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {booking.service?.name || "Unknown Service"}
+                          </div>
+                          {booking.notes && (
+                            <div className="text-sm text-muted-foreground">
+                              {booking.notes}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center">
+                              <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                              {new Date(booking.startTime).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {new Date(booking.startTime).toLocaleTimeString(
+                                [],
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {booking.service?.duration || 0} min
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">
+                            €{booking.service?.price || 0}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={`${getStatusColor(
+                              booking.status
+                            )} flex items-center gap-1 w-fit`}
+                          >
+                            {getStatusIcon(booking.status)}
+                            {booking.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-1">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {booking.status === "pending" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleConfirmBooking(booking.id)
+                                    }
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Confirm Booking
+                                  </DropdownMenuItem>
+                                )}
+                                {booking.status !== "cancelled" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleCancelBooking(booking.id)
+                                    }
+                                    className="text-red-600"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Cancel Booking
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

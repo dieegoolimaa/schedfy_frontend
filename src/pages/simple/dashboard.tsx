@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { useServices } from "../../hooks/useServices";
 import {
   Card,
   CardContent,
@@ -16,11 +19,105 @@ import {
   Calendar,
   ArrowRight,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 
 const SimpleDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
+
+  const { bookings, loading: bookingsLoading } = useBookings({
+    entityId,
+    autoFetch: true,
+  });
+
+  const { loading: servicesLoading } = useServices({
+    entityId,
+    autoFetch: true,
+  });
+
+  // Calculate real stats from bookings data
+  const totalBookings = bookings.length;
+  const completedSessions = bookings.filter(
+    (b) => b.status === "completed"
+  ).length;
+
+  // Get upcoming bookings (confirmed, future bookings)
+  const now = new Date();
+  const upcomingBookings = bookings
+    .filter(
+      (b) =>
+        (b.status === "confirmed" || b.status === "pending") &&
+        new Date(b.startTime) >= now
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    )
+    .slice(0, 5);
+
+  // Get last month's bookings for comparison
+  const lastMonthStart = new Date();
+  lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  lastMonthStart.setDate(1);
+  lastMonthStart.setHours(0, 0, 0, 0);
+
+  const lastMonthEnd = new Date();
+  lastMonthEnd.setDate(0);
+  lastMonthEnd.setHours(23, 59, 59, 999);
+
+  const lastMonthBookings = bookings.filter((b) => {
+    const bookingDate = new Date(b.createdAt);
+    return bookingDate >= lastMonthStart && bookingDate <= lastMonthEnd;
+  });
+
+  const thisMonthStart = new Date();
+  thisMonthStart.setDate(1);
+  thisMonthStart.setHours(0, 0, 0, 0);
+
+  const thisMonthBookings = bookings.filter((b) => {
+    const bookingDate = new Date(b.createdAt);
+    return bookingDate >= thisMonthStart;
+  });
+
+  const bookingsChange = thisMonthBookings.length - lastMonthBookings.length;
+  const completedChange =
+    bookings.filter(
+      (b) => b.status === "completed" && new Date(b.updatedAt) >= thisMonthStart
+    ).length -
+    bookings.filter(
+      (b) =>
+        b.status === "completed" &&
+        new Date(b.updatedAt) >= lastMonthStart &&
+        new Date(b.updatedAt) <= lastMonthEnd
+    ).length;
+
+  const stats = [
+    {
+      title: "Total Bookings",
+      value: totalBookings.toString(),
+      change:
+        bookingsChange > 0 ? `+${bookingsChange}` : bookingsChange.toString(),
+      trend: bookingsChange >= 0 ? "up" : "down",
+      icon: CalendarDays,
+      color: "text-blue-600",
+    },
+    {
+      title: "Completed Sessions",
+      value: completedSessions.toString(),
+      change:
+        completedChange > 0
+          ? `+${completedChange}`
+          : completedChange.toString(),
+      trend: completedChange >= 0 ? "up" : "down",
+      icon: CheckCircle,
+      color: "text-green-600",
+    },
+  ];
+
+  const loading = bookingsLoading || servicesLoading;
 
   // Handler functions for navigation
   const handleNewBooking = () => {
@@ -40,50 +137,44 @@ const SimpleDashboard = () => {
   };
 
   const handleViewCalendar = () => {
-    console.log("Opening calendar view");
+    navigate("/simple/bookings");
   };
 
   const handleTodayView = () => {
-    console.log("Filtering to today's view");
+    // Filter to today's bookings - in a real implementation, you'd pass this as state
+    navigate("/simple/bookings");
   };
 
-  const stats = [
-    {
-      title: "Total Bookings",
-      value: "8",
-      change: "+3",
-      trend: "up",
-      icon: CalendarDays,
-      color: "text-blue-600",
-    },
-    {
-      title: "Completed Sessions",
-      value: "6",
-      change: "+2",
-      trend: "up",
-      icon: CheckCircle,
-      color: "text-green-600",
-    },
-  ];
+  // Format date/time helpers
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-  const upcomingBookings = [
-    {
-      id: 1,
-      client: "Maria Silva",
-      service: "Consultation",
-      time: "10:00 AM",
-      date: "Today",
-      status: "confirmed",
-    },
-    {
-      id: 2,
-      client: "João Santos",
-      service: "Follow-up",
-      time: "2:30 PM",
-      date: "Tomorrow",
-      status: "confirmed",
-    },
-  ];
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Reset time parts for comparison
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    const todayOnly = new Date(today);
+    todayOnly.setHours(0, 0, 0, 0);
+    const tomorrowOnly = new Date(tomorrow);
+    tomorrowOnly.setHours(0, 0, 0, 0);
+
+    if (dateOnly.getTime() === todayOnly.getTime()) {
+      return "Today";
+    } else if (dateOnly.getTime() === tomorrowOnly.getTime()) {
+      return "Tomorrow";
+    } else {
+      return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -111,26 +202,45 @@ const SimpleDashboard = () => {
 
       {/* Stats Grid - Simple 2 column layout */}
       <div className="grid gap-6 md:grid-cols-2 max-w-2xl mx-auto">
-        {stats.map((stat) => {
-          const IconComponent = stat.icon;
-          return (
-            <Card key={stat.title} className="p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-base font-semibold">
-                  {stat.title}
-                </CardTitle>
-                <IconComponent className={`h-6 w-6 ${stat.color}`} />
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-3xl font-bold mb-2">{stat.value}</div>
-                <p className="text-sm text-muted-foreground flex items-center">
-                  <TrendingUp className="h-4 w-4 text-green-500 mr-2" />
-                  {stat.change} this month
-                </p>
+        {loading ? (
+          <>
+            <Card className="p-6">
+              <CardContent className="pt-6">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
               </CardContent>
             </Card>
-          );
-        })}
+            <Card className="p-6">
+              <CardContent className="pt-6">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          stats.map((stat) => {
+            const IconComponent = stat.icon;
+            return (
+              <Card key={stat.title} className="p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-base font-semibold">
+                    {stat.title}
+                  </CardTitle>
+                  <IconComponent className={`h-6 w-6 ${stat.color}`} />
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-3xl font-bold mb-2">{stat.value}</div>
+                  <p className="text-sm text-muted-foreground flex items-center">
+                    <TrendingUp
+                      className={`h-4 w-4 mr-2 ${
+                        stat.trend === "up" ? "text-green-500" : "text-red-500"
+                      }`}
+                    />
+                    {stat.change} this month
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
 
       {/* Main Content */}
@@ -150,30 +260,61 @@ const SimpleDashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {upcomingBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : upcomingBookings.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No upcoming bookings</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={handleNewBooking}
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-2 h-8 bg-blue-500 rounded-full" />
-                    <div>
-                      <p className="font-medium">{booking.client}</p>
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  Create Booking
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {upcomingBookings.map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer"
+                    onClick={() => navigate("/simple/bookings")}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div
+                        className={`w-2 h-8 rounded-full ${
+                          booking.status === "confirmed"
+                            ? "bg-blue-500"
+                            : "bg-yellow-500"
+                        }`}
+                      />
+                      <div>
+                        <p className="font-medium">
+                          {booking.client?.name || "Unknown Client"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {booking.service?.name || "Unknown Service"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        {formatTime(booking.startTime)}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {booking.service}
+                        {formatDate(booking.startTime)}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">{booking.time}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {booking.date}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

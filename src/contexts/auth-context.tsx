@@ -8,14 +8,32 @@ import React, {
 import { AuthState, User, LoginCredentials, RegisterData } from "../types/auth";
 import { authApi } from "../lib/api/auth.api";
 
+// Transform backend user response to frontend User type
+function transformBackendUser(backendUser: any): User {
+  return {
+    id: backendUser.id,
+    email: backendUser.email,
+    name:
+      backendUser.name || `${backendUser.firstName} ${backendUser.lastName}`,
+    avatar: backendUser.avatar,
+    plan: backendUser.plan || "simple",
+    role: backendUser.role,
+    entityId: backendUser.entityId,
+    country: backendUser.country || "PT",
+    timezone: backendUser.timezone || "Europe/Lisbon",
+    locale: backendUser.locale || "en",
+    isEmailVerified: backendUser.isEmailVerified || false,
+    createdAt: backendUser.createdAt || new Date().toISOString(),
+    updatedAt: backendUser.updatedAt || new Date().toISOString(),
+  };
+}
+
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<void>;
   oauthLogin: (provider: string) => Promise<void>;
-  // Development helper function
-  switchRole: (role: string) => void;
 }
 
 type AuthAction =
@@ -129,7 +147,11 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("Login failed - no user in response");
       }
 
-      dispatch({ type: "AUTH_SUCCESS", payload: user });
+      // Transform backend user to frontend User type
+      const transformedUser = transformBackendUser(user);
+      console.log("Transformed user:", transformedUser);
+
+      dispatch({ type: "AUTH_SUCCESS", payload: transformedUser });
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage = error.message || "Login failed";
@@ -171,7 +193,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
 
       const { user } = response.data;
 
-      dispatch({ type: "AUTH_SUCCESS", payload: user });
+      // Transform backend user to frontend User type
+      const transformedUser = transformBackendUser(user);
+
+      dispatch({ type: "AUTH_SUCCESS", payload: transformedUser });
     } catch (error: any) {
       const errorMessage = error.message || "Registration failed";
       dispatch({
@@ -229,80 +254,6 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     }
   };
 
-  // Development helper to switch between roles for testing
-  const switchRole = (role: string) => {
-    if (process.env.NODE_ENV === "development") {
-      const mockUsers = {
-        platform_admin: {
-          id: "1",
-          email: "admin@schedfy.com",
-          name: "Platform Administrator",
-          role: "platform_admin" as const,
-          plan: "business" as const,
-          businessId: undefined,
-          country: "PT" as const,
-          timezone: "Europe/Lisbon",
-          locale: "en",
-          isEmailVerified: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          avatar: undefined,
-        },
-        owner: {
-          id: "2",
-          email: "business@schedfy.com",
-          name: "Business Owner",
-          role: "owner" as const,
-          plan: "business" as const,
-          businessId: "business-1",
-          country: "PT" as const,
-          timezone: "Europe/Lisbon",
-          locale: "en",
-          isEmailVerified: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          avatar: undefined,
-        },
-        professional: {
-          id: "3",
-          email: "pro@schedfy.com",
-          name: "Professional User",
-          role: "professional" as const,
-          plan: "individual" as const,
-          businessId: "business-1",
-          country: "PT" as const,
-          timezone: "Europe/Lisbon",
-          locale: "en",
-          isEmailVerified: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          avatar: undefined,
-        },
-        client: {
-          id: "4",
-          email: "user@schedfy.com",
-          name: "Simple User",
-          role: "owner" as const, // Simple users are still owners but with simple plan
-          plan: "simple" as const,
-          businessId: undefined,
-          country: "PT" as const,
-          timezone: "Europe/Lisbon",
-          locale: "en",
-          isEmailVerified: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          avatar: undefined,
-        },
-      };
-
-      const mockUser = mockUsers[role as keyof typeof mockUsers];
-      if (mockUser) {
-        dispatch({ type: "AUTH_SUCCESS", payload: mockUser as User });
-        localStorage.setItem("schedfy-dev-role", role);
-      }
-    }
-  };
-
   const value = useMemo(
     () => ({
       ...state,
@@ -311,7 +262,6 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       logout,
       refreshToken,
       oauthLogin,
-      switchRole,
     }),
     [state]
   );

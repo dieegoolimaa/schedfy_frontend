@@ -84,7 +84,7 @@ export function ClientProfilePage() {
   const [clientToDelete, setClientToDelete] = useState<any>(null);
 
   const { user } = useAuth();
-  const entityId = user?.businessId || user?.id || "";
+  const entityId = user?.entityId || user?.id || "";
 
   const {
     clients,

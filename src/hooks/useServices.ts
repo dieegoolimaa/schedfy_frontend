@@ -27,6 +27,7 @@ function transformService(service: any): Service {
 
     return {
         ...service,
+        id: service._id || service.id, // Map MongoDB _id to id
         duration,
         price,
         currency,

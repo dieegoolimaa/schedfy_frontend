@@ -56,12 +56,13 @@ import {
   TrendingUp,
   Star,
   Calendar,
+  AlertCircle,
 } from "lucide-react";
 
 export function ServicesPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const entityId = user?.businessId || user?.id || "";
+  const entityId = user?.entityId || user?.id || "";
 
   // Use the services hook with real API
   const {
@@ -121,14 +122,18 @@ export function ServicesPage() {
         ? service.price.basePrice
         : service.price;
 
+    // Properly extract isActive from status or isActive field
+    const isActive = service.status === "active" || service.isActive === true;
+    const isPublic = service.seo?.isPublic ?? service.isPublic ?? true;
+
     setEditFormData({
-      name: service.name,
-      description: service.description,
-      category: service.category,
+      name: service.name || "",
+      description: service.description || "",
+      category: service.category || "",
       duration: String(durationValue || ""),
       price: String(priceValue || ""),
-      isActive: service.isActive,
-      isPublic: service.isPublic,
+      isActive: isActive,
+      isPublic: isPublic,
     });
     setIsEditDialogOpen(true);
   };
@@ -153,13 +158,14 @@ export function ServicesPage() {
 
     try {
       setFormLoading(true);
-      await createService({
+
+      const createData = {
         entityId,
         name: createFormData.name,
         description: createFormData.description,
         category: createFormData.category,
         duration: {
-          durationType: "fixed",
+          durationType: "fixed" as const,
           duration: parseInt(createFormData.duration),
           bufferBefore: 0,
           bufferAfter: 0,
@@ -167,14 +173,19 @@ export function ServicesPage() {
         pricing: {
           basePrice: parseFloat(createFormData.price),
           currency: "EUR",
-          priceType: "fixed",
+          priceType: "fixed" as const,
         },
-        status: createFormData.isActive ? "active" : "inactive",
+        status: createFormData.isActive
+          ? ("active" as const)
+          : ("inactive" as const),
         seo: {
           isPublic: createFormData.isPublic,
         },
         createdBy: user?.id || entityId,
-      });
+      };
+
+      console.log("Creating service with data:", createData);
+      await createService(createData);
 
       // Reset form and close dialog
       setCreateFormData({
@@ -187,8 +198,10 @@ export function ServicesPage() {
         isPublic: true,
       });
       setIsDialogOpen(false);
-    } catch (error) {
-      // Error is handled in the hook with toast
+      toast.success("Service created successfully");
+    } catch (error: any) {
+      console.error("Error creating service:", error);
+      toast.error(error?.message || "Failed to create service");
     } finally {
       setFormLoading(false);
     }
@@ -197,8 +210,19 @@ export function ServicesPage() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!editingService) {
+      toast.error("No service selected for editing");
+      console.error("editingService is null/undefined");
+      return;
+    }
+
+    if (!editingService.id && !editingService._id) {
+      toast.error("Service ID is missing");
+      console.error("Service object:", editingService);
+      return;
+    }
+
     if (
-      !editingService ||
       !editFormData.name ||
       !editFormData.category ||
       !editFormData.duration ||
@@ -210,12 +234,17 @@ export function ServicesPage() {
 
     try {
       setFormLoading(true);
-      await updateService(editingService.id, {
+
+      const serviceId = editingService.id || editingService._id;
+      console.log("Editing service ID:", serviceId);
+      console.log("Full service object:", editingService);
+
+      const updateData = {
         name: editFormData.name,
         description: editFormData.description,
         category: editFormData.category,
         duration: {
-          durationType: "fixed",
+          durationType: "fixed" as const,
           duration: parseInt(editFormData.duration),
           bufferBefore: 0,
           bufferAfter: 0,
@@ -223,19 +252,26 @@ export function ServicesPage() {
         pricing: {
           basePrice: parseFloat(editFormData.price),
           currency: "EUR",
-          priceType: "fixed",
+          priceType: "fixed" as const,
         },
-        status: editFormData.isActive ? "active" : "inactive",
+        status: editFormData.isActive
+          ? ("active" as const)
+          : ("inactive" as const),
         seo: {
           isPublic: editFormData.isPublic,
         },
         updatedBy: user?.id || entityId,
-      });
+      };
+
+      console.log("Updating service with data:", updateData);
+      await updateService(serviceId, updateData);
 
       setIsEditDialogOpen(false);
       setEditingService(null);
-    } catch (error) {
-      // Error is handled in the hook with toast
+      toast.success("Service updated successfully");
+    } catch (error: any) {
+      console.error("Error updating service:", error);
+      toast.error(error?.message || "Failed to update service");
     } finally {
       setFormLoading(false);
     }
@@ -244,12 +280,26 @@ export function ServicesPage() {
   const confirmDelete = async () => {
     if (!deletingService) return;
 
+    const serviceId = deletingService.id || deletingService._id;
+    if (!serviceId) {
+      toast.error("Service ID is missing");
+      console.error("deletingService object:", deletingService);
+      return;
+    }
+
     try {
-      await deleteService(deletingService.id);
+      setFormLoading(true);
+      console.log("Deleting service ID:", serviceId);
+      console.log("Full service object:", deletingService);
+      await deleteService(serviceId);
       setIsDeleteDialogOpen(false);
       setDeletingService(null);
-    } catch (error) {
-      // Error is handled in the hook with toast
+      toast.success("Service deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting service:", error);
+      toast.error(error?.message || "Failed to delete service");
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -399,18 +449,30 @@ export function ServicesPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="category">Category *</Label>
-                        <Input
-                          id="category"
-                          placeholder="e.g., Hair, Nails, Massage"
+                        <Select
                           value={createFormData.category}
-                          onChange={(e) =>
+                          onValueChange={(value) =>
                             setCreateFormData({
                               ...createFormData,
-                              category: e.target.value,
+                              category: value,
                             })
                           }
-                          required
-                        />
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Hair">Hair</SelectItem>
+                            <SelectItem value="Beauty">Beauty</SelectItem>
+                            <SelectItem value="Nails">Nails</SelectItem>
+                            <SelectItem value="Massage">Massage</SelectItem>
+                            <SelectItem value="Wellness">Wellness</SelectItem>
+                            <SelectItem value="Skincare">Skincare</SelectItem>
+                            <SelectItem value="Spa">Spa</SelectItem>
+                            <SelectItem value="Fitness">Fitness</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -743,10 +805,18 @@ export function ServicesPage() {
                           </Badge>
                         </div>
                         <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditService(service)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteService(service)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -768,10 +838,8 @@ export function ServicesPage() {
                           {service.bookings || 0} bookings
                         </div>
                         <div className="flex items-center">
-                          <Star className="h-3 w-3 mr-1 text-muted-foreground" />
-                          {(service.rating || 0) > 0
-                            ? (service.rating || 0).toFixed(1)
-                            : "No ratings"}
+                          <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                          {service.rating ? service.rating.toFixed(1) : "N/A"}
                         </div>
                       </div>
                       {service.status === "active" && (
@@ -995,17 +1063,30 @@ export function ServicesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-category">Category *</Label>
-                    <Input
-                      id="edit-category"
+                    <Select
                       value={editFormData.category}
-                      onChange={(e) =>
+                      onValueChange={(value) =>
                         setEditFormData({
                           ...editFormData,
-                          category: e.target.value,
+                          category: value,
                         })
                       }
-                      required
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Hair">Hair</SelectItem>
+                        <SelectItem value="Beauty">Beauty</SelectItem>
+                        <SelectItem value="Nails">Nails</SelectItem>
+                        <SelectItem value="Massage">Massage</SelectItem>
+                        <SelectItem value="Wellness">Wellness</SelectItem>
+                        <SelectItem value="Skincare">Skincare</SelectItem>
+                        <SelectItem value="Spa">Spa</SelectItem>
+                        <SelectItem value="Fitness">Fitness</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -1057,35 +1138,47 @@ export function ServicesPage() {
                     />
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="edit-isActive"
-                    checked={editFormData.isActive}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        isActive: e.target.checked,
-                      })
-                    }
-                  />
-                  <Label htmlFor="edit-isActive">Service is active</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="edit-isPublic"
-                    checked={editFormData.isPublic}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        isPublic: e.target.checked,
-                      })
-                    }
-                  />
-                  <Label htmlFor="edit-isPublic">
-                    Service is publicly visible
-                  </Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Service Status</Label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="edit-isActive"
+                        checked={editFormData.isActive}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            isActive: e.target.checked,
+                          })
+                        }
+                        className="rounded"
+                      />
+                      <Label htmlFor="edit-isActive" className="font-normal">
+                        Service is active (available for booking)
+                      </Label>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Visibility</Label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="edit-isPublic"
+                        checked={editFormData.isPublic}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            isPublic: e.target.checked,
+                          })
+                        }
+                        className="rounded"
+                      />
+                      <Label htmlFor="edit-isPublic" className="font-normal">
+                        Service is publicly visible (shown on booking pages)
+                      </Label>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-2 pt-4">
                   <Button type="submit" disabled={formLoading}>
@@ -1112,17 +1205,80 @@ export function ServicesPage() {
           <DialogHeader>
             <DialogTitle>Delete Service</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deletingService?.name}"? This
-              action cannot be undone.
+              Are you sure you want to delete this service? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2 pt-4">
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete Service
+          {deletingService && (
+            <div className="py-4 space-y-3">
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-lg">
+                      {deletingService.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {deletingService.category}
+                    </p>
+                  </div>
+                  <Badge
+                    className={getStatusColor(
+                      deletingService.status || "inactive"
+                    )}
+                  >
+                    {deletingService.status || "inactive"}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm pt-2">
+                  <div className="flex items-center">
+                    <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                    {deletingService.duration} min
+                  </div>
+                  <div className="flex items-center">
+                    <Euro className="h-3 w-3 mr-1 text-muted-foreground" />€
+                    {deletingService.price}
+                  </div>
+                  <div className="flex items-center">
+                    <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                    {deletingService.bookings || 0} bookings
+                  </div>
+                  <div className="flex items-center">
+                    <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                    {deletingService.rating
+                      ? deletingService.rating.toFixed(1)
+                      : "N/A"}
+                  </div>
+                </div>
+              </div>
+              {(deletingService.bookings || 0) > 0 && (
+                <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-yellow-900">Warning</p>
+                    <p className="text-yellow-700">
+                      This service has {deletingService.bookings} booking
+                      {deletingService.bookings !== 1 ? "s" : ""}. Deleting it
+                      may affect historical records.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              className="flex-1"
+              disabled={formLoading}
+            >
+              {formLoading ? "Deleting..." : "Delete Service"}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
+              className="flex-1"
+              disabled={formLoading}
             >
               Cancel
             </Button>

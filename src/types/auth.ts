@@ -5,7 +5,7 @@ export interface User {
     avatar?: string;
     plan: "simple" | "individual" | "business";
     role: "owner" | "admin" | "manager" | "hr" | "attendant" | "professional" | "platform_admin";
-    businessId?: string; // For non-owner users
+    entityId?: string; // MongoDB ObjectId for the entity this user belongs to
     country: "PT" | "BR" | "US";
     timezone: string;
     locale: string;
