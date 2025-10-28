@@ -33,8 +33,6 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isRememberMe, setIsRememberMe] = useState(false);
 
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
-
   const {
     register,
     handleSubmit,
@@ -56,9 +54,27 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data);
+      const user = await login(data);
       toast.success(t("auth.loginSuccess", "Welcome back!"));
-      navigate(redirectTo);
+
+      // Get redirect from URL params or determine based on user plan
+      const redirectParam = searchParams.get("redirect");
+      if (redirectParam) {
+        navigate(redirectParam);
+        return;
+      }
+
+      // Redirect based on plan
+      const plan = user?.plan || "simple";
+
+      const planRoutes: Record<string, string> = {
+        simple: "/simple/dashboard",
+        individual: "/individual/dashboard",
+        business: "/entity/dashboard",
+        platform: "/platform/dashboard",
+      };
+
+      navigate(planRoutes[plan] || "/simple/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       toast.error(t("auth.loginError", "Invalid email or password"));

@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -19,8 +18,6 @@ import {
 } from "lucide-react";
 
 export function PrivacyPage() {
-  const { t } = useTranslation();
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}

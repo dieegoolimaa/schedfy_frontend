@@ -30,6 +30,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
 
             let response;
             if (entityId) {
+                console.log('[useBookings] entityId sent to API:', entityId, typeof entityId, entityId.length);
                 response = await bookingsApi.getByEntity(entityId);
             } else if (clientId) {
                 response = await bookingsApi.getByClient(clientId);

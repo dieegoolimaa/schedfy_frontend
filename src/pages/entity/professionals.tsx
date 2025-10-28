@@ -89,11 +89,6 @@ export function ProfessionalsPage() {
     // TODO: Implement photo upload
   };
 
-  const handleAddProfessional = (formData: any) => {
-    console.log("Add professional:", formData);
-    // TODO: Implement add professional functionality
-  };
-
   // Mock professionals data
   const professionals = [
     {

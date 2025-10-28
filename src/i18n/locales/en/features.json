@@ -1,0 +1,28 @@
+{
+  "title": "Schedfy Features",
+  "subtitle": "Discover everything Schedfy has to offer",
+  "booking": {
+    "title": "Booking System",
+    "description": "Simple and efficient online booking"
+  },
+  "calendar": {
+    "title": "Integrated Calendar",
+    "description": "View all your appointments in one place"
+  },
+  "clients": {
+    "title": "Client Management",
+    "description": "Keep complete history of your clients"
+  },
+  "reports": {
+    "title": "Detailed Reports",
+    "description": "Complete analytics of your business"
+  },
+  "mobile": {
+    "title": "Mobile App",
+    "description": "Manage everything from anywhere"
+  },
+  "integration": {
+    "title": "Integrations",
+    "description": "Connect with your favorite tools"
+  }
+}

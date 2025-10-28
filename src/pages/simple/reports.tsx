@@ -50,12 +50,10 @@ import {
   TrendingUp,
   Calendar,
   Users,
-  BarChart3,
   Download,
   Star,
   Award,
   CheckCircle,
-  Loader2,
 } from "lucide-react";
 
 export function SimpleReportsPage() {
@@ -64,7 +62,7 @@ export function SimpleReportsPage() {
   const entityId = user?.entityId || user?.id || "";
   const [dateRange, setDateRange] = useState("month");
 
-  const { bookings, loading } = useBookings({ entityId, autoFetch: true });
+  const { bookings } = useBookings({ entityId, autoFetch: true });
 
   // Calculate real stats from bookings data
   const stats = useMemo(() => {
@@ -269,9 +267,7 @@ export function SimpleReportsPage() {
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Bookings
                 </p>
-                <p className="text-2xl font-bold">
-                  {stats.totalBookings}
-                </p>
+                <p className="text-2xl font-bold">{stats.totalBookings}</p>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   <span className="text-green-600">
@@ -319,9 +315,7 @@ export function SimpleReportsPage() {
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Clients
                 </p>
-                <p className="text-2xl font-bold">
-                  {stats.totalClients}
-                </p>
+                <p className="text-2xl font-bold">{stats.totalClients}</p>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   <span className="text-green-600">
@@ -333,18 +327,6 @@ export function SimpleReportsPage() {
                 </div>
               </div>
               <Users className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-                  <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                  <span className="text-green-600">+0.2</span>
-                  <span className="text-muted-foreground ml-1">
-                    from last month
-                  </span>
-                </div>
-              </div>
-              <BarChart3 className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -503,31 +485,42 @@ export function SimpleReportsPage() {
                     <TableHead>Client</TableHead>
                     <TableHead>Service</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentBookings.map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell className="font-medium">
-                        {booking.client}
-                      </TableCell>
-                      <TableCell>{booking.service}</TableCell>
-                      <TableCell>
-                        {new Date(booking.date).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>€{booking.amount}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={getStatusColor(booking.status)}
-                        >
-                          {booking.status}
-                        </Badge>
+                  {recentBookings.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        No completed bookings yet
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    recentBookings.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell className="font-medium">
+                          {booking.client?.name || "Unknown"}
+                        </TableCell>
+                        <TableCell>
+                          {booking.service?.name || "Unknown Service"}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(booking.updatedAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={getStatusColor(booking.status)}
+                          >
+                            {booking.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

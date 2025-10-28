@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -37,7 +36,6 @@ import {
 } from "lucide-react";
 
 export function PaymentManagementPage() {
-  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");

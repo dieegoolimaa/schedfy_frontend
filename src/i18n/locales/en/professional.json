@@ -1,0 +1,21 @@
+{
+  "dashboard": {
+    "title": "Professional Dashboard",
+    "subtitle": "Manage your bookings and availability"
+  },
+  "bookings": {
+    "title": "My Bookings",
+    "subtitle": "View and manage your bookings",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "today": "Today"
+  },
+  "schedule": {
+    "title": "Working Hours",
+    "manage": "Manage Availability"
+  },
+  "profile": {
+    "title": "Professional Profile",
+    "settings": "Settings"
+  }
+}

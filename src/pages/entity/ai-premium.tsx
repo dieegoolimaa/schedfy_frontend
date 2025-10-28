@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { FeatureGate } from "../../contexts/feature-flags-context";
 import {
   Card,
@@ -10,7 +9,6 @@ import {
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
 import {
@@ -27,13 +25,6 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
-import {
   Brain,
   Zap,
   TrendingUp,
@@ -46,14 +37,11 @@ import {
   Settings,
   Sparkles,
   Bot,
-  MessageSquare,
-  CreditCard,
   Crown,
   CheckCircle,
 } from "lucide-react";
 
 export function AIPremiumPage() {
-  const { t } = useTranslation();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const [autoBookingEnabled, setAutoBookingEnabled] = useState(true);
@@ -306,7 +294,9 @@ export function AIPremiumPage() {
                       key={plan.id}
                       className={`relative cursor-pointer transition-all hover:shadow-lg ${
                         plan.popular ? "ring-2 ring-purple-500" : ""
-                      } ${selectedPlan === plan.id ? "ring-2 ring-blue-500" : ""}`}
+                      } ${
+                        selectedPlan === plan.id ? "ring-2 ring-blue-500" : ""
+                      }`}
                       onClick={() => setSelectedPlan(plan.id)}
                     >
                       {plan.popular && (

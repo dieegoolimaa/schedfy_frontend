@@ -156,7 +156,7 @@ export function SimpleBookingsPage() {
         },
         startDateTime: startDateTime.toISOString(),
         endDateTime: endDateTime.toISOString(),
-        status: "pending",
+        status: "confirmed", // Simple Service bookings are auto-confirmed
         notes: formData.notes || undefined,
         pricing: {
           basePrice: selectedService.price || 0,
@@ -263,7 +263,14 @@ export function SimpleBookingsPage() {
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
     totalRevenue: bookings
       .filter((b) => b.status === "completed")
-      .reduce((sum, b) => sum + (b.service?.price || 0), 0),
+      .reduce(
+        (sum, b) =>
+          sum +
+          ((b.service as any)?.pricing?.basePrice ||
+            (b.service as any)?.price ||
+            0),
+        0
+      ),
   };
 
   return (
@@ -600,12 +607,15 @@ export function SimpleBookingsPage() {
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">
-                            {booking.service?.duration || 0} min
+                            {booking.service?.duration.duration || 0} min
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">
-                            €{booking.service?.price || 0}
+                            €
+                            {(booking.service as any)?.pricing?.basePrice ||
+                              (booking.service as any)?.price ||
+                              0}
                           </span>
                         </TableCell>
                         <TableCell>

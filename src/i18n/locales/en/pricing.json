@@ -1,0 +1,41 @@
+{
+  "title": "Pricing",
+  "subtitle": "Choose the perfect plan for your business",
+  "simple": {
+    "name": "Simple",
+    "description": "Perfect for individual professionals",
+    "feature1": "Up to 50 bookings/month",
+    "feature2": "1 professional",
+    "feature3": "Basic calendar",
+    "feature4": "Email support"
+  },
+  "individual": {
+    "name": "Individual",
+    "description": "Ideal for small businesses",
+    "feature1": "Up to 200 bookings/month",
+    "feature2": "Up to 3 professionals",
+    "feature3": "Advanced calendar",
+    "feature4": "Basic reports",
+    "feature5": "Priority support"
+  },
+  "business": {
+    "name": "Business",
+    "description": "For growing companies",
+    "feature1": "Unlimited bookings",
+    "feature2": "Unlimited professionals",
+    "feature3": "Advanced features",
+    "feature4": "Complete API",
+    "feature5": "Dedicated support",
+    "feature6": "Custom integrations"
+  },
+  "actions": {
+    "choose": "Choose Plan",
+    "contact": "Contact Sales",
+    "start": "Get Started"
+  },
+  "billing": {
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save": "Save"
+  }
+}

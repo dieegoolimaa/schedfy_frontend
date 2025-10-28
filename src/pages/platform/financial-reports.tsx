@@ -286,8 +286,8 @@ export function FinancialReportsPage() {
   ];
 
   // Calculate totals and metrics
-  const currentPeriodData = monthlyData.at(-1)!;
-  const previousPeriodData = monthlyData.at(-2)!;
+  const currentPeriodData = monthlyData[monthlyData.length - 1]!;
+  const previousPeriodData = monthlyData[monthlyData.length - 2]!;
 
   const revenueGrowth =
     ((currentPeriodData.totalRevenue - previousPeriodData.totalRevenue) /

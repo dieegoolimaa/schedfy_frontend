@@ -1,0 +1,34 @@
+{
+  "bookings": {
+    "editBooking": "Editar Agendamento",
+    "editBookingDesc": "Atualizar detalhes do agendamento e status",
+    "title": "Agendamentos",
+    "create": "Criar Agendamento",
+    "view": "Ver Agendamentos"
+  },
+  "services": {
+    "editService": "Editar Serviço",
+    "editServiceDesc": "Atualizar detalhes do serviço",
+    "title": "Serviços",
+    "create": "Criar Serviço",
+    "manage": "Gerenciar Serviços"
+  },
+  "clients": {
+    "title": "Clientes",
+    "manage": "Gerenciar Clientes",
+    "create": "Adicionar Cliente"
+  },
+  "profile": {
+    "title": "Perfil da Entidade",
+    "settings": "Configurações",
+    "information": "Informações"
+  },
+  "commissions": {
+    "title": "Comissões e Promoções",
+    "manage": "Gerenciar Comissões"
+  },
+  "dashboard": {
+    "title": "Painel da Entidade",
+    "overview": "Visão Geral"
+  }
+}

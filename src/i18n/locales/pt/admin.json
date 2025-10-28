@@ -1,0 +1,21 @@
+{
+  "dashboard": {
+    "title": "Painel Administrativo",
+    "subtitle": "Gestão administrativa da plataforma"
+  },
+  "users": {
+    "title": "Gestão de Utilizadores",
+    "editUser": "Editar Utilizador",
+    "editUserDesc": "Atualizar informações do utilizador",
+    "create": "Criar Utilizador",
+    "manage": "Gerenciar Utilizadores"
+  },
+  "entities": {
+    "title": "Gestão de Entidades",
+    "manage": "Gerenciar Entidades"
+  },
+  "system": {
+    "title": "Configurações do Sistema",
+    "maintenance": "Manutenção"
+  }
+}

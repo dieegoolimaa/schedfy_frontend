@@ -29,7 +29,7 @@ function transformBackendUser(backendUser: any): User {
 }
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<void>;
@@ -101,12 +101,13 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
   useEffect(() => {
     const checkAuthStatus = async () => {
       const token = localStorage.getItem("schedfy-access-token");
+      console.log("[AuthProvider] Token on reload:", token);
       if (token) {
         try {
           dispatch({ type: "AUTH_LOADING" });
           // Verify token with backend
           const response = await authApi.getProfile();
-
+          console.log("[AuthProvider] Profile response:", response);
           if (response.data) {
             dispatch({ type: "AUTH_SUCCESS", payload: response.data as User });
           } else {
@@ -122,11 +123,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         }
       }
     };
-
     checkAuthStatus();
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<User> => {
     try {
       dispatch({ type: "AUTH_LOADING" });
 
@@ -152,6 +152,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       console.log("Transformed user:", transformedUser);
 
       dispatch({ type: "AUTH_SUCCESS", payload: transformedUser });
+      return transformedUser;
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage = error.message || "Login failed";

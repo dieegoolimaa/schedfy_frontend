@@ -1,0 +1,41 @@
+{
+  "title": "Preços",
+  "subtitle": "Escolha o plano ideal para o seu negócio",
+  "simple": {
+    "name": "Simples",
+    "description": "Perfeito para profissionais individuais",
+    "feature1": "Até 50 agendamentos/mês",
+    "feature2": "1 profissional",
+    "feature3": "Calendário básico",
+    "feature4": "Suporte por email"
+  },
+  "individual": {
+    "name": "Individual",
+    "description": "Ideal para pequenos negócios",
+    "feature1": "Até 200 agendamentos/mês",
+    "feature2": "Até 3 profissionais",
+    "feature3": "Calendário avançado",
+    "feature4": "Relatórios básicos",
+    "feature5": "Suporte prioritário"
+  },
+  "business": {
+    "name": "Empresarial",
+    "description": "Para empresas em crescimento",
+    "feature1": "Agendamentos ilimitados",
+    "feature2": "Profissionais ilimitados",
+    "feature3": "Recursos avançados",
+    "feature4": "API completa",
+    "feature5": "Suporte dedicado",
+    "feature6": "Integrações personalizadas"
+  },
+  "actions": {
+    "choose": "Escolher Plano",
+    "contact": "Falar com Vendas",
+    "start": "Começar Agora"
+  },
+  "billing": {
+    "monthly": "Mensal",
+    "yearly": "Anual",
+    "save": "Economize"
+  }
+}

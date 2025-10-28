@@ -1,0 +1,35 @@
+{
+  "title": "Services",
+  "subtitle": "Manage the services offered by your entity",
+  "create": {
+    "title": "Create New Service",
+    "description": "Add a new service to your catalog"
+  },
+  "edit": {
+    "title": "Edit Service",
+    "description": "Update service information"
+  },
+  "fields": {
+    "name": "Name",
+    "description": "Description",
+    "category": "Category",
+    "duration": "Duration",
+    "price": "Price",
+    "currency": "Currency",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "actions": {
+    "create": "Create Service",
+    "edit": "Edit",
+    "delete": "Delete",
+    "activate": "Activate",
+    "deactivate": "Deactivate"
+  },
+  "messages": {
+    "created": "Service created successfully",
+    "updated": "Service updated successfully",
+    "deleted": "Service deleted successfully"
+  }
+}

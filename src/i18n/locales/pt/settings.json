@@ -1,0 +1,30 @@
+{
+    "title": "Configurações",
+    "subtitle": "Gerencie as configurações da sua conta",
+    "profile": {
+        "title": "Perfil",
+        "personal": "Informações Pessoais",
+        "account": "Conta"
+    },
+    "notifications": {
+        "title": "Notificações",
+        "email": "E-mail",
+        "sms": "SMS",
+        "push": "Push"
+    },
+    "security": {
+        "title": "Segurança",
+        "password": "Palavra-passe",
+        "twoFactor": "Autenticação de Dois Fatores"
+    },
+    "preferences": {
+        "title": "Preferências",
+        "language": "Idioma",
+        "timezone": "Fuso Horário",
+        "currency": "Moeda"
+    },
+    "actions": {
+        "save": "Salvar Alterações",
+        "cancel": "Cancelar"
+    }
+}

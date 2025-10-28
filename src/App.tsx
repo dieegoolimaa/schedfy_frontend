@@ -84,6 +84,7 @@ import {
   IndividualPlusRoute,
   ProfessionalRoute,
 } from "./components/auth/role-based-route";
+import { DashboardRedirect } from "./components/auth/dashboard-redirect";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/auth-context";
 import { FeatureFlagsProvider } from "./contexts/feature-flags-context";
@@ -551,16 +552,7 @@ function App() {
             />
 
             {/* Legacy redirects for backwards compatibility */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <EntityDashboardPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
             <Route
               path="/bookings"
               element={

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/auth-context";
+import { getDashboardRoute } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -98,7 +99,7 @@ const regions = [
 
 export function RegisterPage() {
   const { t } = useTranslation();
-  const { register: registerUser, isLoading } = useAuth();
+  const { register: registerUser, user, isLoading } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -177,7 +178,15 @@ export function RegisterPage() {
           "Account created successfully! Welcome to Schedfy!"
         )
       );
-      navigate("/dashboard");
+
+      // Navigate to appropriate dashboard based on user type
+      if (user) {
+        const dashboardRoute = getDashboardRoute(user);
+        navigate(dashboardRoute);
+      } else {
+        // Fallback to simple dashboard if user is not available yet
+        navigate("/simple/dashboard");
+      }
     } catch (err) {
       console.error("Registration error:", err);
       toast.error(
@@ -325,7 +334,9 @@ export function RegisterPage() {
                       Password strength
                     </span>
                     <span
-                      className={`font-medium ${getPasswordStrengthColor(passwordStrength)}`}
+                      className={`font-medium ${getPasswordStrengthColor(
+                        passwordStrength
+                      )}`}
                     >
                       {getPasswordStrengthLabel(passwordStrength)}
                     </span>
@@ -333,7 +344,9 @@ export function RegisterPage() {
                   <Progress value={passwordStrength} className="h-2" />
                   <div className="space-y-1 text-xs text-muted-foreground">
                     <div
-                      className={`flex items-center space-x-2 ${password.length >= 8 ? "text-green-600" : ""}`}
+                      className={`flex items-center space-x-2 ${
+                        password.length >= 8 ? "text-green-600" : ""
+                      }`}
                     >
                       {password.length >= 8 ? (
                         <Check className="h-3 w-3" />
@@ -343,7 +356,9 @@ export function RegisterPage() {
                       <span>At least 8 characters</span>
                     </div>
                     <div
-                      className={`flex items-center space-x-2 ${/[A-Z]/.test(password) ? "text-green-600" : ""}`}
+                      className={`flex items-center space-x-2 ${
+                        /[A-Z]/.test(password) ? "text-green-600" : ""
+                      }`}
                     >
                       {/[A-Z]/.test(password) ? (
                         <Check className="h-3 w-3" />
@@ -353,7 +368,9 @@ export function RegisterPage() {
                       <span>One uppercase letter</span>
                     </div>
                     <div
-                      className={`flex items-center space-x-2 ${/\d/.test(password) ? "text-green-600" : ""}`}
+                      className={`flex items-center space-x-2 ${
+                        /\d/.test(password) ? "text-green-600" : ""
+                      }`}
                     >
                       {/\d/.test(password) ? (
                         <Check className="h-3 w-3" />
@@ -363,7 +380,9 @@ export function RegisterPage() {
                       <span>One number</span>
                     </div>
                     <div
-                      className={`flex items-center space-x-2 ${/[^A-Za-z0-9]/.test(password) ? "text-green-600" : ""}`}
+                      className={`flex items-center space-x-2 ${
+                        /[^A-Za-z0-9]/.test(password) ? "text-green-600" : ""
+                      }`}
                     >
                       {/[^A-Za-z0-9]/.test(password) ? (
                         <Check className="h-3 w-3" />

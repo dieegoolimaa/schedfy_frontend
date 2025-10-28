@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import { QueryParams, PaginatedResponse } from '../../types/api';
+import { ServiceBackend } from './services.api';
 
 export interface Booking {
     id: string;
@@ -13,18 +14,18 @@ export interface Booking {
     notes?: string;
     createdAt: string;
     updatedAt: string;
+    // Additional computed/display properties
+    date?: string;
+    time?: string;
+    paymentStatus?: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
     // Populated fields (from backend)
-    service?: {
-        id: string;
-        name: string;
-        duration: number;
-        price: number;
-    };
+    service?: ServiceBackend;
     client?: {
         id: string;
         name: string;
-        email: string;
+        email?: string;
         phone?: string;
+        isFirstTime?: boolean;
     };
     professional?: {
         id: string;
@@ -122,6 +123,20 @@ export interface BookingFilters extends QueryParams {
 
 export const bookingsApi = {
     /**
+     * Check if a slot is available for booking (entity-level, all plans)
+     */
+    async checkSlotAvailability(data: {
+        entityId: string;
+        serviceId?: string;
+        professionalId?: string;
+        startDateTime: string;
+        endDateTime: string;
+        plan: string;
+        allowConcurrentBookings?: boolean;
+    }) {
+        return apiClient.post<{ available: boolean }>(`/api/bookings/check-slot`, data);
+    },
+    /**
      * Get all bookings (paginated)
      */
     async getAll(params?: BookingFilters) {
@@ -176,7 +191,18 @@ export const bookingsApi = {
      * Create a new booking
      */
     async create(data: CreateBookingDto) {
-        return apiClient.post<Booking>('/api/bookings', data);
+        try {
+            return await apiClient.post<Booking>('/api/bookings', data);
+        } catch (error: any) {
+            // Check if this is a booking conflict error
+            if (error.statusCode === 409 && error.error === 'BOOKING_CONFLICT') {
+                const conflictError = new Error(error.message || 'Booking conflict detected');
+                (conflictError as any).conflicts = error.errors?.conflicts || [];
+                (conflictError as any).statusCode = 409;
+                throw conflictError;
+            }
+            throw error;
+        }
     },
 
     /**

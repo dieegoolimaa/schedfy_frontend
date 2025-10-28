@@ -1,0 +1,21 @@
+{
+  "dashboard": {
+    "title": "Painel do Profissional",
+    "subtitle": "Gerencie seus agendamentos e disponibilidade"
+  },
+  "bookings": {
+    "title": "Meus Agendamentos",
+    "subtitle": "Visualize e gerencie seus agendamentos",
+    "upcoming": "Próximos",
+    "past": "Passados",
+    "today": "Hoje"
+  },
+  "schedule": {
+    "title": "Horário de Trabalho",
+    "manage": "Gerenciar Disponibilidade"
+  },
+  "profile": {
+    "title": "Perfil Profissional",
+    "settings": "Configurações"
+  }
+}

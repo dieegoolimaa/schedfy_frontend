@@ -1,0 +1,34 @@
+{
+  "dashboard": {
+    "title": "Painel da Plataforma",
+    "subtitle": "Visão geral da plataforma Schedfy"
+  },
+  "entities": {
+    "title": "Gestão de Entidades",
+    "create": "Criar Entidade",
+    "manage": "Gerenciar Entidades",
+    "bookings": "Agendamentos"
+  },
+  "users": {
+    "title": "Gestão de Utilizadores",
+    "create": "Criar Utilizador",
+    "manage": "Gerenciar Utilizadores"
+  },
+  "userManagement": {
+    "adminUsers": "Utilizadores Admin"
+  },
+  "support": {
+    "title": "Suporte ao Cliente",
+    "ticket": {
+      "entity": "Entidade"
+    }
+  },
+  "reports": {
+    "title": "Relatórios da Plataforma",
+    "analytics": "Análises"
+  },
+  "settings": {
+    "title": "Configurações da Plataforma",
+    "system": "Sistema"
+  }
+}

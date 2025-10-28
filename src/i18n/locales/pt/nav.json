@@ -1,0 +1,17 @@
+{
+  "dashboard": "Painel",
+  "bookings": "Agendamentos",
+  "services": "Serviços",
+  "clients": "Clientes",
+  "professionals": "Profissionais",
+  "reports": "Relatórios",
+  "settings": "Configurações",
+  "profile": "Perfil",
+  "logout": "Sair",
+  "home": "Início",
+  "about": "Sobre",
+  "contact": "Contato",
+  "pricing": "Preços",
+  "features": "Recursos",
+  "support": "Suporte"
+}

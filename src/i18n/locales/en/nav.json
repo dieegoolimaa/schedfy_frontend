@@ -1,0 +1,17 @@
+{
+  "dashboard": "Dashboard",
+  "bookings": "Bookings",
+  "services": "Services",
+  "clients": "Clients",
+  "professionals": "Professionals",
+  "reports": "Reports",
+  "settings": "Settings",
+  "profile": "Profile",
+  "logout": "Logout",
+  "home": "Home",
+  "about": "About",
+  "contact": "Contact",
+  "pricing": "Pricing",
+  "features": "Features",
+  "support": "Support"
+}

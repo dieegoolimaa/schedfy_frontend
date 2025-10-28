@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { getDashboardRoute } from "../lib/utils";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -41,9 +42,17 @@ export function AuthCallbackPage() {
           id: state === "login" ? "google-123456" : "google-789012",
           email: state === "login" ? "user@gmail.com" : "newuser@gmail.com",
           name: state === "login" ? "John Doe" : "Jane Smith",
-          role: "entity" as const,
+          role: "owner" as const,
           avatar: "https://lh3.googleusercontent.com/a/default-user",
           provider: "google",
+          plan: "business" as const,
+          entityId: "entity-123",
+          country: "PT" as const,
+          timezone: "Europe/Lisbon",
+          locale: "en",
+          isEmailVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
 
         // Store auth data
@@ -54,8 +63,9 @@ export function AuthCallbackPage() {
           `Google ${state === "login" ? "login" : "registration"} successful!`
         );
 
-        // Navigate to dashboard
-        navigate("/dashboard");
+        // Navigate to appropriate dashboard based on user type
+        const dashboardRoute = getDashboardRoute(mockUser);
+        navigate(dashboardRoute);
       }, 2000);
     } catch (error) {
       console.error("OAuth callback error:", error);

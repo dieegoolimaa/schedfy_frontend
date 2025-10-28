@@ -11,7 +11,8 @@ import {
 import { Settings } from "lucide-react";
 
 export function DevRoleSwitcher() {
-  const { user, switchRole } = useAuth();
+  // const { user, switchRole } = useAuth();
+  const { user } = useAuth();
 
   // Only show in development
   if (process.env.NODE_ENV !== "development") {
@@ -43,7 +44,7 @@ export function DevRoleSwitcher() {
         {roles.map((role) => (
           <DropdownMenuItem
             key={role.key}
-            onClick={() => switchRole(role.key)}
+            // onClick={() => switchRole(role.key)}
             className={
               user?.role === role.key ||
               (role.key === "client" && user?.plan === "simple")

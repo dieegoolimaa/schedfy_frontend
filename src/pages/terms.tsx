@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -11,8 +10,6 @@ import { Button } from "../components/ui/button";
 import { ArrowLeft, Calendar, Shield, Users } from "lucide-react";
 
 export function TermsPage() {
-  const { t } = useTranslation();
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}

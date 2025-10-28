@@ -1,0 +1,21 @@
+{
+  "title": "Sobre a Schedfy",
+  "subtitle": "Conheça nossa missão e valores",
+  "mission": {
+    "title": "Nossa Missão",
+    "description": "Simplificar a gestão de agendamentos para empresas e profissionais"
+  },
+  "stats": {
+    "bookings": "Agendamentos Mensais",
+    "users": "Utilizadores Ativos",
+    "entities": "Entidades Registradas"
+  },
+  "team": {
+    "title": "Nossa Equipa",
+    "description": "Conheça as pessoas por trás da Schedfy"
+  },
+  "contact": {
+    "title": "Entre em Contato",
+    "description": "Estamos aqui para ajudar"
+  }
+}

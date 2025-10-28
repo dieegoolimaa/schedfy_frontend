@@ -65,7 +65,6 @@ import {
   Phone,
   Mail,
   Edit,
-  MoreHorizontal,
   TrendingUp,
   Euro,
   Heart,
@@ -89,10 +88,8 @@ export function ClientProfilePage() {
   const {
     clients,
     loading: clientsLoading,
-    error: clientsError,
     fetchClients,
     getClientWithBookings,
-    getClientStats,
     createClient,
     updateClient,
     deleteClient,
@@ -129,12 +126,13 @@ export function ClientProfilePage() {
     if (!editingClientData || !editingClientData.id) return;
     try {
       await updateClient(String(editingClientData.id), {
-        name: editingClientData.name,
-        email: editingClientData.email,
-        phone: editingClientData.phone,
-        address: editingClientData.address,
-        notes: editingClientData.notes,
-        dateOfBirth: editingClientData.birthDate,
+        firstName: editingClientData.firstName || "",
+        lastName: editingClientData.lastName || "",
+        email: editingClientData.email || "",
+        phone: editingClientData.phone || "",
+        address: editingClientData.address || "",
+        notes: editingClientData.notes || "",
+        dateOfBirth: editingClientData.birthDate || "",
       });
       setIsEditDialogOpen(false);
       fetchClients();
@@ -264,7 +262,7 @@ export function ClientProfilePage() {
     const matchesSearch =
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.phone.includes(searchTerm);
+      (client.phone || "").includes(searchTerm);
 
     const matchesStatus =
       statusFilter === "all" || client.status === statusFilter;
@@ -276,10 +274,11 @@ export function ClientProfilePage() {
     total: clients.length,
     active: clients.filter((c) => c.status === "active").length,
     inactive: clients.filter((c) => c.status === "inactive").length,
-    vip: clients.filter((c) => c.loyaltyPoints >= 400).length,
-    totalRevenue: clients.reduce((sum, c) => sum + c.totalSpent, 0),
+    vip: clients.filter((c) => (c.loyaltyPoints || 0) >= 400).length,
+    totalRevenue: clients.reduce((sum, c) => sum + (c.totalSpent || 0), 0),
     averageSpent:
-      clients.reduce((sum, c) => sum + c.averageSpent, 0) / clients.length,
+      clients.reduce((sum, c) => sum + (c.averageSpent || 0), 0) /
+      clients.length,
   };
 
   return (
@@ -573,7 +572,7 @@ export function ClientProfilePage() {
                       ))
                     : filteredClients.map((client) => {
                         const loyaltyInfo = getLoyaltyTier(
-                          client.loyaltyPoints
+                          client.loyaltyPoints || 0
                         );
                         return (
                           <TableRow key={client.id}>
@@ -592,7 +591,7 @@ export function ClientProfilePage() {
                                   <div className="text-sm text-muted-foreground">
                                     Member since{" "}
                                     {new Date(
-                                      client.joinDate
+                                      client.joinDate || 0
                                     ).toLocaleDateString()}
                                   </div>
                                 </div>
@@ -618,7 +617,7 @@ export function ClientProfilePage() {
                                 <div className="text-sm text-muted-foreground">
                                   Last:{" "}
                                   {new Date(
-                                    client.lastVisit
+                                    client.lastVisit || 0
                                   ).toLocaleDateString()}
                                 </div>
                               </div>
@@ -641,14 +640,14 @@ export function ClientProfilePage() {
                                   €{client.totalSpent}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Avg: €{client.averageSpent.toFixed(2)}
+                                  Avg: €{(client.averageSpent || 0).toFixed(2)}
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <Badge
                                 variant="outline"
-                                className={getStatusColor(client.status)}
+                                className={getStatusColor(client.status || "")}
                               >
                                 {client.status}
                               </Badge>
@@ -759,7 +758,7 @@ export function ClientProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {[...clients]
-                  .sort((a, b) => b.totalSpent - a.totalSpent)
+                  .sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0))
                   .slice(0, 5)
                   .map((client, index) => (
                     <div
@@ -790,7 +789,7 @@ export function ClientProfilePage() {
                           €{client.totalSpent}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {getLoyaltyTier(client.loyaltyPoints).tier}
+                          {getLoyaltyTier(client.loyaltyPoints || 0).tier}
                         </p>
                       </div>
                     </div>

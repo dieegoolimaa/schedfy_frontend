@@ -3,6 +3,7 @@ import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
+import { bookingsApi } from "../../lib/api/bookings.api";
 import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { usersApi } from "../../lib/api";
@@ -62,7 +63,6 @@ import {
   User,
   X,
 } from "lucide-react";
-import { usePayments } from "../../hooks/usePayments";
 import PaymentForm from "../../components/payments/PaymentForm";
 
 export function BookingManagementPage() {
@@ -70,19 +70,13 @@ export function BookingManagementPage() {
   const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
+  console.log("[BookingManagementPage] entityId from user context:", entityId);
 
   // Use the bookings hook with real API
-  const {
-    bookings,
-    loading,
-    fetchBookings,
-    createBooking,
-    updateBooking,
-    cancelBooking,
-    confirmBooking,
-    completeBooking,
-    deleteBooking,
-  } = useBookings({ entityId, autoFetch: true });
+  const { bookings, loading, fetchBookings, completeBooking } = useBookings({
+    entityId,
+    autoFetch: true,
+  });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [clientSearchTerm, setClientSearchTerm] = useState("");
@@ -95,7 +89,6 @@ export function BookingManagementPage() {
   const [selectedBookingForPayment, setSelectedBookingForPayment] =
     useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
-  const [formLoading, setFormLoading] = useState(false);
 
   // Enhanced batch booking states
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -341,7 +334,9 @@ export function BookingManagementPage() {
         b.client && typeof b.client === "object"
           ? b.client
           : clients.find((c: any) => String(c.id) === String(b.clientId)) ||
-            (b.client ? { id: b.client, name: String(b.client) } : undefined);
+            (b.client
+              ? { id: b.client, name: String(b.client), isFirstTime: false }
+              : undefined);
 
       // Resolve service
       const serviceObj =
@@ -394,7 +389,10 @@ export function BookingManagementPage() {
       (booking.client?.email || "")
         .toLowerCase()
         .includes(clientSearchTerm.toLowerCase()) ||
-      (booking.client?.phone || "").includes(clientSearchTerm);
+      (
+        (booking.client && "phone" in booking.client && booking.client.phone) ||
+        ""
+      ).includes(clientSearchTerm);
 
     const matchesStatus =
       statusFilter === "all" || booking.status === statusFilter;
@@ -436,7 +434,14 @@ export function BookingManagementPage() {
     cancelled: displayBookings.filter((b) => b.status === "cancelled").length,
     revenue: displayBookings
       .filter((b) => b.service)
-      .reduce((sum, b) => sum + (b.service?.price || 0), 0),
+      .reduce(
+        (sum, b) =>
+          sum +
+          ((b.service as any)?.pricing?.basePrice ||
+            (b.service as any)?.price ||
+            0),
+        0
+      ),
   };
 
   // Show loading skeleton
@@ -820,14 +825,58 @@ export function BookingManagementPage() {
                     Cancel
                   </Button>
                   <Button
-                    onClick={() => {
-                      // Process the booking creation
-                      console.log("Creating bookings:", {
-                        client: selectedClient,
-                        slots: bookingSlots,
-                      });
-                      setIsCreateDialogOpen(false);
-                      resetBookingForm();
+                    onClick={async () => {
+                      // Check slot availability for each booking slot before creating
+                      let allAvailable = true;
+                      for (const slot of bookingSlots) {
+                        if (slot.service && slot.date && slot.time) {
+                          const service = services.find(
+                            (s) => s.id.toString() === slot.service
+                          );
+                          const startDateTime = `${slot.date}T${slot.time}`;
+                          const endDateTime = service
+                            ? new Date(
+                                new Date(startDateTime).getTime() +
+                                  service.duration * 60000
+                              ).toISOString()
+                            : startDateTime;
+                          try {
+                            const res = await bookingsApi.checkSlotAvailability(
+                              {
+                                entityId,
+                                serviceId: slot.service,
+                                professionalId: slot.professional,
+                                startDateTime,
+                                endDateTime,
+                                plan: user?.plan || "simple",
+                                allowConcurrentBookings:
+                                  user?.plan === "business", // Default based on plan
+                              }
+                            );
+                            if (!res.data.available) {
+                              allAvailable = false;
+                              toast.error(
+                                "Selected slot is not available. Please choose another time."
+                              );
+                              break;
+                            }
+                          } catch (err) {
+                            allAvailable = false;
+                            toast.error("Error checking slot availability.");
+                            break;
+                          }
+                        }
+                      }
+                      if (allAvailable) {
+                        // Process the booking creation
+                        console.log("Creating bookings:", {
+                          client: selectedClient,
+                          slots: bookingSlots,
+                        });
+                        setIsCreateDialogOpen(false);
+                        resetBookingForm();
+                        // Call createBooking or batch create logic here
+                      }
                     }}
                     disabled={
                       !selectedClient ||
@@ -1084,9 +1133,20 @@ export function BookingManagementPage() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src="" />
+                        <AvatarImage
+                          src={
+                            booking.client && "avatar" in booking.client
+                              ? (booking.client as { avatar?: string }).avatar
+                              : undefined
+                          }
+                        />
                         <AvatarFallback className="text-xs">
-                          {booking.client?.avatar}
+                          {booking.client?.name
+                            ? booking.client.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")
+                            : ""}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -1095,7 +1155,11 @@ export function BookingManagementPage() {
                         </div>
                         <div className="text-sm text-muted-foreground flex items-center">
                           <Phone className="h-3 w-3 mr-1" />
-                          {booking.client?.phone}
+                          {booking.client &&
+                          "phone" in booking.client &&
+                          booking.client.phone
+                            ? booking.client.phone
+                            : ""}
                         </div>
                         {booking.client?.isFirstTime && (
                           <Badge variant="secondary" className="text-xs mt-1">
@@ -1109,8 +1173,10 @@ export function BookingManagementPage() {
                     <div>
                       <div className="font-medium">{booking.service?.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {booking.service?.duration}min •{" "}
-                        {booking.service?.category}
+                        {(booking.service as any)?.duration?.duration ||
+                          (booking.service as any)?.duration ||
+                          0}
+                        min • {(booking.service as any)?.category}
                       </div>
                     </div>
                   </TableCell>
@@ -1144,10 +1210,10 @@ export function BookingManagementPage() {
                         <Badge
                           variant="outline"
                           className={getPaymentStatusColor(
-                            booking.paymentStatus
+                            booking.paymentStatus || "pending"
                           )}
                         >
-                          {booking.paymentStatus}
+                          {booking.paymentStatus || "pending"}
                         </Badge>
                         {booking.paymentStatus === "pending" && (
                           <Button
@@ -1173,7 +1239,10 @@ export function BookingManagementPage() {
                   {canViewPricing && (
                     <TableCell>
                       <div className="font-medium">
-                        €{booking.service?.price}
+                        €
+                        {(booking.service as any)?.pricing?.basePrice ||
+                          (booking.service as any)?.price ||
+                          0}
                       </div>
                     </TableCell>
                   )}
@@ -1191,8 +1260,12 @@ export function BookingManagementPage() {
                             professionalName: booking.professional?.name,
                             date: booking.date,
                             time: booking.time,
-                            duration: booking.service?.duration,
-                            price: booking.service?.price,
+                            duration:
+                              (booking.service as any)?.duration?.duration ||
+                              (booking.service as any)?.duration,
+                            price:
+                              (booking.service as any)?.pricing?.basePrice ||
+                              (booking.service as any)?.price,
                             status: booking.status,
                             notes: booking.notes || "",
                           });

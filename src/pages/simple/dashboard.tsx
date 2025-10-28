@@ -16,7 +16,6 @@ import {
   TrendingUp,
   DollarSign,
   Clock,
-  Calendar,
   ArrowRight,
   CheckCircle,
   Loader2,
@@ -136,10 +135,6 @@ const SimpleDashboard = () => {
     navigate("/upgrade");
   };
 
-  const handleViewCalendar = () => {
-    navigate("/simple/bookings");
-  };
-
   const handleTodayView = () => {
     // Filter to today's bookings - in a real implementation, you'd pass this as state
     navigate("/simple/bookings");
@@ -192,10 +187,6 @@ const SimpleDashboard = () => {
           <Button variant="outline" size="sm" onClick={handleTodayView}>
             <CalendarDays className="mr-2 h-4 w-4" />
             {t("dashboard.today", "Today")}
-          </Button>
-          <Button size="sm" onClick={handleViewCalendar}>
-            <Calendar className="mr-2 h-4 w-4" />
-            {t("dashboard.viewCalendar", "View Calendar")}
           </Button>
         </div>
       </div>

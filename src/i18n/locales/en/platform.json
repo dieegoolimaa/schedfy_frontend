@@ -1,0 +1,34 @@
+{
+  "dashboard": {
+    "title": "Platform Dashboard",
+    "subtitle": "Schedfy platform overview"
+  },
+  "entities": {
+    "title": "Entity Management",
+    "create": "Create Entity",
+    "manage": "Manage Entities",
+    "bookings": "Bookings"
+  },
+  "users": {
+    "title": "User Management",
+    "create": "Create User",
+    "manage": "Manage Users"
+  },
+  "userManagement": {
+    "adminUsers": "Admin Users"
+  },
+  "support": {
+    "title": "Customer Support",
+    "ticket": {
+      "entity": "Entity"
+    }
+  },
+  "reports": {
+    "title": "Platform Reports",
+    "analytics": "Analytics"
+  },
+  "settings": {
+    "title": "Platform Settings",
+    "system": "System"
+  }
+}

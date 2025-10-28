@@ -1,0 +1,30 @@
+{
+    "title": "Settings",
+    "subtitle": "Manage your account settings",
+    "profile": {
+        "title": "Profile",
+        "personal": "Personal Information",
+        "account": "Account"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "email": "Email",
+        "sms": "SMS",
+        "push": "Push"
+    },
+    "security": {
+        "title": "Security",
+        "password": "Password",
+        "twoFactor": "Two-Factor Authentication"
+    },
+    "preferences": {
+        "title": "Preferences",
+        "language": "Language",
+        "timezone": "Timezone",
+        "currency": "Currency"
+    },
+    "actions": {
+        "save": "Save Changes",
+        "cancel": "Cancel"
+    }
+}

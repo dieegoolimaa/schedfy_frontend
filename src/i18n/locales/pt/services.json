@@ -1,0 +1,35 @@
+{
+  "title": "Serviços",
+  "subtitle": "Gerencie os serviços oferecidos pela sua entidade",
+  "create": {
+    "title": "Criar Novo Serviço",
+    "description": "Adicione um novo serviço ao seu catálogo"
+  },
+  "edit": {
+    "title": "Editar Serviço",
+    "description": "Atualizar informações do serviço"
+  },
+  "fields": {
+    "name": "Nome",
+    "description": "Descrição",
+    "category": "Categoria",
+    "duration": "Duração",
+    "price": "Preço",
+    "currency": "Moeda",
+    "status": "Status",
+    "active": "Ativo",
+    "inactive": "Inativo"
+  },
+  "actions": {
+    "create": "Criar Serviço",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "activate": "Ativar",
+    "deactivate": "Desativar"
+  },
+  "messages": {
+    "created": "Serviço criado com sucesso",
+    "updated": "Serviço atualizado com sucesso",
+    "deleted": "Serviço excluído com sucesso"
+  }
+}

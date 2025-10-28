@@ -1,0 +1,28 @@
+{
+  "title": "Recursos da Schedfy",
+  "subtitle": "Descubra tudo o que a Schedfy pode oferecer",
+  "booking": {
+    "title": "Sistema de Agendamentos",
+    "description": "Agendamento online simples e eficiente"
+  },
+  "calendar": {
+    "title": "Calendário Integrado",
+    "description": "Visualize todos os seus agendamentos em um só lugar"
+  },
+  "clients": {
+    "title": "Gestão de Clientes",
+    "description": "Mantenha o histórico completo dos seus clientes"
+  },
+  "reports": {
+    "title": "Relatórios Detalhados",
+    "description": "Análises completas do seu negócio"
+  },
+  "mobile": {
+    "title": "Aplicativo Mobile",
+    "description": "Gerencie tudo em qualquer lugar"
+  },
+  "integration": {
+    "title": "Integrações",
+    "description": "Conecte com suas ferramentas favoritas"
+  }
+}

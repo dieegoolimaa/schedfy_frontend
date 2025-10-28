@@ -63,16 +63,6 @@ export function UserManagementPage() {
     // TODO: Implement edit user functionality
   };
 
-  const handleDeleteUser = (userId: number) => {
-    console.log("Delete user:", userId);
-    // TODO: Implement delete user functionality
-  };
-
-  const handleToggleUserStatus = (userId: number, currentStatus: string) => {
-    console.log("Toggle user status:", userId, currentStatus);
-    // TODO: Implement toggle user status functionality
-  };
-
   const handleResetPassword = (userId: number) => {
     console.log("Reset password for user:", userId);
     // TODO: Implement reset password functionality
@@ -81,11 +71,6 @@ export function UserManagementPage() {
   const handleViewActivity = (userId: number) => {
     console.log("View activity for user:", userId);
     // TODO: Implement view activity functionality
-  };
-
-  const handleAddUser = (formData: any) => {
-    console.log("Add user:", formData);
-    // TODO: Implement add user functionality
   };
 
   // Mock users data

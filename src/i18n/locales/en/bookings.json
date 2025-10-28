@@ -1,0 +1,48 @@
+{
+  "management": {
+    "title": "Booking Management",
+    "subtitle": "View, edit, and manage all bookings for your entity"
+  },
+  "title": "Bookings",
+  "subtitle": "Manage your appointment bookings",
+  "create": {
+    "title": "Create New Booking",
+    "description": "Select a client and schedule one or multiple services with different dates and times"
+  },
+  "edit": {
+    "title": "Edit Booking",
+    "description": "Update booking details and status"
+  },
+  "status": {
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "no_show": "No Show"
+  },
+  "actions": {
+    "create": "Create Booking",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "complete": "Complete"
+  },
+  "fields": {
+    "client": "Client",
+    "service": "Service",
+    "professional": "Professional",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "price": "Price",
+    "notes": "Notes",
+    "status": "Status"
+  },
+  "messages": {
+    "created": "Booking created successfully",
+    "updated": "Booking updated successfully",
+    "deleted": "Booking deleted successfully",
+    "conflict": "Time slot conflict detected"
+  }
+}

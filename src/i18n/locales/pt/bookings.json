@@ -1,0 +1,48 @@
+{
+  "management": {
+    "title": "Gestão de Agendamentos",
+    "subtitle": "Visualize, edite e gerencie todos os agendamentos da sua entidade"
+  },
+  "title": "Agendamentos",
+  "subtitle": "Gerencie seus agendamentos de consultas",
+  "create": {
+    "title": "Criar Novo Agendamento",
+    "description": "Selecione um cliente e agende um ou vários serviços com diferentes datas e horários"
+  },
+  "edit": {
+    "title": "Editar Agendamento",
+    "description": "Atualizar detalhes do agendamento e status"
+  },
+  "status": {
+    "confirmed": "Confirmado",
+    "pending": "Pendente",
+    "completed": "Concluído",
+    "cancelled": "Cancelado",
+    "no_show": "Faltou"
+  },
+  "actions": {
+    "create": "Criar Agendamento",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "complete": "Concluir"
+  },
+  "fields": {
+    "client": "Cliente",
+    "service": "Serviço",
+    "professional": "Profissional",
+    "date": "Data",
+    "time": "Horário",
+    "duration": "Duração",
+    "price": "Preço",
+    "notes": "Observações",
+    "status": "Status"
+  },
+  "messages": {
+    "created": "Agendamento criado com sucesso",
+    "updated": "Agendamento atualizado com sucesso",
+    "deleted": "Agendamento excluído com sucesso",
+    "conflict": "Conflito de horário detectado"
+  }
+}

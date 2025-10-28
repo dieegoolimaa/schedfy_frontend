@@ -12,6 +12,7 @@ export interface Client {
     dateOfBirth?: string;
     gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
     status?: 'active' | 'inactive' | 'blocked';
+    isFirstTime?: boolean; // For booking display purposes
     preferences?: {
         preferredContactMethod?: 'email' | 'phone' | 'sms';
         allowMarketing?: boolean;
