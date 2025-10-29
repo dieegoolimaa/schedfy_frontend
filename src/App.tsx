@@ -8,6 +8,7 @@ import { HomePage } from "./pages/home";
 import { LoginPage } from "./pages/login";
 import { RegisterPage } from "./pages/register";
 import { AuthCallbackPage } from "./pages/auth-callback";
+import { AcceptInvitationPage } from "./pages/accept-invitation";
 import { NotFoundPage } from "./pages/not-found";
 import { UnauthorizedPage } from "./pages/unauthorized";
 import { UpgradePage } from "./pages/upgrade";
@@ -114,6 +115,10 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/accept-invitation"
+              element={<AcceptInvitationPage />}
+            />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/discover" element={<BusinessDiscoveryPage />} />
             <Route path="/book/:username" element={<PublicBookingPage />} />

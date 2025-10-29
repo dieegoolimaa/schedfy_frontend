@@ -13,6 +13,9 @@ export interface Professional {
     status: 'active' | 'inactive' | 'suspended' | 'pending';
     services?: string[]; // Array of service IDs this professional can perform
     avatar?: string;
+    invitationToken?: string;
+    invitationExpires?: string;
+    invitationAccepted?: boolean;
     workingHours?: {
         [key: string]: { // day of week (0-6)
             start: string; // "09:00"

@@ -68,6 +68,7 @@ export interface Service {
     slug: string;
     sortOrder: number;
     professionalIds: string[];
+    assignedProfessionals?: string[]; // Alias for professionalIds from backend
     bookingCount: number;
     createdAt: string;
     updatedAt: string;

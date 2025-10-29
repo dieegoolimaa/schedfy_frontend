@@ -62,6 +62,7 @@ import {
   Calendar,
   AlertCircle,
 } from "lucide-react";
+import { AssignProfessionalsDialog } from "../../components/dialogs/assign-professionals-dialog";
 
 export function ServicesPage() {
   const { t } = useTranslation();
@@ -85,6 +86,8 @@ export function ServicesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deletingService, setDeletingService] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [assignProfessionalsService, setAssignProfessionalsService] =
+    useState<any>(null);
   const [formLoading, setFormLoading] = useState(false);
 
   // Create form state
@@ -852,6 +855,7 @@ export function ServicesPage() {
                       <TableHead>Category</TableHead>
                       <TableHead>Duration</TableHead>
                       <TableHead>Price</TableHead>
+                      <TableHead>Professionals</TableHead>
                       <TableHead>Bookings</TableHead>
                       <TableHead>Rating</TableHead>
                       <TableHead>Status</TableHead>
@@ -872,6 +876,21 @@ export function ServicesPage() {
                         <TableCell>{service.category}</TableCell>
                         <TableCell>{service.duration} min</TableCell>
                         <TableCell>€{service.price}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setAssignProfessionalsService(service)
+                            }
+                            className="flex items-center gap-1"
+                          >
+                            <Users className="h-3 w-3" />
+                            <span>
+                              {service.assignedProfessionals?.length || 0}
+                            </span>
+                          </Button>
+                        </TableCell>
                         <TableCell>{service.bookings || 0}</TableCell>
                         <TableCell>
                           {(service.rating || 0) > 0 ? (
@@ -1257,6 +1276,22 @@ export function ServicesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Assign Professionals Dialog */}
+      {assignProfessionalsService && (
+        <AssignProfessionalsDialog
+          serviceId={assignProfessionalsService.id}
+          serviceName={assignProfessionalsService.name}
+          entityId={entityId}
+          assignedProfessionalIds={
+            assignProfessionalsService.assignedProfessionals || []
+          }
+          onAssigned={() => {
+            setAssignProfessionalsService(null);
+            _fetchServices(); // Refresh services to show updated professional count
+          }}
+        />
+      )}
     </div>
   );
 }

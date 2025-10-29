@@ -115,14 +115,33 @@ export function ProfessionalsPage() {
         });
         toast.success("Professional updated");
       } else {
-        await professionalsApi.createProfessional({
+        const response = await professionalsApi.createProfessional({
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
           phone: formData.phone,
           entityId,
         });
-        toast.success("Professional created");
+
+        // Show invitation link
+        const professional = response.data;
+        if (professional.invitationToken) {
+          const invitationLink = `${window.location.origin}/accept-invitation?token=${professional.invitationToken}`;
+
+          // Copy to clipboard
+          navigator.clipboard.writeText(invitationLink);
+
+          toast.success(
+            <div className="space-y-1">
+              <p className="font-semibold">Professional created!</p>
+              <p className="text-xs">Invitation link copied to clipboard</p>
+              <p className="text-xs break-all">{invitationLink}</p>
+            </div>,
+            { duration: 10000 }
+          );
+        } else {
+          toast.success("Professional created");
+        }
       }
       setIsDialogOpen(false);
       setEditingProfessional(null);

@@ -121,7 +121,28 @@ export interface BookingFilters extends QueryParams {
     endDate?: string;
 }
 
+export interface TimeSlot {
+    time: string;
+    startDateTime: string;
+    endDateTime: string;
+    professionalId?: string;
+    professionalName?: string;
+    duration: number;
+}
+
 export const bookingsApi = {
+    /**
+     * Get available time slots for a service on a specific date
+     */
+    async getAvailableSlots(params: {
+        entityId: string;
+        serviceId: string;
+        date: string; // YYYY-MM-DD
+        professionalId?: string;
+    }) {
+        return apiClient.get<TimeSlot[]>('/api/bookings/available-slots', params);
+    },
+
     /**
      * Check if a slot is available for booking (entity-level, all plans)
      */

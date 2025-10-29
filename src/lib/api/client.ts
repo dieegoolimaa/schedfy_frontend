@@ -15,6 +15,38 @@ export class ApiClient {
         return localStorage.getItem('schedfy-token');
     }
 
+    /**
+     * Map MongoDB _id to id for frontend compatibility
+     */
+    private mapMongoIds(data: any): any {
+        if (data === null || data === undefined) {
+            return data;
+        }
+
+        // Handle arrays
+        if (Array.isArray(data)) {
+            return data.map(item => this.mapMongoIds(item));
+        }
+
+        // Handle objects
+        if (typeof data === 'object') {
+            const mapped: any = {};
+            for (const key in data) {
+                if (key === '_id') {
+                    mapped.id = data[key];
+                    mapped._id = data[key]; // Keep _id as well for compatibility
+                } else if (typeof data[key] === 'object') {
+                    mapped[key] = this.mapMongoIds(data[key]);
+                } else {
+                    mapped[key] = data[key];
+                }
+            }
+            return mapped;
+        }
+
+        return data;
+    }
+
     private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
         const contentType = response.headers.get('content-type');
         const isJson = contentType?.includes('application/json');
@@ -36,8 +68,11 @@ export class ApiClient {
             throw error;
         }
 
+        // Map MongoDB _id to id for frontend compatibility
+        const mappedData = this.mapMongoIds(data.data || data);
+
         return {
-            data: data.data || data,
+            data: mappedData,
             message: data.message,
             status: response.status,
         };

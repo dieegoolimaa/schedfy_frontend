@@ -62,8 +62,10 @@ import {
   Award,
   Zap,
   Loader2,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AssignProfessionalsDialog } from "../../components/dialogs/assign-professionals-dialog";
 
 export function SimpleServicesPage() {
   const { t } = useTranslation();
@@ -84,6 +86,8 @@ export function SimpleServicesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   const [deletingService, setDeletingService] = useState<any>(null);
+  const [assignProfessionalsService, setAssignProfessionalsService] =
+    useState<any>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -755,6 +759,7 @@ export function SimpleServicesPage() {
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Duration</TableHead>
+                      <TableHead>Professionals</TableHead>
                       <TableHead>Bookings</TableHead>
                       <TableHead>Revenue</TableHead>
                       <TableHead>Status</TableHead>
@@ -783,6 +788,21 @@ export function SimpleServicesPage() {
                         </TableCell>
                         <TableCell>
                           <span>{service.duration} min</span>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setAssignProfessionalsService(service)
+                            }
+                            className="flex items-center gap-1"
+                          >
+                            <Users className="h-3 w-3" />
+                            <span>
+                              {service.assignedProfessionals?.length || 0}
+                            </span>
+                          </Button>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
@@ -927,6 +947,22 @@ export function SimpleServicesPage() {
             </Card>
           </TabsContent>
         </Tabs>
+      )}
+
+      {/* Assign Professionals Dialog */}
+      {assignProfessionalsService && (
+        <AssignProfessionalsDialog
+          serviceId={assignProfessionalsService.id}
+          serviceName={assignProfessionalsService.name}
+          entityId={entityId}
+          assignedProfessionalIds={
+            assignProfessionalsService.assignedProfessionals || []
+          }
+          onAssigned={() => {
+            setAssignProfessionalsService(null);
+            fetchServices(); // Refresh services to show updated professional count
+          }}
+        />
       )}
     </div>
   );
