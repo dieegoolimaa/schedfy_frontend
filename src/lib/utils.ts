@@ -134,12 +134,29 @@ export function getDashboardRoute(user: User): string {
         return "/admin/dashboard";
     }
 
-    // Admin users
-    if (user.role === "admin") {
-        return "/admin/dashboard";
+    // Professional sempre vai para seu dashboard específico
+    if (user.role === "professional") {
+        return "/professional/dashboard";
     }
 
-    // Route based on PLAN first (for owners and managers)
+    // Attendant vai para gestão de agendamentos
+    if (user.role === "attendant") {
+        return "/entity/bookings";
+    }
+
+    // Admin users (não platform_admin)
+    if (user.role === "admin") {
+        // Redireciona baseado no plano da entity
+        if (user.plan === "business") {
+            return "/entity/dashboard";
+        }
+        if (user.plan === "individual") {
+            return "/individual/dashboard";
+        }
+        return "/simple/dashboard";
+    }
+
+    // Route based on PLAN for owners and managers
     // This ensures plan restrictions are respected
 
     // Business plan - full entity features

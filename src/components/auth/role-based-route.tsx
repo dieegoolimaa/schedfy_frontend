@@ -119,7 +119,20 @@ export function IndividualPlusRoute({
 }
 
 // Specialized protected route for professionals/attendants
-export function ProfessionalRoute({ children }: { children: React.ReactNode }) {
+export function ProfessionalRoute({
+  children,
+  requireBusinessPlan = false,
+}: {
+  children: React.ReactNode;
+  requireBusinessPlan?: boolean;
+}) {
+  const { user } = useAuth();
+
+  // If requires Business plan, check it
+  if (requireBusinessPlan && user?.plan !== "business") {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
   return (
     <ProtectedRoute
       allowedRoles={["professional", "attendant", "owner", "admin", "manager"]}

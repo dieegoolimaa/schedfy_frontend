@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/auth-context";
+import { getDashboardRoute } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -57,24 +58,16 @@ export function LoginPage() {
       const user = await login(data);
       toast.success(t("auth.loginSuccess", "Welcome back!"));
 
-      // Get redirect from URL params or determine based on user plan
+      // Get redirect from URL params or determine based on user role and plan
       const redirectParam = searchParams.get("redirect");
       if (redirectParam) {
         navigate(redirectParam);
         return;
       }
 
-      // Redirect based on plan
-      const plan = user?.plan || "simple";
-
-      const planRoutes: Record<string, string> = {
-        simple: "/simple/dashboard",
-        individual: "/individual/dashboard",
-        business: "/entity/dashboard",
-        platform: "/platform/dashboard",
-      };
-
-      navigate(planRoutes[plan] || "/simple/dashboard");
+      // Redirect based on role and plan
+      const dashboardRoute = getDashboardRoute(user);
+      navigate(dashboardRoute);
     } catch (err) {
       console.error("Login error:", err);
       toast.error(t("auth.loginError", "Invalid email or password"));
