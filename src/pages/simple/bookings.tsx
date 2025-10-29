@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
@@ -10,6 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -64,7 +69,7 @@ import {
   Loader2,
   MoreHorizontal,
 } from "lucide-react";
-import { toast } from "sonner";
+import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
 
 export function SimpleBookingsPage() {
   const { t } = useTranslation();
@@ -255,6 +260,18 @@ export function SimpleBookingsPage() {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
+  // Generate available time slots based on selected service and date
+  const selectedService = services.find((s) => s.id === formData.serviceId);
+  const availableTimeSlots =
+    formData.date && selectedService
+      ? getAvailableTimeSlots(
+          generateTimeSlots(9, 18, 60), // 9 AM to 6 PM, 1-hour intervals
+          formData.date,
+          selectedService.duration || 60,
+          bookings
+        )
+      : [];
+
   const stats = {
     total: bookings.length,
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
@@ -378,14 +395,38 @@ export function SimpleBookingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="time">Time *</Label>
-                    <Input
-                      id="time"
-                      type="time"
+                    <Select
                       value={formData.time}
-                      onChange={(e) =>
-                        setFormData({ ...formData, time: e.target.value })
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, time: value })
                       }
-                    />
+                      disabled={!formData.date || !formData.serviceId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !formData.date
+                              ? "Select date first"
+                              : !formData.serviceId
+                              ? "Select service first"
+                              : "Select time slot"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTimeSlots.length > 0 ? (
+                          availableTimeSlots.map((slot) => (
+                            <SelectItem key={slot} value={slot}>
+                              {slot}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-slots" disabled>
+                            No available slots
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -421,52 +462,44 @@ export function SimpleBookingsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Total</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.confirmed}
-            </div>
-            <p className="text-xs text-muted-foreground">Confirmed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-yellow-600">
-              {stats.pending}
-            </div>
-            <p className="text-xs text-muted-foreground">Pending</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.completed}
-            </div>
-            <p className="text-xs text-muted-foreground">Completed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.cancelled}
-            </div>
-            <p className="text-xs text-muted-foreground">Cancelled</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">€{stats.totalRevenue}</div>
-            <p className="text-xs text-muted-foreground">Revenue</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total"
+          value={stats.total}
+          subtitle="Bookings"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Confirmed"
+          value={stats.confirmed}
+          subtitle="Scheduled"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Pending"
+          value={stats.pending}
+          subtitle="Awaiting"
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Completed"
+          value={stats.completed}
+          subtitle="Finished"
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Cancelled"
+          value={stats.cancelled}
+          subtitle="Canceled"
+          color="red"
+        />
+        <MobileStatsCard
+          title="Revenue"
+          value={`€${stats.totalRevenue}`}
+          subtitle="Total"
+          color="purple"
+        />
+      </ResponsiveCardGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">

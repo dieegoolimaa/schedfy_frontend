@@ -6,6 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -391,47 +395,38 @@ export function IndividualServicesPage() {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.totalServices}</div>
-            <p className="text-xs text-muted-foreground">Total Services</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.activeServices}
-            </div>
-            <p className="text-xs text-muted-foreground">Active Services</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              €{stats.totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Total Revenue</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              €{stats.avgPrice.toFixed(0)}
-            </div>
-            <p className="text-xs text-muted-foreground">Avg. Price</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold flex items-center">
-              <Star className="h-5 w-5 text-yellow-500 mr-1" />
-              {stats.avgRating.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground">Avg. Rating</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total"
+          value={stats.totalServices}
+          subtitle="Services"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Active"
+          value={stats.activeServices}
+          subtitle="Available"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Revenue"
+          value={`€${stats.totalRevenue.toLocaleString()}`}
+          subtitle="Total"
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Avg. Price"
+          value={`€${stats.avgPrice.toFixed(0)}`}
+          subtitle="Per Service"
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Rating"
+          value={`⭐ ${stats.avgRating.toFixed(1)}`}
+          subtitle="Average"
+          color="yellow"
+        />
+      </ResponsiveCardGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -534,7 +529,9 @@ export function IndividualServicesPage() {
                         <div className="flex items-center">
                           {getTrendIcon(service.seasonalTrend)}
                           <span
-                            className={`ml-1 text-sm ${getTrendColor(service.seasonalTrend)}`}
+                            className={`ml-1 text-sm ${getTrendColor(
+                              service.seasonalTrend
+                            )}`}
                           >
                             {service.seasonalTrend}
                           </span>

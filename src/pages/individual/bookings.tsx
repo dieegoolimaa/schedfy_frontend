@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -6,6 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -64,85 +69,114 @@ import {
   Euro,
   Zap,
 } from "lucide-react";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { useServices } from "../../hooks/useServices";
+import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
 
 export function IndividualBookingsPage() {
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
+
+  const { bookings, createBooking } = useBookings({
+    entityId,
+    autoFetch: true,
+  });
+  const { services } = useServices({ entityId });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("today");
 
-  // Mock bookings data for Individual plan
-  const bookings = [
-    {
-      id: 1,
-      clientName: "Ana Silva",
-      clientEmail: "ana.silva@email.com",
-      clientPhone: "+351 123 456 789",
-      service: "Hair Coloring + Styling",
-      date: "2024-01-20",
-      time: "10:00",
-      duration: 120,
-      price: 85,
-      status: "confirmed",
-      notes: "First time client, prefers natural colors",
-      aiSuggestion: "Recommend hair treatment for damaged hair",
-    },
-    {
-      id: 2,
-      clientName: "Maria Santos",
-      clientEmail: "maria.santos@email.com",
-      clientPhone: "+351 987 654 321",
-      service: "Haircut & Blow Dry",
-      date: "2024-01-20",
-      time: "14:30",
-      duration: 60,
-      price: 45,
-      status: "completed",
-      notes: "Regular client, usual style",
-      aiSuggestion: "Client satisfaction is high, consider loyalty rewards",
-    },
-    {
-      id: 3,
-      clientName: "João Costa",
-      clientEmail: "joao.costa@email.com",
-      clientPhone: "+351 555 123 456",
-      service: "Hair Treatment",
-      date: "2024-01-21",
-      time: "09:30",
-      duration: 90,
-      price: 65,
-      status: "pending",
-      notes: "Deep conditioning treatment requested",
-      aiSuggestion: "Follow up with hair care routine recommendations",
-    },
-    {
-      id: 4,
-      clientName: "Carla Oliveira",
-      clientEmail: "carla.oliveira@email.com",
-      clientPhone: "+351 444 555 666",
-      service: "Wedding Styling",
-      date: "2024-01-22",
-      time: "08:00",
-      duration: 180,
-      price: 150,
-      status: "confirmed",
-      notes: "Wedding at 14:00, romantic style preferred",
-      aiSuggestion: "Schedule trial session beforehand",
-    },
-    {
-      id: 5,
-      clientName: "Pedro Silva",
-      clientEmail: "pedro.silva@email.com",
-      clientPhone: "+351 777 888 999",
-      service: "Color Correction",
-      date: "2024-01-19",
-      time: "11:00",
-      duration: 240,
-      price: 120,
-      status: "cancelled",
-      notes: "Previous color job went wrong, needs correction",
-      aiSuggestion: "Reschedule with extra time buffer",
-    },
-  ];
+  // Form state for creating bookings
+  const [formData, setFormData] = useState({
+    clientName: "",
+    clientEmail: "",
+    clientPhone: "",
+    serviceId: "",
+    date: "",
+    time: "",
+    duration: "",
+    price: "",
+    notes: "",
+  });
+
+  // Handle form submission
+  const handleCreateBooking = async () => {
+    if (!formData.serviceId || !formData.date || !formData.time) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      const selectedService = services.find((s) => s.id === formData.serviceId);
+      if (!selectedService) {
+        toast.error("Selected service not found");
+        return;
+      }
+
+      // Calculate start and end times
+      const [hours, minutes] = formData.time.split(":").map(Number);
+      const startDateTime = new Date(formData.date);
+      startDateTime.setHours(hours, minutes, 0, 0);
+
+      const duration =
+        parseInt(formData.duration) || selectedService.duration || 60;
+      const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
+
+      const bookingData = {
+        entityId,
+        serviceId: formData.serviceId,
+        clientInfo: {
+          name: formData.clientName,
+          email: formData.clientEmail,
+          phone: formData.clientPhone,
+          notes: formData.notes,
+        },
+        startDateTime: startDateTime.toISOString(),
+        endDateTime: endDateTime.toISOString(),
+        status: "confirmed" as const,
+        notes: formData.notes,
+        pricing: {
+          basePrice: parseFloat(formData.price) || selectedService.price,
+          currency: selectedService.currency,
+          totalPrice: parseFloat(formData.price) || selectedService.price,
+        },
+        createdBy: user?.id || "",
+      };
+
+      await createBooking(bookingData);
+
+      // Reset form
+      setFormData({
+        clientName: "",
+        clientEmail: "",
+        clientPhone: "",
+        serviceId: "",
+        date: "",
+        time: "",
+        duration: "",
+        price: "",
+        notes: "",
+      });
+
+      toast.success("Booking created successfully!");
+    } catch (error) {
+      toast.error("Failed to create booking");
+    }
+  };
+
+  // Generate available time slots based on selected service and date
+  const selectedService = services.find((s) => s.id === formData.serviceId);
+  const availableTimeSlots =
+    formData.date && selectedService
+      ? getAvailableTimeSlots(
+          generateTimeSlots(9, 18, 60), // 9 AM to 6 PM, 1-hour intervals
+          formData.date,
+          parseInt(formData.duration) || selectedService.duration || 60,
+          bookings
+        )
+      : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -176,18 +210,20 @@ export function IndividualBookingsPage() {
 
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
-      booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
+      booking.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.service?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.client?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.notes?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || booking.status === statusFilter;
 
     const today = new Date().toISOString().split("T")[0];
+    const bookingDate = new Date(booking.startTime).toISOString().split("T")[0];
     const matchesDate =
       dateFilter === "all" ||
-      (dateFilter === "today" && booking.date === today) ||
-      (dateFilter === "upcoming" && booking.date >= today);
+      (dateFilter === "today" && bookingDate === today) ||
+      (dateFilter === "upcoming" && bookingDate >= today);
 
     return matchesSearch && matchesStatus && matchesDate;
   });
@@ -200,7 +236,10 @@ export function IndividualBookingsPage() {
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
     revenue: bookings
       .filter((b) => b.status === "completed")
-      .reduce((sum, b) => sum + b.price, 0),
+      .reduce(
+        (sum, b) => sum + ((b.service as any)?.pricing?.basePrice || 0),
+        0
+      ),
   };
 
   return (
@@ -234,11 +273,28 @@ export function IndividualBookingsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="client-name">Client Name</Label>
-                    <Input id="client-name" placeholder="Enter client name" />
+                    <Input
+                      id="client-name"
+                      placeholder="Enter client name"
+                      value={formData.clientName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, clientName: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="client-phone">Phone</Label>
-                    <Input id="client-phone" placeholder="+351 123 456 789" />
+                    <Input
+                      id="client-phone"
+                      placeholder="+351 123 456 789"
+                      value={formData.clientPhone}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          clientPhone: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -247,44 +303,90 @@ export function IndividualBookingsPage() {
                     id="client-email"
                     type="email"
                     placeholder="client@email.com"
+                    value={formData.clientEmail}
+                    onChange={(e) =>
+                      setFormData({ ...formData, clientEmail: e.target.value })
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="service">Service</Label>
-                    <Select>
+                    <Select
+                      value={formData.serviceId}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, serviceId: value })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select service" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="haircut">
-                          Haircut & Styling
-                        </SelectItem>
-                        <SelectItem value="coloring">Hair Coloring</SelectItem>
-                        <SelectItem value="treatment">
-                          Hair Treatment
-                        </SelectItem>
-                        <SelectItem value="wedding">Wedding Styling</SelectItem>
+                        {services.map((service) => (
+                          <SelectItem key={service.id} value={service.id}>
+                            {service.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="price">Price (€)</Label>
-                    <Input id="price" type="number" placeholder="45" />
+                    <Input
+                      id="price"
+                      type="number"
+                      placeholder="45"
+                      value={formData.price}
+                      onChange={(e) =>
+                        setFormData({ ...formData, price: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" />
+                    <Input
+                      id="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) =>
+                        setFormData({ ...formData, date: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="time">Time</Label>
-                    <Input id="time" type="time" />
+                    <Select
+                      value={formData.time}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, time: value })
+                      }
+                      disabled={!formData.date || !formData.serviceId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a time slot" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTimeSlots.map((slot) => (
+                          <SelectItem key={slot} value={slot}>
+                            {slot}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="duration">Duration (min)</Label>
-                    <Input id="duration" type="number" placeholder="60" />
+                    <Input
+                      id="duration"
+                      type="number"
+                      placeholder="60"
+                      value={formData.duration}
+                      onChange={(e) =>
+                        setFormData({ ...formData, duration: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -293,11 +395,15 @@ export function IndividualBookingsPage() {
                     id="notes"
                     placeholder="Special requests or notes..."
                     rows={3}
+                    value={formData.notes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, notes: e.target.value })
+                    }
                   />
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline">Cancel</Button>
-                  <Button>Create Booking</Button>
+                  <Button onClick={handleCreateBooking}>Create Booking</Button>
                 </div>
               </div>
             </DialogContent>
@@ -347,52 +453,44 @@ export function IndividualBookingsPage() {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Total Bookings</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.confirmed}
-            </div>
-            <p className="text-xs text-muted-foreground">Confirmed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.completed}
-            </div>
-            <p className="text-xs text-muted-foreground">Completed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-yellow-600">
-              {stats.pending}
-            </div>
-            <p className="text-xs text-muted-foreground">Pending</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.cancelled}
-            </div>
-            <p className="text-xs text-muted-foreground">Cancelled</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">€{stats.revenue}</div>
-            <p className="text-xs text-muted-foreground">Revenue</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total"
+          value={stats.total}
+          subtitle="Bookings"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Confirmed"
+          value={stats.confirmed}
+          subtitle="Scheduled"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Completed"
+          value={stats.completed}
+          subtitle="Finished"
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Pending"
+          value={stats.pending}
+          subtitle="Awaiting"
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Cancelled"
+          value={stats.cancelled}
+          subtitle="Canceled"
+          color="red"
+        />
+        <MobileStatsCard
+          title="Revenue"
+          value={`€${stats.revenue}`}
+          subtitle="Total"
+          color="blue"
+        />
+      </ResponsiveCardGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -463,7 +561,6 @@ export function IndividualBookingsPage() {
                     <TableHead>Duration</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>AI Insight</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -475,25 +572,27 @@ export function IndividualBookingsPage() {
                           <Avatar className="h-8 w-8">
                             <AvatarImage src="" />
                             <AvatarFallback>
-                              {booking.clientName
+                              {(booking.client?.name || "Walk-in Client")
                                 .split(" ")
-                                .map((n) => n[0])
+                                .map((n: string) => n[0])
                                 .join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="font-medium">
-                              {booking.clientName}
+                              {booking.client?.name || "Walk-in Client"}
                             </div>
                             <div className="text-sm text-muted-foreground flex items-center">
                               <Phone className="h-3 w-3 mr-1" />
-                              {booking.clientPhone}
+                              {booking.client?.phone || "N/A"}
                             </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{booking.service}</div>
+                        <div className="font-medium">
+                          {booking.service?.name || "Service"}
+                        </div>
                         {booking.notes && (
                           <div className="text-sm text-muted-foreground truncate max-w-[200px]">
                             {booking.notes}
@@ -504,17 +603,29 @@ export function IndividualBookingsPage() {
                         <div className="space-y-1">
                           <div className="flex items-center">
                             <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                            {new Date(booking.date).toLocaleDateString()}
+                            {new Date(booking.startTime).toLocaleDateString()}
                           </div>
                           <div className="flex items-center text-sm text-muted-foreground">
                             <Clock className="h-3 w-3 mr-1" />
-                            {booking.time}
+                            {new Date(booking.startTime).toLocaleTimeString(
+                              [],
+                              { hour: "2-digit", minute: "2-digit" }
+                            )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{booking.duration} min</TableCell>
                       <TableCell>
-                        <span className="font-medium">€{booking.price}</span>
+                        {Math.round(
+                          (new Date(booking.endTime).getTime() -
+                            new Date(booking.startTime).getTime()) /
+                            (1000 * 60)
+                        )}{" "}
+                        min
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium">
+                          €{(booking.service as any)?.pricing?.basePrice || 0}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
@@ -525,14 +636,6 @@ export function IndividualBookingsPage() {
                           >
                             {booking.status}
                           </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center text-xs text-purple-600">
-                          <Zap className="h-3 w-3 mr-1" />
-                          <span className="truncate max-w-[150px]">
-                            {booking.aiSuggestion}
-                          </span>
                         </div>
                       </TableCell>
                       <TableCell>

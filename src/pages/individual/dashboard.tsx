@@ -10,8 +10,11 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
+import {
   CalendarDays,
-  TrendingUp,
   Users,
   DollarSign,
   Clock,
@@ -138,30 +141,29 @@ const IndividualDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Grid - 2 column layout */}
-      <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
-        {stats.map((stat) => {
-          const IconComponent = stat.icon;
-          return (
-            <Card key={stat.title} className="p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-base font-semibold">
-                  {stat.title}
-                </CardTitle>
-                <IconComponent className={`h-6 w-6 ${stat.color}`} />
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-3xl font-bold mb-2">{stat.value}</div>
-                <p className="text-sm text-muted-foreground flex items-center">
-                  <TrendingUp className="h-4 w-4 text-green-500 mr-2" />
-                  {stat.change}{" "}
-                  {t("dashboard.fromLastMonth", "from last month")}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Stats Grid - Mobile-First Responsive Layout */}
+      <ResponsiveCardGrid>
+        {stats.map((stat) => (
+          <MobileStatsCard
+            key={stat.title}
+            title={stat.title}
+            value={stat.value}
+            subtitle={`${stat.change} from last month`}
+            color={
+              stat.title.includes("Bookings")
+                ? "blue"
+                : stat.title.includes("Revenue") ||
+                  stat.title.includes("Earnings")
+                ? "green"
+                : stat.title.includes("Clients")
+                ? "purple"
+                : stat.title.includes("Rating")
+                ? "yellow"
+                : "gray"
+            }
+          />
+        ))}
+      </ResponsiveCardGrid>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">

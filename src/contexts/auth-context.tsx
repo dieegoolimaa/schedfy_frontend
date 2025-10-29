@@ -10,13 +10,56 @@ import { authApi } from "../lib/api/auth.api";
 
 // Transform backend user response to frontend User type
 function transformBackendUser(backendUser: any): User {
+  // Normalize plan names from backend
+  const normalizePlan = (
+    plan: string
+  ): "simple" | "individual" | "business" => {
+    const planLower = (plan || "simple").toLowerCase();
+
+    // Map various plan names to our three types
+    if (
+      planLower === "simple" ||
+      planLower === "free" ||
+      planLower === "basic"
+    ) {
+      return "simple";
+    }
+    if (
+      planLower === "individual" ||
+      planLower === "pro" ||
+      planLower === "professional"
+    ) {
+      return "individual";
+    }
+    if (
+      planLower === "business" ||
+      planLower === "entity" ||
+      planLower === "enterprise" ||
+      planLower === "team"
+    ) {
+      return "business";
+    }
+
+    console.warn(
+      `[AuthContext] Unknown plan type "${plan}", defaulting to "simple"`
+    );
+    return "simple";
+  };
+
+  const normalizedPlan = normalizePlan(backendUser.plan);
+
+  console.log(
+    `[AuthContext] Transforming user - Original plan: "${backendUser.plan}", Normalized: "${normalizedPlan}"`
+  );
+  console.log("[AuthContext] Full backend user object:", backendUser);
+
   return {
     id: backendUser.id,
     email: backendUser.email,
     name:
       backendUser.name || `${backendUser.firstName} ${backendUser.lastName}`,
     avatar: backendUser.avatar,
-    plan: backendUser.plan || "simple",
+    plan: normalizedPlan,
     role: backendUser.role,
     entityId: backendUser.entityId,
     country: backendUser.country || "PT",
@@ -109,7 +152,13 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
           const response = await authApi.getProfile();
           console.log("[AuthProvider] Profile response:", response);
           if (response.data) {
-            dispatch({ type: "AUTH_SUCCESS", payload: response.data as User });
+            // Transform backend user to frontend User type
+            const transformedUser = transformBackendUser(response.data);
+            console.log(
+              "[AuthProvider] Transformed user on reload:",
+              transformedUser
+            );
+            dispatch({ type: "AUTH_SUCCESS", payload: transformedUser });
           } else {
             localStorage.removeItem("schedfy-access-token");
             localStorage.removeItem("schedfy-refresh-token");

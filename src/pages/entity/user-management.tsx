@@ -6,6 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -343,46 +347,38 @@ export function UserManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Total Users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.active}
-            </div>
-            <p className="text-xs text-muted-foreground">Active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.inactive}
-            </div>
-            <p className="text-xs text-muted-foreground">Inactive</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.admins}
-            </div>
-            <p className="text-xs text-muted-foreground">Admins</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {stats.attendants}
-            </div>
-            <p className="text-xs text-muted-foreground">Attendants</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total"
+          value={stats.total}
+          subtitle="Users"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Active"
+          value={stats.active}
+          subtitle="Online"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Inactive"
+          value={stats.inactive}
+          subtitle="Offline"
+          color="red"
+        />
+        <MobileStatsCard
+          title="Admins"
+          value={stats.admins}
+          subtitle="Managers"
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Attendants"
+          value={stats.attendants}
+          subtitle="Staff"
+          color="yellow"
+        />
+      </ResponsiveCardGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">

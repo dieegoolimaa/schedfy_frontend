@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/auth-context";
+import { toast } from "sonner";
+import {
+  professionalsApi,
+  Professional,
+} from "../../lib/api/professionals.api";
 import {
   Card,
   CardContent,
@@ -7,6 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -14,12 +24,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -30,14 +34,6 @@ import {
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import {
   Table,
   TableBody,
@@ -46,816 +42,406 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import {
-  Plus,
-  Search,
-  Filter,
-  MoreHorizontal,
-  Phone,
-  Mail,
-  Edit,
-  Trash2,
-  User,
-  Star,
-  Calendar,
-  Euro,
-  TrendingUp,
-  Camera,
-} from "lucide-react";
+import { Plus, Search, Edit, Trash2, Mail, Phone, Users } from "lucide-react";
 
 export function ProfessionalsPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  // For Simple and Individual plans, user might be the entity itself
+  // For Business plan, user has entityId pointing to the business
+  const entityId = user?.entityId || (user?.role === "owner" && user?.id) || "";
+
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProfessional, setEditingProfessional] =
+    useState<Professional | null>(null);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  });
 
-  // Handlers
-  const handleEditProfessional = (professionalId: number) => {
-    console.log("Edit professional:", professionalId);
-    // TODO: Implement edit functionality
-  };
+  const fetchProfessionals = async () => {
+    if (!entityId) {
+      toast.error(
+        "Entity ID not found. Please ensure you're logged in properly."
+      );
+      setLoading(false);
+      return;
+    }
 
-  const handleDeleteProfessional = (professionalId: number) => {
-    console.log("Delete professional:", professionalId);
-    // TODO: Implement delete functionality
-  };
-
-  const handleViewOptions = (professionalId: number) => {
-    console.log("View options for professional:", professionalId);
-    // TODO: Implement options menu
-  };
-
-  const handleUploadPhoto = () => {
-    console.log("Upload photo");
-    // TODO: Implement photo upload
-  };
-
-  // Mock professionals data
-  const professionals = [
-    {
-      id: 1,
-      name: "João Santos",
-      email: "joao.santos@schedfy.com",
-      phone: "+351 123 456 789",
-      avatar: "JS",
-      role: "Senior Stylist",
-      specialities: ["Haircut", "Styling", "Color"],
-      status: "active",
-      startDate: "2023-01-15",
-      schedule: {
-        monday: { enabled: true, start: "09:00", end: "18:00" },
-        tuesday: { enabled: true, start: "09:00", end: "18:00" },
-        wednesday: { enabled: true, start: "09:00", end: "18:00" },
-        thursday: { enabled: true, start: "09:00", end: "18:00" },
-        friday: { enabled: true, start: "09:00", end: "19:00" },
-        saturday: { enabled: true, start: "10:00", end: "17:00" },
-        sunday: { enabled: false, start: "10:00", end: "16:00" },
-      },
-      stats: {
-        totalBookings: 342,
-        completedBookings: 326,
-        averageRating: 4.8,
-        totalRevenue: 15420,
-        thisMonthBookings: 28,
-        thisMonthRevenue: 1260,
-      },
-      services: [
-        { id: 1, name: "Haircut & Styling", commission: 60 },
-        { id: 2, name: "Hair Coloring", commission: 55 },
-        { id: 3, name: "Beard Trim", commission: 70 },
-      ],
-    },
-    {
-      id: 2,
-      name: "Sofia Oliveira",
-      email: "sofia.oliveira@schedfy.com",
-      phone: "+351 987 654 321",
-      avatar: "SO",
-      role: "Nail Technician",
-      specialities: ["Manicure", "Pedicure", "Nail Art"],
-      status: "active",
-      startDate: "2023-03-10",
-      schedule: {
-        monday: { enabled: true, start: "10:00", end: "19:00" },
-        tuesday: { enabled: true, start: "10:00", end: "19:00" },
-        wednesday: { enabled: true, start: "10:00", end: "19:00" },
-        thursday: { enabled: true, start: "10:00", end: "19:00" },
-        friday: { enabled: true, start: "10:00", end: "19:00" },
-        saturday: { enabled: true, start: "09:00", end: "18:00" },
-        sunday: { enabled: false, start: "10:00", end: "16:00" },
-      },
-      stats: {
-        totalBookings: 198,
-        completedBookings: 187,
-        averageRating: 4.9,
-        totalRevenue: 6930,
-        thisMonthBookings: 22,
-        thisMonthRevenue: 770,
-      },
-      services: [
-        { id: 4, name: "Full Manicure", commission: 65 },
-        { id: 5, name: "Pedicure", commission: 65 },
-        { id: 6, name: "Nail Art", commission: 60 },
-      ],
-    },
-    {
-      id: 3,
-      name: "Carlos Ferreira",
-      email: "carlos.ferreira@schedfy.com",
-      phone: "+351 555 123 456",
-      avatar: "CF",
-      role: "Massage Therapist",
-      specialities: ["Deep Tissue", "Relaxation", "Sports Massage"],
-      status: "active",
-      startDate: "2022-11-20",
-      schedule: {
-        monday: { enabled: true, start: "08:00", end: "17:00" },
-        tuesday: { enabled: true, start: "08:00", end: "17:00" },
-        wednesday: { enabled: true, start: "08:00", end: "17:00" },
-        thursday: { enabled: true, start: "08:00", end: "17:00" },
-        friday: { enabled: true, start: "08:00", end: "17:00" },
-        saturday: { enabled: true, start: "09:00", end: "16:00" },
-        sunday: { enabled: false, start: "10:00", end: "15:00" },
-      },
-      stats: {
-        totalBookings: 156,
-        completedBookings: 148,
-        averageRating: 4.7,
-        totalRevenue: 9360,
-        thisMonthBookings: 18,
-        thisMonthRevenue: 1080,
-      },
-      services: [
-        { id: 7, name: "Deep Tissue Massage", commission: 70 },
-        { id: 8, name: "Relaxation Massage", commission: 70 },
-        { id: 9, name: "Sports Massage", commission: 75 },
-      ],
-    },
-    {
-      id: 4,
-      name: "Maria Rodrigues",
-      email: "maria.rodrigues@schedfy.com",
-      phone: "+351 444 555 666",
-      avatar: "MR",
-      role: "Aesthetician",
-      specialities: ["Facial", "Skincare", "Anti-aging"],
-      status: "inactive",
-      startDate: "2023-06-01",
-      schedule: {
-        monday: { enabled: true, start: "09:00", end: "18:00" },
-        tuesday: { enabled: true, start: "09:00", end: "18:00" },
-        wednesday: { enabled: false, start: "09:00", end: "18:00" },
-        thursday: { enabled: true, start: "09:00", end: "18:00" },
-        friday: { enabled: true, start: "09:00", end: "18:00" },
-        saturday: { enabled: false, start: "10:00", end: "17:00" },
-        sunday: { enabled: false, start: "10:00", end: "16:00" },
-      },
-      stats: {
-        totalBookings: 89,
-        completedBookings: 84,
-        averageRating: 4.5,
-        totalRevenue: 4620,
-        thisMonthBookings: 0,
-        thisMonthRevenue: 0,
-      },
-      services: [
-        { id: 10, name: "Facial Treatment", commission: 55 },
-        { id: 11, name: "Anti-aging Treatment", commission: 50 },
-      ],
-    },
-  ];
-
-  const roles = [
-    "Senior Stylist",
-    "Junior Stylist",
-    "Nail Technician",
-    "Massage Therapist",
-    "Aesthetician",
-    "Barber",
-    "Receptionist",
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "inactive":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "vacation":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "sick":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+    try {
+      setLoading(true);
+      console.log("[Professionals] Fetching with entityId:", entityId);
+      const response = await professionalsApi.getProfessionals({ entityId });
+      console.log("[Professionals] API Response:", response);
+      const professionalsData = Array.isArray(response.data)
+        ? response.data
+        : [];
+      console.log(
+        "[Professionals] Filtered professionals:",
+        professionalsData.length
+      );
+      setProfessionals(professionalsData);
+    } catch (error) {
+      console.error("Failed to load professionals:", error);
+      toast.error("Failed to load professionals for this entity");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filteredProfessionals = professionals.filter((professional) => {
-    const matchesSearch =
-      professional.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      professional.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      professional.specialities.some((s) =>
-        s.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    fetchProfessionals();
+  }, [entityId]);
+
+  const handleSave = async () => {
+    if (!formData.firstName || !formData.lastName) {
+      toast.error("Please fill required fields");
+      return;
+    }
+
+    try {
+      if (editingProfessional) {
+        await professionalsApi.updateProfessional(editingProfessional.id, {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+        });
+        toast.success("Professional updated");
+      } else {
+        await professionalsApi.createProfessional({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          entityId,
+        });
+        toast.success("Professional created");
+      }
+      setIsDialogOpen(false);
+      setEditingProfessional(null);
+      setFormData({ firstName: "", lastName: "", email: "", phone: "" });
+      fetchProfessionals();
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Failed to save professional"
       );
+    }
+  };
 
-    const matchesStatus =
-      statusFilter === "all" || professional.status === statusFilter;
+  const handleEdit = (professional: Professional) => {
+    setEditingProfessional(professional);
+    setFormData({
+      firstName: professional.firstName,
+      lastName: professional.lastName,
+      email: professional.email || "",
+      phone: professional.phone || "",
+    });
+    setIsDialogOpen(true);
+  };
 
-    return matchesSearch && matchesStatus;
+  const handleDelete = async (professionalId: string) => {
+    if (!confirm("Delete this professional?")) return;
+    try {
+      await professionalsApi.deleteProfessional(professionalId);
+      toast.success("Professional deleted");
+      fetchProfessionals();
+    } catch (error) {
+      toast.error("Failed to delete professional");
+    }
+  };
+
+  const filteredProfessionals = professionals.filter((prof) => {
+    const searchLower = searchTerm.toLowerCase();
+    const fullName = `${prof.firstName} ${prof.lastName}`.toLowerCase();
+    return (
+      fullName.includes(searchLower) ||
+      (prof.email && prof.email.toLowerCase().includes(searchLower))
+    );
   });
 
-  const stats = {
-    total: professionals.length,
-    active: professionals.filter((p) => p.status === "active").length,
-    inactive: professionals.filter((p) => p.status === "inactive").length,
-    totalRevenue: professionals.reduce(
-      (sum, p) => sum + p.stats.totalRevenue,
-      0
-    ),
-    avgRating:
-      professionals.reduce((sum, p) => sum + p.stats.averageRating, 0) /
-      professionals.length,
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active":
+        return <Badge className="bg-green-500">Active</Badge>;
+      case "inactive":
+        return <Badge variant="secondary">Inactive</Badge>;
+      case "suspended":
+        return <Badge variant="destructive">Suspended</Badge>;
+      case "pending":
+        return <Badge variant="outline">Pending</Badge>;
+      default:
+        return <Badge variant="secondary">Unknown</Badge>;
+    }
+  };
+
+  const getInitials = (firstName: string, lastName: string) => {
+    const first = firstName?.[0] || "";
+    const last = lastName?.[0] || "";
+    return (first + last).toUpperCase() || "??";
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold">
             {t("professionals.title", "Professionals")}
           </h1>
           <p className="text-muted-foreground">
-            {t(
-              "professionals.subtitle",
-              "Manage attendant profiles and assignments"
-            )}
+            Manage professionals and attendants
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Professional
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl">
-              <DialogHeader>
-                <DialogTitle>Add New Professional</DialogTitle>
-                <DialogDescription>
-                  Create a new professional profile for your team.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-6 py-4">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src="" />
-                    <AvatarFallback>
-                      <User className="h-8 w-8" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleUploadPhoto}
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      Upload Photo
-                    </Button>
-                    <p className="text-sm text-muted-foreground">
-                      JPG, PNG or GIF. Max size 2MB.
-                    </p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-name">Full Name</Label>
-                    <Input id="prof-name" placeholder="Enter full name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-email">Email</Label>
-                    <Input
-                      id="prof-email"
-                      type="email"
-                      placeholder="professional@email.com"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-phone">Phone</Label>
-                    <Input id="prof-phone" placeholder="+351 123 456 789" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-role">Role</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem
-                            key={role}
-                            value={role.toLowerCase().replace(" ", "-")}
-                          >
-                            {role}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingProfessional(null);
+              setFormData({
+                firstName: "",
+                lastName: "",
+                email: "",
+                phone: "",
+              });
+            }
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Professional
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingProfessional
+                  ? "Edit Professional"
+                  : "Add New Professional"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingProfessional
+                  ? "Update professional information"
+                  : "Create new professional account"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="specialities">Specialities</Label>
+                  <Label htmlFor="firstName">First Name *</Label>
                   <Input
-                    id="specialities"
-                    placeholder="e.g. Haircut, Styling, Color (comma separated)"
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, firstName: e.target.value })
+                    }
+                    placeholder="John"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="start-date">Start Date</Label>
-                  <Input id="start-date" type="date" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    placeholder="Professional background and experience..."
-                    rows={3}
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, lastName: e.target.value })
+                    }
+                    placeholder="Doe"
                   />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline">Cancel</Button>
-                  <Button>Add Professional</Button>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="john.doe@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  placeholder="+351 123 456 789"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={loading}>
+                {loading
+                  ? "Saving..."
+                  : editingProfessional
+                  ? "Update"
+                  : "Create"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Total Professionals</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.active}
-            </div>
-            <p className="text-xs text-muted-foreground">Active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.inactive}
-            </div>
-            <p className="text-xs text-muted-foreground">Inactive</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              €{stats.totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Total Revenue</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              {stats.avgRating.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground">Avg Rating</p>
-          </CardContent>
-        </Card>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search professionals..."
-            value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearchTerm(e.target.value)
-            }
-            className="pl-10"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="vacation">On Vacation</SelectItem>
-              <SelectItem value="sick">Sick Leave</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            More Filters
-          </Button>
-        </div>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total"
+          value={professionals.length}
+          subtitle="Team members"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Active"
+          value={professionals.filter((p) => p.status === "active").length}
+          subtitle="Working"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Inactive"
+          value={professionals.filter((p) => p.status !== "active").length}
+          subtitle="Not available"
+          color="red"
+        />
+      </ResponsiveCardGrid>
 
-      {/* Professionals Content */}
-      <Tabs defaultValue="grid" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="grid">Grid View</TabsTrigger>
-          <TabsTrigger value="table">Table View</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-        </TabsList>
-
-        {/* Grid View */}
-        <TabsContent value="grid" className="space-y-4">
-          {filteredProfessionals.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <User className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">
-                  No Professionals Found
-                </h3>
-                <p className="text-muted-foreground text-center max-w-sm mb-4">
-                  {searchTerm || statusFilter !== "all"
-                    ? "No professionals match your current filters. Try adjusting your search or filters."
-                    : "No professionals have been added yet. Start by adding your first professional."}
-                </p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Professional
-                    </Button>
-                  </DialogTrigger>
-                  {/* Add Professional Dialog content would be here */}
-                </Dialog>
-              </CardContent>
-            </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Members</CardTitle>
+          <CardDescription>
+            Manage your professionals and their information
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : filteredProfessionals.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
+              <h3 className="mt-4 text-lg font-semibold">
+                No professionals found
+              </h3>
+              <p className="text-muted-foreground">
+                {searchTerm
+                  ? "Try adjusting your search"
+                  : "Add your first professional to get started"}
+              </p>
+            </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredProfessionals.map((professional) => (
-                <Card
-                  key={professional.id}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src="" />
-                          <AvatarFallback>{professional.avatar}</AvatarFallback>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Professional</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProfessionals.map((professional) => (
+                  <TableRow key={professional.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={professional.avatar} />
+                          <AvatarFallback>
+                            {getInitials(
+                              professional.firstName,
+                              professional.lastName
+                            )}
+                          </AvatarFallback>
                         </Avatar>
                         <div>
-                          <CardTitle className="text-lg">
-                            {professional.name}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground">
-                            {professional.role}
-                          </p>
-                          <Badge
-                            variant="outline"
-                            className={getStatusColor(professional.status)}
-                          >
-                            {professional.status}
-                          </Badge>
+                          <div className="font-medium">
+                            {`${professional.firstName} ${professional.lastName}` ||
+                              "Unnamed Professional"}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Since{" "}
+                            {professional.createdAt
+                              ? new Date(
+                                  professional.createdAt
+                                ).toLocaleDateString()
+                              : "Unknown"}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex space-x-1">
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {professional.email && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            {professional.email}
+                          </div>
+                        )}
+                        {professional.phone && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {professional.phone}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {professional.role || "professional"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(professional.status || "inactive")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            handleEditProfessional(professional.id)
-                          }
+                          onClick={() => handleEdit(professional)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleViewOptions(professional.id)}
+                          onClick={() => handleDelete(professional.id)}
                         >
-                          <MoreHorizontal className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm">
-                        <Mail className="h-3 w-3 mr-2 text-muted-foreground" />
-                        {professional.email}
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <Phone className="h-3 w-3 mr-2 text-muted-foreground" />
-                        {professional.phone}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium">Specialities</div>
-                      <div className="flex flex-wrap gap-1">
-                        {professional.specialities.map((speciality) => (
-                          <Badge
-                            key={speciality}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {speciality}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span className="font-medium">
-                            {professional.stats.thisMonthBookings}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          This Month
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <Euro className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span className="font-medium">
-                            €{professional.stats.thisMonthRevenue}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Revenue</p>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <Star className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span className="font-medium">
-                            {professional.stats.averageRating.toFixed(1)}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Rating</p>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <TrendingUp className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span className="font-medium">
-                            {professional.stats.completedBookings}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Completed
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Table View */}
-        <TabsContent value="table">
-          <Card>
-            <CardHeader>
-              <CardTitle>Professionals Overview</CardTitle>
-              <CardDescription>
-                Complete list of all professionals with key metrics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Professional</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>This Month</TableHead>
-                    <TableHead>Total Revenue</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProfessionals.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-12">
-                        <div className="flex flex-col items-center">
-                          <User className="h-12 w-12 text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-semibold mb-2">
-                            No Professionals Found
-                          </h3>
-                          <p className="text-muted-foreground mb-4">
-                            {searchTerm || statusFilter !== "all"
-                              ? "No professionals match your current filters."
-                              : "No professionals have been added yet."}
-                          </p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredProfessionals.map((professional) => (
-                      <TableRow key={professional.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src="" />
-                              <AvatarFallback className="text-xs">
-                                {professional.avatar}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">
-                                {professional.name}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {professional.specialities.join(", ")}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{professional.role}</TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="text-sm">{professional.email}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {professional.phone}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="font-medium">
-                              {professional.stats.thisMonthBookings} bookings
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              €{professional.stats.thisMonthRevenue}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">
-                            €{professional.stats.totalRevenue.toLocaleString()}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 mr-1 text-yellow-500" />
-                            {professional.stats.averageRating.toFixed(1)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={getStatusColor(professional.status)}
-                          >
-                            {professional.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleEditProfessional(professional.id)
-                              }
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleDeleteProfessional(professional.id)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Performance View */}
-        <TabsContent value="performance" className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Performers</CardTitle>
-                <CardDescription>
-                  Professionals with highest ratings and revenue
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[...filteredProfessionals]
-                  .sort(
-                    (a, b) =>
-                      b.stats.thisMonthRevenue - a.stats.thisMonthRevenue
-                  )
-                  .slice(0, 5)
-                  .map((professional, index) => (
-                    <div
-                      key={professional.id}
-                      className="flex items-center space-x-4"
-                    >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                        <span className="text-sm font-medium">
-                          #{index + 1}
-                        </span>
-                      </div>
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="text-xs">
-                          {professional.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          {professional.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {professional.role}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">
-                          €{professional.stats.thisMonthRevenue}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {professional.stats.thisMonthBookings} bookings
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Service Assignments</CardTitle>
-                <CardDescription>
-                  Services assigned to each professional
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {filteredProfessionals.map((professional) => (
-                  <div key={professional.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src="" />
-                          <AvatarFallback className="text-xs">
-                            {professional.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium text-sm">
-                          {professional.name}
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {professional.services.length} services
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {professional.services.map((service) => (
-                        <Badge
-                          key={service.id}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {service.name} ({service.commission}%)
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
                 ))}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

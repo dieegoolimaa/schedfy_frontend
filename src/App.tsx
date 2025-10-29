@@ -17,6 +17,7 @@ import SimpleDashboardPage from "./pages/simple/dashboard";
 import { SimpleServicesPage } from "./pages/simple/services";
 import { SimpleBookingsPage } from "./pages/simple/bookings";
 import { SimpleReportsPage } from "./pages/simple/reports";
+import { SimpleSettingsPage } from "./pages/simple/settings";
 
 // Individual Plan pages
 import IndividualDashboardPage from "./pages/individual/dashboard";
@@ -61,6 +62,8 @@ import { MassCommunicationsPage } from "./pages/admin/mass-communications";
 
 // Public pages
 import { BusinessDiscoveryPage } from "./pages/public/business-discovery";
+import { PublicEntityProfilePage } from "./pages/public/entity-profile";
+import { PublicBookingPage } from "./pages/public/booking";
 
 // Legal and informational pages
 import { TermsPage } from "./pages/terms";
@@ -113,6 +116,8 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/discover" element={<BusinessDiscoveryPage />} />
+            <Route path="/book/:username" element={<PublicBookingPage />} />
+            <Route path="/book/:slug" element={<PublicEntityProfilePage />} />
 
             {/* Legal and informational pages */}
             <Route path="/terms" element={<TermsPage />} />
@@ -175,6 +180,18 @@ function App() {
                 >
                   <Layout>
                     <SimpleReportsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/simple/settings"
+              element={
+                <ProtectedRoute
+                  allowedPlans={["simple", "individual", "business"]}
+                >
+                  <Layout>
+                    <SimpleSettingsPage />
                   </Layout>
                 </ProtectedRoute>
               }
@@ -309,11 +326,13 @@ function App() {
             <Route
               path="/entity/professionals"
               element={
-                <EntityRoute>
+                <ProtectedRoute
+                  allowedPlans={["simple", "individual", "business"]}
+                >
                   <Layout>
                     <EntityProfessionalsPage />
                   </Layout>
-                </EntityRoute>
+                </ProtectedRoute>
               }
             />
             <Route

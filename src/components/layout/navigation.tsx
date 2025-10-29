@@ -176,6 +176,12 @@ export function Navigation() {
             label: t("nav.reports", "Reports"),
           },
         ],
+        settings: [
+          {
+            path: "/simple/settings",
+            label: t("nav.settings", "Settings"),
+          },
+        ],
       };
     }
 
@@ -198,8 +204,18 @@ export function Navigation() {
             label: t("nav.services", "Services"),
           },
           {
+            path: "/entity/professionals",
+            label: t("nav.professionals", "Professionals"),
+          },
+          {
             path: "/simple/reports",
             label: t("nav.reports", "Reports"),
+          },
+        ],
+        settings: [
+          {
+            path: "/simple/settings",
+            label: t("nav.settings", "Settings"),
           },
         ],
       };

@@ -87,7 +87,7 @@ export function UpgradePage() {
         {/* Header */}
         <div className="mb-8">
           <Button variant="outline" asChild className="mb-4">
-            <Link to="#" onClick={() => globalThis.history.back()}>
+            <Link to="/">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
             </Link>
@@ -124,7 +124,9 @@ export function UpgradePage() {
             {availableUpgrades.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative ${plan.recommended ? "border-primary" : ""}`}
+                className={`relative ${
+                  plan.recommended ? "border-primary" : ""
+                }`}
               >
                 {plan.recommended && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">

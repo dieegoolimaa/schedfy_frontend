@@ -25,6 +25,10 @@ import {
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -45,8 +49,6 @@ import {
 } from "../../components/ui/tabs";
 import {
   CalendarDays,
-  TrendingUp,
-  TrendingDown,
   Users,
   DollarSign,
   Clock,
@@ -236,37 +238,32 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Grid - Improved responsive layout */}
-      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const IconComponent = stat.icon;
-          return (
-            <Card key={stat.title} className="p-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-medium">
-                  {t(
-                    `dashboard.stats.${stat.title.toLowerCase().replace(" ", "")}`,
-                    stat.title
-                  )}
-                </CardTitle>
-                <IconComponent className={`h-5 w-5 ${stat.color}`} />
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                <p className="text-xs text-muted-foreground flex items-center">
-                  {stat.trend === "up" ? (
-                    <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
-                  )}
-                  {stat.change}{" "}
-                  {t("dashboard.fromLastMonth", "from last month")}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Stats Grid - Mobile-First Responsive Layout */}
+      <ResponsiveCardGrid>
+        {stats.map((stat) => (
+          <MobileStatsCard
+            key={stat.title}
+            title={t(
+              `dashboard.stats.${stat.title.toLowerCase().replace(" ", "")}`,
+              stat.title
+            )}
+            value={stat.value}
+            subtitle={`${stat.change} from last month`}
+            color={
+              stat.title.includes("Revenue") || stat.title.includes("Earnings")
+                ? "green"
+                : stat.title.includes("Bookings")
+                ? "blue"
+                : stat.title.includes("Clients") || stat.title.includes("Users")
+                ? "purple"
+                : stat.title.includes("Rating") ||
+                  stat.title.includes("Satisfaction")
+                ? "yellow"
+                : "gray"
+            }
+          />
+        ))}
+      </ResponsiveCardGrid>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -645,8 +642,16 @@ const Dashboard = () => {
                       key={i}
                       className={`
                         p-0.5 sm:p-2 h-10 sm:h-20 border rounded text-[10px] sm:text-sm cursor-pointer hover:bg-muted/50 transition-colors flex flex-col items-center justify-center
-                        ${!isCurrentMonth ? "text-muted-foreground bg-muted/20" : ""}
-                        ${isToday ? "bg-primary text-primary-foreground font-bold" : ""}
+                        ${
+                          !isCurrentMonth
+                            ? "text-muted-foreground bg-muted/20"
+                            : ""
+                        }
+                        ${
+                          isToday
+                            ? "bg-primary text-primary-foreground font-bold"
+                            : ""
+                        }
                         ${hasAppointments ? "border-primary border-2" : ""}
                       `}
                     >

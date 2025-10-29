@@ -6,6 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -267,7 +271,9 @@ export function IndividualReportsPage() {
             {aiInsights.slice(0, 2).map((insight) => (
               <div
                 key={insight.title}
-                className={`p-4 rounded-lg border ${getInsightColor(insight.type)}`}
+                className={`p-4 rounded-lg border ${getInsightColor(
+                  insight.type
+                )}`}
               >
                 <div className="flex items-start gap-3">
                   {getInsightIcon(insight.type)}
@@ -288,147 +294,54 @@ export function IndividualReportsPage() {
       </Card>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Revenue
-                </p>
-                <div className="text-2xl font-bold">
-                  €{stats.totalRevenue.toLocaleString()}
-                </div>
-              </div>
-              <Euro className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(stats.revenueGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(stats.revenueGrowth)}`}
-              >
-                {stats.revenueGrowth > 0 ? "+" : ""}
-                {stats.revenueGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Bookings
-                </p>
-                <div className="text-2xl font-bold">{stats.totalBookings}</div>
-              </div>
-              <Calendar className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(stats.bookingsGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(stats.bookingsGrowth)}`}
-              >
-                {stats.bookingsGrowth > 0 ? "+" : ""}
-                {stats.bookingsGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  New Clients
-                </p>
-                <div className="text-2xl font-bold">{stats.newClients}</div>
-              </div>
-              <Users className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(stats.clientsGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(stats.clientsGrowth)}`}
-              >
-                {stats.clientsGrowth > 0 ? "+" : ""}
-                {stats.clientsGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Avg. Value
-                </p>
-                <div className="text-2xl font-bold">
-                  €{stats.avgBookingValue}
-                </div>
-              </div>
-              <BarChart3 className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(stats.avgValueGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(stats.avgValueGrowth)}`}
-              >
-                {stats.avgValueGrowth > 0 ? "+" : ""}
-                {stats.avgValueGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Retention
-                </p>
-                <div className="text-2xl font-bold">
-                  {stats.clientRetention}%
-                </div>
-              </div>
-              <Target className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(stats.retentionGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(stats.retentionGrowth)}`}
-              >
-                {stats.retentionGrowth > 0 ? "+" : ""}
-                {stats.retentionGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Completion
-                </p>
-                <div className="text-2xl font-bold">
-                  {stats.completionRate}%
-                </div>
-              </div>
-              <CheckCircle className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              <Progress value={stats.completionRate} className="w-16" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Revenue"
+          value={`€${stats.totalRevenue.toLocaleString()}`}
+          subtitle={`${stats.revenueGrowth > 0 ? "+" : ""}${
+            stats.revenueGrowth
+          }% growth`}
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Bookings"
+          value={stats.totalBookings}
+          subtitle={`${stats.bookingsGrowth > 0 ? "+" : ""}${
+            stats.bookingsGrowth
+          }% growth`}
+          color="green"
+        />
+        <MobileStatsCard
+          title="New Clients"
+          value={stats.newClients}
+          subtitle={`${stats.clientsGrowth > 0 ? "+" : ""}${
+            stats.clientsGrowth
+          }% growth`}
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Avg. Value"
+          value={`€${stats.avgBookingValue}`}
+          subtitle={`${stats.avgValueGrowth > 0 ? "+" : ""}${
+            stats.avgValueGrowth
+          }% growth`}
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Retention"
+          value={`${stats.clientRetention}%`}
+          subtitle={`${stats.retentionGrowth > 0 ? "+" : ""}${
+            stats.retentionGrowth
+          }% growth`}
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Completion"
+          value={`${stats.completionRate}%`}
+          subtitle="Success rate"
+          color="green"
+        />
+      </ResponsiveCardGrid>
 
       {/* Content Tabs */}
       <Tabs defaultValue="performance" className="space-y-6">
@@ -473,7 +386,9 @@ export function IndividualReportsPage() {
                         <div className="flex items-center">
                           {getGrowthIcon(service.growth)}
                           <span
-                            className={`ml-1 font-medium ${getGrowthColor(service.growth)}`}
+                            className={`ml-1 font-medium ${getGrowthColor(
+                              service.growth
+                            )}`}
                           >
                             {service.growth > 0 ? "+" : ""}
                             {service.growth}%

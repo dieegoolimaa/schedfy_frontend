@@ -10,6 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -580,72 +584,40 @@ export function ServicesPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Services
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeServices.length}</div>
-              <p className="text-xs text-muted-foreground">
-                {services.filter((s) => s.status === "draft").length} in draft
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <Euro className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                €{totalRevenue.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                From{" "}
-                {activeServices.reduce((sum, s) => sum + (s.bookings || 0), 0)}{" "}
-                bookings
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Average Rating
-              </CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{avgRating.toFixed(1)}</div>
-              <p className="text-xs text-muted-foreground">
-                Across all services
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Avg Duration
-              </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {Math.round(
-                  activeServices.reduce((sum, s) => sum + s.duration, 0) /
-                    activeServices.length
-                )}
-                min
-              </div>
-              <p className="text-xs text-muted-foreground">Per service</p>
-            </CardContent>
-          </Card>
-        </div>
+        <ResponsiveCardGrid>
+          <MobileStatsCard
+            title="Total"
+            value={activeServices.length}
+            subtitle={`${
+              services.filter((s) => s.status === "draft").length
+            } in draft`}
+            color="blue"
+          />
+          <MobileStatsCard
+            title="Revenue"
+            value={`€${totalRevenue.toLocaleString()}`}
+            subtitle={`From ${activeServices.reduce(
+              (sum, s) => sum + (s.bookings || 0),
+              0
+            )} bookings`}
+            color="green"
+          />
+          <MobileStatsCard
+            title="Rating"
+            value={`⭐ ${avgRating.toFixed(1)}`}
+            subtitle="Across all services"
+            color="yellow"
+          />
+          <MobileStatsCard
+            title="Avg Duration"
+            value={`${Math.round(
+              activeServices.reduce((sum, s) => sum + s.duration, 0) /
+                activeServices.length
+            )} min`}
+            subtitle="Per service"
+            color="purple"
+          />
+        </ResponsiveCardGrid>
 
         {/* Search and Filters */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center">

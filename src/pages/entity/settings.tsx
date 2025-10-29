@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/auth-context";
+import { entitiesApi, type Entity } from "../../lib/api/entities.api";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -40,6 +43,7 @@ import {
   DialogTrigger,
 } from "../../components/ui/dialog";
 import { Separator } from "../../components/ui/separator";
+import { BusinessProfileManager } from "../../components/business-profile-manager";
 import {
   User,
   Building,
@@ -54,8 +58,32 @@ import {
 
 export function SettingsPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("profile");
-  const [isCustomizeProfileOpen, setIsCustomizeProfileOpen] = useState(false);
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("business");
+  const [entity, setEntity] = useState<Entity | null>(null);
+  const [loadingEntity, setLoadingEntity] = useState(true);
+
+  // Load entity data
+  useEffect(() => {
+    const loadEntity = async () => {
+      if (!user?.entityId) {
+        setLoadingEntity(false);
+        return;
+      }
+
+      try {
+        const response = await entitiesApi.getById(user.entityId);
+        setEntity(response.data || null);
+      } catch (error) {
+        console.error("Failed to load entity:", error);
+        toast.error("Failed to load business profile");
+      } finally {
+        setLoadingEntity(false);
+      }
+    };
+
+    loadEntity();
+  }, [user?.entityId]);
 
   // Profile customization states
   const [profileData, setProfileData] = useState({
@@ -308,635 +336,45 @@ export function SettingsPage() {
 
           {/* Business Tab */}
           <TabsContent value="business" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Building className="h-5 w-5 mr-2" />
-                  Business Information
-                </CardTitle>
-                <CardDescription>
-                  Configure your business details and operating hours.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="businessName">Business Name</Label>
-                    <Input
-                      id="businessName"
-                      value={settings.businessName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        updateSetting("businessName", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="businessType">Business Type</Label>
-                    <Select
-                      value={settings.businessType}
-                      onValueChange={(value: string) =>
-                        updateSetting("businessType", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {businessTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={settings.address}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      updateSetting("address", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={settings.website}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      updateSetting("website", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={settings.description}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      updateSetting("description", e.target.value)
-                    }
-                    rows={3}
-                  />
-                </div>
-
-                <Separator />
-
-                {/* Public Profile Section */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium flex items-center">
-                    <User className="h-5 w-5 mr-2" />
-                    Public Profile
-                  </h3>
-                  <div className="space-y-4 bg-muted/50 p-4 rounded-lg">
-                    <div className="space-y-2">
-                      <Label>Your Public Profile URL</Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          value="https://schedfy.com/business/beauty-salon-premium"
-                          readOnly
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              "https://schedfy.com/business/beauty-salon-premium"
-                            );
-                            // Show toast notification
-                            console.log(
-                              "Public profile URL copied to clipboard"
-                            );
-                          }}
-                        >
-                          Copy Link
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Share this link with your clients so they can view your
-                        services and book appointments online.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label>Public Profile Visibility</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Allow clients to find and book with your business
-                          online
-                        </p>
-                      </div>
-                      <Switch
-                        defaultChecked={true}
-                        onCheckedChange={(checked) => {
-                          console.log("Public profile visibility:", checked);
-                        }}
-                      />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          window.open(
-                            "https://schedfy.com/business/beauty-salon-premium",
-                            "_blank"
-                          );
-                        }}
-                      >
-                        View Public Profile
-                      </Button>
-                      <Dialog
-                        open={isCustomizeProfileOpen}
-                        onOpenChange={setIsCustomizeProfileOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="outline">Customize Profile</Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>Customize Public Profile</DialogTitle>
-                            <DialogDescription>
-                              Customize how your business appears to potential
-                              clients. This information will be displayed on
-                              your public booking page.
-                            </DialogDescription>
-                          </DialogHeader>
-
-                          <div className="grid gap-6 py-4">
-                            <Tabs defaultValue="basic" className="w-full">
-                              <TabsList className="grid w-full grid-cols-4">
-                                <TabsTrigger value="basic">
-                                  Basic Info
-                                </TabsTrigger>
-                                <TabsTrigger value="hours">
-                                  Working Hours
-                                </TabsTrigger>
-                                <TabsTrigger value="media">
-                                  Photos & Media
-                                </TabsTrigger>
-                                <TabsTrigger value="social">
-                                  Social Links
-                                </TabsTrigger>
-                              </TabsList>
-
-                              <TabsContent value="basic" className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="business-name">
-                                      Business Name
-                                    </Label>
-                                    <Input
-                                      id="business-name"
-                                      value={profileData.businessName}
-                                      onChange={(e) =>
-                                        setProfileData({
-                                          ...profileData,
-                                          businessName: e.target.value,
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="phone">Phone</Label>
-                                    <Input
-                                      id="phone"
-                                      value={profileData.phone}
-                                      onChange={(e) =>
-                                        setProfileData({
-                                          ...profileData,
-                                          phone: e.target.value,
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <Label htmlFor="description">
-                                    Business Description
-                                  </Label>
-                                  <Textarea
-                                    id="description"
-                                    rows={4}
-                                    value={profileData.description}
-                                    onChange={(e) =>
-                                      setProfileData({
-                                        ...profileData,
-                                        description: e.target.value,
-                                      })
-                                    }
-                                    placeholder="Describe your business and services..."
-                                  />
-                                </div>
-
-                                <div className="space-y-2">
-                                  <Label htmlFor="address">Address</Label>
-                                  <Input
-                                    id="address"
-                                    value={profileData.address}
-                                    onChange={(e) =>
-                                      setProfileData({
-                                        ...profileData,
-                                        address: e.target.value,
-                                      })
-                                    }
-                                  />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                      id="email"
-                                      type="email"
-                                      value={profileData.email}
-                                      onChange={(e) =>
-                                        setProfileData({
-                                          ...profileData,
-                                          email: e.target.value,
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="website">Website</Label>
-                                    <Input
-                                      id="website"
-                                      value={profileData.website}
-                                      onChange={(e) =>
-                                        setProfileData({
-                                          ...profileData,
-                                          website: e.target.value,
-                                        })
-                                      }
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <Label>Specialties</Label>
-                                  <div className="flex flex-wrap gap-2">
-                                    {profileData.specialties.map(
-                                      (specialty) => (
-                                        <Badge
-                                          key={specialty}
-                                          variant="secondary"
-                                          className="cursor-pointer"
-                                        >
-                                          {specialty}
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-auto p-0 ml-2"
-                                            onClick={() => {
-                                              const newSpecialties =
-                                                profileData.specialties.filter(
-                                                  (s) => s !== specialty
-                                                );
-                                              setProfileData({
-                                                ...profileData,
-                                                specialties: newSpecialties,
-                                              });
-                                            }}
-                                          >
-                                            ×
-                                          </Button>
-                                        </Badge>
-                                      )
-                                    )}
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        const newSpecialty =
-                                          prompt("Enter specialty:");
-                                        if (
-                                          newSpecialty &&
-                                          !profileData.specialties.includes(
-                                            newSpecialty
-                                          )
-                                        ) {
-                                          setProfileData({
-                                            ...profileData,
-                                            specialties: [
-                                              ...profileData.specialties,
-                                              newSpecialty,
-                                            ],
-                                          });
-                                        }
-                                      }}
-                                    >
-                                      Add Specialty
-                                    </Button>
-                                  </div>
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="hours" className="space-y-4">
-                                <div className="space-y-4">
-                                  {Object.entries(profileData.workingHours).map(
-                                    ([day, hours]) => (
-                                      <div
-                                        key={day}
-                                        className="flex items-center justify-between p-3 border rounded-lg"
-                                      >
-                                        <div className="flex items-center space-x-3">
-                                          <div className="w-20 text-sm font-medium capitalize">
-                                            {day}
-                                          </div>
-                                          <Switch
-                                            checked={!hours.closed}
-                                            onCheckedChange={(checked) => {
-                                              const newHours = {
-                                                ...profileData.workingHours,
-                                                [day]: {
-                                                  ...hours,
-                                                  closed: !checked,
-                                                },
-                                              };
-                                              setProfileData({
-                                                ...profileData,
-                                                workingHours: newHours,
-                                              });
-                                            }}
-                                          />
-                                        </div>
-                                        {!hours.closed && (
-                                          <div className="flex items-center space-x-2">
-                                            <Input
-                                              type="time"
-                                              value={hours.open}
-                                              onChange={(e) => {
-                                                const newHours = {
-                                                  ...profileData.workingHours,
-                                                  [day]: {
-                                                    ...hours,
-                                                    open: e.target.value,
-                                                  },
-                                                };
-                                                setProfileData({
-                                                  ...profileData,
-                                                  workingHours: newHours,
-                                                });
-                                              }}
-                                              className="w-24"
-                                            />
-                                            <span className="text-muted-foreground">
-                                              to
-                                            </span>
-                                            <Input
-                                              type="time"
-                                              value={hours.close}
-                                              onChange={(e) => {
-                                                const newHours = {
-                                                  ...profileData.workingHours,
-                                                  [day]: {
-                                                    ...hours,
-                                                    close: e.target.value,
-                                                  },
-                                                };
-                                                setProfileData({
-                                                  ...profileData,
-                                                  workingHours: newHours,
-                                                });
-                                              }}
-                                              className="w-24"
-                                            />
-                                          </div>
-                                        )}
-                                        {hours.closed && (
-                                          <div className="text-sm text-muted-foreground">
-                                            Closed
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="media" className="space-y-4">
-                                <div className="space-y-4">
-                                  <div>
-                                    <Label>Business Photos</Label>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                      Upload photos that showcase your business,
-                                      services, and atmosphere.
-                                    </p>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                      {profileData.images.map((image) => (
-                                        <div
-                                          key={image}
-                                          className="relative group"
-                                        >
-                                          <img
-                                            src={image}
-                                            alt="Business showcase"
-                                            className="w-full h-32 object-cover rounded-lg"
-                                          />
-                                          <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            onClick={() => {
-                                              const newImages =
-                                                profileData.images.filter(
-                                                  (img) => img !== image
-                                                );
-                                              setProfileData({
-                                                ...profileData,
-                                                images: newImages,
-                                              });
-                                            }}
-                                          >
-                                            ×
-                                          </Button>
-                                        </div>
-                                      ))}
-                                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg h-32 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors">
-                                        <div className="text-center">
-                                          <Camera className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                                          <p className="text-sm text-muted-foreground">
-                                            Add Photo
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="social" className="space-y-4">
-                                <div className="space-y-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="facebook">Facebook</Label>
-                                    <Input
-                                      id="facebook"
-                                      value={profileData.socialMedia.facebook}
-                                      onChange={(e) =>
-                                        setProfileData({
-                                          ...profileData,
-                                          socialMedia: {
-                                            ...profileData.socialMedia,
-                                            facebook: e.target.value,
-                                          },
-                                        })
-                                      }
-                                      placeholder="https://facebook.com/yourbusiness"
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="instagram">Instagram</Label>
-                                    <Input
-                                      id="instagram"
-                                      value={profileData.socialMedia.instagram}
-                                      onChange={(e) =>
-                                        setProfileData({
-                                          ...profileData,
-                                          socialMedia: {
-                                            ...profileData.socialMedia,
-                                            instagram: e.target.value,
-                                          },
-                                        })
-                                      }
-                                      placeholder="https://instagram.com/yourbusiness"
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="tiktok">TikTok</Label>
-                                    <Input
-                                      id="tiktok"
-                                      value={profileData.socialMedia.tiktok}
-                                      onChange={(e) =>
-                                        setProfileData({
-                                          ...profileData,
-                                          socialMedia: {
-                                            ...profileData.socialMedia,
-                                            tiktok: e.target.value,
-                                          },
-                                        })
-                                      }
-                                      placeholder="https://tiktok.com/@yourbusiness"
-                                    />
-                                  </div>
-                                </div>
-                              </TabsContent>
-                            </Tabs>
-                          </div>
-
-                          <div className="flex justify-between gap-2 pt-4 border-t">
-                            <Button
-                              variant="outline"
-                              onClick={() => setIsCustomizeProfileOpen(false)}
-                            >
-                              Cancel
-                            </Button>
-                            <div className="flex gap-2">
-                              <Button variant="outline">Preview</Button>
-                              <Button
-                                onClick={() => {
-                                  console.log(
-                                    "Saving profile data:",
-                                    profileData
-                                  );
-                                  setIsCustomizeProfileOpen(false);
-                                }}
-                              >
-                                <Save className="h-4 w-4 mr-2" />
-                                Save Changes
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium flex items-center">
-                    <Clock className="h-5 w-5 mr-2" />
-                    Working Hours
-                  </h3>
-                  <div className="space-y-4">
-                    {daysOfWeek.map((day) => {
-                      const daySettings =
-                        settings.workingHours[
-                          day.key as keyof typeof settings.workingHours
-                        ];
-                      return (
-                        <div
-                          key={day.key}
-                          className="flex items-center space-x-4"
-                        >
-                          <div className="w-24">
-                            <Label>{day.label}</Label>
-                          </div>
-                          <Switch
-                            checked={daySettings.enabled}
-                            onCheckedChange={(checked: boolean) =>
-                              updateWorkingHours(day.key, "enabled", checked)
-                            }
-                          />
-                          {daySettings.enabled && (
-                            <>
-                              <Input
-                                type="time"
-                                value={daySettings.start}
-                                onChange={(
-                                  e: React.ChangeEvent<HTMLInputElement>
-                                ) =>
-                                  updateWorkingHours(
-                                    day.key,
-                                    "start",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-32"
-                              />
-                              <span>to</span>
-                              <Input
-                                type="time"
-                                value={daySettings.end}
-                                onChange={(
-                                  e: React.ChangeEvent<HTMLInputElement>
-                                ) =>
-                                  updateWorkingHours(
-                                    day.key,
-                                    "end",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-32"
-                              />
-                            </>
-                          )}
-                          {!daySettings.enabled && (
-                            <Badge variant="secondary">Closed</Badge>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <Button>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {loadingEntity ? (
+              <Card>
+                <CardContent className="py-10 text-center">
+                  <p className="text-muted-foreground">
+                    Loading business profile...
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <BusinessProfileManager
+                entityType={
+                  (user?.plan as "simple" | "individual" | "business") ||
+                  "business"
+                }
+                entityId={user?.entityId || ""}
+                initialData={{
+                  businessName: entity?.name || "",
+                  username: entity?.username || "",
+                  description: entity?.description || "",
+                  address: entity?.address || "",
+                  phone: entity?.phone || "",
+                  email: entity?.email || "",
+                  website: entity?.website || "",
+                  logo: entity?.logo,
+                  banner: entity?.banner,
+                  publicPageEnabled: true,
+                }}
+                onSave={(data) => {
+                  console.log("Saving business profile:", data);
+                  toast.success("Business profile updated successfully!");
+                  // Reload entity data
+                  if (user?.entityId) {
+                    entitiesApi.getById(user.entityId).then((response) => {
+                      setEntity(response.data || null);
+                    });
+                  }
+                }}
+              />
+            )}
           </TabsContent>
 
           {/* Notifications Tab */}

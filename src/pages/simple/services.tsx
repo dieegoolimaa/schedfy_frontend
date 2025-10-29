@@ -9,6 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -535,52 +539,44 @@ export function SimpleServicesPage() {
       </Dialog>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Total Services</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.active}
-            </div>
-            <p className="text-xs text-muted-foreground">Active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.inactive}
-            </div>
-            <p className="text-xs text-muted-foreground">Inactive</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              {Math.round(stats.avgDuration)}min
-            </div>
-            <p className="text-xs text-muted-foreground">Avg. Duration</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">Total Bookings</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              {Math.round(stats.avgPopularity)}%
-            </div>
-            <p className="text-xs text-muted-foreground">Avg. Popularity</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total Services"
+          value={stats.total}
+          subtitle="Services"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Active"
+          value={stats.active}
+          subtitle="Available"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Inactive"
+          value={stats.inactive}
+          subtitle="Disabled"
+          color="red"
+        />
+        <MobileStatsCard
+          title="Avg. Duration"
+          value={`${Math.round(stats.avgDuration)}min`}
+          subtitle="Per service"
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Total Bookings"
+          value={stats.totalBookings}
+          subtitle="All time"
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Avg. Popularity"
+          value={`${Math.round(stats.avgPopularity)}%`}
+          subtitle="Rating"
+          color="purple"
+        />
+      </ResponsiveCardGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">

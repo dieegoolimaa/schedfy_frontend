@@ -17,6 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -423,63 +427,52 @@ export function ClientProfilePage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        {clientsLoading ? (
-          // show skeletons while loading
-          Array.from({ length: 6 }).map((_, i) => (
+      {clientsLoading ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-16" />
-          ))
-        ) : (
-          <>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold">{stats.total}</div>
-                <p className="text-xs text-muted-foreground">Total Clients</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-green-600">
-                  {stats.active}
-                </div>
-                <p className="text-xs text-muted-foreground">Active</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-red-600">
-                  {stats.inactive}
-                </div>
-                <p className="text-xs text-muted-foreground">Inactive</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-purple-600">
-                  {stats.vip}
-                </div>
-                <p className="text-xs text-muted-foreground">VIP Clients</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold">
-                  €{stats.totalRevenue.toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">Total Revenue</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold">
-                  €{stats.averageSpent.toFixed(0)}
-                </div>
-                <p className="text-xs text-muted-foreground">Avg. Spent</p>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <ResponsiveCardGrid>
+          <MobileStatsCard
+            title="Total"
+            value={stats.total}
+            subtitle="Clients"
+            color="blue"
+          />
+          <MobileStatsCard
+            title="Active"
+            value={stats.active}
+            subtitle="Engaged"
+            color="green"
+          />
+          <MobileStatsCard
+            title="Inactive"
+            value={stats.inactive}
+            subtitle="Dormant"
+            color="red"
+          />
+          <MobileStatsCard
+            title="VIP"
+            value={stats.vip}
+            subtitle="Premium"
+            color="purple"
+          />
+          <MobileStatsCard
+            title="Revenue"
+            value={`€${stats.totalRevenue.toLocaleString()}`}
+            subtitle="Total"
+            color="green"
+          />
+          <MobileStatsCard
+            title="Avg. Spent"
+            value={`€${stats.averageSpent.toFixed(0)}`}
+            subtitle="Per Client"
+            color="yellow"
+          />
+        </ResponsiveCardGrid>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">

@@ -9,6 +9,10 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -28,15 +32,9 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { Progress } from "../../components/ui/progress";
 import {
-  Calendar,
   Clock,
-  Euro,
-  TrendingUp,
-  TrendingDown,
   Star,
-  Target,
   Activity,
   CheckCircle,
   AlertCircle,
@@ -235,14 +233,6 @@ export function ProfessionalDashboardPage() {
     }
   };
 
-  const getGrowthIcon = (growth: number) => {
-    return growth > 0 ? (
-      <TrendingUp className="h-4 w-4 text-green-500" />
-    ) : (
-      <TrendingDown className="h-4 w-4 text-red-500" />
-    );
-  };
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -291,83 +281,33 @@ export function ProfessionalDashboardPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Today's Bookings
-                </p>
-                <div className="text-2xl font-bold">{stats.todayBookings}</div>
-              </div>
-              <Calendar className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              <span className="text-sm text-green-600">6 completed</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Today's Revenue
-                </p>
-                <div className="text-2xl font-bold">€{stats.todayRevenue}</div>
-              </div>
-              <Euro className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(15.2)}
-              <span className="text-sm text-green-600 ml-1">
-                +15.2% vs yesterday
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Client Satisfaction
-                </p>
-                <div className="text-2xl font-bold">
-                  {stats.clientSatisfaction}
-                </div>
-              </div>
-              <Star className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              <span className="text-sm text-green-600">Excellent rating</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Completion Rate
-                </p>
-                <div className="text-2xl font-bold">
-                  {stats.completionRate}%
-                </div>
-              </div>
-              <Target className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              <Progress value={stats.completionRate} className="w-16" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Quick Stats - Mobile-First Responsive Layout */}
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Today's Bookings"
+          value={stats.todayBookings}
+          subtitle="6 completed"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Today's Revenue"
+          value={`€${stats.todayRevenue}`}
+          subtitle="+15.2% vs yesterday"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Client Satisfaction"
+          value={stats.clientSatisfaction}
+          subtitle="Excellent rating"
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Completion Rate"
+          value={`${stats.completionRate}%`}
+          subtitle="This month"
+          color="purple"
+        />
+      </ResponsiveCardGrid>
 
       {/* Today's Schedule */}
       <Card>

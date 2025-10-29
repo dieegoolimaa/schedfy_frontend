@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
 
 interface ProtectedRouteProps {
@@ -16,6 +16,7 @@ export function ProtectedRoute({
   requireOwner = false,
 }: Readonly<ProtectedRouteProps>) {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -40,8 +41,33 @@ export function ProtectedRoute({
 
   // Check if user's plan is allowed
   if (allowedPlans && !allowedPlans.includes(user.plan)) {
-    return <Navigate to="/upgrade" replace />;
+    console.log(`[ProtectedRoute] Plan check failed:`, {
+      userPlan: user.plan,
+      userPlanType: typeof user.plan,
+      allowedPlans,
+      currentPath: location.pathname,
+      includes: allowedPlans.includes(user.plan),
+      user: { id: user.id, email: user.email, role: user.role },
+    });
+
+    // Don't redirect to upgrade if user is already on upgrade page to prevent loops
+    if (location.pathname !== "/upgrade") {
+      console.log(`[ProtectedRoute] Redirecting to /upgrade`);
+      return <Navigate to="/upgrade" replace />;
+    }
+
+    // If user is already on upgrade page, allow access to prevent being stuck
+    console.log(
+      `[ProtectedRoute] User already on upgrade page, allowing access`
+    );
+    return <>{children}</>;
   }
+
+  console.log(`[ProtectedRoute] Access granted:`, {
+    userPlan: user.plan,
+    allowedPlans,
+    currentPath: location.pathname,
+  });
 
   // Check if route requires owner role
   if (requireOwner && user.role !== "owner") {

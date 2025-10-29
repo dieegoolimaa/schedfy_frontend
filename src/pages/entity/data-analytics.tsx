@@ -6,6 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -298,7 +302,9 @@ export function DataAnalyticsPage() {
             {aiInsights.slice(0, 2).map((insight) => (
               <div
                 key={insight.title}
-                className={`p-4 rounded-lg border ${getInsightColor(insight.type)}`}
+                className={`p-4 rounded-lg border ${getInsightColor(
+                  insight.type
+                )}`}
               >
                 <div className="flex items-start gap-3">
                   {getInsightIcon(insight.type)}
@@ -319,157 +325,56 @@ export function DataAnalyticsPage() {
       </Card>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Revenue
-                </p>
-                <div className="text-2xl font-bold">
-                  €{overviewStats.totalRevenue.toLocaleString()}
-                </div>
-              </div>
-              <Euro className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(overviewStats.revenueGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(overviewStats.revenueGrowth)}`}
-              >
-                {overviewStats.revenueGrowth > 0 ? "+" : ""}
-                {overviewStats.revenueGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Bookings
-                </p>
-                <div className="text-2xl font-bold">
-                  {overviewStats.totalBookings}
-                </div>
-              </div>
-              <Calendar className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(overviewStats.bookingsGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(overviewStats.bookingsGrowth)}`}
-              >
-                {overviewStats.bookingsGrowth > 0 ? "+" : ""}
-                {overviewStats.bookingsGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  New Clients
-                </p>
-                <div className="text-2xl font-bold">
-                  {overviewStats.newClients}
-                </div>
-              </div>
-              <Users className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(overviewStats.clientsGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(overviewStats.clientsGrowth)}`}
-              >
-                {overviewStats.clientsGrowth > 0 ? "+" : ""}
-                {overviewStats.clientsGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Avg. Value
-                </p>
-                <div className="text-2xl font-bold">
-                  €{overviewStats.avgBookingValue}
-                </div>
-              </div>
-              <BarChart3 className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(overviewStats.avgValueGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(overviewStats.avgValueGrowth)}`}
-              >
-                {overviewStats.avgValueGrowth > 0 ? "+" : ""}
-                {overviewStats.avgValueGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Conversion
-                </p>
-                <div className="text-2xl font-bold">
-                  {overviewStats.conversionRate}%
-                </div>
-              </div>
-              <Target className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(overviewStats.conversionGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(overviewStats.conversionGrowth)}`}
-              >
-                {overviewStats.conversionGrowth > 0 ? "+" : ""}
-                {overviewStats.conversionGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Retention
-                </p>
-                <div className="text-2xl font-bold">
-                  {overviewStats.clientRetention}%
-                </div>
-              </div>
-              <Activity className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(overviewStats.retentionGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(overviewStats.retentionGrowth)}`}
-              >
-                {overviewStats.retentionGrowth > 0 ? "+" : ""}
-                {overviewStats.retentionGrowth}%
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Revenue"
+          value={`€${overviewStats.totalRevenue.toLocaleString()}`}
+          subtitle={`${overviewStats.revenueGrowth > 0 ? "+" : ""}${
+            overviewStats.revenueGrowth
+          }% growth`}
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Bookings"
+          value={overviewStats.totalBookings}
+          subtitle={`${overviewStats.bookingsGrowth > 0 ? "+" : ""}${
+            overviewStats.bookingsGrowth
+          }% growth`}
+          color="green"
+        />
+        <MobileStatsCard
+          title="New Clients"
+          value={overviewStats.newClients}
+          subtitle={`${overviewStats.clientsGrowth > 0 ? "+" : ""}${
+            overviewStats.clientsGrowth
+          }% growth`}
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Avg. Value"
+          value={`€${overviewStats.avgBookingValue}`}
+          subtitle={`${overviewStats.avgValueGrowth > 0 ? "+" : ""}${
+            overviewStats.avgValueGrowth
+          }% growth`}
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Conversion"
+          value={`${overviewStats.conversionRate}%`}
+          subtitle={`${overviewStats.conversionGrowth > 0 ? "+" : ""}${
+            overviewStats.conversionGrowth
+          }% growth`}
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Retention"
+          value={`${overviewStats.clientRetention}%`}
+          subtitle={`${overviewStats.retentionGrowth > 0 ? "+" : ""}${
+            overviewStats.retentionGrowth
+          }% growth`}
+          color="green"
+        />
+      </ResponsiveCardGrid>
 
       {/* Content Tabs */}
       <Tabs defaultValue="services" className="space-y-6">
@@ -607,10 +512,10 @@ export function DataAnalyticsPage() {
                             index === 0
                               ? "bg-yellow-100 text-yellow-800"
                               : index === 1
-                                ? "bg-gray-100 text-gray-800"
-                                : index === 2
-                                  ? "bg-orange-100 text-orange-800"
-                                  : "bg-blue-100 text-blue-800"
+                              ? "bg-gray-100 text-gray-800"
+                              : index === 2
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-blue-100 text-blue-800"
                           }`}
                         >
                           {index + 1}
@@ -762,15 +667,15 @@ export function DataAnalyticsPage() {
                               utilization > 80
                                 ? "bg-red-50 text-red-700 border-red-200"
                                 : utilization > 60
-                                  ? "bg-green-50 text-green-700 border-green-200"
-                                  : "bg-blue-50 text-blue-700 border-blue-200"
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
                             }`}
                           >
                             {utilization > 80
                               ? "Peak"
                               : utilization > 60
-                                ? "Active"
-                                : "Quiet"}
+                              ? "Active"
+                              : "Quiet"}
                           </Badge>
                         </div>
                       </div>

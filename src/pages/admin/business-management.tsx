@@ -6,6 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -393,62 +397,50 @@ export function BusinessManagementPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Total</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.active}
-            </div>
-            <p className="text-xs text-muted-foreground">Active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.trial}
-            </div>
-            <p className="text-xs text-muted-foreground">Trial</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.suspended}
-            </div>
-            <p className="text-xs text-muted-foreground">Suspended</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-yellow-600">
-              {stats.pending}
-            </div>
-            <p className="text-xs text-muted-foreground">Pending</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              €{stats.totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Total Revenue</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              €{stats.monthlyRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Monthly Revenue</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total"
+          value={stats.total}
+          subtitle="Businesses"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Active"
+          value={stats.active}
+          subtitle="Running"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Trial"
+          value={stats.trial}
+          subtitle="Testing"
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Suspended"
+          value={stats.suspended}
+          subtitle="Inactive"
+          color="red"
+        />
+        <MobileStatsCard
+          title="Pending"
+          value={stats.pending}
+          subtitle="Waiting"
+          color="yellow"
+        />
+        <MobileStatsCard
+          title="Total Revenue"
+          value={`€${stats.totalRevenue.toLocaleString()}`}
+          subtitle="All time"
+          color="green"
+        />
+        <MobileStatsCard
+          title="Monthly"
+          value={`€${stats.monthlyRevenue.toLocaleString()}`}
+          subtitle="This month"
+          color="purple"
+        />
+      </ResponsiveCardGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">

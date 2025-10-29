@@ -9,6 +9,10 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
+import {
   Tabs,
   TabsContent,
   TabsList,
@@ -33,13 +37,11 @@ import { Progress } from "../../components/ui/progress";
 import {
   TrendingUp,
   TrendingDown,
-  Users,
   Building2,
   AlertTriangle,
   CheckCircle,
   Clock,
   Euro,
-  Calendar,
   Globe,
   Shield,
   Database,
@@ -270,104 +272,33 @@ export function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Platform Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total Businesses
-                </p>
-                <div className="text-2xl font-bold">
-                  {platformStats.totalBusinesses.toLocaleString()}
-                </div>
-              </div>
-              <Building2 className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(platformStats.businessesGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(platformStats.businessesGrowth)}`}
-              >
-                +{platformStats.businessesGrowth}% this month
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Active Users
-                </p>
-                <div className="text-2xl font-bold">
-                  {platformStats.activeUsers.toLocaleString()}
-                </div>
-              </div>
-              <Users className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(platformStats.usersGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(platformStats.usersGrowth)}`}
-              >
-                +{platformStats.usersGrowth}% this month
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Platform Revenue
-                </p>
-                <div className="text-2xl font-bold">
-                  €{platformStats.totalRevenue.toLocaleString()}
-                </div>
-              </div>
-              <Euro className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(platformStats.revenueGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(platformStats.revenueGrowth)}`}
-              >
-                +{platformStats.revenueGrowth}% this month
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total Bookings
-                </p>
-                <div className="text-2xl font-bold">
-                  {platformStats.totalBookings.toLocaleString()}
-                </div>
-              </div>
-              <Calendar className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="flex items-center mt-2">
-              {getGrowthIcon(platformStats.bookingsGrowth)}
-              <span
-                className={`text-sm font-medium ml-1 ${getGrowthColor(platformStats.bookingsGrowth)}`}
-              >
-                +{platformStats.bookingsGrowth}% this month
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Platform Overview - Mobile-First Responsive Layout */}
+      <ResponsiveCardGrid>
+        <MobileStatsCard
+          title="Total Businesses"
+          value={platformStats.totalBusinesses.toLocaleString()}
+          subtitle={`+${platformStats.businessesGrowth}% this month`}
+          color="blue"
+        />
+        <MobileStatsCard
+          title="Active Users"
+          value={platformStats.activeUsers.toLocaleString()}
+          subtitle={`+${platformStats.usersGrowth}% this month`}
+          color="purple"
+        />
+        <MobileStatsCard
+          title="Platform Revenue"
+          value={`€${platformStats.totalRevenue.toLocaleString()}`}
+          subtitle={`+${platformStats.revenueGrowth}% this month`}
+          color="green"
+        />
+        <MobileStatsCard
+          title="Total Bookings"
+          value={platformStats.totalBookings.toLocaleString()}
+          subtitle={`+${platformStats.bookingsGrowth}% this month`}
+          color="yellow"
+        />
+      </ResponsiveCardGrid>
 
       {/* System Health */}
       <Card>
@@ -557,7 +488,9 @@ export function AdminDashboardPage() {
                         <div className="flex items-center">
                           {getGrowthIcon(region.growth)}
                           <span
-                            className={`ml-1 font-medium ${getGrowthColor(region.growth)}`}
+                            className={`ml-1 font-medium ${getGrowthColor(
+                              region.growth
+                            )}`}
                           >
                             +{region.growth}%
                           </span>

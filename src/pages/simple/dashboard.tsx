@@ -12,8 +12,11 @@ import {
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import {
+  ResponsiveCardGrid,
+  MobileStatsCard,
+} from "../../components/ui/responsive-card";
+import {
   CalendarDays,
-  TrendingUp,
   DollarSign,
   Clock,
   ArrowRight,
@@ -191,48 +194,41 @@ const SimpleDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Grid - Simple 2 column layout */}
-      <div className="grid gap-6 md:grid-cols-2 max-w-2xl mx-auto">
+      {/* Stats Grid - Mobile-First Responsive Layout */}
+      <ResponsiveCardGrid>
         {loading ? (
           <>
-            <Card className="p-6">
-              <CardContent className="pt-6">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-              </CardContent>
-            </Card>
-            <Card className="p-6">
-              <CardContent className="pt-6">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-              </CardContent>
-            </Card>
+            <MobileStatsCard
+              title="Loading..."
+              value="--"
+              color="gray"
+              subtitle="Fetching data..."
+            />
+            <MobileStatsCard
+              title="Loading..."
+              value="--"
+              color="gray"
+              subtitle="Fetching data..."
+            />
           </>
         ) : (
-          stats.map((stat) => {
-            const IconComponent = stat.icon;
-            return (
-              <Card key={stat.title} className="p-6">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                  <CardTitle className="text-base font-semibold">
-                    {stat.title}
-                  </CardTitle>
-                  <IconComponent className={`h-6 w-6 ${stat.color}`} />
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="text-3xl font-bold mb-2">{stat.value}</div>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <TrendingUp
-                      className={`h-4 w-4 mr-2 ${
-                        stat.trend === "up" ? "text-green-500" : "text-red-500"
-                      }`}
-                    />
-                    {stat.change} this month
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })
+          stats.map((stat) => (
+            <MobileStatsCard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              subtitle={`${stat.change} this month`}
+              color={
+                stat.title.includes("Bookings")
+                  ? "blue"
+                  : stat.title.includes("Completed")
+                  ? "green"
+                  : "gray"
+              }
+            />
+          ))
         )}
-      </div>
+      </ResponsiveCardGrid>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">
