@@ -1,4 +1,5 @@
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL;
+// Use VITE_API_BASE_URL if set, otherwise use empty string for relative URLs (proxy)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 interface ApiResponse<T = any> {
     data?: T;
