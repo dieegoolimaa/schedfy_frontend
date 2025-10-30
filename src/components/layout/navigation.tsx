@@ -176,6 +176,12 @@ export function Navigation() {
             label: t("nav.reports", "Reports"),
           },
         ],
+        financial: [
+          {
+            path: "/individual/payment-management",
+            label: t("nav.payments", "Payments"),
+          },
+        ],
         settings: [
           {
             path: "/simple/settings",

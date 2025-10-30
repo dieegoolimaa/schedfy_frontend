@@ -25,6 +25,7 @@ import IndividualDashboardPage from "./pages/individual/dashboard";
 import { IndividualServicesPage } from "./pages/individual/services";
 import { IndividualBookingsPage } from "./pages/individual/bookings";
 import { IndividualReportsPage } from "./pages/individual/reports";
+import IndividualPaymentManagementPage from "./pages/individual/payment-management";
 
 // Business/Entity Plan pages
 import EntityDashboardPage from "./pages/entity/dashboard";
@@ -226,6 +227,16 @@ function App() {
                 <IndividualPlusRoute>
                   <Layout>
                     <IndividualReportsPage />
+                  </Layout>
+                </IndividualPlusRoute>
+              }
+            />
+            <Route
+              path="/individual/payment-management"
+              element={
+                <IndividualPlusRoute>
+                  <Layout>
+                    <IndividualPaymentManagementPage />
                   </Layout>
                 </IndividualPlusRoute>
               }
