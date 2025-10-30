@@ -1,19 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/auth-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Plus, Edit, Trash2, Calendar, Users, DollarSign, TrendingUp, Activity, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-import { apiClient } from '../../lib/api';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/auth-context";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Package,
+  Plus,
+  Edit,
+  Trash2,
+  Calendar,
+  Users,
+  DollarSign,
+  TrendingUp,
+  Activity,
+  CheckCircle2,
+  XCircle,
+  Clock,
+} from "lucide-react";
+import { format } from "date-fns";
+import { apiClient } from "../../lib/api";
+import { toast } from "sonner";
 
 interface Service {
   _id: string;
@@ -36,10 +70,10 @@ interface ServicePackage {
     discount: number;
     currency: string;
   };
-  recurrence: 'monthly' | 'one_time';
+  recurrence: "monthly" | "one_time";
   validity: number;
   sessionsIncluded: number;
-  status: 'active' | 'inactive' | 'draft';
+  status: "active" | "inactive" | "draft";
   createdAt: string;
   updatedAt: string;
 }
@@ -53,7 +87,7 @@ interface PackageSubscription {
   };
   entityId: string;
   packageId: ServicePackage;
-  status: 'active' | 'expired' | 'cancelled' | 'paused';
+  status: "active" | "expired" | "cancelled" | "paused";
   startDate: string;
   expiryDate: string;
   sessionsUsed: number;
@@ -74,25 +108,27 @@ const PackageManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<ServicePackage | null>(null);
-  const [activeTab, setActiveTab] = useState('packages');
+  const [selectedPackage, setSelectedPackage] = useState<ServicePackage | null>(
+    null
+  );
+  const [activeTab, setActiveTab] = useState("packages");
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     services: [] as string[],
     packagePrice: 0,
-    currency: 'BRL',
-    recurrence: 'one_time' as 'monthly' | 'one_time',
+    currency: "BRL",
+    recurrence: "one_time" as "monthly" | "one_time",
     validity: 30,
     sessionsIncluded: 1,
-    status: 'active' as 'active' | 'inactive' | 'draft',
+    status: "active" as "active" | "inactive" | "draft",
   });
 
   // Filters
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [recurrenceFilter, setRecurrenceFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [recurrenceFilter, setRecurrenceFilter] = useState<string>("all");
 
   useEffect(() => {
     if (user?.entityId) {
@@ -103,16 +139,20 @@ const PackageManagement: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Build query params manually
-      const packagesUrl = `/api/packages/entity/${user?.entityId}?${new URLSearchParams({
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(recurrenceFilter !== 'all' && { recurrence: recurrenceFilter }),
+      const packagesUrl = `/api/packages/entity/${
+        user?.entityId
+      }?${new URLSearchParams({
+        ...(statusFilter !== "all" && { status: statusFilter }),
+        ...(recurrenceFilter !== "all" && { recurrence: recurrenceFilter }),
       } as any)}`;
-      
+
       const [packagesRes, subscriptionsRes, servicesRes] = await Promise.all([
         apiClient.get<ServicePackage[]>(packagesUrl),
-        apiClient.get<PackageSubscription[]>(`/api/packages/subscriptions/entity/${user?.entityId}`),
+        apiClient.get<PackageSubscription[]>(
+          `/api/packages/subscriptions/entity/${user?.entityId}`
+        ),
         apiClient.get<Service[]>(`/api/services/entity/${user?.entityId}`),
       ]);
 
@@ -120,8 +160,8 @@ const PackageManagement: React.FC = () => {
       setSubscriptions(subscriptionsRes.data || []);
       setServices(servicesRes.data || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Erro ao carregar dados');
+      console.error("Error fetching data:", error);
+      toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
@@ -130,22 +170,22 @@ const PackageManagement: React.FC = () => {
   const handleCreatePackage = async () => {
     try {
       if (!formData.name || formData.services.length === 0) {
-        toast.error('Preencha todos os campos obrigatórios');
+        toast.error("Preencha todos os campos obrigatórios");
         return;
       }
 
-      await apiClient.post('/api/packages', {
+      await apiClient.post("/api/packages", {
         entityId: user?.entityId,
         ...formData,
       });
 
-      toast.success('Pacote criado com sucesso!');
+      toast.success("Pacote criado com sucesso!");
       setIsCreateModalOpen(false);
       resetForm();
       fetchData();
     } catch (error: any) {
-      console.error('Error creating package:', error);
-      toast.error(error.response?.data?.message || 'Erro ao criar pacote');
+      console.error("Error creating package:", error);
+      toast.error(error.response?.data?.message || "Erro ao criar pacote");
     }
   };
 
@@ -155,37 +195,37 @@ const PackageManagement: React.FC = () => {
 
       await apiClient.patch(`/api/packages/${selectedPackage._id}`, formData);
 
-      toast.success('Pacote atualizado com sucesso!');
+      toast.success("Pacote atualizado com sucesso!");
       setIsEditModalOpen(false);
       resetForm();
       fetchData();
     } catch (error: any) {
-      console.error('Error updating package:', error);
-      toast.error(error.response?.data?.message || 'Erro ao atualizar pacote');
+      console.error("Error updating package:", error);
+      toast.error(error.response?.data?.message || "Erro ao atualizar pacote");
     }
   };
 
   const handleToggleStatus = async (packageId: string) => {
     try {
       await apiClient.patch(`/api/packages/${packageId}/toggle-status`);
-      toast.success('Status atualizado com sucesso!');
+      toast.success("Status atualizado com sucesso!");
       fetchData();
     } catch (error: any) {
-      console.error('Error toggling status:', error);
-      toast.error(error.response?.data?.message || 'Erro ao atualizar status');
+      console.error("Error toggling status:", error);
+      toast.error(error.response?.data?.message || "Erro ao atualizar status");
     }
   };
 
   const handleDeletePackage = async (packageId: string) => {
     try {
-      if (!confirm('Tem certeza que deseja excluir este pacote?')) return;
+      if (!confirm("Tem certeza que deseja excluir este pacote?")) return;
 
       await apiClient.delete(`/api/packages/${packageId}`);
-      toast.success('Pacote excluído com sucesso!');
+      toast.success("Pacote excluído com sucesso!");
       fetchData();
     } catch (error: any) {
-      console.error('Error deleting package:', error);
-      toast.error(error.response?.data?.message || 'Erro ao excluir pacote');
+      console.error("Error deleting package:", error);
+      toast.error(error.response?.data?.message || "Erro ao excluir pacote");
     }
   };
 
@@ -193,7 +233,7 @@ const PackageManagement: React.FC = () => {
     setSelectedPackage(pkg);
     setFormData({
       name: pkg.name,
-      description: pkg.description || '',
+      description: pkg.description || "",
       services: pkg.services.map((s) => s._id),
       packagePrice: pkg.pricing.packagePrice,
       currency: pkg.pricing.currency,
@@ -207,15 +247,15 @@ const PackageManagement: React.FC = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       services: [],
       packagePrice: 0,
-      currency: 'BRL',
-      recurrence: 'one_time',
+      currency: "BRL",
+      recurrence: "one_time",
       validity: 30,
       sessionsIncluded: 1,
-      status: 'active',
+      status: "active",
     });
     setSelectedPackage(null);
   };
@@ -235,28 +275,32 @@ const PackageManagement: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const variants: any = {
-      active: 'default',
-      inactive: 'secondary',
-      draft: 'outline',
-      expired: 'destructive',
-      cancelled: 'destructive',
-      paused: 'secondary',
+      active: "default",
+      inactive: "secondary",
+      draft: "outline",
+      expired: "destructive",
+      cancelled: "destructive",
+      paused: "secondary",
     };
 
     const labels: any = {
-      active: 'Ativo',
-      inactive: 'Inativo',
-      draft: 'Rascunho',
-      expired: 'Expirado',
-      cancelled: 'Cancelado',
-      paused: 'Pausado',
+      active: "Ativo",
+      inactive: "Inativo",
+      draft: "Rascunho",
+      expired: "Expirado",
+      cancelled: "Cancelado",
+      paused: "Pausado",
     };
 
-    return <Badge variant={variants[status] || 'default'}>{labels[status] || status}</Badge>;
+    return (
+      <Badge variant={variants[status] || "default"}>
+        {labels[status] || status}
+      </Badge>
+    );
   };
 
   const getRecurrenceBadge = (recurrence: string) => {
-    return recurrence === 'monthly' ? (
+    return recurrence === "monthly" ? (
       <Badge variant="default">
         <Calendar className="w-3 h-3 mr-1" />
         Mensal
@@ -271,10 +315,15 @@ const PackageManagement: React.FC = () => {
 
   // Calculate statistics
   const totalPackages = packages.length;
-  const activePackages = packages.filter((p) => p.status === 'active').length;
+  const activePackages = packages.filter((p) => p.status === "active").length;
   const totalSubscriptions = subscriptions.length;
-  const activeSubscriptions = subscriptions.filter((s) => s.status === 'active').length;
-  const totalRevenue = subscriptions.reduce((sum, sub) => sum + sub.packageId.pricing.packagePrice, 0);
+  const activeSubscriptions = subscriptions.filter(
+    (s) => s.status === "active"
+  ).length;
+  const totalRevenue = subscriptions.reduce(
+    (sum, sub) => sum + sub.packageId.pricing.packagePrice,
+    0
+  );
 
   if (loading) {
     return (
@@ -303,66 +352,92 @@ const PackageManagement: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Pacotes</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total de Pacotes
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPackages}</div>
-            <p className="text-xs text-muted-foreground mt-1">{activePackages} ativos</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {activePackages} ativos
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Assinaturas Ativas</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Assinaturas Ativas
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
               <Users className="w-5 h-5 text-green-500" />
               {activeSubscriptions}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">de {totalSubscriptions} totais</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              de {totalSubscriptions} totais
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Receita Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Receita Total
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-blue-500" />
               R$ {totalRevenue.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">de pacotes vendidos</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              de pacotes vendidos
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Taxa de Conversão</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Taxa de Conversão
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-500" />
-              {totalPackages > 0 ? ((activeSubscriptions / totalPackages) * 100).toFixed(1) : 0}%
+              {totalPackages > 0
+                ? ((activeSubscriptions / totalPackages) * 100).toFixed(1)
+                : 0}
+              %
             </div>
-            <p className="text-xs text-muted-foreground mt-1">pacotes convertidos</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              pacotes convertidos
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Desconto Médio</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Desconto Médio
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
               <Activity className="w-5 h-5 text-orange-500" />
               {packages.length > 0
-                ? (packages.reduce((sum, p) => sum + p.pricing.discount, 0) / packages.length).toFixed(1)
+                ? (
+                    packages.reduce((sum, p) => sum + p.pricing.discount, 0) /
+                    packages.length
+                  ).toFixed(1)
                 : 0}
               %
             </div>
-            <p className="text-xs text-muted-foreground mt-1">oferecido nos pacotes</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              oferecido nos pacotes
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -371,7 +446,9 @@ const PackageManagement: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="packages">Pacotes ({totalPackages})</TabsTrigger>
-          <TabsTrigger value="subscriptions">Assinaturas ({totalSubscriptions})</TabsTrigger>
+          <TabsTrigger value="subscriptions">
+            Assinaturas ({totalSubscriptions})
+          </TabsTrigger>
         </TabsList>
 
         {/* Packages Tab */}
@@ -391,7 +468,10 @@ const PackageManagement: React.FC = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={recurrenceFilter} onValueChange={setRecurrenceFilter}>
+              <Select
+                value={recurrenceFilter}
+                onValueChange={setRecurrenceFilter}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Recorrência" />
                 </SelectTrigger>
@@ -403,7 +483,10 @@ const PackageManagement: React.FC = () => {
               </Select>
             </div>
 
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <Dialog
+              open={isCreateModalOpen}
+              onOpenChange={setIsCreateModalOpen}
+            >
               <DialogTrigger asChild>
                 <Button onClick={() => resetForm()}>
                   <Plus className="w-4 h-4 mr-2" />
@@ -426,7 +509,9 @@ const PackageManagement: React.FC = () => {
                       id="name"
                       placeholder="Ex: Pacote Bronze"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                     />
                   </div>
 
@@ -437,7 +522,12 @@ const PackageManagement: React.FC = () => {
                       id="description"
                       placeholder="Descreva o que está incluso neste pacote..."
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
                       rows={3}
                     />
                   </div>
@@ -447,32 +537,45 @@ const PackageManagement: React.FC = () => {
                     <Label>Serviços Inclusos *</Label>
                     <div className="border rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
                       {services.map((service) => (
-                        <div key={service._id} className="flex items-center space-x-2">
+                        <div
+                          key={service._id}
+                          className="flex items-center space-x-2"
+                        >
                           <input
                             type="checkbox"
                             id={`service-${service._id}`}
                             checked={formData.services.includes(service._id)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setFormData({ ...formData, services: [...formData.services, service._id] });
+                                setFormData({
+                                  ...formData,
+                                  services: [...formData.services, service._id],
+                                });
                               } else {
                                 setFormData({
                                   ...formData,
-                                  services: formData.services.filter((id) => id !== service._id),
+                                  services: formData.services.filter(
+                                    (id) => id !== service._id
+                                  ),
                                 });
                               }
                             }}
                             className="rounded"
                           />
-                          <label htmlFor={`service-${service._id}`} className="flex-1 cursor-pointer">
-                            {service.name} - R$ {service.pricing.basePrice.toFixed(2)}
+                          <label
+                            htmlFor={`service-${service._id}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            {service.name} - R${" "}
+                            {service.pricing.basePrice.toFixed(2)}
                           </label>
                         </div>
                       ))}
                     </div>
                     {formData.services.length > 0 && (
                       <p className="text-sm text-muted-foreground mt-2">
-                        <strong>Preço original:</strong> R$ {calculateOriginalPrice().toFixed(2)}
+                        <strong>Preço original:</strong> R${" "}
+                        {calculateOriginalPrice().toFixed(2)}
                       </p>
                     )}
                   </div>
@@ -487,18 +590,29 @@ const PackageManagement: React.FC = () => {
                         min="0"
                         step="0.01"
                         value={formData.packagePrice}
-                        onChange={(e) => setFormData({ ...formData, packagePrice: parseFloat(e.target.value) })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            packagePrice: parseFloat(e.target.value),
+                          })
+                        }
                       />
-                      {formData.services.length > 0 && formData.packagePrice > 0 && (
-                        <p className="text-sm text-green-600">
-                          Desconto: {calculateDiscount().toFixed(1)}%
-                        </p>
-                      )}
+                      {formData.services.length > 0 &&
+                        formData.packagePrice > 0 && (
+                          <p className="text-sm text-green-600">
+                            Desconto: {calculateDiscount().toFixed(1)}%
+                          </p>
+                        )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="currency">Moeda</Label>
-                      <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+                      <Select
+                        value={formData.currency}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, currency: value })
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -517,13 +631,17 @@ const PackageManagement: React.FC = () => {
                       <Label htmlFor="recurrence">Recorrência *</Label>
                       <Select
                         value={formData.recurrence}
-                        onValueChange={(value: 'monthly' | 'one_time') => setFormData({ ...formData, recurrence: value })}
+                        onValueChange={(value: "monthly" | "one_time") =>
+                          setFormData({ ...formData, recurrence: value })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="one_time">Pagamento Único</SelectItem>
+                          <SelectItem value="one_time">
+                            Pagamento Único
+                          </SelectItem>
                           <SelectItem value="monthly">Mensal</SelectItem>
                         </SelectContent>
                       </Select>
@@ -536,7 +654,12 @@ const PackageManagement: React.FC = () => {
                         type="number"
                         min="7"
                         value={formData.validity}
-                        onChange={(e) => setFormData({ ...formData, validity: parseInt(e.target.value) })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            validity: parseInt(e.target.value),
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -544,13 +667,20 @@ const PackageManagement: React.FC = () => {
                   {/* Sessions and Status */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="sessionsIncluded">Sessões Incluídas *</Label>
+                      <Label htmlFor="sessionsIncluded">
+                        Sessões Incluídas *
+                      </Label>
                       <Input
                         id="sessionsIncluded"
                         type="number"
                         min="1"
                         value={formData.sessionsIncluded}
-                        onChange={(e) => setFormData({ ...formData, sessionsIncluded: parseInt(e.target.value) })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            sessionsIncluded: parseInt(e.target.value),
+                          })
+                        }
                       />
                     </div>
 
@@ -558,7 +688,9 @@ const PackageManagement: React.FC = () => {
                       <Label htmlFor="status">Status *</Label>
                       <Select
                         value={formData.status}
-                        onValueChange={(value: 'active' | 'inactive' | 'draft') => setFormData({ ...formData, status: value })}
+                        onValueChange={(
+                          value: "active" | "inactive" | "draft"
+                        ) => setFormData({ ...formData, status: value })}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -574,7 +706,10 @@ const PackageManagement: React.FC = () => {
                 </div>
 
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateModalOpen(false)}
+                  >
                     Cancelar
                   </Button>
                   <Button onClick={handleCreatePackage}>Criar Pacote</Button>
@@ -603,7 +738,10 @@ const PackageManagement: React.FC = () => {
                 <TableBody>
                   {packages.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={9}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         Nenhum pacote encontrado. Crie seu primeiro pacote!
                       </TableCell>
                     </TableRow>
@@ -614,31 +752,45 @@ const PackageManagement: React.FC = () => {
                           <div>
                             <div className="font-medium">{pkg.name}</div>
                             {pkg.description && (
-                              <div className="text-sm text-muted-foreground line-clamp-1">{pkg.description}</div>
+                              <div className="text-sm text-muted-foreground line-clamp-1">
+                                {pkg.description}
+                              </div>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">{pkg.services.length} serviços</div>
+                          <div className="text-sm">
+                            {pkg.services.length} serviços
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">R$ {pkg.pricing.packagePrice.toFixed(2)}</div>
+                            <div className="font-medium">
+                              R$ {pkg.pricing.packagePrice.toFixed(2)}
+                            </div>
                             <div className="text-xs text-muted-foreground line-through">
                               R$ {pkg.pricing.originalPrice.toFixed(2)}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{pkg.pricing.discount.toFixed(1)}%</Badge>
+                          <Badge variant="secondary">
+                            {pkg.pricing.discount.toFixed(1)}%
+                          </Badge>
                         </TableCell>
-                        <TableCell>{getRecurrenceBadge(pkg.recurrence)}</TableCell>
+                        <TableCell>
+                          {getRecurrenceBadge(pkg.recurrence)}
+                        </TableCell>
                         <TableCell>{pkg.validity} dias</TableCell>
                         <TableCell>{pkg.sessionsIncluded} sessões</TableCell>
                         <TableCell>{getStatusBadge(pkg.status)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => openEditModal(pkg)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditModal(pkg)}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
@@ -646,7 +798,7 @@ const PackageManagement: React.FC = () => {
                               size="sm"
                               onClick={() => handleToggleStatus(pkg._id)}
                             >
-                              {pkg.status === 'active' ? (
+                              {pkg.status === "active" ? (
                                 <XCircle className="w-4 h-4 text-red-500" />
                               ) : (
                                 <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -689,28 +841,38 @@ const PackageManagement: React.FC = () => {
                 <TableBody>
                   {subscriptions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={7}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         Nenhuma assinatura encontrada
                       </TableCell>
                     </TableRow>
                   ) : (
                     subscriptions.map((sub) => {
-                      const usagePercentage = (sub.sessionsUsed / sub.sessionsTotal) * 100;
+                      const usagePercentage =
+                        (sub.sessionsUsed / sub.sessionsTotal) * 100;
                       return (
                         <TableRow key={sub._id}>
                           <TableCell>
                             <div>
-                              <div className="font-medium">{sub.clientId.name}</div>
-                              <div className="text-sm text-muted-foreground">{sub.clientId.email}</div>
+                              <div className="font-medium">
+                                {sub.clientId.name}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {sub.clientId.email}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>{sub.packageId.name}</TableCell>
                           <TableCell>{getStatusBadge(sub.status)}</TableCell>
-                          <TableCell>{format(new Date(sub.startDate), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell>
+                            {format(new Date(sub.startDate), "dd/MM/yyyy")}
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {format(new Date(sub.expiryDate), 'dd/MM/yyyy')}
+                              {format(new Date(sub.expiryDate), "dd/MM/yyyy")}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -743,7 +905,9 @@ const PackageManagement: React.FC = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Pacote</DialogTitle>
-            <DialogDescription>Atualize as informações do pacote</DialogDescription>
+            <DialogDescription>
+              Atualize as informações do pacote
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -753,7 +917,9 @@ const PackageManagement: React.FC = () => {
               <Input
                 id="edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
               />
             </div>
 
@@ -762,7 +928,9 @@ const PackageManagement: React.FC = () => {
               <Textarea
                 id="edit-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 rows={3}
               />
             </div>
@@ -776,7 +944,12 @@ const PackageManagement: React.FC = () => {
                   min="0"
                   step="0.01"
                   value={formData.packagePrice}
-                  onChange={(e) => setFormData({ ...formData, packagePrice: parseFloat(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      packagePrice: parseFloat(e.target.value),
+                    })
+                  }
                 />
               </div>
 
@@ -784,7 +957,9 @@ const PackageManagement: React.FC = () => {
                 <Label htmlFor="edit-status">Status *</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: 'active' | 'inactive' | 'draft') => setFormData({ ...formData, status: value })}
+                  onValueChange={(value: "active" | "inactive" | "draft") =>
+                    setFormData({ ...formData, status: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />

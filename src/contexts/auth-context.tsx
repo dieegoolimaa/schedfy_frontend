@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { AuthState, User, LoginCredentials, RegisterData } from "../types/auth";
+import { AuthState, User, Entity, LoginCredentials, RegisterData } from "../types/auth";
 import { authApi } from "../lib/api/auth.api";
 
 // Transform backend user response to frontend User type
@@ -81,13 +81,14 @@ interface AuthContextType extends AuthState {
 
 type AuthAction =
   | { type: "AUTH_LOADING" }
-  | { type: "AUTH_SUCCESS"; payload: User }
+  | { type: "AUTH_SUCCESS"; payload: { user: User; entity: Entity | null } }
   | { type: "AUTH_ERROR"; payload: string }
   | { type: "AUTH_LOGOUT" }
   | { type: "CLEAR_ERROR" };
 
 const initialState: AuthState = {
   user: null,
+  entity: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -104,7 +105,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
     case "AUTH_SUCCESS":
       return {
         ...state,
-        user: action.payload,
+        user: action.payload.user,
+        entity: action.payload.entity,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -113,6 +115,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return {
         ...state,
         user: null,
+        entity: null,
         isAuthenticated: false,
         isLoading: false,
         error: action.payload,
@@ -152,13 +155,21 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
           const response = await authApi.getProfile();
           console.log("[AuthProvider] Profile response:", response);
           if (response.data) {
+            // Check if response.data has user and entity properties
+            const userData = (response.data as any).user || response.data;
+            const entityData = (response.data as any).entity || null;
+            
             // Transform backend user to frontend User type
-            const transformedUser = transformBackendUser(response.data);
+            const transformedUser = transformBackendUser(userData);
             console.log(
               "[AuthProvider] Transformed user on reload:",
               transformedUser
             );
-            dispatch({ type: "AUTH_SUCCESS", payload: transformedUser });
+            console.log("[AuthProvider] Entity on reload:", entityData);
+            dispatch({ 
+              type: "AUTH_SUCCESS", 
+              payload: { user: transformedUser, entity: entityData } 
+            });
           } else {
             localStorage.removeItem("schedfy-access-token");
             localStorage.removeItem("schedfy-refresh-token");
@@ -188,9 +199,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("Login failed - no data received");
       }
 
-      const { user } = response.data;
+      const { user, entity } = response.data;
 
       console.log("User from response:", user);
+      console.log("Entity from response:", entity);
 
       if (!user) {
         throw new Error("Login failed - no user in response");
@@ -200,7 +212,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       const transformedUser = transformBackendUser(user);
       console.log("Transformed user:", transformedUser);
 
-      dispatch({ type: "AUTH_SUCCESS", payload: transformedUser });
+      dispatch({ 
+        type: "AUTH_SUCCESS", 
+        payload: { user: transformedUser, entity: entity || null } 
+      });
       return transformedUser;
     } catch (error: any) {
       console.error("Login error:", error);
@@ -241,12 +256,15 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("Registration failed - no data received");
       }
 
-      const { user } = response.data;
+      const { user, entity } = response.data;
 
       // Transform backend user to frontend User type
       const transformedUser = transformBackendUser(user);
 
-      dispatch({ type: "AUTH_SUCCESS", payload: transformedUser });
+      dispatch({ 
+        type: "AUTH_SUCCESS", 
+        payload: { user: transformedUser, entity: entity || null } 
+      });
     } catch (error: any) {
       const errorMessage = error.message || "Registration failed";
       dispatch({

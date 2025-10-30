@@ -7,6 +7,7 @@ import { Layout } from "./components/layout/layout";
 import { HomePage } from "./pages/home";
 import { LoginPage } from "./pages/login";
 import { RegisterPage } from "./pages/register";
+import { OnboardingPage } from "./pages/onboarding";
 import { AuthCallbackPage } from "./pages/auth-callback";
 import { AcceptInvitationPage } from "./pages/accept-invitation";
 import { NotFoundPage } from "./pages/not-found";
@@ -77,6 +78,7 @@ import {
   IndividualPlusRoute,
   ProfessionalRoute,
 } from "./components/auth/role-based-route";
+import { OnboardingGuard } from "./components/auth/onboarding-guard";
 import { DashboardRedirect } from "./components/auth/dashboard-redirect";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/auth-context";
@@ -113,6 +115,16 @@ function App() {
             <Route path="/book/:username" element={<PublicBookingPage />} />
             <Route path="/book/:slug" element={<PublicEntityProfilePage />} />
 
+            {/* Onboarding route - protected but without OnboardingGuard */}
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Legal and informational pages */}
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
@@ -136,9 +148,11 @@ function App() {
               path="/simple/dashboard"
               element={
                 <ProtectedRoute allowedPlans={["simple"]}>
-                  <Layout>
-                    <SimpleDashboardPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <SimpleDashboardPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </ProtectedRoute>
               }
             />
@@ -148,9 +162,11 @@ function App() {
                 <ProtectedRoute
                   allowedPlans={["simple", "individual", "business"]}
                 >
-                  <Layout>
-                    <SimpleServicesPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <SimpleServicesPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </ProtectedRoute>
               }
             />
@@ -160,9 +176,11 @@ function App() {
                 <ProtectedRoute
                   allowedPlans={["simple", "individual", "business"]}
                 >
-                  <Layout>
-                    <SimpleBookingsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <SimpleBookingsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </ProtectedRoute>
               }
             />
@@ -172,9 +190,11 @@ function App() {
                 <ProtectedRoute
                   allowedPlans={["simple", "individual", "business"]}
                 >
-                  <Layout>
-                    <SimpleReportsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <SimpleReportsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </ProtectedRoute>
               }
             />
@@ -184,9 +204,11 @@ function App() {
                 <ProtectedRoute
                   allowedPlans={["simple", "individual", "business"]}
                 >
-                  <Layout>
-                    <SimpleSettingsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <SimpleSettingsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </ProtectedRoute>
               }
             />
@@ -196,9 +218,11 @@ function App() {
               path="/individual/dashboard"
               element={
                 <IndividualPlusRoute>
-                  <Layout>
-                    <IndividualDashboardPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <IndividualDashboardPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </IndividualPlusRoute>
               }
             />
@@ -206,9 +230,11 @@ function App() {
               path="/individual/services"
               element={
                 <IndividualPlusRoute>
-                  <Layout>
-                    <IndividualServicesPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <IndividualServicesPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </IndividualPlusRoute>
               }
             />
@@ -216,9 +242,11 @@ function App() {
               path="/individual/bookings"
               element={
                 <IndividualPlusRoute>
-                  <Layout>
-                    <IndividualBookingsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <IndividualBookingsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </IndividualPlusRoute>
               }
             />
@@ -226,9 +254,11 @@ function App() {
               path="/individual/reports"
               element={
                 <IndividualPlusRoute>
-                  <Layout>
-                    <IndividualReportsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <IndividualReportsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </IndividualPlusRoute>
               }
             />
@@ -236,9 +266,11 @@ function App() {
               path="/individual/payment-management"
               element={
                 <IndividualPlusRoute>
-                  <Layout>
-                    <IndividualPaymentManagementPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <IndividualPaymentManagementPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </IndividualPlusRoute>
               }
             />
@@ -248,9 +280,11 @@ function App() {
               path="/entity/dashboard"
               element={
                 <EntityRoute>
-                  <Layout>
-                    <EntityDashboardPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <EntityDashboardPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </EntityRoute>
               }
             />
@@ -258,9 +292,11 @@ function App() {
               path="/entity/bookings"
               element={
                 <EntityRoute>
-                  <Layout>
-                    <EntityBookingsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <EntityBookingsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </EntityRoute>
               }
             />
@@ -268,9 +304,11 @@ function App() {
               path="/entity/services"
               element={
                 <EntityRoute>
-                  <Layout>
-                    <EntityServicesPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <EntityServicesPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </EntityRoute>
               }
             />
@@ -278,9 +316,11 @@ function App() {
               path="/entity/reports"
               element={
                 <EntityRoute>
-                  <Layout>
-                    <EntityReportsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <EntityReportsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </EntityRoute>
               }
             />
@@ -288,9 +328,11 @@ function App() {
               path="/entity/financial-reports"
               element={
                 <EntityRoute>
-                  <Layout>
-                    <EntityFinancialReportsPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <EntityFinancialReportsPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </EntityRoute>
               }
             />
@@ -298,9 +340,11 @@ function App() {
               path="/entity/notification-center"
               element={
                 <EntityRoute>
-                  <Layout>
-                    <NotificationCenterPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <NotificationCenterPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </EntityRoute>
               }
             />
@@ -308,9 +352,11 @@ function App() {
               path="/entity/booking-management"
               element={
                 <EntityRoute>
-                  <Layout>
-                    <EntityBookingManagementPage />
-                  </Layout>
+                  <OnboardingGuard>
+                    <Layout>
+                      <EntityBookingManagementPage />
+                    </Layout>
+                  </OnboardingGuard>
                 </EntityRoute>
               }
             />

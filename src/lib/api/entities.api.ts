@@ -80,4 +80,36 @@ export const entitiesApi = {
             reader.readAsDataURL(file);
         });
     },
+
+    /**
+     * Complete entity onboarding
+     */
+    async completeOnboarding(entityId: string, onboardingData: {
+        address: {
+            street: string;
+            city: string;
+            state: string;
+            zipCode: string;
+            country: string;
+        };
+        phone: string;
+        whatsapp?: string;
+        businessHours: {
+            monday: { open: string; close: string; closed: boolean };
+            tuesday: { open: string; close: string; closed: boolean };
+            wednesday: { open: string; close: string; closed: boolean };
+            thursday: { open: string; close: string; closed: boolean };
+            friday: { open: string; close: string; closed: boolean };
+            saturday: { open: string; close: string; closed: boolean };
+            sunday: { open: string; close: string; closed: boolean };
+        };
+        firstService?: {
+            name: string;
+            duration: number;
+            price: number;
+            description?: string;
+        };
+    }) {
+        return apiClient.patch(`/api/entities/${entityId}/complete-onboarding`, onboardingData);
+    },
 };

@@ -14,8 +14,22 @@ export interface User {
     updatedAt: string;
 }
 
+export interface Entity {
+    id: string;
+    name: string;
+    isOnboardingComplete: boolean;
+    onboardingStatus?: {
+        hasAddress: boolean;
+        hasPhone: boolean;
+        hasBusinessHours: boolean;
+        hasServices: boolean;
+        hasPaymentMethods: boolean;
+    };
+}
+
 export interface AuthState {
     user: User | null;
+    entity: Entity | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;

@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { User } from '../../types/auth';
+import { User, Entity } from '../../types/auth';
 
 export interface LoginRequest {
     email: string;
@@ -17,6 +17,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
     user: User;
+    entity?: Entity | null;
     access_token: string;  // Backend uses snake_case
     refresh_token?: string;
 }
