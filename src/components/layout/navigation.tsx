@@ -117,6 +117,10 @@ export function Navigation() {
             path: "/entity/commissions-management",
             label: t("nav.commissions", "Commissions"),
           },
+          {
+            path: "/entity/package-management",
+            label: t("nav.packages", "Service Packages"),
+          },
           { path: "/entity/reports", label: t("nav.reports", "Reports") },
           {
             path: "/entity/financial-reports",

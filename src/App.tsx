@@ -46,6 +46,7 @@ import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/enti
 import { AIPremiumPage } from "./pages/entity/ai-premium";
 import { LoyaltyManagementPage } from "./pages/entity/loyalty-management";
 import { NotificationCenterPage } from "./pages/entity/notification-center";
+import PackageManagementPage from "./pages/business/package-management";
 
 // Professional pages
 import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
@@ -434,6 +435,16 @@ function App() {
                 <EntityRoute>
                   <Layout>
                     <PaymentManagementPage />
+                  </Layout>
+                </EntityRoute>
+              }
+            />
+            <Route
+              path="/entity/package-management"
+              element={
+                <EntityRoute>
+                  <Layout>
+                    <PackageManagementPage />
                   </Layout>
                 </EntityRoute>
               }
