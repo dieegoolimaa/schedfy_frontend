@@ -49,18 +49,6 @@ import { NotificationCenterPage } from "./pages/entity/notification-center";
 // Professional pages
 import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
 
-// Admin platform pages
-import { AdminDashboardPage } from "./pages/admin/dashboard";
-import { BusinessManagementPage as AdminBusinessManagementPage } from "./pages/admin/business-management";
-import { CustomerSupportPage } from "./pages/admin/customer-support";
-import { AIPremiumManagementPage } from "./pages/admin/ai-premium-management";
-import { FinancialReportsPage } from "./pages/admin/financial-reports";
-import { UserManagementPage as AdminUserManagementPage } from "./pages/admin/user-management";
-import { GlobalSettingsPage } from "./pages/admin/global-settings";
-import { FeatureManagementPage } from "./pages/admin/feature-management";
-import { SubscriptionsBoardPage } from "./pages/admin/subscriptions-board";
-import { MassCommunicationsPage } from "./pages/admin/mass-communications";
-
 // Public pages
 import { BusinessDiscoveryPage } from "./pages/public/business-discovery";
 import { PublicEntityProfilePage } from "./pages/public/entity-profile";
@@ -82,7 +70,6 @@ import { TestPagesPage } from "./pages/test-pages";
 // Route protection components
 import {
   ProtectedRoute,
-  AdminRoute,
   BusinessRoute,
   EntityRoute,
   IndividualPlusRoute,
@@ -460,118 +447,6 @@ function App() {
                     <ProfessionalDashboardPage />
                   </Layout>
                 </ProfessionalRoute>
-              }
-            />
-
-            {/* Admin Platform Routes */}
-            <Route
-              path="/admin/dashboard"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <AdminDashboardPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/businesses"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <AdminBusinessManagementPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/customer-support"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <CustomerSupportPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/financial-reports"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <FinancialReportsPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/user-management"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <AdminUserManagementPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/feature-management"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <FeatureManagementPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/subscriptions-board"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <SubscriptionsBoardPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/mass-communications"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <MassCommunicationsPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/business-management"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <AdminBusinessManagementPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/ai-premium-management"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <AIPremiumManagementPage />
-                  </Layout>
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/global-settings"
-              element={
-                <AdminRoute>
-                  <Layout>
-                    <GlobalSettingsPage />
-                  </Layout>
-                </AdminRoute>
               }
             />
 

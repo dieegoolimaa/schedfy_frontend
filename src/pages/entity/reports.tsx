@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
 import {
   AreaChart,
   Area,
@@ -16,23 +18,28 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../components/ui/select';
+} from "../../components/ui/select";
 import {
   Table,
   TableBody,
@@ -40,7 +47,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../components/ui/table';
+} from "../../components/ui/table";
 import {
   Calendar,
   Download,
@@ -49,72 +56,196 @@ import {
   DollarSign,
   Users,
   Star,
-} from 'lucide-react';
+} from "lucide-react";
 
 export function ReportsPage() {
   const { t } = useTranslation();
-  const [dateRange, setDateRange] = useState('last-30-days');
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
 
-  // Mock data for charts
-  const revenueData = [
-    { month: 'Jan', revenue: 4200, appointments: 240, newClients: 18 },
-    { month: 'Feb', revenue: 3800, appointments: 220, newClients: 15 },
-    { month: 'Mar', revenue: 5100, appointments: 290, newClients: 22 },
-    { month: 'Apr', revenue: 4600, appointments: 260, newClients: 19 },
-    { month: 'May', revenue: 6200, appointments: 340, newClients: 28 },
-    { month: 'Jun', revenue: 5800, appointments: 320, newClients: 25 },
-    { month: 'Jul', revenue: 6400, appointments: 350, newClients: 30 },
-    { month: 'Aug', revenue: 5900, appointments: 330, newClients: 24 },
-    { month: 'Sep', revenue: 6800, appointments: 380, newClients: 32 },
-    { month: 'Oct', revenue: 7200, appointments: 400, newClients: 35 },
-    { month: 'Nov', revenue: 6600, appointments: 370, newClients: 29 },
-    { month: 'Dec', revenue: 7800, appointments: 450, newClients: 40 },
-  ];
+  const [dateRange, setDateRange] = useState("last-30-days");
 
-  const servicePerformance = [
-    { service: 'Haircut & Styling', bookings: 87, revenue: 3915, avgRating: 4.8 },
-    { service: 'Massage Therapy', bookings: 45, revenue: 2700, avgRating: 4.7 },
-    { service: 'Full Manicure', bookings: 62, revenue: 2170, avgRating: 4.9 },
-    { service: 'Facial Treatment', bookings: 29, revenue: 1595, avgRating: 4.5 },
-    { service: 'Beard Trim', bookings: 38, revenue: 950, avgRating: 4.6 },
-  ];
+  // Fetch real data from API
+  const { bookings } = useBookings({ entityId, autoFetch: true });
 
+  // Calculate monthly revenue data from bookings
+  const revenueData = useMemo(() => {
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const last12Months = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      last12Months.push({
+        month: monthNames[date.getMonth()],
+        year: date.getFullYear(),
+        monthIndex: date.getMonth(),
+      });
+    }
+
+    return last12Months.map((month) => {
+      const monthBookings = bookings.filter((b) => {
+        const bookingDate = new Date(b.createdAt);
+        return (
+          bookingDate.getMonth() === month.monthIndex &&
+          bookingDate.getFullYear() === month.year
+        );
+      });
+
+      const completedBookings = monthBookings.filter(
+        (b) => b.status === "completed"
+      );
+      const revenue = completedBookings.reduce(
+        (sum, b) => sum + (b.service?.pricing?.basePrice || 0),
+        0
+      );
+
+      // Count new clients (first booking in this month)
+      const clientIds = new Set(monthBookings.map((b) => b.clientId));
+
+      return {
+        month: month.month,
+        revenue,
+        appointments: monthBookings.length,
+        newClients: clientIds.size,
+      };
+    });
+  }, [bookings]);
+
+  // Calculate service performance from real bookings
+  const servicePerformance = useMemo(() => {
+    const serviceStats = new Map<
+      string,
+      { bookings: number; revenue: number; ratings: number[] }
+    >();
+
+    bookings.forEach((booking) => {
+      const serviceName = booking.service?.name || "Unknown";
+      const current = serviceStats.get(serviceName) || {
+        bookings: 0,
+        revenue: 0,
+        ratings: [],
+      };
+
+      serviceStats.set(serviceName, {
+        bookings: current.bookings + 1,
+        revenue: current.revenue + (booking.service?.pricing?.basePrice || 0),
+        ratings: current.ratings, // TODO: Add ratings when available
+      });
+    });
+
+    return Array.from(serviceStats.entries())
+      .map(([service, stats]) => ({
+        service,
+        bookings: stats.bookings,
+        revenue: stats.revenue,
+        avgRating: 4.5, // TODO: Calculate from real ratings
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+  }, [bookings]);
+
+  // Client demographics - placeholder (would need client age data from API)
   const clientDemographics = [
-    { age: '18-25', count: 45, percentage: 18 },
-    { age: '26-35', count: 78, percentage: 31 },
-    { age: '36-45', count: 65, percentage: 26 },
-    { age: '46-55', count: 42, percentage: 17 },
-    { age: '56+', count: 20, percentage: 8 },
+    { age: "18-25", count: 0, percentage: 0 },
+    { age: "26-35", count: 0, percentage: 0 },
+    { age: "36-45", count: 0, percentage: 0 },
+    { age: "46-55", count: 0, percentage: 0 },
+    { age: "56+", count: 0, percentage: 0 },
   ];
 
-  const appointmentTrends = [
-    { day: 'Monday', morning: 8, afternoon: 12, evening: 6 },
-    { day: 'Tuesday', morning: 10, afternoon: 15, evening: 8 },
-    { day: 'Wednesday', morning: 12, afternoon: 18, evening: 10 },
-    { day: 'Thursday', morning: 9, afternoon: 14, evening: 7 },
-    { day: 'Friday', morning: 15, afternoon: 20, evening: 12 },
-    { day: 'Saturday', morning: 18, afternoon: 25, evening: 15 },
-    { day: 'Sunday', morning: 6, afternoon: 8, evening: 4 },
+  // Appointment trends by day and time from real bookings
+  const appointmentTrends = useMemo(() => {
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const trends = dayNames
+      .slice(1)
+      .concat([dayNames[0]])
+      .map((day) => ({
+        day,
+        morning: 0,
+        afternoon: 0,
+        evening: 0,
+      }));
+
+    bookings.forEach((booking) => {
+      const date = new Date(booking.startTime);
+      const dayIndex = date.getDay();
+      const hour = date.getHours();
+      const dayName = dayNames[dayIndex];
+
+      const trend = trends.find((t) => t.day === dayName);
+      if (trend) {
+        if (hour < 12) trend.morning++;
+        else if (hour < 18) trend.afternoon++;
+        else trend.evening++;
+      }
+    });
+
+    return trends;
+  }, [bookings]);
+
+  // Hourly bookings distribution
+  const hourlyBookings = useMemo(() => {
+    const hours = Array.from({ length: 10 }, (_, i) => ({
+      hour: `${9 + i}:00`,
+      bookings: 0,
+    }));
+
+    bookings.forEach((booking) => {
+      const date = new Date(booking.startTime);
+      const hour = date.getHours();
+      if (hour >= 9 && hour < 19) {
+        hours[hour - 9].bookings++;
+      }
+    });
+
+    return hours;
+  }, [bookings]);
+
+  const pieChartColors = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#8884D8",
   ];
 
-  const hourlyBookings = [
-    { hour: '9:00', bookings: 8 },
-    { hour: '10:00', bookings: 12 },
-    { hour: '11:00', bookings: 15 },
-    { hour: '12:00', bookings: 10 },
-    { hour: '14:00', bookings: 18 },
-    { hour: '15:00', bookings: 22 },
-    { hour: '16:00', bookings: 20 },
-    { hour: '17:00', bookings: 16 },
-    { hour: '18:00', bookings: 14 },
-  ];
-
-  const pieChartColors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-  const totalRevenue = revenueData.reduce((sum, month) => sum + month.revenue, 0);
-  const totalAppointments = revenueData.reduce((sum, month) => sum + month.appointments, 0);
-  const totalNewClients = revenueData.reduce((sum, month) => sum + month.newClients, 0);
-  const avgRating = servicePerformance.reduce((sum, service) => sum + service.avgRating, 0) / servicePerformance.length;
+  const totalRevenue = revenueData.reduce(
+    (sum, month) => sum + month.revenue,
+    0
+  );
+  const totalAppointments = revenueData.reduce(
+    (sum, month) => sum + month.appointments,
+    0
+  );
+  const totalNewClients = revenueData.reduce(
+    (sum, month) => sum + month.newClients,
+    0
+  );
+  const avgRating =
+    servicePerformance.reduce((sum, service) => sum + service.avgRating, 0) /
+    servicePerformance.length;
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -123,10 +254,13 @@ export function ReportsPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              {t('reports.title', 'Reports')}
+              {t("reports.title", "Reports")}
             </h1>
             <p className="text-muted-foreground">
-              {t('reports.subtitle', 'Analytics and insights for your business')}
+              {t(
+                "reports.subtitle",
+                "Analytics and insights for your business"
+              )}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -152,11 +286,15 @@ export function ReportsPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Revenue
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">€{totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                €{totalRevenue.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
                 +12.5% from last period
@@ -165,7 +303,9 @@ export function ReportsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Appointments
+              </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -191,7 +331,9 @@ export function ReportsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Average Rating
+              </CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -220,7 +362,9 @@ export function ReportsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Revenue Trend</CardTitle>
-                  <CardDescription>Monthly revenue over the past year</CardDescription>
+                  <CardDescription>
+                    Monthly revenue over the past year
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
@@ -258,7 +402,11 @@ export function ReportsPage() {
                         <Tooltip />
                         <Legend />
                         <Bar dataKey="morning" fill="#8884d8" name="Morning" />
-                        <Bar dataKey="afternoon" fill="#82ca9d" name="Afternoon" />
+                        <Bar
+                          dataKey="afternoon"
+                          fill="#82ca9d"
+                          name="Afternoon"
+                        />
                         <Bar dataKey="evening" fill="#ffc658" name="Evening" />
                       </BarChart>
                     </ResponsiveContainer>
@@ -294,7 +442,9 @@ export function ReportsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Revenue vs Appointments</CardTitle>
-                  <CardDescription>Correlation between revenue and appointments</CardDescription>
+                  <CardDescription>
+                    Correlation between revenue and appointments
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[400px]">
@@ -306,19 +456,19 @@ export function ReportsPage() {
                         <YAxis yAxisId="right" orientation="right" />
                         <Tooltip />
                         <Legend />
-                        <Line 
-                          yAxisId="left" 
-                          type="monotone" 
-                          dataKey="revenue" 
-                          stroke="#8884d8" 
-                          name="Revenue (€)" 
+                        <Line
+                          yAxisId="left"
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#8884d8"
+                          name="Revenue (€)"
                         />
-                        <Line 
-                          yAxisId="right" 
-                          type="monotone" 
-                          dataKey="appointments" 
-                          stroke="#82ca9d" 
-                          name="Appointments" 
+                        <Line
+                          yAxisId="right"
+                          type="monotone"
+                          dataKey="appointments"
+                          stroke="#82ca9d"
+                          name="Appointments"
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -333,7 +483,9 @@ export function ReportsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Service Performance</CardTitle>
-                <CardDescription>Detailed breakdown of service metrics</CardDescription>
+                <CardDescription>
+                  Detailed breakdown of service metrics
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -349,7 +501,9 @@ export function ReportsPage() {
                   <TableBody>
                     {servicePerformance.map((service) => (
                       <TableRow key={service.service}>
-                        <TableCell className="font-medium">{service.service}</TableCell>
+                        <TableCell className="font-medium">
+                          {service.service}
+                        </TableCell>
                         <TableCell>{service.bookings}</TableCell>
                         <TableCell>€{service.revenue}</TableCell>
                         <TableCell>
@@ -358,7 +512,9 @@ export function ReportsPage() {
                             {service.avgRating.toFixed(1)}
                           </div>
                         </TableCell>
-                        <TableCell>€{(service.revenue / service.bookings).toFixed(2)}</TableCell>
+                        <TableCell>
+                          €{(service.revenue / service.bookings).toFixed(2)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -373,7 +529,9 @@ export function ReportsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Client Demographics</CardTitle>
-                  <CardDescription>Age distribution of your clients</CardDescription>
+                  <CardDescription>
+                    Age distribution of your clients
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
@@ -389,7 +547,12 @@ export function ReportsPage() {
                           dataKey="count"
                         >
                           {clientDemographics.map((entry, index) => (
-                            <Cell key={entry.age} fill={pieChartColors[index % pieChartColors.length]} />
+                            <Cell
+                              key={entry.age}
+                              fill={
+                                pieChartColors[index % pieChartColors.length]
+                              }
+                            />
                           ))}
                         </Pie>
                         <Tooltip />
@@ -403,7 +566,9 @@ export function ReportsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>New Clients Trend</CardTitle>
-                  <CardDescription>Monthly new client acquisition</CardDescription>
+                  <CardDescription>
+                    Monthly new client acquisition
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
@@ -413,10 +578,10 @@ export function ReportsPage() {
                         <XAxis dataKey="month" />
                         <YAxis />
                         <Tooltip />
-                        <Line 
-                          type="monotone" 
-                          dataKey="newClients" 
-                          stroke="#8884d8" 
+                        <Line
+                          type="monotone"
+                          dataKey="newClients"
+                          stroke="#8884d8"
                           strokeWidth={2}
                         />
                       </LineChart>
@@ -442,8 +607,8 @@ export function ReportsPage() {
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
                           style={{ width: `${demo.percentage}%` }}
                         ></div>
                       </div>

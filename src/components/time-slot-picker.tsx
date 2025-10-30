@@ -112,13 +112,13 @@ export function TimeSlotPicker({
   }
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-4", className)}>
       <div className="text-sm font-medium flex items-center gap-2">
         <Clock className="h-4 w-4" />
         Available Times ({slots.length} slots)
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 max-h-80 overflow-y-auto pr-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 max-h-80 overflow-y-auto pr-2 pb-2">
         {slots.map((slot, index) => {
           const isSelected =
             selectedSlot?.time === slot.time &&
@@ -133,16 +133,18 @@ export function TimeSlotPicker({
               variant={isSelected ? "default" : "outline"}
               size="sm"
               className={cn(
-                "flex flex-col items-center justify-center h-auto py-2.5 px-2 min-h-[60px]",
-                isSelected && "ring-2 ring-primary ring-offset-2"
+                "flex flex-col items-center justify-center h-auto py-3 px-3 min-h-[68px] transition-all duration-200 hover:shadow-md",
+                isSelected && "ring-2 ring-primary ring-offset-2 shadow-lg"
               )}
               onClick={() => onSelectSlot(slot)}
             >
-              <span className="font-semibold text-base">{slot.time}</span>
+              <span className="font-semibold text-base leading-tight">
+                {slot.time}
+              </span>
               {slot.professionalName && (
-                <span className="text-xs opacity-70 flex items-center gap-1 mt-1">
+                <span className="text-xs opacity-70 flex items-center gap-1 mt-1.5">
                   <User className="h-3 w-3" />
-                  <span className="truncate max-w-[80px]">{firstName}</span>
+                  <span className="truncate max-w-[85px]">{firstName}</span>
                 </span>
               )}
             </Button>
@@ -151,8 +153,8 @@ export function TimeSlotPicker({
       </div>
 
       {selectedSlot && (
-        <div className="p-3 bg-muted rounded-lg text-sm space-y-1">
-          <div className="font-medium">Selected Time</div>
+        <div className="p-4 bg-muted/50 rounded-lg text-sm space-y-2 border border-muted">
+          <div className="font-medium text-foreground">Selected Time</div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>

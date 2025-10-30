@@ -37,12 +37,8 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  Calendar,
-  Euro,
-  Users,
   Star,
   Target,
-  BarChart3,
   Download,
   RefreshCw,
   Zap,

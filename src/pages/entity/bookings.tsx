@@ -69,6 +69,7 @@ import {
   Loader2,
   MoreHorizontal,
 } from "lucide-react";
+import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
 import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
 
 export function BookingsPage() {
@@ -123,7 +124,43 @@ export function BookingsPage() {
     });
   };
 
-  // Handle create booking
+  // Handle create booking from new dialog
+  const handleCreateBookingFromDialog = async (bookingData: any) => {
+    // Find the selected service
+    const selectedService = services.find(
+      (s) => s.id === bookingData.serviceId
+    );
+    if (!selectedService) {
+      throw new Error("Service not found");
+    }
+
+    await createBooking({
+      entityId,
+      serviceId: bookingData.serviceId,
+      professionalId: bookingData.professionalId,
+      clientInfo: {
+        name: bookingData.clientName,
+        email: bookingData.clientEmail || undefined,
+        phone: bookingData.clientPhone || undefined,
+        notes: bookingData.notes || undefined,
+      },
+      startDateTime: bookingData.startDateTime,
+      endDateTime: bookingData.endDateTime,
+      status: "confirmed", // Business plan bookings are auto-confirmed
+      notes: bookingData.notes || undefined,
+      pricing: {
+        basePrice: selectedService.price || 0,
+        totalPrice: selectedService.price || 0,
+        currency: selectedService.currency || "EUR",
+      },
+      createdBy: user?.id || "",
+    });
+
+    // Refresh bookings list
+    await fetchBookings();
+  };
+
+  // Handle create booking (legacy - keep for compatibility)
   const handleCreateBooking = async () => {
     if (
       !formData.clientName ||
@@ -161,7 +198,7 @@ export function BookingsPage() {
         },
         startDateTime: startDateTime.toISOString(),
         endDateTime: endDateTime.toISOString(),
-        status: "confirmed", // Simple Service bookings are auto-confirmed
+        status: "confirmed", // Business plan bookings are auto-confirmed
         notes: formData.notes || undefined,
         pricing: {
           basePrice: selectedService.price || 0,
@@ -303,15 +340,17 @@ export function BookingsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            disabled={loading}
           >
+            <Plus className="h-4 w-4 mr-2" />
+            New Booking
+          </Button>
+          {/* Legacy Dialog - Hidden */}
+          <Dialog open={false} onOpenChange={() => {}}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm} disabled={loading}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Booking
-              </Button>
+              <div style={{ display: "none" }} />
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -733,6 +772,20 @@ export function BookingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* New Booking Dialog */}
+      <CreateBookingDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        entityId={entityId}
+        services={services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          duration: s.duration || 60,
+          price: s.price,
+        }))}
+        onSubmit={handleCreateBookingFromDialog}
+      />
     </div>
   );
 }

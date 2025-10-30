@@ -86,9 +86,16 @@ export function useBookings(options: UseBookingsOptions = {}) {
             toast.success('Booking created successfully!');
             return response.data;
         } catch (err: any) {
-            const errorMessage = err.message || 'Failed to create booking';
-            setError(errorMessage);
-            toast.error(errorMessage);
+            // Handle booking conflicts specifically
+            if (err.response?.status === 409) {
+                const conflictMessage = err.response?.data?.message || 'This time slot is no longer available';
+                setError(conflictMessage);
+                toast.error(`Booking Conflict: ${conflictMessage}`);
+            } else {
+                const errorMessage = err.message || 'Failed to create booking';
+                setError(errorMessage);
+                toast.error(errorMessage);
+            }
             throw err;
         } finally {
             setLoading(false);

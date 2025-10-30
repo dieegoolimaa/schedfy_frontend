@@ -55,9 +55,8 @@ export function AcceptInvitationPage() {
         lastName: formData.lastName,
       });
 
-      toast.success(
-        response.data.message || "Invitation accepted! Please login."
-      );
+      const data = response.data as { message?: string };
+      toast.success(data.message || "Invitation accepted! Please login.");
       setTimeout(() => {
         navigate("/login");
       }, 2000);

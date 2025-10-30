@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/auth-context";
+import { useServices } from "../../hooks/useServices";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -61,144 +64,179 @@ import {
   Award,
   AlertTriangle,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 
 export function IndividualServicesPage() {
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
+
+  const {
+    services,
+    loading,
+    createService,
+    updateService,
+    deleteService,
+    fetchServices,
+  } = useServices({ entityId, autoFetch: true });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<any>(null);
 
-  // Mock services data for Individual plan with AI insights
-  const services = [
-    {
-      id: 1,
-      name: "Hair Coloring",
-      category: "Hair Services",
-      price: 65,
-      duration: 120,
-      description: "Professional hair coloring with premium products",
-      active: true,
-      bookings: 18,
-      revenue: 1170,
-      rating: 4.9,
-      lastBooking: "2024-01-20",
-      aiInsight: "High demand - consider adding advanced color techniques",
-      popularTimes: ["14:00", "16:00", "18:00"],
-      seasonalTrend: "up",
-    },
-    {
-      id: 2,
-      name: "Haircut & Styling",
-      category: "Hair Services",
-      price: 45,
-      duration: 60,
-      description: "Precision haircut with professional styling",
-      active: true,
-      bookings: 15,
-      revenue: 675,
-      rating: 4.8,
-      lastBooking: "2024-01-19",
-      aiInsight: "Steady performer - bundle with treatments for higher value",
-      popularTimes: ["10:00", "14:00", "16:00"],
-      seasonalTrend: "stable",
-    },
-    {
-      id: 3,
-      name: "Deep Hair Treatment",
-      category: "Hair Care",
-      price: 75,
-      duration: 90,
-      description: "Intensive hair treatment for damaged or dry hair",
-      active: true,
-      bookings: 8,
-      revenue: 600,
-      rating: 4.7,
-      lastBooking: "2024-01-18",
-      aiInsight: "Growing trend - promote as add-on to coloring services",
-      popularTimes: ["11:00", "15:00"],
-      seasonalTrend: "up",
-    },
-    {
-      id: 4,
-      name: "Wedding Styling",
-      category: "Special Events",
-      price: 120,
-      duration: 180,
-      description: "Complete bridal hair styling for your special day",
-      active: true,
-      bookings: 4,
-      revenue: 480,
-      rating: 5,
-      lastBooking: "2024-01-15",
-      aiInsight: "Premium service - expand marketing for wedding season",
-      popularTimes: ["08:00", "09:00"],
-      seasonalTrend: "seasonal",
-    },
-    {
-      id: 5,
-      name: "Color Correction",
-      category: "Hair Services",
-      price: 150,
-      duration: 240,
-      description: "Professional color correction for previous work",
-      active: true,
-      bookings: 2,
-      revenue: 300,
-      rating: 4.5,
-      lastBooking: "2024-01-12",
-      aiInsight: "Specialized service - requires extra consultation time",
-      popularTimes: ["09:00", "13:00"],
-      seasonalTrend: "stable",
-    },
-    {
-      id: 6,
-      name: "Basic Trim",
-      category: "Hair Services",
-      price: 25,
-      duration: 30,
-      description: "Quick trim for maintenance",
-      active: false,
-      bookings: 0,
-      revenue: 0,
-      rating: 0,
-      lastBooking: null,
-      aiInsight: "Consider activating for quick appointments",
-      popularTimes: [],
-      seasonalTrend: "stable",
-    },
-  ];
+  // Form state
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    category: "",
+    price: "",
+    currency: "EUR",
+    duration: "",
+    isActive: true,
+    isPublic: true,
+  });
 
-  const categories = [
-    { id: "all", name: "All Categories", count: services.length },
-    { id: "Hair Services", name: "Hair Services", count: 4 },
-    { id: "Hair Care", name: "Hair Care", count: 1 },
-    { id: "Special Events", name: "Special Events", count: 1 },
-  ];
+  useEffect(() => {
+    if (entityId) {
+      fetchServices();
+    }
+  }, [entityId, fetchServices]);
 
-  const aiRecommendations = [
-    {
-      type: "opportunity",
-      title: "Service Bundle Opportunity",
-      description:
-        'Create "Color & Care" package combining coloring + treatment',
-      impact: "Could increase average booking value by 25%",
-      action: "Create Bundle",
-    },
-    {
-      type: "pricing",
-      title: "Premium Time Pricing",
-      description: "Consider 15% markup for Friday-Sunday appointments",
-      impact: "Estimated +€340 monthly revenue",
-      action: "Adjust Pricing",
-    },
-    {
-      type: "marketing",
-      title: "Seasonal Promotion",
-      description: "Wedding season approaching - promote bridal packages",
-      impact: "40% booking increase expected",
-      action: "Launch Campaign",
-    },
-  ];
+  useEffect(() => {
+    if (entityId) {
+      fetchServices();
+    }
+  }, [entityId, fetchServices]);
 
+  // Reset form
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      category: "",
+      price: "",
+      currency: "EUR",
+      duration: "",
+      isActive: true,
+      isPublic: true,
+    });
+    setSelectedService(null);
+  };
+
+  // Handle create service
+  const handleCreateService = async () => {
+    try {
+      await createService({
+        entityId,
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        pricing: {
+          basePrice: parseFloat(formData.price),
+          currency: formData.currency,
+          priceType: "fixed",
+        },
+        duration: {
+          durationType: "fixed",
+          duration: parseInt(formData.duration),
+          bufferBefore: 0,
+          bufferAfter: 0,
+        },
+        status: formData.isActive ? "active" : "inactive",
+        seo: {
+          isPublic: formData.isPublic,
+        },
+        createdBy: user?.id || "",
+      });
+
+      setIsCreateDialogOpen(false);
+      resetForm();
+      toast.success("Service created successfully!");
+    } catch (error) {
+      console.error("Failed to create service:", error);
+    }
+  };
+
+  // Handle update service
+  const handleUpdateService = async () => {
+    if (!selectedService) return;
+
+    try {
+      await updateService(selectedService.id, {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        pricing: {
+          basePrice: parseFloat(formData.price),
+          currency: formData.currency,
+          priceType: "fixed",
+        },
+        duration: {
+          durationType: "fixed",
+          duration: parseInt(formData.duration),
+          bufferBefore: 0,
+          bufferAfter: 0,
+        },
+        status: formData.isActive ? "active" : "inactive",
+        seo: {
+          isPublic: formData.isPublic,
+        },
+      });
+
+      setIsEditDialogOpen(false);
+      resetForm();
+      toast.success("Service updated successfully!");
+    } catch (error) {
+      console.error("Failed to update service:", error);
+    }
+  };
+
+  // Handle delete service
+  const handleDeleteService = async (serviceId: string) => {
+    if (!confirm("Are you sure you want to delete this service?")) return;
+
+    try {
+      await deleteService(serviceId);
+      toast.success("Service deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete service:", error);
+    }
+  };
+
+  // Open edit dialog
+  const openEditDialog = (service: any) => {
+    setSelectedService(service);
+    setFormData({
+      name: service.name,
+      description: service.description || "",
+      category: service.category || "",
+      price: service.price?.toString() || "0",
+      currency: service.currency || "EUR",
+      duration: service.duration?.toString() || "60",
+      isActive: service.isActive,
+      isPublic: service.isPublic,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Calculate stats
+  const totalServices = services.length;
+  const activeServices = services.filter((s) => s.isActive).length;
+  const totalRevenue = services.reduce(
+    (sum, s) => sum + (s.price * (s.bookings || 0) || 0),
+    0
+  );
+  const avgBookings =
+    services.length > 0
+      ? (
+          services.reduce((sum, s) => sum + (s.bookings || 0), 0) /
+          services.length
+        ).toFixed(1)
+      : "0";
+
+  // Filter services
   const filteredServices = services.filter((service) => {
     const matchesSearch = service.name
       .toLowerCase()
@@ -208,17 +246,42 @@ export function IndividualServicesPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const stats = {
-    totalServices: services.length,
-    activeServices: services.filter((s) => s.active).length,
-    totalRevenue: services.reduce((sum, s) => sum + s.revenue, 0),
-    avgPrice: services.reduce((sum, s) => sum + s.price, 0) / services.length,
-    avgRating:
-      services
-        .filter((s) => s.rating > 0)
-        .reduce((sum, s) => sum + s.rating, 0) /
-      services.filter((s) => s.rating > 0).length,
-  };
+  // Get unique categories
+  const categories = [
+    { id: "all", name: "All Categories", count: services.length },
+    ...Array.from(new Set(services.map((s) => s.category).filter(Boolean))).map(
+      (cat) => ({
+        id: cat as string,
+        name: cat as string,
+        count: services.filter((s) => s.category === cat).length,
+      })
+    ),
+  ];
+
+  // AI Recommendations (can be static for now, or fetched from backend later)
+  const aiRecommendations = [
+    {
+      type: "opportunity",
+      title: "Service Bundle Opportunity",
+      description: 'Create "Color & Care" package combining popular services',
+      impact: "Could increase average booking value by 25%",
+      action: "Create Bundle",
+    },
+    {
+      type: "pricing",
+      title: "Premium Time Pricing",
+      description: "Consider 15% markup for Friday-Sunday appointments",
+      impact: "Estimated additional monthly revenue",
+      action: "Adjust Pricing",
+    },
+    {
+      type: "marketing",
+      title: "Seasonal Promotion",
+      description: "Wedding season approaching - promote special packages",
+      impact: "40% booking increase expected",
+      action: "Launch Campaign",
+    },
+  ];
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
@@ -282,7 +345,10 @@ export function IndividualServicesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -300,35 +366,51 @@ export function IndividualServicesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="service-name">Service Name</Label>
-                    <Input id="service-name" placeholder="Enter service name" />
+                    <Input
+                      id="service-name"
+                      placeholder="Enter service name"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hair-services">
-                          Hair Services
-                        </SelectItem>
-                        <SelectItem value="hair-care">Hair Care</SelectItem>
-                        <SelectItem value="special-events">
-                          Special Events
-                        </SelectItem>
-                        <SelectItem value="treatments">Treatments</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="category"
+                      placeholder="e.g., Hair Services"
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="price">Price (€)</Label>
-                    <Input id="price" type="number" placeholder="45" />
+                    <Input
+                      id="price"
+                      type="number"
+                      placeholder="45"
+                      value={formData.price}
+                      onChange={(e) =>
+                        setFormData({ ...formData, price: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="duration">Duration (minutes)</Label>
-                    <Input id="duration" type="number" placeholder="60" />
+                    <Input
+                      id="duration"
+                      type="number"
+                      placeholder="60"
+                      value={formData.duration}
+                      onChange={(e) =>
+                        setFormData({ ...formData, duration: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -337,15 +419,42 @@ export function IndividualServicesPage() {
                     id="description"
                     placeholder="Describe the service..."
                     rows={3}
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                   />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch id="active" />
+                  <Switch
+                    id="active"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, isActive: checked })
+                    }
+                  />
                   <Label htmlFor="active">Service is active and bookable</Label>
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline">Cancel</Button>
-                  <Button>Create Service</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsCreateDialogOpen(false);
+                      resetForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateService} disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Service"
+                    )}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
@@ -395,38 +504,61 @@ export function IndividualServicesPage() {
       </Card>
 
       {/* Stats Overview */}
-      <ResponsiveCardGrid>
-        <MobileStatsCard
-          title="Total"
-          value={stats.totalServices}
-          subtitle="Services"
-          color="blue"
-        />
-        <MobileStatsCard
-          title="Active"
-          value={stats.activeServices}
-          subtitle="Available"
-          color="green"
-        />
-        <MobileStatsCard
-          title="Revenue"
-          value={`€${stats.totalRevenue.toLocaleString()}`}
-          subtitle="Total"
-          color="purple"
-        />
-        <MobileStatsCard
-          title="Avg. Price"
-          value={`€${stats.avgPrice.toFixed(0)}`}
-          subtitle="Per Service"
-          color="yellow"
-        />
-        <MobileStatsCard
-          title="Rating"
-          value={`⭐ ${stats.avgRating.toFixed(1)}`}
-          subtitle="Average"
-          color="yellow"
-        />
-      </ResponsiveCardGrid>
+      {loading ? (
+        <ResponsiveCardGrid>
+          <MobileStatsCard
+            title="Loading..."
+            value="--"
+            subtitle="Fetching data..."
+            color="gray"
+          />
+          <MobileStatsCard
+            title="Loading..."
+            value="--"
+            subtitle="Fetching data..."
+            color="gray"
+          />
+          <MobileStatsCard
+            title="Loading..."
+            value="--"
+            subtitle="Fetching data..."
+            color="gray"
+          />
+          <MobileStatsCard
+            title="Loading..."
+            value="--"
+            subtitle="Fetching data..."
+            color="gray"
+          />
+        </ResponsiveCardGrid>
+      ) : (
+        <ResponsiveCardGrid>
+          <MobileStatsCard
+            title="Total"
+            value={totalServices.toString()}
+            subtitle="Services"
+            color="blue"
+          />
+          <MobileStatsCard
+            title="Active"
+            value={activeServices.toString()}
+            subtitle="Available"
+            color="green"
+          />
+          <MobileStatsCard
+            title="Revenue"
+            value={`€${totalRevenue.toLocaleString()}`}
+            subtitle="Total"
+            color="purple"
+          />
+          <MobileStatsCard
+            title="Avg. Bookings"
+            value={avgBookings}
+            subtitle="Per Service"
+            color="yellow"
+          />
+        </ResponsiveCardGrid>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -487,80 +619,103 @@ export function IndividualServicesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredServices.map((service) => (
-                    <TableRow key={service.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{service.name}</div>
-                          <div className="text-sm text-muted-foreground truncate max-w-[200px]">
-                            {service.description}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{service.category}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">€{service.price}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-                          {service.duration}min
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">
-                            {service.bookings} bookings
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            €{service.revenue} revenue
-                          </div>
-                          {service.rating > 0 && (
-                            <div className="flex items-center text-xs">
-                              <Star className="h-3 w-3 text-yellow-500 mr-1" />
-                              {service.rating}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {getTrendIcon(service.seasonalTrend)}
-                          <span
-                            className={`ml-1 text-sm ${getTrendColor(
-                              service.seasonalTrend
-                            )}`}
-                          >
-                            {service.seasonalTrend}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            service.active
-                              ? "bg-green-100 text-green-800 border-green-200"
-                              : "bg-gray-100 text-gray-800 border-gray-200"
-                          }
-                        >
-                          {service.active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : filteredServices.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        No services found. Create your first service to get
+                        started.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredServices.map((service) => (
+                      <TableRow key={service.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{service.name}</div>
+                            <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                              {service.description}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {service.category || "Uncategorized"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">
+                            {service.currency} {service.price}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                            {service.duration}min
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="text-sm font-medium">
+                              {service.bookings || 0} bookings
+                            </div>
+                            {service.rating && service.rating > 0 && (
+                              <div className="flex items-center text-xs">
+                                <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                                {service.rating}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <TrendingUp className="h-4 w-4 text-green-600" />
+                            <span className="ml-1 text-sm text-green-600">
+                              Active
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={
+                              service.isActive
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : "bg-gray-100 text-gray-800 border-gray-200"
+                            }
+                          >
+                            {service.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(service)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteService(service.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -572,15 +727,16 @@ export function IndividualServicesPage() {
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Revenue by Service</CardTitle>
+                <CardTitle>Top Services by Bookings</CardTitle>
                 <CardDescription>
-                  Which services generate the most revenue
+                  Most popular services in your portfolio
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {services
-                  .filter((s) => s.revenue > 0)
-                  .sort((a, b) => b.revenue - a.revenue)
+                  .filter((s) => (s.bookings || 0) > 0)
+                  .sort((a, b) => (b.bookings || 0) - (a.bookings || 0))
+                  .slice(0, 5)
                   .map((service) => (
                     <div
                       key={service.id}
@@ -589,49 +745,117 @@ export function IndividualServicesPage() {
                       <div>
                         <div className="font-medium">{service.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {service.bookings} bookings
+                          {service.category || "Uncategorized"}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold">€{service.revenue}</div>
+                        <div className="font-bold">
+                          {service.bookings || 0} bookings
+                        </div>
                         <div className="text-sm text-muted-foreground">
-                          €{service.price} avg
+                          {service.currency} {service.price}
                         </div>
                       </div>
                     </div>
                   ))}
+                {services.filter((s) => (s.bookings || 0) > 0).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No booking data available yet
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Popular Time Slots</CardTitle>
-                <CardDescription>
-                  When clients prefer your services
-                </CardDescription>
+                <CardTitle>Service Status Overview</CardTitle>
+                <CardDescription>Active vs inactive services</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {services
-                  .filter((s) => s.popularTimes.length > 0)
-                  .map((service) => (
-                    <div key={service.id} className="space-y-2">
-                      <div className="font-medium">{service.name}</div>
-                      <div className="flex flex-wrap gap-1">
-                        {service.popularTimes.map((time) => (
-                          <Badge
-                            key={time}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {time}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="font-medium">Active Services</span>
+                  </div>
+                  <span className="text-2xl font-bold text-green-600">
+                    {activeServices}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-gray-600" />
+                    <span className="font-medium">Inactive Services</span>
+                  </div>
+                  <span className="text-2xl font-bold text-gray-600">
+                    {totalServices - activeServices}
+                  </span>
+                </div>
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* AI Optimization Tab */}
+        <TabsContent value="optimization">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI-Powered Service Insights</CardTitle>
+              <CardDescription>
+                Intelligent recommendations based on your service data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {services.map((service) => (
+                <div key={service.id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-lg">{service.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {service.category || "Uncategorized"}
+                      </p>
+                    </div>
+                    <Badge variant={service.isActive ? "default" : "secondary"}>
+                      {service.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mb-3">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Price</div>
+                      <div className="font-semibold">
+                        {service.currency} {service.price}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">
+                        Duration
+                      </div>
+                      <div className="font-semibold">{service.duration}min</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">
+                        Bookings
+                      </div>
+                      <div className="font-semibold">
+                        {service.bookings || 0}
+                      </div>
+                    </div>
+                  </div>
+                  {service.rating && service.rating > 0 && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <span className="font-medium">{service.rating}</span>
+                      <span className="text-muted-foreground">rating</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {services.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  Create services to see AI-powered insights
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* AI Optimization */}
@@ -651,10 +875,12 @@ export function IndividualServicesPage() {
                       <div className="flex-1">
                         <h4 className="font-medium">{service.name}</h4>
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span>€{service.price}</span>
+                          <span>
+                            {service.currency} {service.price}
+                          </span>
                           <span>{service.duration}min</span>
-                          <span>{service.bookings} bookings</span>
-                          {service.rating > 0 && (
+                          <span>{service.bookings || 0} bookings</span>
+                          {service.rating && service.rating > 0 && (
                             <div className="flex items-center">
                               <Star className="h-3 w-3 text-yellow-500 mr-1" />
                               {service.rating}
@@ -665,13 +891,14 @@ export function IndividualServicesPage() {
                           <div className="flex items-start gap-2">
                             <Zap className="h-4 w-4 text-blue-600 mt-0.5" />
                             <p className="text-sm text-blue-800">
-                              {service.aiInsight}
+                              {service.description ||
+                                "No additional insights available"}
                             </p>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center ml-4">
-                        {service.active ? (
+                        {service.isActive ? (
                           <CheckCircle className="h-5 w-5 text-green-500" />
                         ) : (
                           <AlertTriangle className="h-5 w-5 text-yellow-500" />

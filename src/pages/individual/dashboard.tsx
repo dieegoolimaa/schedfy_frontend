@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { useServices } from "../../hooks/useServices";
 import {
   Card,
   CardContent,
@@ -18,17 +21,95 @@ import {
   Users,
   DollarSign,
   Clock,
-  Star,
   Calendar,
   Brain,
   Lightbulb,
   Target,
   TrendingDown,
+  Loader2,
+  CheckCircle,
 } from "lucide-react";
 
 const IndividualDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
+
+  const { bookings, loading: bookingsLoading } = useBookings({
+    entityId,
+    autoFetch: true,
+  });
+
+  const { loading: servicesLoading } = useServices({
+    entityId,
+    autoFetch: true,
+  });
+
+  // Calculate real stats from bookings data
+  const totalBookings = bookings.length;
+  const completedBookings = bookings.filter(
+    (b) => b.status === "completed"
+  ).length;
+
+  // Get unique clients from bookings
+  const uniqueClients = new Set(bookings.map((b) => b.clientId)).size;
+
+  // Calculate total revenue from completed bookings
+  const totalRevenue = bookings
+    .filter((b) => b.status === "completed")
+    .reduce((sum, booking) => {
+      // Use pricing.basePrice from service
+      return sum + (booking.service?.pricing?.basePrice || 0);
+    }, 0);
+
+  // Get upcoming bookings
+  const now = new Date();
+  const upcomingBookings = bookings
+    .filter(
+      (b) =>
+        (b.status === "confirmed" || b.status === "pending") &&
+        new Date(b.startTime) >= now
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    )
+    .slice(0, 5);
+
+  // Calculate stats changes (comparing this month vs last month)
+  const thisMonthStart = new Date();
+  thisMonthStart.setDate(1);
+  thisMonthStart.setHours(0, 0, 0, 0);
+
+  const lastMonthStart = new Date();
+  lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  lastMonthStart.setDate(1);
+  lastMonthStart.setHours(0, 0, 0, 0);
+
+  const lastMonthEnd = new Date();
+  lastMonthEnd.setDate(0);
+  lastMonthEnd.setHours(23, 59, 59, 999);
+
+  const thisMonthBookings = bookings.filter(
+    (b) => new Date(b.createdAt) >= thisMonthStart
+  );
+
+  const lastMonthBookings = bookings.filter((b) => {
+    const date = new Date(b.createdAt);
+    return date >= lastMonthStart && date <= lastMonthEnd;
+  });
+
+  const bookingsChange =
+    lastMonthBookings.length > 0
+      ? (
+          ((thisMonthBookings.length - lastMonthBookings.length) /
+            lastMonthBookings.length) *
+          100
+        ).toFixed(1)
+      : "0";
+
+  const loading = bookingsLoading || servicesLoading;
 
   // Handler functions for navigation
   const handleNewBooking = () => {
@@ -55,18 +136,48 @@ const IndividualDashboard = () => {
     console.log("Filtering to today's view");
   };
 
+  // Format date/time helpers
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    const todayOnly = new Date(today);
+    todayOnly.setHours(0, 0, 0, 0);
+    const tomorrowOnly = new Date(tomorrow);
+    tomorrowOnly.setHours(0, 0, 0, 0);
+
+    if (dateOnly.getTime() === todayOnly.getTime()) {
+      return "Today";
+    } else if (dateOnly.getTime() === tomorrowOnly.getTime()) {
+      return "Tomorrow";
+    } else {
+      return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    }
+  };
+
   const stats = [
     {
       title: "Total Bookings",
-      value: "28",
-      change: "+15.3%",
-      trend: "up",
+      value: totalBookings.toString(),
+      change: `${bookingsChange >= "0" ? "+" : ""}${bookingsChange}%`,
+      trend: parseFloat(bookingsChange) >= 0 ? "up" : "down",
       icon: CalendarDays,
       color: "text-blue-600",
     },
     {
       title: "This Month Revenue",
-      value: "€1,240",
+      value: `€${totalRevenue.toFixed(0)}`,
       change: "+8.7%",
       trend: "up",
       icon: DollarSign,
@@ -74,46 +185,19 @@ const IndividualDashboard = () => {
     },
     {
       title: "Active Clients",
-      value: "12",
+      value: uniqueClients.toString(),
       change: "+5.2%",
       trend: "up",
       icon: Users,
       color: "text-purple-600",
     },
     {
-      title: "Average Rating",
-      value: "4.9",
-      change: "+0.1",
+      title: "Completed Sessions",
+      value: completedBookings.toString(),
+      change: `+${completedBookings}`,
       trend: "up",
-      icon: Star,
-      color: "text-yellow-600",
-    },
-  ];
-
-  const upcomingBookings = [
-    {
-      id: 1,
-      client: "Maria Silva",
-      service: "Haircut & Style",
-      time: "10:00 AM",
-      date: "Today",
-      status: "confirmed",
-    },
-    {
-      id: 2,
-      client: "João Santos",
-      service: "Color Treatment",
-      time: "2:30 PM",
-      date: "Today",
-      status: "confirmed",
-    },
-    {
-      id: 3,
-      client: "Ana Costa",
-      service: "Manicure",
-      time: "11:00 AM",
-      date: "Tomorrow",
-      status: "pending",
+      icon: CheckCircle,
+      color: "text-green-600",
     },
   ];
 
@@ -174,38 +258,61 @@ const IndividualDashboard = () => {
             <CardDescription>Your appointments for today</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {upcomingBookings
-                .filter((booking) => booking.date === "Today")
-                .map((booking) => (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : upcomingBookings.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No appointments scheduled for today</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={handleNewBooking}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  Create Booking
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {upcomingBookings.slice(0, 3).map((booking) => (
                   <div
                     key={booking.id}
-                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer"
+                    onClick={() => navigate("/individual/bookings")}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-2 h-8 bg-blue-500 rounded-full" />
+                      <div
+                        className={`w-2 h-8 rounded-full ${
+                          booking.status === "confirmed"
+                            ? "bg-blue-500"
+                            : "bg-yellow-500"
+                        }`}
+                      />
                       <div>
-                        <p className="font-medium">{booking.client}</p>
+                        <p className="font-medium">
+                          {booking.client?.name || "Unknown Client"}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {booking.service}
+                          {booking.service?.name || "Unknown Service"}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{booking.time}</p>
-                      <Badge
-                        variant={
-                          booking.status === "confirmed"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {booking.status}
-                      </Badge>
+                      <p className="font-medium">
+                        {formatTime(booking.startTime)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDate(booking.startTime)}
+                      </p>
                     </div>
                   </div>
                 ))}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

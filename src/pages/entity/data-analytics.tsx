@@ -35,16 +35,9 @@ import {
 } from "../../components/ui/table";
 import { Progress } from "../../components/ui/progress";
 import {
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  Users,
-  Euro,
   Clock,
   Star,
   Target,
-  Activity,
   Download,
   RefreshCw,
   Filter,
@@ -208,18 +201,6 @@ export function DataAnalyticsPage() {
       metric: "Plan for +15 weekly bookings",
     },
   ];
-
-  const getGrowthIcon = (growth: number) => {
-    return growth > 0 ? (
-      <TrendingUp className="h-4 w-4 text-green-500" />
-    ) : (
-      <TrendingDown className="h-4 w-4 text-red-500" />
-    );
-  };
-
-  const getGrowthColor = (growth: number) => {
-    return growth > 0 ? "text-green-600" : "text-red-600";
-  };
 
   const getInsightIcon = (type: string) => {
     switch (type) {

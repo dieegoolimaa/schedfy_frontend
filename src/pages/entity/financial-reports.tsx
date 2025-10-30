@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
 import { PlanGate, UpgradePrompt } from "../../hooks/use-plan-restrictions";
 import {
   Card,
@@ -55,152 +57,198 @@ import {
 } from "lucide-react";
 
 export function FinancialReportsPage() {
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
+
+  // Fetch bookings data from API
+  const { bookings } = useBookings({
+    entityId,
+    autoFetch: true,
+  });
+
   const [dateRange, setDateRange] = useState("30days");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Mock financial data
-  const financialSummary = {
-    totalRevenue: 12450,
-    totalCommissions: 1245,
-    totalVouchers: 350,
-    netRevenue: 10855,
-    totalTransactions: 156,
-    averageTransaction: 79.81,
-    growth: {
-      revenue: 12.5,
-      transactions: 8.3,
-      average: 3.8,
-    },
+  // Calculate date range
+  const getDateRangeFilter = () => {
+    const now = new Date();
+    const daysMap: Record<string, number> = {
+      "7days": 7,
+      "30days": 30,
+      "90days": 90,
+      "365days": 365,
+    };
+    const days = daysMap[dateRange] || 30;
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    return startDate;
   };
 
-  const revenueBreakdown = [
-    {
-      category: "Hair Services",
-      amount: 4500,
-      percentage: 36.1,
-      transactions: 56,
-    },
-    { category: "Nail Care", amount: 3200, percentage: 25.7, transactions: 42 },
-    { category: "Skincare", amount: 2800, percentage: 22.5, transactions: 31 },
-    { category: "Massage", amount: 1950, percentage: 15.7, transactions: 27 },
-  ];
+  // Filter bookings by date range
+  const filteredBookings = useMemo(() => {
+    const startDate = getDateRangeFilter();
+    return bookings.filter((b) => {
+      const bookingDate = new Date(b.createdAt);
+      return bookingDate >= startDate;
+    });
+  }, [bookings, dateRange]);
 
-  const commissionDetails = [
-    {
-      type: "Platform Commission",
-      rate: 5,
-      amount: 622.5,
-      description: "Standard platform fee",
-    },
-    {
-      type: "Payment Processing",
-      rate: 2.9,
-      amount: 361.05,
-      description: "Card processing fees",
-    },
-    {
-      type: "Premium Features",
-      rate: 2.1,
-      amount: 261.45,
-      description: "Advanced booking features",
-    },
-  ];
+  // Calculate financial summary from real data
+  const financialSummary = useMemo(() => {
+    const completedBookings = filteredBookings.filter(
+      (b) => b.status === "completed"
+    );
 
+    const totalRevenue = completedBookings.reduce(
+      (sum, b) => sum + (b.service?.pricing?.basePrice || 0),
+      0
+    );
+
+    // Platform commission (5% of revenue)
+    const totalCommissions = totalRevenue * 0.05;
+
+    // Mock vouchers for now (would come from voucher system)
+    const totalVouchers = 0;
+
+    const netRevenue = totalRevenue - totalCommissions - totalVouchers;
+
+    const totalTransactions = completedBookings.length;
+    const averageTransaction =
+      totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+
+    // Calculate growth (comparing with previous period)
+    // For now, using mock growth percentages
+    return {
+      totalRevenue,
+      totalCommissions,
+      totalVouchers,
+      netRevenue,
+      totalTransactions,
+      averageTransaction,
+      growth: {
+        revenue: 12.5,
+        transactions: 8.3,
+        average: 3.8,
+      },
+    };
+  }, [filteredBookings]);
+
+  // Revenue breakdown by service category
+  const revenueBreakdown = useMemo(() => {
+    const completedBookings = filteredBookings.filter(
+      (b) => b.status === "completed"
+    );
+
+    const categoryMap = new Map<
+      string,
+      { amount: number; transactions: number }
+    >();
+
+    completedBookings.forEach((booking) => {
+      const category = booking.service?.category || "Other";
+      const price = booking.service?.pricing?.basePrice || 0;
+
+      const current = categoryMap.get(category) || {
+        amount: 0,
+        transactions: 0,
+      };
+      categoryMap.set(category, {
+        amount: current.amount + price,
+        transactions: current.transactions + 1,
+      });
+    });
+
+    const total = financialSummary.totalRevenue;
+
+    return Array.from(categoryMap.entries())
+      .map(([category, data]) => ({
+        category,
+        amount: data.amount,
+        percentage: total > 0 ? (data.amount / total) * 100 : 0,
+        transactions: data.transactions,
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 10);
+  }, [filteredBookings, financialSummary.totalRevenue]);
+
+  // Commission details calculated from revenue
+  const commissionDetails = useMemo(() => {
+    const totalRevenue = financialSummary.totalRevenue;
+    return [
+      {
+        type: "Platform Commission",
+        rate: 5,
+        amount: totalRevenue * 0.05,
+        description: "Standard platform fee",
+      },
+      {
+        type: "Payment Processing",
+        rate: 2.9,
+        amount: totalRevenue * 0.029,
+        description: "Card processing fees",
+      },
+      {
+        type: "Premium Features",
+        rate: 2.1,
+        amount: totalRevenue * 0.021,
+        description: "Advanced booking features",
+      },
+    ];
+  }, [financialSummary.totalRevenue]);
+
+  // Voucher breakdown (keeping as placeholder for future voucher system)
   const voucherBreakdown = [
     {
       type: "New Client Discount",
-      amount: 150,
-      usage: 15,
+      amount: 0,
+      usage: 0,
       description: "First-time client offers",
     },
     {
       type: "Loyalty Rewards",
-      amount: 120,
-      usage: 12,
+      amount: 0,
+      usage: 0,
       description: "Repeat customer discounts",
     },
     {
       type: "Promotional Codes",
-      amount: 80,
-      usage: 8,
+      amount: 0,
+      usage: 0,
       description: "Marketing campaign vouchers",
     },
   ];
 
-  const transactions = [
-    {
-      id: "TXN-2024-001",
-      date: "2024-01-15",
-      time: "14:30",
-      client: "Maria Silva",
-      service: "Hair Cut & Style",
-      gross: 45,
-      commission: 2.25,
-      voucher: 0,
-      net: 42.75,
-      status: "completed",
-      paymentMethod: "card",
-      professional: "João Santos",
-    },
-    {
-      id: "TXN-2024-002",
-      date: "2024-01-15",
-      time: "16:00",
-      client: "Ana Costa",
-      service: "Full Manicure",
-      gross: 35,
-      commission: 1.75,
-      voucher: 5,
-      net: 28.25,
-      status: "completed",
-      paymentMethod: "cash",
-      professional: "Sofia Oliveira",
-    },
-    {
-      id: "TXN-2024-003",
-      date: "2024-01-14",
-      time: "11:15",
-      client: "Pedro Lima",
-      service: "Deep Tissue Massage",
-      gross: 80,
-      commission: 4,
-      voucher: 0,
-      net: 76,
-      status: "completed",
-      paymentMethod: "card",
-      professional: "Carlos Ferreira",
-    },
-    {
-      id: "TXN-2024-004",
-      date: "2024-01-14",
-      time: "09:30",
-      client: "Sofia Martins",
-      service: "Facial Treatment",
-      gross: 65,
-      commission: 3.25,
-      voucher: 10,
-      net: 51.75,
-      status: "completed",
-      paymentMethod: "card",
-      professional: "Maria Rodrigues",
-    },
-    {
-      id: "TXN-2024-005",
-      date: "2024-01-13",
-      time: "15:45",
-      client: "João Fernandes",
-      service: "Beard Trim",
-      gross: 25,
-      commission: 1.25,
-      voucher: 0,
-      net: 23.75,
-      status: "completed",
-      paymentMethod: "cash",
-      professional: "João Santos",
-    },
-  ];
+  // Transform bookings into transaction format
+  const transactions = useMemo(() => {
+    return filteredBookings
+      .filter((b) => b.status === "completed")
+      .map((booking) => {
+        const gross = booking.service?.pricing?.basePrice || 0;
+        const commission = gross * 0.05; // 5% platform commission
+        const voucher = 0; // Future: get from booking.voucher
+        const net = gross - commission - voucher;
+
+        return {
+          id: booking.id,
+          date: new Date(booking.startTime).toLocaleDateString(),
+          time: new Date(booking.startTime).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          client: booking.client?.name || "Unknown",
+          service: booking.service?.name || "Unknown Service",
+          gross,
+          commission,
+          voucher,
+          net,
+          status: booking.status,
+          paymentMethod: "card", // Default to card for now
+          professional: booking.professional?.name || "N/A",
+        };
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [filteredBookings]);
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =

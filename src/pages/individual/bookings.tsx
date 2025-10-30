@@ -72,6 +72,7 @@ import {
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
 import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
 
 export function IndividualBookingsPage() {
@@ -87,6 +88,7 @@ export function IndividualBookingsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("today");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Form state for creating bookings
   const [formData, setFormData] = useState({
@@ -164,6 +166,41 @@ export function IndividualBookingsPage() {
     } catch (error) {
       toast.error("Failed to create booking");
     }
+  };
+
+  // Handle create booking from new dialog
+  const handleCreateBookingFromDialog = async (bookingData: any) => {
+    // Find the selected service
+    const selectedService = services.find(
+      (s) => s.id === bookingData.serviceId
+    );
+    if (!selectedService) {
+      throw new Error("Service not found");
+    }
+
+    await createBooking({
+      entityId,
+      serviceId: bookingData.serviceId,
+      professionalId: bookingData.professionalId,
+      clientInfo: {
+        name: bookingData.clientName,
+        email: bookingData.clientEmail || undefined,
+        phone: bookingData.clientPhone || undefined,
+        notes: bookingData.notes || undefined,
+      },
+      startDateTime: bookingData.startDateTime,
+      endDateTime: bookingData.endDateTime,
+      status: "confirmed", // Individual plan bookings are auto-confirmed
+      notes: bookingData.notes || undefined,
+      pricing: {
+        basePrice: selectedService.price || 0,
+        totalPrice: selectedService.price || 0,
+        currency: selectedService.currency || "EUR",
+      },
+      createdBy: user?.id || "",
+    });
+
+    // No need to refresh manually - useBookings handles it
   };
 
   // Generate available time slots based on selected service and date
@@ -255,12 +292,14 @@ export function IndividualBookingsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Booking
+          </Button>
+          {/* Legacy Dialog - Hidden */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Booking
-              </Button>
+              <div style={{ display: "none" }} />
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -784,6 +823,20 @@ export function IndividualBookingsPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* New Booking Dialog */}
+      <CreateBookingDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        entityId={entityId}
+        services={services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          duration: s.duration || 60,
+          price: s.price,
+        }))}
+        onSubmit={handleCreateBookingFromDialog}
+      />
     </div>
   );
 }

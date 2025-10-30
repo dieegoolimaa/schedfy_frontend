@@ -13,7 +13,6 @@ import {
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
 import { Switch } from "../../components/ui/switch";
 import {
   Tabs,
@@ -28,29 +27,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { Badge } from "../../components/ui/badge";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../../components/ui/dialog";
 import { Separator } from "../../components/ui/separator";
 import { BusinessProfileManager } from "../../components/business-profile-manager";
 import {
   User,
-  Building,
   Bell,
   Shield,
   Palette,
-  Clock,
   Camera,
   Save,
   AlertTriangle,
@@ -84,37 +72,6 @@ export function SettingsPage() {
 
     loadEntity();
   }, [user?.entityId]);
-
-  // Profile customization states
-  const [profileData, setProfileData] = useState({
-    businessName: "Premium Beauty Salon",
-    description:
-      "Your trusted partner for all beauty and wellness needs. We offer professional services in a relaxing and modern environment.",
-    address: "Rua Augusta, 123, Lisboa, Portugal",
-    phone: "+351 21 123 4567",
-    email: "contact@premiumbeauty.com",
-    website: "www.premiumbeauty.com",
-    workingHours: {
-      monday: { open: "09:00", close: "19:00", closed: false },
-      tuesday: { open: "09:00", close: "19:00", closed: false },
-      wednesday: { open: "09:00", close: "19:00", closed: false },
-      thursday: { open: "09:00", close: "19:00", closed: false },
-      friday: { open: "09:00", close: "19:00", closed: false },
-      saturday: { open: "10:00", close: "18:00", closed: false },
-      sunday: { open: "10:00", close: "16:00", closed: false },
-    },
-    specialties: ["Hair Styling", "Nail Care", "Skincare", "Massage"],
-    images: [
-      "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400",
-      "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400",
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400",
-    ],
-    socialMedia: {
-      facebook: "https://facebook.com/premiumbeauty",
-      instagram: "https://instagram.com/premiumbeauty",
-      tiktok: "",
-    },
-  });
 
   // Mock settings state
   const [settings, setSettings] = useState({
@@ -161,15 +118,6 @@ export function SettingsPage() {
     twoFactorAuth: false,
   });
 
-  const businessTypes = [
-    { value: "salon", label: "Hair Salon" },
-    { value: "spa", label: "Spa & Wellness" },
-    { value: "barbershop", label: "Barbershop" },
-    { value: "clinic", label: "Medical Clinic" },
-    { value: "studio", label: "Beauty Studio" },
-    { value: "other", label: "Other" },
-  ];
-
   const languages = [
     { value: "en", label: "English" },
     { value: "pt", label: "Português" },
@@ -191,31 +139,8 @@ export function SettingsPage() {
     { value: "GBP", label: "British Pound (£)" },
   ];
 
-  const daysOfWeek = [
-    { key: "monday", label: "Monday" },
-    { key: "tuesday", label: "Tuesday" },
-    { key: "wednesday", label: "Wednesday" },
-    { key: "thursday", label: "Thursday" },
-    { key: "friday", label: "Friday" },
-    { key: "saturday", label: "Saturday" },
-    { key: "sunday", label: "Sunday" },
-  ];
-
   const updateSetting = (key: string, value: any) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const updateWorkingHours = (day: string, field: string, value: any) => {
-    setSettings((prev) => ({
-      ...prev,
-      workingHours: {
-        ...prev.workingHours,
-        [day]: {
-          ...prev.workingHours[day as keyof typeof prev.workingHours],
-          [field]: value,
-        },
-      },
-    }));
   };
 
   return (

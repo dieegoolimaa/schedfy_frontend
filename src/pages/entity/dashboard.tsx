@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { useServices } from "../../hooks/useServices";
 import {
   AreaChart,
   Area,
@@ -51,143 +54,193 @@ import {
   CalendarDays,
   Users,
   DollarSign,
-  Clock,
-  Star,
   ChevronRight,
   Calendar,
   Brain,
   Lightbulb,
   Target,
   AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 
 const Dashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
+
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Use hooks to fetch data
+  const { bookings } = useBookings({
+    entityId,
+    autoFetch: true,
+  });
+
+  useServices({
+    entityId,
+    autoFetch: true,
+  });
+
+  useEffect(() => {
+    if (entityId) {
+      // Data will be fetched automatically by hooks
+    }
+  }, [entityId]);
+
+  // Calculate real stats from bookings data
+  const totalBookings = bookings.length;
+  const confirmedBookings = bookings.filter(
+    (b) => b.status === "confirmed"
+  ).length;
+
+  // Get unique clients
+  const uniqueClients = new Set(bookings.map((b) => b.clientId)).size;
+
+  // Calculate revenue from completed bookings
+  const totalRevenue = bookings
+    .filter((b) => b.status === "completed")
+    .reduce((sum, booking) => {
+      return sum + (booking.service?.pricing?.basePrice || 0);
+    }, 0);
+
+  // Get upcoming bookings
+  const now = new Date();
+  const upcomingBookings = bookings
+    .filter(
+      (b) =>
+        (b.status === "confirmed" || b.status === "pending") &&
+        new Date(b.startTime) >= now
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    )
+    .slice(0, 4);
+
+  // Calculate monthly data for charts
+  const monthlyData: Array<{
+    month: string;
+    revenue: number;
+    appointments: number;
+  }> = [];
+  const last6Months = [];
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    last6Months.push({
+      month: date.toLocaleDateString("en", { month: "short" }),
+      year: date.getFullYear(),
+      monthIndex: date.getMonth(),
+    });
+  }
+
+  last6Months.forEach((month) => {
+    const monthBookings = bookings.filter((b) => {
+      const bookingDate = new Date(b.createdAt);
+      return (
+        bookingDate.getMonth() === month.monthIndex &&
+        bookingDate.getFullYear() === month.year
+      );
+    });
+
+    const monthRevenue = monthBookings
+      .filter((b) => b.status === "completed")
+      .reduce((sum, b) => sum + (b.service?.pricing?.basePrice || 0), 0);
+
+    monthlyData.push({
+      month: month.month,
+      revenue: monthRevenue,
+      appointments: monthBookings.length,
+    });
+  });
+
+  // Weekly appointment data
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const appointmentData = weekDays.map((day, index) => {
+    const dayBookings = bookings.filter((b) => {
+      const bookingDate = new Date(b.startTime);
+      return bookingDate.getDay() === (index + 1) % 7;
+    });
+
+    return {
+      day,
+      scheduled: dayBookings.length,
+      completed: dayBookings.filter((b) => b.status === "completed").length,
+      cancelled: dayBookings.filter((b) => b.status === "cancelled").length,
+    };
+  });
+
+  // Service distribution data
+  const serviceDistribution = new Map();
+  bookings.forEach((booking) => {
+    const serviceName = booking.service?.name || "Other";
+    serviceDistribution.set(
+      serviceName,
+      (serviceDistribution.get(serviceName) || 0) + 1
+    );
+  });
+
+  const serviceData = Array.from(serviceDistribution.entries())
+    .map(([name, value], index) => ({
+      name,
+      value,
+      color: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"][index % 5],
+    }))
+    .slice(0, 5);
+
+  // Recent activity from bookings
+  const recentActivity = bookings
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )
+    .slice(0, 5)
+    .map((booking) => ({
+      id: booking.id,
+      type:
+        booking.status === "completed"
+          ? "completion"
+          : booking.status === "confirmed"
+          ? "booking"
+          : "cancellation",
+      message:
+        booking.status === "completed"
+          ? `Session completed with ${booking.client?.name || "client"}`
+          : booking.status === "confirmed"
+          ? `New booking: ${booking.service?.name || "service"}`
+          : `Booking cancelled`,
+      time: new Date(booking.updatedAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    }));
 
   // Handler functions for buttons
   const handleTodayView = () => {
-    // Filter to show only today's appointments
     console.log("Filtering to show today's appointments");
   };
 
   const handleViewCalendar = () => {
-    // Open calendar modal
-    setCalendarOpen(true);
+    console.log("Opening calendar view");
   };
 
   const handleViewAllAppointments = () => {
-    // Navigate to full appointments page
-    navigate("/entity/booking-management");
+    console.log("Navigating to all appointments");
   };
-
-  // Mock data for charts
-  const revenueData = [
-    { month: "Jan", revenue: 4000, appointments: 240 },
-    { month: "Feb", revenue: 3000, appointments: 180 },
-    { month: "Mar", revenue: 5000, appointments: 320 },
-    { month: "Apr", revenue: 4500, appointments: 280 },
-    { month: "May", revenue: 6000, appointments: 380 },
-    { month: "Jun", revenue: 5500, appointments: 340 },
-  ];
-
-  const appointmentData = [
-    { day: "Mon", scheduled: 12, completed: 10, cancelled: 2 },
-    { day: "Tue", scheduled: 15, completed: 13, cancelled: 2 },
-    { day: "Wed", scheduled: 18, completed: 16, cancelled: 2 },
-    { day: "Thu", scheduled: 14, completed: 12, cancelled: 2 },
-    { day: "Fri", scheduled: 20, completed: 18, cancelled: 2 },
-    { day: "Sat", scheduled: 25, completed: 22, cancelled: 3 },
-    { day: "Sun", scheduled: 8, completed: 7, cancelled: 1 },
-  ];
-
-  const serviceData = [
-    { name: "Haircut", value: 35, color: "#0088FE" },
-    { name: "Massage", value: 25, color: "#00C49F" },
-    { name: "Manicure", value: 20, color: "#FFBB28" },
-    { name: "Facial", value: 15, color: "#FF8042" },
-    { name: "Other", value: 5, color: "#8884D8" },
-  ];
-
-  const upcomingAppointments = [
-    {
-      id: 1,
-      client: "Maria Silva",
-      service: "Haircut & Styling",
-      time: "10:00 AM",
-      avatar: "MS",
-      status: "confirmed",
-    },
-    {
-      id: 2,
-      client: "João Santos",
-      service: "Beard Trim",
-      time: "11:30 AM",
-      avatar: "JS",
-      status: "confirmed",
-    },
-    {
-      id: 3,
-      client: "Ana Costa",
-      service: "Full Manicure",
-      time: "2:00 PM",
-      avatar: "AC",
-      status: "pending",
-    },
-    {
-      id: 4,
-      client: "Pedro Lima",
-      service: "Massage Therapy",
-      time: "3:30 PM",
-      avatar: "PL",
-      status: "confirmed",
-    },
-  ];
-
-  const recentActivity = [
-    {
-      id: 1,
-      type: "appointment",
-      message: "New appointment booked by Maria Silva",
-      time: "5 minutes ago",
-      icon: Calendar,
-    },
-    {
-      id: 2,
-      type: "payment",
-      message: "Payment received from João Santos - €45.00",
-      time: "15 minutes ago",
-      icon: DollarSign,
-    },
-    {
-      id: 3,
-      type: "review",
-      message: "New 5-star review from Ana Costa",
-      time: "1 hour ago",
-      icon: Star,
-    },
-    {
-      id: 4,
-      type: "cancellation",
-      message: "Appointment cancelled by Pedro Lima",
-      time: "2 hours ago",
-      icon: Clock,
-    },
-  ];
 
   const stats = [
     {
       title: "Total Revenue",
-      value: "€5,400",
+      value: `€${totalRevenue.toFixed(0)}`,
       change: "+12.5%",
       trend: "up",
       icon: DollarSign,
       color: "text-green-600",
     },
     {
-      title: "Appointments Today",
-      value: "24",
+      title: "Total Bookings",
+      value: totalBookings.toString(),
       change: "+8.2%",
       trend: "up",
       icon: CalendarDays,
@@ -195,19 +248,19 @@ const Dashboard = () => {
     },
     {
       title: "Active Clients",
-      value: "147",
-      change: "+3.1%",
+      value: uniqueClients.toString(),
+      change: "+15.3%",
       trend: "up",
       icon: Users,
       color: "text-purple-600",
     },
     {
-      title: "Average Rating",
-      value: "4.8",
-      change: "-0.2%",
-      trend: "down",
-      icon: Star,
-      color: "text-yellow-600",
+      title: "Confirmed Today",
+      value: confirmedBookings.toString(),
+      change: "+5.1%",
+      trend: "up",
+      icon: CheckCircle,
+      color: "text-blue-600",
     },
   ];
 
@@ -291,7 +344,7 @@ const Dashboard = () => {
                 <TabsContent value="revenue" className="space-y-4">
                   <div className="h-[350px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={revenueData}>
+                      <AreaChart data={monthlyData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
                         <YAxis />
@@ -373,39 +426,44 @@ const Dashboard = () => {
             <CardHeader>
               <CardTitle>Today's Appointments</CardTitle>
               <CardDescription>
-                {upcomingAppointments.length} appointments scheduled
+                {upcomingBookings.length} appointments scheduled
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {upcomingAppointments.map((appointment) => (
+              {upcomingBookings.map((booking) => (
                 <div
-                  key={appointment.id}
+                  key={booking.id}
                   className="flex items-center space-x-4 rounded-lg border p-3"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="" />
                     <AvatarFallback className="text-xs">
-                      {appointment.avatar}
+                      {booking.client?.name?.[0] || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {appointment.client}
+                      {booking.client?.name || "Unknown"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {appointment.service}
+                      {booking.service?.name || "Unknown Service"}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{appointment.time}</p>
+                    <p className="text-sm font-medium">
+                      {new Date(booking.startTime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                     <p
                       className={`text-xs ${
-                        appointment.status === "confirmed"
+                        booking.status === "confirmed"
                           ? "text-green-600"
                           : "text-yellow-600"
                       }`}
                     >
-                      {appointment.status}
+                      {booking.status}
                     </p>
                   </div>
                 </div>
@@ -432,11 +490,10 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {recentActivity.map((activity) => {
-                const IconComponent = activity.icon;
                 return (
                   <div key={activity.id} className="flex items-start space-x-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                      <IconComponent className="h-4 w-4" />
+                      <CalendarDays className="h-4 w-4" />
                     </div>
                     <div className="flex-1 space-y-1">
                       <p className="text-sm leading-none">{activity.message}</p>
