@@ -9,7 +9,7 @@ interface OnboardingGuardProps {
 /**
  * OnboardingGuard - Ensures user completes onboarding before accessing dashboard
  * Redirects to /onboarding if entity setup is incomplete
- * 
+ *
  * Usage:
  * <OnboardingGuard>
  *   <Dashboard />

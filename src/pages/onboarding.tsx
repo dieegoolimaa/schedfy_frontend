@@ -7,10 +7,23 @@ import { getDashboardRoute } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
 import { Checkbox } from "../components/ui/checkbox";
-import { MapPin, Clock, Briefcase, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  Briefcase,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 
 export function OnboardingPage() {
   const { user, entity } = useAuth();
@@ -26,7 +39,7 @@ export function OnboardingPage() {
     state: "",
     zipCode: "",
     country: "BR",
-    
+
     // Step 2: Contact & Hours
     phone: "",
     whatsapp: "",
@@ -39,7 +52,7 @@ export function OnboardingPage() {
       saturday: { open: "09:00", close: "13:00", closed: false },
       sunday: { open: "", close: "", closed: true },
     },
-    
+
     // Step 3: First Service
     serviceName: "",
     serviceDuration: 60,
@@ -49,7 +62,7 @@ export function OnboardingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateStep(currentStep)) {
       return;
     }
@@ -78,25 +91,30 @@ export function OnboardingPage() {
         phone: formData.phone,
         whatsapp: formData.whatsapp || undefined,
         businessHours: formData.businessHours,
-        firstService: formData.serviceName ? {
-          name: formData.serviceName,
-          duration: formData.serviceDuration,
-          price: formData.servicePrice,
-          description: formData.serviceDescription || undefined,
-        } : undefined,
+        firstService: formData.serviceName
+          ? {
+              name: formData.serviceName,
+              duration: formData.serviceDuration,
+              price: formData.servicePrice,
+              description: formData.serviceDescription || undefined,
+            }
+          : undefined,
       });
 
       toast.success("Configuração concluída! Bem-vindo ao Schedfy!");
-      
+
       // Redirect to appropriate dashboard
       const dashboardRoute = getDashboardRoute(user);
       navigate(dashboardRoute, { replace: true });
-      
+
       // Reload page to update entity state
       window.location.href = dashboardRoute;
     } catch (error: any) {
       console.error("Onboarding error:", error);
-      toast.error(error.response?.data?.message || "Não foi possível concluir a configuração. Tente novamente.");
+      toast.error(
+        error.response?.data?.message ||
+          "Não foi possível concluir a configuração. Tente novamente."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -122,14 +140,14 @@ export function OnboardingPage() {
           return false;
         }
         return true;
-      
+
       case 2:
         if (!formData.phone.trim()) {
           toast.error("Por favor, informe um número de telefone para contato");
           return false;
         }
         return true;
-      
+
       case 3:
         // First service is optional
         if (formData.serviceName.trim() && formData.servicePrice <= 0) {
@@ -137,7 +155,7 @@ export function OnboardingPage() {
           return false;
         }
         return true;
-      
+
       default:
         return true;
     }
@@ -162,7 +180,11 @@ export function OnboardingPage() {
     });
   };
 
-  const updateBusinessHours = (day: keyof typeof formData.businessHours, field: 'open' | 'close', value: string) => {
+  const updateBusinessHours = (
+    day: keyof typeof formData.businessHours,
+    field: "open" | "close",
+    value: string
+  ) => {
     setFormData({
       ...formData,
       businessHours: {
@@ -183,7 +205,9 @@ export function OnboardingPage() {
             <div className="flex items-center gap-2">
               {currentStep === 1 && <MapPin className="h-5 w-5 text-primary" />}
               {currentStep === 2 && <Clock className="h-5 w-5 text-primary" />}
-              {currentStep === 3 && <Briefcase className="h-5 w-5 text-primary" />}
+              {currentStep === 3 && (
+                <Briefcase className="h-5 w-5 text-primary" />
+              )}
               <CardTitle>Complete a configuração do seu negócio</CardTitle>
             </div>
             <span className="text-sm text-muted-foreground">
@@ -192,14 +216,15 @@ export function OnboardingPage() {
           </div>
           <CardDescription>
             {currentStep === 1 && "Vamos começar com o endereço do seu negócio"}
-            {currentStep === 2 && "Configure suas informações de contato e horários"}
+            {currentStep === 2 &&
+              "Configure suas informações de contato e horários"}
             {currentStep === 3 && "Crie seu primeiro serviço (opcional)"}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <Progress value={(currentStep / totalSteps) * 100} className="mb-6" />
-          
+
           <form onSubmit={handleSubmit}>
             {/* Step 1: Address */}
             {currentStep === 1 && (
@@ -210,7 +235,9 @@ export function OnboardingPage() {
                     id="street"
                     placeholder="Rua das Flores, 123"
                     value={formData.street}
-                    onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, street: e.target.value })
+                    }
                     disabled={isLoading}
                   />
                 </div>
@@ -222,7 +249,9 @@ export function OnboardingPage() {
                       id="city"
                       placeholder="São Paulo"
                       value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, city: e.target.value })
+                      }
                       disabled={isLoading}
                     />
                   </div>
@@ -232,7 +261,9 @@ export function OnboardingPage() {
                       id="state"
                       placeholder="SP"
                       value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, state: e.target.value })
+                      }
                       disabled={isLoading}
                     />
                   </div>
@@ -245,7 +276,9 @@ export function OnboardingPage() {
                       id="zipCode"
                       placeholder="01310-100"
                       value={formData.zipCode}
-                      onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, zipCode: e.target.value })
+                      }
                       disabled={isLoading}
                     />
                   </div>
@@ -253,14 +286,20 @@ export function OnboardingPage() {
                     <Label htmlFor="country">País</Label>
                     <Input
                       id="country"
-                      value={formData.country === 'BR' ? 'Brasil' : formData.country === 'PT' ? 'Portugal' : 'Estados Unidos'}
+                      value={
+                        formData.country === "BR"
+                          ? "Brasil"
+                          : formData.country === "PT"
+                          ? "Portugal"
+                          : "Estados Unidos"
+                      }
                       disabled
                     />
                   </div>
                 </div>
               </div>
             )}
-            
+
             {/* Step 2: Contact & Hours */}
             {currentStep === 2 && (
               <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -274,7 +313,9 @@ export function OnboardingPage() {
                         type="tel"
                         placeholder="(11) 98765-4321"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
                         disabled={isLoading}
                       />
                     </div>
@@ -285,7 +326,9 @@ export function OnboardingPage() {
                         type="tel"
                         placeholder="(11) 98765-4321"
                         value={formData.whatsapp}
-                        onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, whatsapp: e.target.value })
+                        }
                         disabled={isLoading}
                       />
                     </div>
@@ -295,63 +338,85 @@ export function OnboardingPage() {
                 <div className="space-y-4">
                   <h3 className="font-medium">Horário de funcionamento</h3>
                   <div className="space-y-3">
-                    {Object.entries(formData.businessHours).map(([day, hours]) => {
-                      const dayNames: Record<string, string> = {
-                        monday: 'Segunda',
-                        tuesday: 'Terça',
-                        wednesday: 'Quarta',
-                        thursday: 'Quinta',
-                        friday: 'Sexta',
-                        saturday: 'Sábado',
-                        sunday: 'Domingo'
-                      };
-                      
-                      return (
-                        <div key={day} className="flex items-center gap-3">
-                          <div className="w-24 text-sm">{dayNames[day]}</div>
-                          <div className="flex items-center gap-2 flex-1">
-                            <Input
-                              type="time"
-                              value={hours.open}
-                              onChange={(e) => updateBusinessHours(day as keyof typeof formData.businessHours, 'open', e.target.value)}
-                              disabled={hours.closed || isLoading}
-                              className="w-32"
-                            />
-                            <span className="text-muted-foreground">às</span>
-                            <Input
-                              type="time"
-                              value={hours.close}
-                              onChange={(e) => updateBusinessHours(day as keyof typeof formData.businessHours, 'close', e.target.value)}
-                              disabled={hours.closed || isLoading}
-                              className="w-32"
-                            />
+                    {Object.entries(formData.businessHours).map(
+                      ([day, hours]) => {
+                        const dayNames: Record<string, string> = {
+                          monday: "Segunda",
+                          tuesday: "Terça",
+                          wednesday: "Quarta",
+                          thursday: "Quinta",
+                          friday: "Sexta",
+                          saturday: "Sábado",
+                          sunday: "Domingo",
+                        };
+
+                        return (
+                          <div key={day} className="flex items-center gap-3">
+                            <div className="w-24 text-sm">{dayNames[day]}</div>
+                            <div className="flex items-center gap-2 flex-1">
+                              <Input
+                                type="time"
+                                value={hours.open}
+                                onChange={(e) =>
+                                  updateBusinessHours(
+                                    day as keyof typeof formData.businessHours,
+                                    "open",
+                                    e.target.value
+                                  )
+                                }
+                                disabled={hours.closed || isLoading}
+                                className="w-32"
+                              />
+                              <span className="text-muted-foreground">às</span>
+                              <Input
+                                type="time"
+                                value={hours.close}
+                                onChange={(e) =>
+                                  updateBusinessHours(
+                                    day as keyof typeof formData.businessHours,
+                                    "close",
+                                    e.target.value
+                                  )
+                                }
+                                disabled={hours.closed || isLoading}
+                                className="w-32"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                id={`${day}-closed`}
+                                checked={hours.closed}
+                                onCheckedChange={() =>
+                                  toggleDayOff(
+                                    day as keyof typeof formData.businessHours
+                                  )
+                                }
+                                disabled={isLoading}
+                              />
+                              <Label
+                                htmlFor={`${day}-closed`}
+                                className="text-sm cursor-pointer"
+                              >
+                                Fechado
+                              </Label>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={`${day}-closed`}
-                              checked={hours.closed}
-                              onCheckedChange={() => toggleDayOff(day as keyof typeof formData.businessHours)}
-                              disabled={isLoading}
-                            />
-                            <Label htmlFor={`${day}-closed`} className="text-sm cursor-pointer">
-                              Fechado
-                            </Label>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      }
+                    )}
                   </div>
                 </div>
               </div>
             )}
-            
+
             {/* Step 3: First Service */}
             {currentStep === 3 && (
               <div className="space-y-4 animate-in fade-in-50 duration-500">
                 <div className="mb-4 p-4 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">
-                    Criar seu primeiro serviço é opcional, mas recomendado para começar rapidamente.
-                    Você pode adicionar mais serviços depois no seu painel.
+                    Criar seu primeiro serviço é opcional, mas recomendado para
+                    começar rapidamente. Você pode adicionar mais serviços
+                    depois no seu painel.
                   </p>
                 </div>
 
@@ -361,7 +426,9 @@ export function OnboardingPage() {
                     id="serviceName"
                     placeholder="Ex: Corte de cabelo, Massagem, Consulta"
                     value={formData.serviceName}
-                    onChange={(e) => setFormData({ ...formData, serviceName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, serviceName: e.target.value })
+                    }
                     disabled={isLoading}
                   />
                 </div>
@@ -376,12 +443,19 @@ export function OnboardingPage() {
                       step="15"
                       placeholder="60"
                       value={formData.serviceDuration}
-                      onChange={(e) => setFormData({ ...formData, serviceDuration: parseInt(e.target.value) || 60 })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          serviceDuration: parseInt(e.target.value) || 60,
+                        })
+                      }
                       disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="servicePrice">Preço ({entity?.name ? 'R$' : '$'})</Label>
+                    <Label htmlFor="servicePrice">
+                      Preço ({entity?.name ? "R$" : "$"})
+                    </Label>
                     <Input
                       id="servicePrice"
                       type="number"
@@ -389,19 +463,31 @@ export function OnboardingPage() {
                       step="0.01"
                       placeholder="50.00"
                       value={formData.servicePrice}
-                      onChange={(e) => setFormData({ ...formData, servicePrice: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          servicePrice: parseFloat(e.target.value) || 0,
+                        })
+                      }
                       disabled={isLoading}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="serviceDescription">Descrição (opcional)</Label>
+                  <Label htmlFor="serviceDescription">
+                    Descrição (opcional)
+                  </Label>
                   <Input
                     id="serviceDescription"
                     placeholder="Breve descrição do serviço"
                     value={formData.serviceDescription}
-                    onChange={(e) => setFormData({ ...formData, serviceDescription: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        serviceDescription: e.target.value,
+                      })
+                    }
                     disabled={isLoading}
                   />
                 </div>
@@ -415,7 +501,9 @@ export function OnboardingPage() {
                           Pré-visualização do serviço
                         </p>
                         <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                          {formData.serviceName} • {formData.serviceDuration} min • {entity?.name ? 'R$' : '$'}{formData.servicePrice.toFixed(2)}
+                          {formData.serviceName} • {formData.serviceDuration}{" "}
+                          min • {entity?.name ? "R$" : "$"}
+                          {formData.servicePrice.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -423,7 +511,7 @@ export function OnboardingPage() {
                 )}
               </div>
             )}
-            
+
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-8 pt-6 border-t">
               <Button
@@ -435,7 +523,7 @@ export function OnboardingPage() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
               </Button>
-              
+
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   "Processando..."

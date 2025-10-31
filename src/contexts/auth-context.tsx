@@ -5,7 +5,13 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { AuthState, User, Entity, LoginCredentials, RegisterData } from "../types/auth";
+import {
+  AuthState,
+  User,
+  Entity,
+  LoginCredentials,
+  RegisterData,
+} from "../types/auth";
 import { authApi } from "../lib/api/auth.api";
 
 // Transform backend user response to frontend User type
@@ -158,7 +164,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
             // Check if response.data has user and entity properties
             const userData = (response.data as any).user || response.data;
             const entityData = (response.data as any).entity || null;
-            
+
             // Transform backend user to frontend User type
             const transformedUser = transformBackendUser(userData);
             console.log(
@@ -166,9 +172,9 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
               transformedUser
             );
             console.log("[AuthProvider] Entity on reload:", entityData);
-            dispatch({ 
-              type: "AUTH_SUCCESS", 
-              payload: { user: transformedUser, entity: entityData } 
+            dispatch({
+              type: "AUTH_SUCCESS",
+              payload: { user: transformedUser, entity: entityData },
             });
           } else {
             localStorage.removeItem("schedfy-access-token");
@@ -212,9 +218,9 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       const transformedUser = transformBackendUser(user);
       console.log("Transformed user:", transformedUser);
 
-      dispatch({ 
-        type: "AUTH_SUCCESS", 
-        payload: { user: transformedUser, entity: entity || null } 
+      dispatch({
+        type: "AUTH_SUCCESS",
+        payload: { user: transformedUser, entity: entity || null },
       });
       return transformedUser;
     } catch (error: any) {
@@ -261,9 +267,9 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       // Transform backend user to frontend User type
       const transformedUser = transformBackendUser(user);
 
-      dispatch({ 
-        type: "AUTH_SUCCESS", 
-        payload: { user: transformedUser, entity: entity || null } 
+      dispatch({
+        type: "AUTH_SUCCESS",
+        payload: { user: transformedUser, entity: entity || null },
       });
     } catch (error: any) {
       const errorMessage = error.message || "Registration failed";
