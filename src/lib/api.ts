@@ -117,3 +117,6 @@ export const usersApi = {
     deleteUser: (id: string) =>
         apiClient.delete(`/api/users/${id}`),
 };
+
+// Default export for backward compatibility
+export default apiClient;

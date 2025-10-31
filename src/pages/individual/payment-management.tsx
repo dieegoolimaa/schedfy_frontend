@@ -49,7 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/api";
+import { apiClient } from "@/lib/api/client";
 
 interface Payment {
   id: string;
@@ -131,7 +131,7 @@ export default function IndividualPaymentManagement() {
       if (filters.startDate) queryParams.append("startDate", filters.startDate);
       if (filters.endDate) queryParams.append("endDate", filters.endDate);
 
-      const response = await api.get(
+      const response = await apiClient.get(
         `/payments/individual/${user?.entityId}?${queryParams}`
       );
       setPayments(response.data.payments || []);
@@ -153,7 +153,7 @@ export default function IndividualPaymentManagement() {
       if (filters.startDate) queryParams.append("startDate", filters.startDate);
       if (filters.endDate) queryParams.append("endDate", filters.endDate);
 
-      const response = await api.get(
+      const response = await apiClient.get(
         `/payments/individual/${user?.entityId}/summary?${queryParams}`
       );
       setSummary(response.data);
@@ -173,7 +173,7 @@ export default function IndividualPaymentManagement() {
         return;
       }
 
-      await api.post("/payments/individual", {
+      await apiClient.post("/payments/individual", {
         entityId: user?.entityId,
         amount: parseFloat(formData.amount),
         currency: formData.currency,
