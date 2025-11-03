@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/auth-context";
 import { entitiesService } from "../services/entities.service";
+import { apiClient } from "../lib/api-client";
 import { getDashboardRoute } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -30,7 +31,50 @@ export function OnboardingPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingEntity, setIsCreatingEntity] = useState(false);
   const totalSteps = 3;
+
+  // Check for pending business data from registration
+  useEffect(() => {
+    const createEntityFromPendingData = async () => {
+      const pendingData = localStorage.getItem('schedfy-pending-business');
+      if (!pendingData || user?.entityId) return; // Skip if already has entity
+
+      setIsCreatingEntity(true);
+      try {
+        const businessData = JSON.parse(pendingData);
+        
+        // Create entity with business data
+        const response = await apiClient.post('/api/entities', {
+          name: businessData.businessName,
+          email: user?.email,
+          plan: businessData.plan,
+          businessType: businessData.businessType,
+          region: businessData.region,
+          ownerId: user?.id,
+        });
+
+        // Update user's entityId
+        if (response.data?.id) {
+          // Clear pending data
+          localStorage.removeItem('schedfy-pending-business');
+          
+          toast.success("Business created successfully! Let's complete your setup.");
+          
+          // Reload user data
+          globalThis.location.reload();
+        }
+      } catch (error: any) {
+        console.error("Failed to create entity:", error);
+        toast.error("Failed to create business. Please try again.");
+        // Keep pending data for retry
+      } finally {
+        setIsCreatingEntity(false);
+      }
+    };
+
+    createEntityFromPendingData();
+  }, [user]);
 
   const [formData, setFormData] = useState({
     // Step 1: Address
@@ -199,7 +243,22 @@ export function OnboardingPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 p-4">
-      <Card className="w-full max-w-2xl">
+      {isCreatingEntity ? (
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center space-y-4 py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold">Setting up your business...</h3>
+                <p className="text-sm text-muted-foreground">
+                  Please wait while we create your business account
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="w-full max-w-2xl">
         <CardHeader>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -543,6 +602,7 @@ export function OnboardingPage() {
           </form>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

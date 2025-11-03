@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/auth-context";
-import { getDashboardRoute } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -26,6 +25,7 @@ import {
 } from "../components/ui/select";
 import { Checkbox } from "../components/ui/checkbox";
 import { Progress } from "../components/ui/progress";
+import { Badge } from "../components/ui/badge";
 import {
   Eye,
   EyeOff,
@@ -37,10 +37,14 @@ import {
   ArrowLeft,
   Check,
   X,
+  CheckCircle2,
 } from "lucide-react";
 
 const registerSchema = z
   .object({
+    plan: z.enum(["simple", "individual", "business"], {
+      errorMap: () => ({ message: "Please select a plan" }),
+    }),
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
     email: z
@@ -99,12 +103,16 @@ const regions = [
 
 export function RegisterPage() {
   const { t } = useTranslation();
-  const { register: registerUser, user, isLoading } = useAuth();
+  const { register: registerUser, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 4; // Plan, Personal, Company, Confirmation
+  
+  // Get plan from URL params
+  const planFromUrl = searchParams.get('plan') as 'simple' | 'individual' | 'business' | null;
 
   const {
     register,
@@ -118,6 +126,7 @@ export function RegisterPage() {
     resolver: zodResolver(registerSchema),
     mode: "onChange",
     defaultValues: {
+      plan: planFromUrl || undefined,
       firstName: "",
       lastName: "",
       email: "",
@@ -161,32 +170,32 @@ export function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      // Register user
       await registerUser({
         email: data.email,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
+        role: "owner", // User registering is always owner
+      });
+      
+      // Save business data to localStorage for onboarding
+      localStorage.setItem('schedfy-pending-business', JSON.stringify({
+        plan: data.plan,
         businessName: data.businessName,
         businessType: data.businessType,
         region: data.region,
-        acceptTerms: true, // Add this required field
-        acceptMarketing: data.acceptMarketing,
-      });
+      }));
+      
       toast.success(
         t(
           "auth.registerSuccess",
-          "Account created successfully! Welcome to Schedfy!"
+          "Account created successfully! Let's set up your business."
         )
       );
 
-      // Navigate to appropriate dashboard based on user type
-      if (user) {
-        const dashboardRoute = getDashboardRoute(user);
-        navigate(dashboardRoute);
-      } else {
-        // Fallback to simple dashboard if user is not available yet
-        navigate("/simple/dashboard");
-      }
+      // Redirect to onboarding to create entity
+      navigate("/onboarding");
     } catch (err) {
       console.error("Registration error:", err);
       toast.error(
@@ -199,9 +208,13 @@ export function RegisterPage() {
     let fieldsToValidate: (keyof RegisterFormData)[] = [];
 
     if (currentStep === 1) {
-      fieldsToValidate = ["firstName", "lastName", "email"];
+      fieldsToValidate = ["plan"];
     } else if (currentStep === 2) {
+      fieldsToValidate = ["firstName", "lastName", "email"];
+    } else if (currentStep === 3) {
       fieldsToValidate = ["password", "confirmPassword"];
+    } else if (currentStep === 4) {
+      fieldsToValidate = ["businessName", "businessType", "region"];
     }
 
     const isStepValid = await trigger(fieldsToValidate);
@@ -220,6 +233,107 @@ export function RegisterPage() {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
+        // Plan Selection
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-semibold">Choose Your Plan</h3>
+              <p className="text-sm text-muted-foreground">
+                Select the plan that best fits your needs
+              </p>
+            </div>
+            
+            <Controller
+              name="plan"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Simple Plan */}
+                  <button
+                    type="button"
+                    onClick={() => field.onChange("simple")}
+                    className={`p-6 border-2 rounded-lg text-left transition-all ${
+                      field.value === "simple"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-lg">Simple</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Perfect for individual professionals
+                        </p>
+                        <p className="text-2xl font-bold mt-2">€9.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                      </div>
+                      {field.value === "simple" && (
+                        <CheckCircle2 className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Individual Plan */}
+                  <button
+                    type="button"
+                    onClick={() => field.onChange("individual")}
+                    className={`p-6 border-2 rounded-lg text-left transition-all relative ${
+                      field.value === "individual"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Badge className="absolute top-2 right-2">Popular</Badge>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-lg">Individual</h4>
+                        <p className="text-sm text-muted-foreground">
+                          For growing professionals
+                        </p>
+                        <p className="text-2xl font-bold mt-2">€19.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                      </div>
+                      {field.value === "individual" && (
+                        <CheckCircle2 className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Business Plan */}
+                  <button
+                    type="button"
+                    onClick={() => field.onChange("business")}
+                    className={`p-6 border-2 rounded-lg text-left transition-all ${
+                      field.value === "business"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-lg">Business</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Complete solution for teams
+                        </p>
+                        <p className="text-2xl font-bold mt-2">€49.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                      </div>
+                      {field.value === "business" && (
+                        <CheckCircle2 className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                  </button>
+                </div>
+              )}
+            />
+            
+            {errors.plan && (
+              <p className="text-sm text-destructive text-center">
+                {errors.plan.message}
+              </p>
+            )}
+          </div>
+        );
+
+      case 2:
+        // Personal Information
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -294,7 +408,8 @@ export function RegisterPage() {
           </div>
         );
 
-      case 2:
+      case 3:
+        // Password
         return (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -442,7 +557,8 @@ export function RegisterPage() {
           </div>
         );
 
-      case 3:
+      case 4:
+        // Business Information
         return (
           <div className="space-y-4">
             <div className="space-y-2">

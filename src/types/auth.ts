@@ -46,12 +46,13 @@ export interface RegisterData {
     lastName?: string;
     email: string;
     password: string;
+    role?: string;
     plan?: "simple" | "individual" | "business";
     businessName?: string;
     businessType?: string;
     region?: string;
     country?: "PT" | "BR" | "US";
-    acceptTerms: boolean;
+    acceptTerms?: boolean;
     acceptMarketing?: boolean;
 }
 
