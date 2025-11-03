@@ -73,7 +73,9 @@ interface PaymentSummary {
 }
 
 // Helper functions for payment status
-const getPaymentStatusVariant = (status: string): "default" | "secondary" | "destructive" => {
+const getPaymentStatusVariant = (
+  status: string
+): "default" | "secondary" | "destructive" => {
   if (status === "succeeded") return "default";
   if (status === "pending") return "secondary";
   return "destructive";
@@ -116,10 +118,10 @@ export default function IndividualPaymentManagement() {
     startDate: "",
     endDate: "",
   });
-  
+
   // Default currency for individual plan
   const defaultCurrency = "BRL";
-  
+
   const [formData, setFormData] = useState<CreatePaymentForm>({
     amount: "",
     currency: defaultCurrency,
@@ -149,7 +151,7 @@ export default function IndividualPaymentManagement() {
       if (filters.endDate) queryParams.append("endDate", filters.endDate);
 
       const response = await paymentsService.getIndividualPayments(
-        user?.entityId || '',
+        user?.entityId || "",
         Object.fromEntries(queryParams)
       );
       setPayments((response.data as any).payments || []);
@@ -172,7 +174,7 @@ export default function IndividualPaymentManagement() {
       if (filters.endDate) queryParams.append("endDate", filters.endDate);
 
       const response = await paymentsService.getIndividualSummary(
-        user?.entityId || '',
+        user?.entityId || "",
         Object.fromEntries(queryParams)
       );
       setSummary(response.data as any);
@@ -193,7 +195,7 @@ export default function IndividualPaymentManagement() {
       }
 
       await paymentsService.createIndividualPayment({
-        entityId: user?.entityId || '',
+        entityId: user?.entityId || "",
         amount: Number.parseFloat(formData.amount),
         currency: formData.currency,
         paymentMethod: formData.paymentMethod,
@@ -403,10 +405,7 @@ export default function IndividualPaymentManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatCurrency(
-                  summary.totalPaid,
-                  defaultCurrency
-                )}
+                {formatCurrency(summary.totalPaid, defaultCurrency)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {summary.totalTransactions} transações
@@ -421,10 +420,7 @@ export default function IndividualPaymentManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatCurrency(
-                  summary.totalPending,
-                  defaultCurrency
-                )}
+                {formatCurrency(summary.totalPending, defaultCurrency)}
               </div>
               <p className="text-xs text-muted-foreground">A receber</p>
             </CardContent>
@@ -442,10 +438,7 @@ export default function IndividualPaymentManagement() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {formatCurrency(
-                      Number(amount),
-                      defaultCurrency
-                    )}
+                    {formatCurrency(Number(amount), defaultCurrency)}
                   </div>
                 </CardContent>
               </Card>
