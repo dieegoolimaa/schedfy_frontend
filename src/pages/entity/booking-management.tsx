@@ -841,8 +841,8 @@ export function BookingManagementPage() {
                               ).toISOString()
                             : startDateTime;
                           try {
-                            const res = await bookingsService.checkSlotAvailability(
-                              {
+                            const res =
+                              await bookingsService.checkSlotAvailability({
                                 entityId,
                                 serviceId: slot.service,
                                 professionalId: slot.professional,
@@ -851,8 +851,7 @@ export function BookingManagementPage() {
                                 plan: user?.plan || "simple",
                                 allowConcurrentBookings:
                                   user?.plan === "business", // Default based on plan
-                              }
-                            );
+                              });
                             if (!res.data.available) {
                               allAvailable = false;
                               toast.error(

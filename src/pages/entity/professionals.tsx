@@ -77,7 +77,9 @@ export function ProfessionalsPage() {
     try {
       setLoading(true);
       console.log("[Professionals] Fetching with entityId:", entityId);
-      const response = await professionalsService.getProfessionals({ entityId });
+      const response = await professionalsService.getProfessionals({
+        entityId,
+      });
       console.log("[Professionals] API Response:", response);
       const professionalsData = Array.isArray(response.data)
         ? response.data

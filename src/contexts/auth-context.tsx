@@ -238,24 +238,13 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     try {
       dispatch({ type: "AUTH_LOADING" });
 
-      const regionMap: Record<string, "PT" | "BR" | "US"> = {
-        PT: "PT",
-        BR: "BR",
-        US: "US",
-        Portugal: "PT",
-        Brazil: "BR",
-        USA: "US",
-      };
-
-      const region = regionMap[data.region || data.country || "PT"] || "PT";
-
+      // Map data correctly to backend expectations
       const response = await authService.register({
-        name: data.name || data.firstName || "",
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
         email: data.email,
         password: data.password,
-        plan: data.plan || "simple",
-        role: "owner", // Default role for registration
-        region,
+        role: "professional", // Default role
       });
 
       if (!response.data) {

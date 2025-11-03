@@ -14,7 +14,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
-import { servicesService } from '../../services/services.service';
+import { servicesService } from "../../services/services.service";
 import {
   professionalsService,
   type Professional,

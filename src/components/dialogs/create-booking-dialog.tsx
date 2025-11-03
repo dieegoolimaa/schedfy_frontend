@@ -18,7 +18,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TimeSlotPicker } from "@/components/time-slot-picker";
-import { bookingsService, type TimeSlot } from '../../services/bookings.service';
+import {
+  bookingsService,
+  type TimeSlot,
+} from "../../services/bookings.service";
 import { toast } from "sonner";
 
 interface Service {

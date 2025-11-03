@@ -125,7 +125,9 @@ export function SimpleBookingsPage() {
   // Fetch professionals
   const fetchProfessionals = async () => {
     try {
-      const response = await professionalsService.getProfessionals({ entityId });
+      const response = await professionalsService.getProfessionals({
+        entityId,
+      });
       setProfessionals(response.data || []);
     } catch (error) {
       console.error("Failed to fetch professionals:", error);

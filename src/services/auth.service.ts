@@ -6,7 +6,7 @@ import { apiClient } from '../lib/api-client';
 import type { ApiResponse } from '../interfaces/common.interface';
 import type {
     LoginCredentials,
-    RegisterData,
+    RegisterPayload,
     RefreshTokenRequest,
     AuthUser,
     AuthResponseData,
@@ -39,7 +39,7 @@ export const authService = {
     /**
      * Register new user
      */
-    register: async (data: RegisterData): Promise<ApiResponse<AuthResponseData>> => {
+    register: async (data: RegisterPayload): Promise<ApiResponse<AuthResponseData>> => {
         const response = await apiClient.post<AuthResponseData>('/api/auth/register', data);
 
         // Store tokens
