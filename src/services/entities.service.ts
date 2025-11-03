@@ -9,9 +9,22 @@ import type {
     CompleteOnboardingDto,
 } from '../interfaces/entities.interface';
 
+// Re-export types
+export type { Entity, EntityProfile, CompleteOnboardingDto } from '../interfaces/entities.interface';
+
 export const entitiesService = {
     getProfile: async () => {
         return apiClient.get<EntityProfile>('/api/entities/profile');
+    },
+
+    // Alias for backward compatibility
+    getById: async (id: string) => {
+        return apiClient.get<Entity>(`/api/entities/${id}`);
+    },
+
+    // Alias for backward compatibility  
+    findByUsername: async (username: string) => {
+        return apiClient.get<Entity>(`/api/entities/username/${username}`);
     },
 
     updateProfile: async (data: Partial<EntityProfile>) => {
@@ -31,6 +44,14 @@ export const entitiesService = {
 
     uploadLogo: async (file: File) => {
         return apiClient.uploadFile('/api/entities/profile/logo', file);
+    },
+
+    // Alias for uploadLogo
+    uploadImage: async (file: File, type: 'logo' | 'banner') => {
+        if (type === 'logo') {
+            return entitiesService.uploadLogo(file);
+        }
+        return entitiesService.uploadCover(file);
     },
 
     uploadCover: async (file: File) => {

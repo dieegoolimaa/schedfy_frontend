@@ -14,11 +14,11 @@ import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
-import { servicesService } from "../services/services.service";
+import { servicesService } from '../../services/services.service';
 import {
   professionalsService,
   type Professional,
-} from "../services/professionals.service";
+} from "../../services/professionals.service";
 
 interface AssignProfessionalsDialogProps {
   serviceId: string;
@@ -52,9 +52,7 @@ export function AssignProfessionalsDialog({
   const loadProfessionals = async () => {
     try {
       setLoading(true);
-      const response = await professionalsService.getProfessionals({
-        entityId,
-      });
+      const response = await professionalsService.getByEntity(entityId);
       setProfessionals(response.data || []);
     } catch (error) {
       console.error("Failed to load professionals:", error);

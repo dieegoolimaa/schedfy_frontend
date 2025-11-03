@@ -10,6 +10,9 @@ import type {
     CreatePublicBookingRequest,
 } from '../interfaces/public.interface';
 
+// Re-export types (including PublicProfessional for external use)
+export type { PublicEntity, PublicService, PublicTimeSlot, PublicProfessional, CreatePublicBookingRequest } from '../interfaces/public.interface';
+
 export const publicService = {
     getEntityBySlug: async (slug: string) => {
         return apiClient.get<PublicEntity>(`/api/public/entity/${slug}`);

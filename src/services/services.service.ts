@@ -10,6 +10,9 @@ import type {
     ServiceFilters,
 } from '../interfaces/services.interface';
 
+// Re-export types
+export type { Service, CreateServiceDto, UpdateServiceDto, ServiceFilters } from '../interfaces/services.interface';
+
 export const servicesService = {
     getAll: async (params?: ServiceFilters) => {
         return apiClient.get<Service[]>('/api/services', params);

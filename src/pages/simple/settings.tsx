@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
-import { entitiesService, type Entity } from "../services/entities.service";
+import { entitiesService, type Entity } from "../../services/entities.service";
 import { toast } from "sonner";
 import {
   Card,

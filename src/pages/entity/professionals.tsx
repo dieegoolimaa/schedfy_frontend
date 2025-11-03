@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   professionalsService,
   Professional,
-} from "../services/professionals.service";
+} from "../../services/professionals.service";
 import {
   Card,
   CardContent,

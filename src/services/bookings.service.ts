@@ -12,6 +12,9 @@ import type {
     SlotAvailability,
 } from '../interfaces/bookings.interface';
 
+// Re-export types
+export type { Booking, CreateBookingDto, UpdateBookingDto, BookingFilters, TimeSlot, SlotAvailability } from '../interfaces/bookings.interface';
+
 export const bookingsService = {
     getAvailableSlots: async (params: {
         entityId: string;

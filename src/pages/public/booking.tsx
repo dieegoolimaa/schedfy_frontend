@@ -10,8 +10,8 @@ import {
   ArrowLeft,
   CheckCircle,
 } from "lucide-react";
-import { entitiesService, type Entity } from "../services/entities.service";
-import { servicesService, type Service } from "../services/services.service";
+import { entitiesService, type Entity } from "../../services/entities.service";
+import { servicesService, type Service } from "../../services/services.service";
 import { Button } from "../../components/ui/button";
 import {
   Card,

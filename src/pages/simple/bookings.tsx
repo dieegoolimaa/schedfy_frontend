@@ -70,7 +70,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
-import { professionalsService } from "../services/professionals.service";
+import { professionalsService } from "../../services/professionals.service";
 import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
 
 export function SimpleBookingsPage() {

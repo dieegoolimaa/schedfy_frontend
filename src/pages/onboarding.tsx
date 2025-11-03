@@ -80,7 +80,7 @@ export function OnboardingPage() {
         return;
       }
 
-      await entitiesService.completeOnboarding(user.entityId, {
+      await entitiesService.completeOnboarding({
         address: {
           street: formData.street,
           city: formData.city,

@@ -133,7 +133,7 @@ export function BusinessProfileManager({
     setCheckingUsername(true);
     try {
       const result = await entitiesService.checkUsername(username);
-      setUsernameAvailable(result.available);
+      setUsernameAvailable(result.data?.available ?? null);
     } catch (error) {
       console.error("Error checking username:", error);
       toast.error("Failed to check username availability");
@@ -211,7 +211,7 @@ export function BusinessProfileManager({
     try {
       // Don't send logo/banner in the profile update to avoid payload size issues
       // These should be uploaded separately via uploadImage
-      await entitiesService.updateProfile(entityId, {
+      await entitiesService.updateProfile({
         name: profileData.businessName,
         username: profileData.username,
         description: profileData.description,
