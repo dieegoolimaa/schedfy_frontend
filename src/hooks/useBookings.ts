@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { bookingsService, Booking, CreateBookingDto, UpdateBookingDto } from "../services/bookings.service';
+import { bookingsService } from "../services/bookings.service";
+import { Booking, CreateBookingDto, UpdateBookingDto } from "../interfaces/bookings.interface";
 import { toast } from 'sonner';
 
 interface UseBookingsOptions {

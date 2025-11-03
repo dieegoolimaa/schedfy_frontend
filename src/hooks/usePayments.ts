@@ -1,4 +1,4 @@
-import { paymentsService } from "../services/payments.service';
+import { paymentsService } from "../services/payments.service";
 import { toast } from 'sonner';
 
 export function usePayments() {

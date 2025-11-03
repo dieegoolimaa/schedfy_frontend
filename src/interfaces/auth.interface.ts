@@ -13,15 +13,14 @@ export interface RegisterData {
     name: string;
     role?: string;
     region?: string;
+    plan?: 'simple' | 'individual' | 'business';
 }
 
-export interface AuthResponse {
-    data: {
-        user: AuthUser;
-        access_token: string;
-        refresh_token?: string;
-    };
-    message?: string;
+export interface AuthResponseData {
+    user: AuthUser;
+    entity?: any;
+    access_token: string;
+    refresh_token?: string;
 }
 
 export interface AuthUser {
@@ -36,4 +35,9 @@ export interface AuthUser {
 
 export interface RefreshTokenRequest {
     refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+    access_token: string;
+    refresh_token: string;
 }

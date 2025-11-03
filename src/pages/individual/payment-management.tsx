@@ -49,7 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiClient } from "@/lib/api-client";
+import { paymentsService } from "../../services/payments.service";
 
 interface Payment {
   id: string;
@@ -71,6 +71,19 @@ interface PaymentSummary {
   totalPending: number;
   byPaymentMethod: Record<string, number>;
 }
+
+// Helper functions for payment status
+const getPaymentStatusVariant = (status: string): "default" | "secondary" | "destructive" => {
+  if (status === "succeeded") return "default";
+  if (status === "pending") return "secondary";
+  return "destructive";
+};
+
+const getPaymentStatusLabel = (status: string): string => {
+  if (status === "succeeded") return "Pago";
+  if (status === "pending") return "Pendente";
+  return "Falhou";
+};
 
 interface CreatePaymentForm {
   amount: string;
@@ -103,9 +116,13 @@ export default function IndividualPaymentManagement() {
     startDate: "",
     endDate: "",
   });
+  
+  // Default currency for individual plan
+  const defaultCurrency = "BRL";
+  
   const [formData, setFormData] = useState<CreatePaymentForm>({
     amount: "",
-    currency: user?.entity?.currency || "BRL",
+    currency: defaultCurrency,
     paymentMethod: "cash",
     description: "",
     notes: "",
@@ -131,10 +148,11 @@ export default function IndividualPaymentManagement() {
       if (filters.startDate) queryParams.append("startDate", filters.startDate);
       if (filters.endDate) queryParams.append("endDate", filters.endDate);
 
-      const response = await apiClient.get(
-        `/payments/individual/${user?.entityId}?${queryParams}`
+      const response = await paymentsService.getIndividualPayments(
+        user?.entityId || '',
+        Object.fromEntries(queryParams)
       );
-      setPayments(response.data.payments || []);
+      setPayments((response.data as any).payments || []);
     } catch (error) {
       console.error("Error loading payments:", error);
       toast({
@@ -153,10 +171,11 @@ export default function IndividualPaymentManagement() {
       if (filters.startDate) queryParams.append("startDate", filters.startDate);
       if (filters.endDate) queryParams.append("endDate", filters.endDate);
 
-      const response = await apiClient.get(
-        `/payments/individual/${user?.entityId}/summary?${queryParams}`
+      const response = await paymentsService.getIndividualSummary(
+        user?.entityId || '',
+        Object.fromEntries(queryParams)
       );
-      setSummary(response.data);
+      setSummary(response.data as any);
     } catch (error) {
       console.error("Error loading summary:", error);
     }
@@ -164,7 +183,7 @@ export default function IndividualPaymentManagement() {
 
   const handleCreatePayment = async () => {
     try {
-      if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      if (!formData.amount || Number.parseFloat(formData.amount) <= 0) {
         toast({
           title: "Erro",
           description: "Informe um valor válido",
@@ -173,9 +192,9 @@ export default function IndividualPaymentManagement() {
         return;
       }
 
-      await apiClient.post("/payments/individual", {
-        entityId: user?.entityId,
-        amount: parseFloat(formData.amount),
+      await paymentsService.createIndividualPayment({
+        entityId: user?.entityId || '',
+        amount: Number.parseFloat(formData.amount),
         currency: formData.currency,
         paymentMethod: formData.paymentMethod,
         description: formData.description,
@@ -191,7 +210,7 @@ export default function IndividualPaymentManagement() {
       setIsDialogOpen(false);
       setFormData({
         amount: "",
-        currency: user?.entity?.currency || "BRL",
+        currency: defaultCurrency,
         paymentMethod: "cash",
         description: "",
         notes: "",
@@ -247,8 +266,8 @@ export default function IndividualPaymentManagement() {
 
     const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const url = globalThis.URL.createObjectURL(blob);
+    const a = globalThis.document.createElement("a");
     a.href = url;
     a.download = `pagamentos-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
@@ -386,7 +405,7 @@ export default function IndividualPaymentManagement() {
               <div className="text-2xl font-bold">
                 {formatCurrency(
                   summary.totalPaid,
-                  user?.entity?.currency || "BRL"
+                  defaultCurrency
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -404,7 +423,7 @@ export default function IndividualPaymentManagement() {
               <div className="text-2xl font-bold">
                 {formatCurrency(
                   summary.totalPending,
-                  user?.entity?.currency || "BRL"
+                  defaultCurrency
                 )}
               </div>
               <p className="text-xs text-muted-foreground">A receber</p>
@@ -424,8 +443,8 @@ export default function IndividualPaymentManagement() {
                 <CardContent>
                   <div className="text-2xl font-bold">
                     {formatCurrency(
-                      amount as number,
-                      user?.entity?.currency || "BRL"
+                      Number(amount),
+                      defaultCurrency
                     )}
                   </div>
                 </CardContent>
@@ -564,20 +583,8 @@ export default function IndividualPaymentManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          payment.status === "succeeded"
-                            ? "default"
-                            : payment.status === "pending"
-                            ? "secondary"
-                            : "destructive"
-                        }
-                      >
-                        {payment.status === "succeeded"
-                          ? "Pago"
-                          : payment.status === "pending"
-                          ? "Pendente"
-                          : "Falhou"}
+                      <Badge variant={getPaymentStatusVariant(payment.status)}>
+                        {getPaymentStatusLabel(payment.status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right font-medium">

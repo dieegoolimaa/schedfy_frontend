@@ -1,4 +1,4 @@
-import { ApiResponse, ApiError } from '../../types/api';
+import { ApiResponse, ApiError } from '../interfaces/common.interface';
 
 // In development, use empty string to leverage Vite proxy
 // In production, use the full API URL from env variable
@@ -59,12 +59,10 @@ export class ApiClient {
         }
 
         if (!response.ok) {
-            const error: ApiError = {
-                message: data.message || data.error || 'An error occurred',
-                statusCode: response.status,
-                error: data.error,
-                errors: data.errors,
-            };
+            const error = new Error(data.message || data.error || 'An error occurred') as ApiError;
+            error.statusCode = response.status;
+            error.error = data.error;
+            error.errors = data.errors;
             throw error;
         }
 
@@ -109,11 +107,10 @@ export class ApiClient {
             }
 
             // Handle network errors
-            throw {
-                message: error.message || 'Network error occurred',
-                statusCode: 0,
-                error: 'NetworkError',
-            } as ApiError;
+            const networkError = new Error(error.message || 'Network error occurred') as ApiError;
+            networkError.statusCode = 0;
+            networkError.error = 'NetworkError';
+            throw networkError;
         }
     }
 
@@ -122,11 +119,11 @@ export class ApiClient {
 
         if (params) {
             const searchParams = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries(params)) {
                 if (value !== undefined && value !== null) {
                     searchParams.append(key, String(value));
                 }
-            });
+            }
             const queryString = searchParams.toString();
             if (queryString) {
                 url += `?${queryString}`;
@@ -170,9 +167,9 @@ export class ApiClient {
         formData.append('file', file);
 
         if (additionalData) {
-            Object.entries(additionalData).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries(additionalData)) {
                 formData.append(key, String(value));
-            });
+            }
         }
 
         const token = this.getAuthToken();
@@ -192,11 +189,10 @@ export class ApiClient {
             if (error.statusCode) {
                 throw error;
             }
-            throw {
-                message: error.message || 'File upload failed',
-                statusCode: 0,
-                error: 'UploadError',
-            } as ApiError;
+            const uploadError = new Error(error.message || 'File upload failed') as ApiError;
+            uploadError.statusCode = 0;
+            uploadError.error = 'UploadError';
+            throw uploadError;
         }
     }
 }

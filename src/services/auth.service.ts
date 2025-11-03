@@ -3,30 +3,33 @@
  */
 
 import { apiClient } from '../lib/api-client';
+import type { ApiResponse } from '../interfaces/common.interface';
 import type {
     LoginCredentials,
     RegisterData,
     RefreshTokenRequest,
-    AuthUser
+    AuthUser,
+    AuthResponseData,
+    RefreshTokenResponse
 } from '../interfaces/auth.interface';
 
 export const authService = {
     /**
      * Login with email and password
      */
-    login: async (credentials: LoginCredentials) => {
-        const response = await apiClient.post('/api/auth/login', credentials);
+    login: async (credentials: LoginCredentials): Promise<ApiResponse<AuthResponseData>> => {
+        const response = await apiClient.post<AuthResponseData>('/api/auth/login', credentials);
 
         // Store tokens
-        if (response.data.access_token) {
+        if (response.data?.access_token) {
             localStorage.setItem('schedfy-token', response.data.access_token);
             localStorage.setItem('schedfy-access-token', response.data.access_token);
         }
-        if (response.data.refresh_token) {
+        if (response.data?.refresh_token) {
             localStorage.setItem('schedfy-refresh-token', response.data.refresh_token);
         }
         // Store user data
-        if (response.data.user) {
+        if (response.data?.user) {
             localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
         }
 
@@ -36,19 +39,19 @@ export const authService = {
     /**
      * Register new user
      */
-    register: async (data: RegisterData) => {
-        const response = await apiClient.post('/api/auth/register', data);
+    register: async (data: RegisterData): Promise<ApiResponse<AuthResponseData>> => {
+        const response = await apiClient.post<AuthResponseData>('/api/auth/register', data);
 
         // Store tokens
-        if (response.data.access_token) {
+        if (response.data?.access_token) {
             localStorage.setItem('schedfy-token', response.data.access_token);
             localStorage.setItem('schedfy-access-token', response.data.access_token);
         }
-        if (response.data.refresh_token) {
+        if (response.data?.refresh_token) {
             localStorage.setItem('schedfy-refresh-token', response.data.refresh_token);
         }
         // Store user data
-        if (response.data.user) {
+        if (response.data?.user) {
             localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
         }
 
@@ -58,18 +61,18 @@ export const authService = {
     /**
      * Get current user profile
      */
-    getProfile: async () => {
-        return await apiClient.get('/api/auth/profile');
+    getProfile: async (): Promise<ApiResponse<AuthUser>> => {
+        return await apiClient.get<AuthUser>('/api/auth/profile');
     },
 
     /**
      * Refresh authentication token
      */
-    refreshToken: async (refreshToken: string) => {
+    refreshToken: async (refreshToken: string): Promise<ApiResponse<RefreshTokenResponse>> => {
         const payload: RefreshTokenRequest = { refreshToken };
-        const response = await apiClient.post('/api/auth/refresh', payload);
+        const response = await apiClient.post<RefreshTokenResponse>('/api/auth/refresh', payload);
 
-        if (response.data.access_token) {
+        if (response.data?.access_token) {
             localStorage.setItem('schedfy-token', response.data.access_token);
             localStorage.setItem('schedfy-access-token', response.data.access_token);
         }

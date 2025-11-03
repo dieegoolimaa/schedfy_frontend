@@ -70,4 +70,26 @@ export const paymentsService = {
             paymentMethodId,
         });
     },
+
+    // Individual plan payments
+    getIndividualPayments: async (entityId: string, params?: Record<string, string>) => {
+        return apiClient.get(`/payments/individual/${entityId}`, params);
+    },
+
+    getIndividualSummary: async (entityId: string, params?: Record<string, string>) => {
+        return apiClient.get(`/payments/individual/${entityId}/summary`, params);
+    },
+
+    createIndividualPayment: async (data: {
+        entityId: string;
+        amount: number;
+        currency: string;
+        paymentMethod: string;
+        description: string;
+        notes?: string;
+        paidAt: string;
+        bookingId?: string;
+    }) => {
+        return apiClient.post('/payments/individual', data);
+    },
 };

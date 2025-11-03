@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { servicesService, Service, CreateServiceDto, UpdateServiceDto } from "../services/services.service';
+import { servicesService } from "../services/services.service";
+import { Service, CreateServiceDto, UpdateServiceDto } from "../interfaces/services.interface";
 import { toast } from 'sonner';
 
 interface UseServicesOptions {

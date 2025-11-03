@@ -36,4 +36,16 @@ export const usersService = {
     deleteUser: async (id: string): Promise<void> => {
         await apiClient.delete(`/api/users/${id}`);
     },
+
+    /**
+     * Accept invitation
+     */
+    acceptInvitation: async (data: {
+        token: string;
+        password: string;
+        firstName: string;
+        lastName: string;
+    }) => {
+        return await apiClient.post('/api/users/accept-invitation', data);
+    },
 };

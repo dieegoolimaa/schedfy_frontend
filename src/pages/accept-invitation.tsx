@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
+import { usersService } from "../services/users.service";
 
 export function AcceptInvitationPage() {
   const [searchParams] = useSearchParams();
@@ -48,7 +48,7 @@ export function AcceptInvitationPage() {
 
     setLoading(true);
     try {
-      const response = await apiClient.post("/api/users/accept-invitation", {
+      const response = await usersService.acceptInvitation({
         token,
         password: formData.password,
         firstName: formData.firstName,
