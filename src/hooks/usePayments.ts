@@ -1,11 +1,12 @@
 import { paymentsService } from "../services/payments.service";
 import { toast } from 'sonner';
+import type { CreateCheckoutSessionRequest } from "../interfaces/payments.interface";
 
 export function usePayments() {
-    const createCheckoutSession = async (bookingId: string, successUrl?: string) => {
+    const createCheckoutSession = async (data: CreateCheckoutSessionRequest) => {
         try {
-            const res = await paymentsService.createCheckoutSession(bookingId, successUrl);
-            return res.data; // { url }
+            const res = await paymentsService.createCheckoutSession(data);
+            return res.data;
         } catch (err: any) {
             const msg = err?.message || 'Failed to create checkout session';
             toast.error(msg);
@@ -13,10 +14,17 @@ export function usePayments() {
         }
     };
 
-    const createPaymentIntent = async (bookingId: string) => {
+    const createPaymentIntent = async (data: {
+        amount: number;
+        currency?: string;
+        bookingId?: string;
+        clientId?: string;
+        entityId: string;
+        description?: string;
+    }) => {
         try {
-            const res = await paymentsService.createPaymentIntent(bookingId);
-            return res.data; // { clientSecret }
+            const res = await paymentsService.createPaymentIntent(data);
+            return res.data;
         } catch (err: any) {
             const msg = err?.message || 'Failed to create payment intent';
             toast.error(msg);

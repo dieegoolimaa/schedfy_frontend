@@ -41,7 +41,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
                 response = await bookingsService.getByService(serviceId);
             }
 
-            if (response) {
+            if (response?.data) {
                 setBookings(response.data);
             }
         } catch (err: any) {
@@ -65,7 +65,9 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setError(null);
 
             const response = await bookingsService.getByDateRange(entityId, startDate, endDate);
-            setBookings(response.data);
+            if (response.data) {
+                setBookings(response.data);
+            }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load bookings';
             setError(errorMessage);
@@ -82,7 +84,9 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setError(null);
 
             const response = await bookingsService.create(data);
-            setBookings(prev => [...prev, response.data]);
+            if (response.data) {
+                setBookings(prev => [...prev, response.data!]);
+            }
 
             toast.success('Booking created successfully!');
             return response.data;
@@ -110,9 +114,11 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setError(null);
 
             const response = await bookingsService.update(id, data);
-            setBookings(prev => prev.map(booking =>
-                booking.id === id ? response.data : booking
-            ));
+            if (response.data) {
+                setBookings(prev => prev.map(booking =>
+                    booking.id === id ? response.data! : booking
+                ));
+            }
 
             toast.success('Booking updated successfully!');
             return response.data;
@@ -133,9 +139,11 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setError(null);
 
             const response = await bookingsService.cancel(id, reason);
-            setBookings(prev => prev.map(booking =>
-                booking.id === id ? response.data : booking
-            ));
+            if (response.data) {
+                setBookings(prev => prev.map(booking =>
+                    booking.id === id ? response.data! : booking
+                ));
+            }
 
             toast.success('Booking cancelled successfully');
             return response.data;
@@ -156,9 +164,11 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setError(null);
 
             const response = await bookingsService.confirm(id);
-            setBookings(prev => prev.map(booking =>
-                booking.id === id ? response.data : booking
-            ));
+            if (response.data) {
+                setBookings(prev => prev.map(booking =>
+                    booking.id === id ? response.data! : booking
+                ));
+            }
 
             toast.success('Booking confirmed!');
             return response.data;
@@ -179,9 +189,11 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setError(null);
 
             const response = await bookingsService.complete(id);
-            setBookings(prev => prev.map(booking =>
-                booking.id === id ? response.data : booking
-            ));
+            if (response.data) {
+                setBookings(prev => prev.map(booking =>
+                    booking.id === id ? response.data! : booking
+                ));
+            }
 
             toast.success('Booking marked as completed');
             return response.data;
@@ -202,9 +214,11 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setError(null);
 
             const response = await bookingsService.markNoShow(id);
-            setBookings(prev => prev.map(booking =>
-                booking.id === id ? response.data : booking
-            ));
+            if (response.data) {
+                setBookings(prev => prev.map(booking =>
+                    booking.id === id ? response.data! : booking
+                ));
+            }
 
             toast.success('Booking marked as no-show');
             return response.data;

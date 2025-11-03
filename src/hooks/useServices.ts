@@ -66,7 +66,9 @@ export function useServices(options: UseServicesOptions = {}) {
             setError(null);
 
             const response = await servicesService.getByEntity(entityId);
-            setServices(response.data.map(transformService));
+            if (response.data) {
+                setServices(response.data.map(transformService));
+            }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load services';
             setError(errorMessage);
@@ -88,7 +90,9 @@ export function useServices(options: UseServicesOptions = {}) {
             setError(null);
 
             const response = await servicesService.getActiveByEntity(entityId);
-            setServices(response.data.map(transformService));
+            if (response.data) {
+                setServices(response.data.map(transformService));
+            }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load active services';
             setError(errorMessage);
@@ -198,9 +202,11 @@ export function useServices(options: UseServicesOptions = {}) {
             await servicesService.assignProfessional(serviceId, professionalId);
             // Refresh the specific service
             const response = await servicesService.getById(serviceId);
-            setServices(prev => prev.map(service =>
-                service.id === serviceId ? response.data : service
-            ));
+            if (response.data) {
+                setServices(prev => prev.map(service =>
+                    service.id === serviceId ? response.data! : service
+                ));
+            }
 
             toast.success('Professional assigned successfully!');
         } catch (err: any) {

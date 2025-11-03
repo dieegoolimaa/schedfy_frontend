@@ -27,7 +27,9 @@ export function useClients(options: UseClientsOptions = {}) {
             setError(null);
 
             const response = await clientsService.getByEntity(entityId);
-            setClients(response.data);
+            if (response.data) {
+                setClients(response.data);
+            }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load clients';
             setError(errorMessage);
@@ -49,7 +51,9 @@ export function useClients(options: UseClientsOptions = {}) {
             setError(null);
 
             const response = await clientsService.search(entityId, query);
-            setClients(response.data);
+            if (response.data) {
+                setClients(response.data);
+            }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to search clients';
             setError(errorMessage);
@@ -96,7 +100,9 @@ export function useClients(options: UseClientsOptions = {}) {
             setError(null);
 
             const response = await clientsService.create(data);
-            setClients(prev => [...prev, response.data]);
+            if (response.data) {
+                setClients(prev => [...prev, response.data!]);
+            }
 
             toast.success('Client created successfully!');
             return response.data;
@@ -117,9 +123,11 @@ export function useClients(options: UseClientsOptions = {}) {
             setError(null);
 
             const response = await clientsService.update(id, data);
-            setClients(prev => prev.map(client =>
-                client.id === id ? response.data : client
-            ));
+            if (response.data) {
+                setClients(prev => prev.map(client =>
+                    client.id === id ? response.data! : client
+                ));
+            }
 
             toast.success('Client updated successfully!');
             return response.data;
@@ -160,9 +168,11 @@ export function useClients(options: UseClientsOptions = {}) {
             setError(null);
 
             const response = await clientsService.addTags(id, tags);
-            setClients(prev => prev.map(client =>
-                client.id === id ? response.data : client
-            ));
+            if (response.data) {
+                setClients(prev => prev.map(client =>
+                    client.id === id ? response.data! : client
+                ));
+            }
 
             toast.success('Tags added successfully');
             return response.data;
@@ -183,9 +193,11 @@ export function useClients(options: UseClientsOptions = {}) {
             setError(null);
 
             const response = await clientsService.removeTags(id, tags);
-            setClients(prev => prev.map(client =>
-                client.id === id ? response.data : client
-            ));
+            if (response.data) {
+                setClients(prev => prev.map(client =>
+                    client.id === id ? response.data! : client
+                ));
+            }
 
             toast.success('Tags removed successfully');
             return response.data;
