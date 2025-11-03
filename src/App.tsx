@@ -82,25 +82,26 @@ import { OnboardingGuard } from "./components/auth/onboarding-guard";
 import { DashboardRedirect } from "./components/auth/dashboard-redirect";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/auth-context";
+import { RegionProvider } from "./contexts/region-context";
 import { FeatureFlagsProvider } from "./contexts/feature-flags-context";
 
 function App() {
   const { i18n } = useTranslation();
 
   useEffect(() => {
-    // Detect user's locale and set the appropriate language
-    const detectedLocale = navigator.language.split("-")[0];
-    const supportedLocales = ["en", "pt"];
-    const locale = supportedLocales.includes(detectedLocale)
-      ? detectedLocale
-      : "en";
-    i18n.changeLanguage(locale);
+    // Region detection is now handled by RegionProvider
+    // Keep this for backward compatibility with manual locale changes
+    const storedLocale = localStorage.getItem('schedfy-locale');
+    if (storedLocale && i18n.language !== storedLocale) {
+      i18n.changeLanguage(storedLocale);
+    }
   }, [i18n]);
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="schedfy-ui-theme">
-      <AuthProvider>
-        <FeatureFlagsProvider>
+      <RegionProvider>
+        <AuthProvider>
+          <FeatureFlagsProvider>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
@@ -566,6 +567,7 @@ function App() {
           </Routes>
         </FeatureFlagsProvider>
       </AuthProvider>
+      </RegionProvider>
     </ThemeProvider>
   );
 }

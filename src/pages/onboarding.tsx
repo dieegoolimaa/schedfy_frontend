@@ -37,30 +37,36 @@ export function OnboardingPage() {
   // Check for pending business data from registration
   useEffect(() => {
     const createEntityFromPendingData = async () => {
-      const pendingData = localStorage.getItem('schedfy-pending-business');
+      const pendingData = localStorage.getItem("schedfy-pending-business");
       if (!pendingData || user?.entityId) return; // Skip if already has entity
 
       setIsCreatingEntity(true);
       try {
         const businessData = JSON.parse(pendingData);
-        
-        // Create entity with business data
-        const response = await apiClient.post('/api/entities', {
+
+        // Create entity with business data - using correct field names
+        const response = await apiClient.post("/api/entities", {
           name: businessData.businessName,
           email: user?.email,
           plan: businessData.plan,
           businessType: businessData.businessType,
-          region: businessData.region,
+          region: businessData.region, // PT, BR, US
+          country: businessData.country, // Full country name
+          timezone: businessData.timezone,
+          locale: businessData.locale,
+          currency: businessData.currency,
           ownerId: user?.id,
         });
 
         // Update user's entityId
         if (response.data?.id) {
           // Clear pending data
-          localStorage.removeItem('schedfy-pending-business');
-          
-          toast.success("Business created successfully! Let's complete your setup.");
-          
+          localStorage.removeItem("schedfy-pending-business");
+
+          toast.success(
+            "Business created successfully! Let's complete your setup."
+          );
+
           // Reload user data
           globalThis.location.reload();
         }
@@ -249,7 +255,9 @@ export function OnboardingPage() {
             <div className="flex flex-col items-center justify-center space-y-4 py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               <div className="text-center space-y-2">
-                <h3 className="text-lg font-semibold">Setting up your business...</h3>
+                <h3 className="text-lg font-semibold">
+                  Setting up your business...
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Please wait while we create your business account
                 </p>
@@ -259,349 +267,367 @@ export function OnboardingPage() {
         </Card>
       ) : (
         <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              {currentStep === 1 && <MapPin className="h-5 w-5 text-primary" />}
-              {currentStep === 2 && <Clock className="h-5 w-5 text-primary" />}
-              {currentStep === 3 && (
-                <Briefcase className="h-5 w-5 text-primary" />
-              )}
-              <CardTitle>Complete a configuração do seu negócio</CardTitle>
-            </div>
-            <span className="text-sm text-muted-foreground">
-              Etapa {currentStep} de {totalSteps}
-            </span>
-          </div>
-          <CardDescription>
-            {currentStep === 1 && "Vamos começar com o endereço do seu negócio"}
-            {currentStep === 2 &&
-              "Configure suas informações de contato e horários"}
-            {currentStep === 3 && "Crie seu primeiro serviço (opcional)"}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <Progress value={(currentStep / totalSteps) * 100} className="mb-6" />
-
-          <form onSubmit={handleSubmit}>
-            {/* Step 1: Address */}
-            {currentStep === 1 && (
-              <div className="space-y-4 animate-in fade-in-50 duration-500">
-                <div className="space-y-2">
-                  <Label htmlFor="street">Endereço *</Label>
-                  <Input
-                    id="street"
-                    placeholder="Rua das Flores, 123"
-                    value={formData.street}
-                    onChange={(e) =>
-                      setFormData({ ...formData, street: e.target.value })
-                    }
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">Cidade *</Label>
-                    <Input
-                      id="city"
-                      placeholder="São Paulo"
-                      value={formData.city}
-                      onChange={(e) =>
-                        setFormData({ ...formData, city: e.target.value })
-                      }
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">Estado *</Label>
-                    <Input
-                      id="state"
-                      placeholder="SP"
-                      value={formData.state}
-                      onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value })
-                      }
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="zipCode">CEP *</Label>
-                    <Input
-                      id="zipCode"
-                      placeholder="01310-100"
-                      value={formData.zipCode}
-                      onChange={(e) =>
-                        setFormData({ ...formData, zipCode: e.target.value })
-                      }
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">País</Label>
-                    <Input
-                      id="country"
-                      value={
-                        formData.country === "BR"
-                          ? "Brasil"
-                          : formData.country === "PT"
-                          ? "Portugal"
-                          : "Estados Unidos"
-                      }
-                      disabled
-                    />
-                  </div>
-                </div>
+          <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {currentStep === 1 && (
+                  <MapPin className="h-5 w-5 text-primary" />
+                )}
+                {currentStep === 2 && (
+                  <Clock className="h-5 w-5 text-primary" />
+                )}
+                {currentStep === 3 && (
+                  <Briefcase className="h-5 w-5 text-primary" />
+                )}
+                <CardTitle>Complete a configuração do seu negócio</CardTitle>
               </div>
-            )}
+              <span className="text-sm text-muted-foreground">
+                Etapa {currentStep} de {totalSteps}
+              </span>
+            </div>
+            <CardDescription>
+              {currentStep === 1 &&
+                "Vamos começar com o endereço do seu negócio"}
+              {currentStep === 2 &&
+                "Configure suas informações de contato e horários"}
+              {currentStep === 3 && "Crie seu primeiro serviço (opcional)"}
+            </CardDescription>
+          </CardHeader>
 
-            {/* Step 2: Contact & Hours */}
-            {currentStep === 2 && (
-              <div className="space-y-6 animate-in fade-in-50 duration-500">
-                <div className="space-y-4">
-                  <h3 className="font-medium">Informações de contato</h3>
+          <CardContent>
+            <Progress
+              value={(currentStep / totalSteps) * 100}
+              className="mb-6"
+            />
+
+            <form onSubmit={handleSubmit}>
+              {/* Step 1: Address */}
+              {currentStep === 1 && (
+                <div className="space-y-4 animate-in fade-in-50 duration-500">
+                  <div className="space-y-2">
+                    <Label htmlFor="street">Endereço *</Label>
+                    <Input
+                      id="street"
+                      placeholder="Rua das Flores, 123"
+                      value={formData.street}
+                      onChange={(e) =>
+                        setFormData({ ...formData, street: e.target.value })
+                      }
+                      disabled={isLoading}
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Telefone *</Label>
+                      <Label htmlFor="city">Cidade *</Label>
                       <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="(11) 98765-4321"
-                        value={formData.phone}
+                        id="city"
+                        placeholder="São Paulo"
+                        value={formData.city}
                         onChange={(e) =>
-                          setFormData({ ...formData, phone: e.target.value })
+                          setFormData({ ...formData, city: e.target.value })
                         }
                         disabled={isLoading}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="whatsapp">WhatsApp (opcional)</Label>
+                      <Label htmlFor="state">Estado *</Label>
                       <Input
-                        id="whatsapp"
-                        type="tel"
-                        placeholder="(11) 98765-4321"
-                        value={formData.whatsapp}
+                        id="state"
+                        placeholder="SP"
+                        value={formData.state}
                         onChange={(e) =>
-                          setFormData({ ...formData, whatsapp: e.target.value })
+                          setFormData({ ...formData, state: e.target.value })
                         }
                         disabled={isLoading}
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <h3 className="font-medium">Horário de funcionamento</h3>
-                  <div className="space-y-3">
-                    {Object.entries(formData.businessHours).map(
-                      ([day, hours]) => {
-                        const dayNames: Record<string, string> = {
-                          monday: "Segunda",
-                          tuesday: "Terça",
-                          wednesday: "Quarta",
-                          thursday: "Quinta",
-                          friday: "Sexta",
-                          saturday: "Sábado",
-                          sunday: "Domingo",
-                        };
-
-                        return (
-                          <div key={day} className="flex items-center gap-3">
-                            <div className="w-24 text-sm">{dayNames[day]}</div>
-                            <div className="flex items-center gap-2 flex-1">
-                              <Input
-                                type="time"
-                                value={hours.open}
-                                onChange={(e) =>
-                                  updateBusinessHours(
-                                    day as keyof typeof formData.businessHours,
-                                    "open",
-                                    e.target.value
-                                  )
-                                }
-                                disabled={hours.closed || isLoading}
-                                className="w-32"
-                              />
-                              <span className="text-muted-foreground">às</span>
-                              <Input
-                                type="time"
-                                value={hours.close}
-                                onChange={(e) =>
-                                  updateBusinessHours(
-                                    day as keyof typeof formData.businessHours,
-                                    "close",
-                                    e.target.value
-                                  )
-                                }
-                                disabled={hours.closed || isLoading}
-                                className="w-32"
-                              />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                id={`${day}-closed`}
-                                checked={hours.closed}
-                                onCheckedChange={() =>
-                                  toggleDayOff(
-                                    day as keyof typeof formData.businessHours
-                                  )
-                                }
-                                disabled={isLoading}
-                              />
-                              <Label
-                                htmlFor={`${day}-closed`}
-                                className="text-sm cursor-pointer"
-                              >
-                                Fechado
-                              </Label>
-                            </div>
-                          </div>
-                        );
-                      }
-                    )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="zipCode">CEP *</Label>
+                      <Input
+                        id="zipCode"
+                        placeholder="01310-100"
+                        value={formData.zipCode}
+                        onChange={(e) =>
+                          setFormData({ ...formData, zipCode: e.target.value })
+                        }
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="country">País</Label>
+                      <Input
+                        id="country"
+                        value={
+                          formData.country === "BR"
+                            ? "Brasil"
+                            : formData.country === "PT"
+                            ? "Portugal"
+                            : "Estados Unidos"
+                        }
+                        disabled
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Step 3: First Service */}
-            {currentStep === 3 && (
-              <div className="space-y-4 animate-in fade-in-50 duration-500">
-                <div className="mb-4 p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Criar seu primeiro serviço é opcional, mas recomendado para
-                    começar rapidamente. Você pode adicionar mais serviços
-                    depois no seu painel.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="serviceName">Nome do serviço</Label>
-                  <Input
-                    id="serviceName"
-                    placeholder="Ex: Corte de cabelo, Massagem, Consulta"
-                    value={formData.serviceName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, serviceName: e.target.value })
-                    }
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="serviceDuration">Duração (minutos)</Label>
-                    <Input
-                      id="serviceDuration"
-                      type="number"
-                      min="15"
-                      step="15"
-                      placeholder="60"
-                      value={formData.serviceDuration}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          serviceDuration: parseInt(e.target.value) || 60,
-                        })
-                      }
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="servicePrice">
-                      Preço ({entity?.name ? "R$" : "$"})
-                    </Label>
-                    <Input
-                      id="servicePrice"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="50.00"
-                      value={formData.servicePrice}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          servicePrice: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="serviceDescription">
-                    Descrição (opcional)
-                  </Label>
-                  <Input
-                    id="serviceDescription"
-                    placeholder="Breve descrição do serviço"
-                    value={formData.serviceDescription}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        serviceDescription: e.target.value,
-                      })
-                    }
-                    disabled={isLoading}
-                  />
-                </div>
-
-                {formData.serviceName && (
-                  <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-green-900 dark:text-green-100">
-                          Pré-visualização do serviço
-                        </p>
-                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                          {formData.serviceName} • {formData.serviceDuration}{" "}
-                          min • {entity?.name ? "R$" : "$"}
-                          {formData.servicePrice.toFixed(2)}
-                        </p>
+              {/* Step 2: Contact & Hours */}
+              {currentStep === 2 && (
+                <div className="space-y-6 animate-in fade-in-50 duration-500">
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Informações de contato</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Telefone *</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="(11) 98765-4321"
+                          value={formData.phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="whatsapp">WhatsApp (opcional)</Label>
+                        <Input
+                          id="whatsapp"
+                          type="tel"
+                          placeholder="(11) 98765-4321"
+                          value={formData.whatsapp}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              whatsapp: e.target.value,
+                            })
+                          }
+                          disabled={isLoading}
+                        />
                       </div>
                     </div>
                   </div>
-                )}
+
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Horário de funcionamento</h3>
+                    <div className="space-y-3">
+                      {Object.entries(formData.businessHours).map(
+                        ([day, hours]) => {
+                          const dayNames: Record<string, string> = {
+                            monday: "Segunda",
+                            tuesday: "Terça",
+                            wednesday: "Quarta",
+                            thursday: "Quinta",
+                            friday: "Sexta",
+                            saturday: "Sábado",
+                            sunday: "Domingo",
+                          };
+
+                          return (
+                            <div key={day} className="flex items-center gap-3">
+                              <div className="w-24 text-sm">
+                                {dayNames[day]}
+                              </div>
+                              <div className="flex items-center gap-2 flex-1">
+                                <Input
+                                  type="time"
+                                  value={hours.open}
+                                  onChange={(e) =>
+                                    updateBusinessHours(
+                                      day as keyof typeof formData.businessHours,
+                                      "open",
+                                      e.target.value
+                                    )
+                                  }
+                                  disabled={hours.closed || isLoading}
+                                  className="w-32"
+                                />
+                                <span className="text-muted-foreground">
+                                  às
+                                </span>
+                                <Input
+                                  type="time"
+                                  value={hours.close}
+                                  onChange={(e) =>
+                                    updateBusinessHours(
+                                      day as keyof typeof formData.businessHours,
+                                      "close",
+                                      e.target.value
+                                    )
+                                  }
+                                  disabled={hours.closed || isLoading}
+                                  className="w-32"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`${day}-closed`}
+                                  checked={hours.closed}
+                                  onCheckedChange={() =>
+                                    toggleDayOff(
+                                      day as keyof typeof formData.businessHours
+                                    )
+                                  }
+                                  disabled={isLoading}
+                                />
+                                <Label
+                                  htmlFor={`${day}-closed`}
+                                  className="text-sm cursor-pointer"
+                                >
+                                  Fechado
+                                </Label>
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: First Service */}
+              {currentStep === 3 && (
+                <div className="space-y-4 animate-in fade-in-50 duration-500">
+                  <div className="mb-4 p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      Criar seu primeiro serviço é opcional, mas recomendado
+                      para começar rapidamente. Você pode adicionar mais
+                      serviços depois no seu painel.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="serviceName">Nome do serviço</Label>
+                    <Input
+                      id="serviceName"
+                      placeholder="Ex: Corte de cabelo, Massagem, Consulta"
+                      value={formData.serviceName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          serviceName: e.target.value,
+                        })
+                      }
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="serviceDuration">Duração (minutos)</Label>
+                      <Input
+                        id="serviceDuration"
+                        type="number"
+                        min="15"
+                        step="15"
+                        placeholder="60"
+                        value={formData.serviceDuration}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            serviceDuration: parseInt(e.target.value) || 60,
+                          })
+                        }
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="servicePrice">
+                        Preço ({entity?.name ? "R$" : "$"})
+                      </Label>
+                      <Input
+                        id="servicePrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="50.00"
+                        value={formData.servicePrice}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            servicePrice: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="serviceDescription">
+                      Descrição (opcional)
+                    </Label>
+                    <Input
+                      id="serviceDescription"
+                      placeholder="Breve descrição do serviço"
+                      value={formData.serviceDescription}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          serviceDescription: e.target.value,
+                        })
+                      }
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  {formData.serviceName && (
+                    <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-green-900 dark:text-green-100">
+                            Pré-visualização do serviço
+                          </p>
+                          <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                            {formData.serviceName} • {formData.serviceDuration}{" "}
+                            min • {entity?.name ? "R$" : "$"}
+                            {formData.servicePrice.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-8 pt-6 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={prevStep}
+                  disabled={currentStep === 1 || isLoading}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar
+                </Button>
+
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    "Processando..."
+                  ) : currentStep < totalSteps ? (
+                    <>
+                      Próximo
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </>
+                  ) : (
+                    <>
+                      Concluir configuração
+                      <CheckCircle2 className="h-4 w-4 ml-2" />
+                    </>
+                  )}
+                </Button>
               </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 1 || isLoading}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Button>
-
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  "Processando..."
-                ) : currentStep < totalSteps ? (
-                  <>
-                    Próximo
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </>
-                ) : (
-                  <>
-                    Concluir configuração
-                    <CheckCircle2 className="h-4 w-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

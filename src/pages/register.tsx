@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/auth-context";
+import { useRegion } from "../contexts/region-context";
+import { REGIONS, RegionCode } from "../lib/region-config";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -95,24 +97,23 @@ const businessTypes = [
   { value: "other", label: "Other" },
 ];
 
-const regions = [
-  { value: "pt", label: "Portugal", currency: "EUR" },
-  { value: "br", label: "Brazil", currency: "BRL" },
-  { value: "us", label: "United States", currency: "USD" },
-];
-
 export function RegisterPage() {
   const { t } = useTranslation();
   const { register: registerUser, isLoading } = useAuth();
+  const { regionConfig, availableRegions } = useRegion();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4; // Plan, Personal, Company, Confirmation
-  
+
   // Get plan from URL params
-  const planFromUrl = searchParams.get('plan') as 'simple' | 'individual' | 'business' | null;
+  const planFromUrl = searchParams.get("plan") as
+    | "simple"
+    | "individual"
+    | "business"
+    | null;
 
   const {
     register,
@@ -170,6 +171,9 @@ export function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      // Get region config to extract country name
+      const selectedRegion = REGIONS[data.region as RegionCode];
+      
       // Register user
       await registerUser({
         email: data.email,
@@ -178,15 +182,22 @@ export function RegisterPage() {
         lastName: data.lastName,
         role: "owner", // User registering is always owner
       });
-      
+
       // Save business data to localStorage for onboarding
-      localStorage.setItem('schedfy-pending-business', JSON.stringify({
-        plan: data.plan,
-        businessName: data.businessName,
-        businessType: data.businessType,
-        region: data.region,
-      }));
-      
+      localStorage.setItem(
+        "schedfy-pending-business",
+        JSON.stringify({
+          plan: data.plan,
+          businessName: data.businessName,
+          businessType: data.businessType,
+          region: data.region, // Region code (PT, BR, US)
+          country: selectedRegion.country, // Full country name
+          currency: selectedRegion.currency,
+          timezone: selectedRegion.timezone,
+          locale: selectedRegion.locale,
+        })
+      );
+
       toast.success(
         t(
           "auth.registerSuccess",
@@ -242,7 +253,7 @@ export function RegisterPage() {
                 Select the plan that best fits your needs
               </p>
             </div>
-            
+
             <Controller
               name="plan"
               control={control}
@@ -264,7 +275,12 @@ export function RegisterPage() {
                         <p className="text-sm text-muted-foreground">
                           Perfect for individual professionals
                         </p>
-                        <p className="text-2xl font-bold mt-2">€9.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                        <p className="text-2xl font-bold mt-2">
+                          {regionConfig.priceFormat.simple}
+                          <span className="text-sm font-normal text-muted-foreground">
+                            /month
+                          </span>
+                        </p>
                       </div>
                       {field.value === "simple" && (
                         <CheckCircle2 className="h-6 w-6 text-primary" />
@@ -289,7 +305,12 @@ export function RegisterPage() {
                         <p className="text-sm text-muted-foreground">
                           For growing professionals
                         </p>
-                        <p className="text-2xl font-bold mt-2">€19.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                        <p className="text-2xl font-bold mt-2">
+                          {regionConfig.priceFormat.individual}
+                          <span className="text-sm font-normal text-muted-foreground">
+                            /month
+                          </span>
+                        </p>
                       </div>
                       {field.value === "individual" && (
                         <CheckCircle2 className="h-6 w-6 text-primary" />
@@ -313,7 +334,12 @@ export function RegisterPage() {
                         <p className="text-sm text-muted-foreground">
                           Complete solution for teams
                         </p>
-                        <p className="text-2xl font-bold mt-2">€49.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+                        <p className="text-2xl font-bold mt-2">
+                          {regionConfig.priceFormat.business}
+                          <span className="text-sm font-normal text-muted-foreground">
+                            /month
+                          </span>
+                        </p>
                       </div>
                       {field.value === "business" && (
                         <CheckCircle2 className="h-6 w-6 text-primary" />
@@ -323,7 +349,7 @@ export function RegisterPage() {
                 </div>
               )}
             />
-            
+
             {errors.plan && (
               <p className="text-sm text-destructive text-center">
                 {errors.plan.message}
@@ -624,9 +650,9 @@ export function RegisterPage() {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {regions.map((region) => (
-                    <SelectItem key={region.value} value={region.value}>
-                      {region.label} ({region.currency})
+                  {availableRegions.map((region) => (
+                    <SelectItem key={region.code} value={region.code}>
+                      {region.flag} {region.country} ({region.currency})
                     </SelectItem>
                   ))}
                 </SelectContent>
