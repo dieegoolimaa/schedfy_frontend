@@ -49,7 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiClient } from "@/lib/api/client";
+import { apiClient } from "@/lib/api-client";
 
 interface Payment {
   id: string;

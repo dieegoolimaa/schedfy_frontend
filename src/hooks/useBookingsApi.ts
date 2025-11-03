@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { bookingsApi, Booking, CreateBookingDto, UpdateBookingDto, BookingFilters } from "../lib/api/bookings.api";
+import { bookingsService, Booking, CreateBookingDto, UpdateBookingDto, BookingFilters } from "../services/bookings.service";
 import { useAuth } from "../contexts/auth-context";
 
 export function useBookingsApi() {
@@ -19,7 +19,7 @@ export function useBookingsApi() {
         setError(null);
 
         try {
-            const response = await bookingsApi.getByEntity(user.entityId, filters);
+            const response = await bookingsService.getByEntity(user.entityId, filters);
 
             console.log("[useBookingsApi] Fetched bookings:", response.data);
             setBookings(Array.isArray(response.data) ? response.data : []);
@@ -42,7 +42,7 @@ export function useBookingsApi() {
             setError(null);
 
             try {
-                const response = await bookingsApi.create({
+                const response = await bookingsService.create({
                     ...data,
                     entityId: user.entityId,
                 });
@@ -71,7 +71,7 @@ export function useBookingsApi() {
             setError(null);
 
             try {
-                const response = await bookingsApi.update(id, data);
+                const response = await bookingsService.update(id, data);
                 console.log("[useBookingsApi] Updated booking:", response.data);
 
                 // Refresh bookings list
@@ -96,7 +96,7 @@ export function useBookingsApi() {
             setError(null);
 
             try {
-                const response = await bookingsApi.cancel(id, reason);
+                const response = await bookingsService.cancel(id, reason);
 
                 console.log("[useBookingsApi] Cancelled booking:", response.data);
 
@@ -122,7 +122,7 @@ export function useBookingsApi() {
             setError(null);
 
             try {
-                const response = await bookingsApi.confirm(id);
+                const response = await bookingsService.confirm(id);
 
                 console.log("[useBookingsApi] Confirmed booking:", response.data);
 
@@ -148,7 +148,7 @@ export function useBookingsApi() {
             setError(null);
 
             try {
-                const response = await bookingsApi.complete(id);
+                const response = await bookingsService.complete(id);
 
                 console.log("[useBookingsApi] Completed booking:", response.data);
 
@@ -179,7 +179,7 @@ export function useBookingsApi() {
             setError(null);
 
             try {
-                const response = await bookingsApi.checkAvailability({
+                const response = await bookingsService.checkAvailability({
                     serviceId,
                     professionalId,
                     startTime,

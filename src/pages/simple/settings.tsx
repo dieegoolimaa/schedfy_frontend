@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
-import { entitiesApi, type Entity } from "../../lib/api/entities.api";
+import { entitiesService, type Entity } from "../services/entities.service";
 import { toast } from "sonner";
 import {
   Card,
@@ -58,7 +58,7 @@ export function SimpleSettingsPage() {
       }
 
       try {
-        const response = await entitiesApi.getById(user.entityId);
+        const response = await entitiesService.getById(user.entityId);
         setEntity(response.data || null);
       } catch (error) {
         console.error("Failed to load entity:", error);
@@ -340,7 +340,7 @@ export function SimpleSettingsPage() {
                 // Reload entity data
                 const entityIdToLoad = user?.entityId || user?.id;
                 if (entityIdToLoad) {
-                  entitiesApi.getById(entityIdToLoad).then((response) => {
+                  entitiesService.getById(entityIdToLoad).then((response) => {
                     setEntity(response.data || null);
                   });
                 }

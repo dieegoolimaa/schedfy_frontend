@@ -3,7 +3,7 @@ import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
-import { bookingsApi } from "../../lib/api/bookings.api";
+import { bookingsService } from "../services/bookings.service";
 import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { usersApi } from "../../lib/api";
@@ -841,7 +841,7 @@ export function BookingManagementPage() {
                               ).toISOString()
                             : startDateTime;
                           try {
-                            const res = await bookingsApi.checkSlotAvailability(
+                            const res = await bookingsService.checkSlotAvailability(
                               {
                                 entityId,
                                 serviceId: slot.service,

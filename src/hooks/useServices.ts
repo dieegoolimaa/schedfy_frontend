@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { servicesApi, Service, CreateServiceDto, UpdateServiceDto } from '../lib/api/services.api';
+import { servicesService, Service, CreateServiceDto, UpdateServiceDto } from "../services/services.service';
 import { toast } from 'sonner';
 
 interface UseServicesOptions {
@@ -64,7 +64,7 @@ export function useServices(options: UseServicesOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await servicesApi.getByEntity(entityId);
+            const response = await servicesService.getByEntity(entityId);
             setServices(response.data.map(transformService));
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load services';
@@ -86,7 +86,7 @@ export function useServices(options: UseServicesOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await servicesApi.getActiveByEntity(entityId);
+            const response = await servicesService.getActiveByEntity(entityId);
             setServices(response.data.map(transformService));
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load active services';
@@ -103,7 +103,7 @@ export function useServices(options: UseServicesOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await servicesApi.create(data);
+            const response = await servicesService.create(data);
             const transformedService = transformService(response.data);
             setServices(prev => [...prev, transformedService]);
 
@@ -125,7 +125,7 @@ export function useServices(options: UseServicesOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await servicesApi.update(id, data);
+            const response = await servicesService.update(id, data);
             const transformedService = transformService(response.data);
             setServices(prev => prev.map(service =>
                 service.id === id ? transformedService : service
@@ -149,7 +149,7 @@ export function useServices(options: UseServicesOptions = {}) {
             setLoading(true);
             setError(null);
 
-            await servicesApi.delete(id);
+            await servicesService.delete(id);
             setServices(prev => prev.filter(service => service.id !== id));
 
             toast.success('Service deleted successfully!');
@@ -169,7 +169,7 @@ export function useServices(options: UseServicesOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await servicesApi.uploadImage(serviceId, file);
+            const response = await servicesService.uploadImage(serviceId, file);
             const imageUrl = (response.data as any)?.imageUrl || '';
 
             setServices(prev => prev.map(service =>
@@ -194,9 +194,9 @@ export function useServices(options: UseServicesOptions = {}) {
             setLoading(true);
             setError(null);
 
-            await servicesApi.assignProfessional(serviceId, professionalId);
+            await servicesService.assignProfessional(serviceId, professionalId);
             // Refresh the specific service
-            const response = await servicesApi.getById(serviceId);
+            const response = await servicesService.getById(serviceId);
             setServices(prev => prev.map(service =>
                 service.id === serviceId ? response.data : service
             ));

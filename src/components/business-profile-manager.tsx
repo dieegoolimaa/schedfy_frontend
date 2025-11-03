@@ -35,7 +35,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
-import { entitiesApi } from "@/lib/api/entities.api";
+import { entitiesService } from "../services/entities.service";
 
 interface BusinessProfileData {
   businessName: string;
@@ -132,7 +132,7 @@ export function BusinessProfileManager({
 
     setCheckingUsername(true);
     try {
-      const result = await entitiesApi.checkUsername(username);
+      const result = await entitiesService.checkUsername(username);
       setUsernameAvailable(result.available);
     } catch (error) {
       console.error("Error checking username:", error);
@@ -165,7 +165,7 @@ export function BusinessProfileManager({
 
     try {
       // Upload image (currently returns base64, will be replaced with actual upload)
-      const imageUrl = await entitiesApi.uploadImage(file, type);
+      const imageUrl = await entitiesService.uploadImage(file, type);
       setProfileData((prev) => ({
         ...prev,
         [type]: imageUrl,
@@ -211,7 +211,7 @@ export function BusinessProfileManager({
     try {
       // Don't send logo/banner in the profile update to avoid payload size issues
       // These should be uploaded separately via uploadImage
-      await entitiesApi.updateProfile(entityId, {
+      await entitiesService.updateProfile(entityId, {
         name: profileData.businessName,
         username: profileData.username,
         description: profileData.description,

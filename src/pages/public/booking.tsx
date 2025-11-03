@@ -10,8 +10,8 @@ import {
   ArrowLeft,
   CheckCircle,
 } from "lucide-react";
-import { entitiesApi, type Entity } from "../../lib/api/entities.api";
-import { servicesApi, type Service } from "../../lib/api/services.api";
+import { entitiesService, type Entity } from "../services/entities.service";
+import { servicesService, type Service } from "../services/services.service";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -51,7 +51,7 @@ export function PublicBookingPage() {
         const cleanUsername = username.startsWith("@")
           ? username.slice(1)
           : username;
-        const entity = await entitiesApi.findByUsername(cleanUsername);
+        const entity = await entitiesService.findByUsername(cleanUsername);
 
         if (entity) {
           setEntity(entity);
@@ -74,7 +74,7 @@ export function PublicBookingPage() {
   const loadServices = async (entityId: string) => {
     try {
       setLoadingServices(true);
-      const response = await servicesApi.getPublicByEntity(entityId);
+      const response = await servicesService.getPublicByEntity(entityId);
       setServices(response.data || []);
     } catch (err) {
       console.error("Failed to load services:", err);

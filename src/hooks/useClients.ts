@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { clientsApi, Client, CreateClientDto, UpdateClientDto } from '../lib/api/clients.api';
+import { clientsService, Client, CreateClientDto, UpdateClientDto } from "../services/clients.service';
 import { toast } from 'sonner';
 
 interface UseClientsOptions {
@@ -25,7 +25,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await clientsApi.getByEntity(entityId);
+            const response = await clientsService.getByEntity(entityId);
             setClients(response.data);
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load clients';
@@ -47,7 +47,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await clientsApi.search(entityId, query);
+            const response = await clientsService.search(entityId, query);
             setClients(response.data);
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to search clients';
@@ -64,7 +64,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await clientsApi.getWithBookings(id);
+            const response = await clientsService.getWithBookings(id);
             return response.data;
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load client details';
@@ -79,7 +79,7 @@ export function useClients(options: UseClientsOptions = {}) {
     // Get client statistics
     const getClientStats = useCallback(async (id: string) => {
         try {
-            const response = await clientsApi.getStats(id);
+            const response = await clientsService.getStats(id);
             return response.data;
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load client statistics';
@@ -94,7 +94,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await clientsApi.create(data);
+            const response = await clientsService.create(data);
             setClients(prev => [...prev, response.data]);
 
             toast.success('Client created successfully!');
@@ -115,7 +115,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await clientsApi.update(id, data);
+            const response = await clientsService.update(id, data);
             setClients(prev => prev.map(client =>
                 client.id === id ? response.data : client
             ));
@@ -138,7 +138,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            await clientsApi.delete(id);
+            await clientsService.delete(id);
             setClients(prev => prev.filter(client => client.id !== id));
 
             toast.success('Client deleted successfully');
@@ -158,7 +158,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await clientsApi.addTags(id, tags);
+            const response = await clientsService.addTags(id, tags);
             setClients(prev => prev.map(client =>
                 client.id === id ? response.data : client
             ));
@@ -181,7 +181,7 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await clientsApi.removeTags(id, tags);
+            const response = await clientsService.removeTags(id, tags);
             setClients(prev => prev.map(client =>
                 client.id === id ? response.data : client
             ));

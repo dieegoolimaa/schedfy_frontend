@@ -1,37 +1,21 @@
-import { apiClient } from './client';
-import { User, Entity } from '../../types/auth';
+/**
+ * Authentication Service - Frontend
+ */
 
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
+import { apiClient } from '../lib/api-client';
+import type {
+    LoginCredentials,
+    RegisterData,
+    RefreshTokenRequest,
+    AuthUser
+} from '../interfaces/auth.interface';
 
-export interface RegisterRequest {
-    email: string;
-    password: string;
-    name: string;
-    plan?: 'simple' | 'individual' | 'business';
-    role?: string;
-    region?: 'PT' | 'BR' | 'US';
-}
-
-export interface AuthResponse {
-    user: User;
-    entity?: Entity | null;
-    access_token: string;  // Backend uses snake_case
-    refresh_token?: string;
-}
-
-export interface RefreshTokenRequest {
-    refreshToken: string;
-}
-
-export const authApi = {
+export const authService = {
     /**
      * Login with email and password
      */
-    async login(credentials: LoginRequest) {
-        const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
+    login: async (credentials: LoginCredentials) => {
+        const response = await apiClient.post('/api/auth/login', credentials);
 
         // Store tokens
         if (response.data.access_token) {
@@ -50,10 +34,10 @@ export const authApi = {
     },
 
     /**
-     * Register a new user
+     * Register new user
      */
-    async register(data: RegisterRequest) {
-        const response = await apiClient.post<AuthResponse>('/api/auth/register', data);
+    register: async (data: RegisterData) => {
+        const response = await apiClient.post('/api/auth/register', data);
 
         // Store tokens
         if (response.data.access_token) {
@@ -74,15 +58,16 @@ export const authApi = {
     /**
      * Get current user profile
      */
-    async getProfile() {
-        return apiClient.get<User>('/api/auth/profile');
+    getProfile: async () => {
+        return await apiClient.get('/api/auth/profile');
     },
 
     /**
-     * Refresh access token
+     * Refresh authentication token
      */
-    async refreshToken(refreshToken: string) {
-        const response = await apiClient.post<AuthResponse>('/api/auth/refresh', { refreshToken });
+    refreshToken: async (refreshToken: string) => {
+        const payload: RefreshTokenRequest = { refreshToken };
+        const response = await apiClient.post('/api/auth/refresh', payload);
 
         if (response.data.access_token) {
             localStorage.setItem('schedfy-token', response.data.access_token);
@@ -95,12 +80,13 @@ export const authApi = {
     /**
      * Logout user
      */
-    async logout() {
+    logout: async () => {
         try {
             await apiClient.post('/api/auth/logout');
         } finally {
             // Clear local storage regardless of API response
             localStorage.removeItem('schedfy-token');
+            localStorage.removeItem('schedfy-access-token');
             localStorage.removeItem('schedfy-refresh-token');
             localStorage.removeItem('schedfy-user');
         }
@@ -109,14 +95,14 @@ export const authApi = {
     /**
      * Check if user is authenticated
      */
-    isAuthenticated(): boolean {
+    isAuthenticated: (): boolean => {
         return !!localStorage.getItem('schedfy-token');
     },
 
     /**
      * Get stored user data
      */
-    getStoredUser(): User | null {
+    getStoredUser: (): AuthUser | null => {
         const userStr = localStorage.getItem('schedfy-user');
         if (!userStr) return null;
 

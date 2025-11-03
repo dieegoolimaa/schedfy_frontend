@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { bookingsApi, Booking, CreateBookingDto, UpdateBookingDto } from '../lib/api/bookings.api';
+import { bookingsService, Booking, CreateBookingDto, UpdateBookingDto } from "../services/bookings.service';
 import { toast } from 'sonner';
 
 interface UseBookingsOptions {
@@ -31,13 +31,13 @@ export function useBookings(options: UseBookingsOptions = {}) {
             let response;
             if (entityId) {
                 console.log('[useBookings] entityId sent to API:', entityId, typeof entityId, entityId.length);
-                response = await bookingsApi.getByEntity(entityId);
+                response = await bookingsService.getByEntity(entityId);
             } else if (clientId) {
-                response = await bookingsApi.getByClient(clientId);
+                response = await bookingsService.getByClient(clientId);
             } else if (professionalId) {
-                response = await bookingsApi.getByProfessional(professionalId);
+                response = await bookingsService.getByProfessional(professionalId);
             } else if (serviceId) {
-                response = await bookingsApi.getByService(serviceId);
+                response = await bookingsService.getByService(serviceId);
             }
 
             if (response) {
@@ -63,7 +63,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsApi.getByDateRange(entityId, startDate, endDate);
+            const response = await bookingsService.getByDateRange(entityId, startDate, endDate);
             setBookings(response.data);
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load bookings';
@@ -80,7 +80,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsApi.create(data);
+            const response = await bookingsService.create(data);
             setBookings(prev => [...prev, response.data]);
 
             toast.success('Booking created successfully!');
@@ -108,7 +108,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsApi.update(id, data);
+            const response = await bookingsService.update(id, data);
             setBookings(prev => prev.map(booking =>
                 booking.id === id ? response.data : booking
             ));
@@ -131,7 +131,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsApi.cancel(id, reason);
+            const response = await bookingsService.cancel(id, reason);
             setBookings(prev => prev.map(booking =>
                 booking.id === id ? response.data : booking
             ));
@@ -154,7 +154,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsApi.confirm(id);
+            const response = await bookingsService.confirm(id);
             setBookings(prev => prev.map(booking =>
                 booking.id === id ? response.data : booking
             ));
@@ -177,7 +177,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsApi.complete(id);
+            const response = await bookingsService.complete(id);
             setBookings(prev => prev.map(booking =>
                 booking.id === id ? response.data : booking
             ));
@@ -200,7 +200,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsApi.markNoShow(id);
+            const response = await bookingsService.markNoShow(id);
             setBookings(prev => prev.map(booking =>
                 booking.id === id ? response.data : booking
             ));
@@ -223,7 +223,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
             setLoading(true);
             setError(null);
 
-            await bookingsApi.delete(id);
+            await bookingsService.delete(id);
             setBookings(prev => prev.filter(booking => booking.id !== id));
 
             toast.success('Booking deleted successfully');
@@ -245,7 +245,7 @@ export function useBookings(options: UseBookingsOptions = {}) {
         endTime: string;
     }) => {
         try {
-            const response = await bookingsApi.checkAvailability(data);
+            const response = await bookingsService.checkAvailability(data);
             return response.data;
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to check availability';

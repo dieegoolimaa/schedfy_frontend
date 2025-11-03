@@ -1,0 +1,73 @@
+/**
+ * Payments Service - Frontend
+ */
+
+import { apiClient } from '../lib/api-client';
+import type { Payment, CreateCheckoutSessionRequest } from '../interfaces/payments.interface';
+
+export const paymentsService = {
+    getAll: async (params?: { entityId?: string; status?: string }) => {
+        return apiClient.get<Payment[]>('/api/payments', params);
+    },
+
+    getByEntity: async (entityId: string) => {
+        return apiClient.get<Payment[]>(`/api/payments/entity/${entityId}`);
+    },
+
+    getByBooking: async (bookingId: string) => {
+        return apiClient.get<Payment[]>(`/api/payments/booking/${bookingId}`);
+    },
+
+    getById: async (id: string) => {
+        return apiClient.get<Payment>(`/api/payments/${id}`);
+    },
+
+    createCheckoutSession: async (data: CreateCheckoutSessionRequest) => {
+        return apiClient.post<{
+            id: string;
+            url: string;
+            sessionId: string;
+        }>('/api/payments/create-checkout-session', data);
+    },
+
+    createPaymentIntent: async (data: {
+        amount: number;
+        currency?: string;
+        bookingId?: string;
+        clientId?: string;
+        entityId: string;
+        description?: string;
+    }) => {
+        return apiClient.post<{
+            clientSecret: string;
+            paymentIntentId: string;
+        }>('/api/payments/create-payment-intent', data);
+    },
+
+    confirmPayment: async (paymentIntentId: string) => {
+        return apiClient.post<Payment>(`/api/payments/${paymentIntentId}/confirm`, {});
+    },
+
+    refund: async (paymentId: string, amount?: number, reason?: string) => {
+        return apiClient.post<Payment>(`/api/payments/${paymentId}/refund`, {
+            amount,
+            reason,
+        });
+    },
+
+    getPaymentMethods: async (customerId: string) => {
+        return apiClient.get(`/api/payments/customer/${customerId}/payment-methods`);
+    },
+
+    attachPaymentMethod: async (customerId: string, paymentMethodId: string) => {
+        return apiClient.post(`/api/payments/customer/${customerId}/attach-payment-method`, {
+            paymentMethodId,
+        });
+    },
+
+    setDefaultPaymentMethod: async (customerId: string, paymentMethodId: string) => {
+        return apiClient.post(`/api/payments/customer/${customerId}/default-payment-method`, {
+            paymentMethodId,
+        });
+    },
+};

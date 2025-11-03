@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { bookingsApi, TimeSlot } from "@/lib/api/bookings.api";
+import { bookingsService, TimeSlot } from "../services/bookings.service";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, User } from "lucide-react";
@@ -44,7 +44,7 @@ export function TimeSlotPicker({
           date,
           professionalId,
         });
-        const response = await bookingsApi.getAvailableSlots({
+        const response = await bookingsService.getAvailableSlots({
           entityId,
           serviceId,
           date,

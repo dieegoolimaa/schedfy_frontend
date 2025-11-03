@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { bookingsApi } from "../../lib/api/bookings.api";
+import { bookingsService } from "../services/bookings.service";
 import { toast } from "sonner";
 
 export default function PaymentsSuccessPage() {
@@ -24,7 +24,7 @@ export default function PaymentsSuccessPage() {
 
     const poll = async () => {
       try {
-        const res = await bookingsApi.getById(String(bookingId));
+        const res = await bookingsService.getById(String(bookingId));
         const booking = res.data as any;
         // Check payment status; backend should expose paymentStatus or paid flag
         const paymentStatus =
@@ -36,7 +36,7 @@ export default function PaymentsSuccessPage() {
           setStatus("paid");
           // attempt to mark booking as completed
           try {
-            await bookingsApi.complete(String(bookingId));
+            await bookingsService.complete(String(bookingId));
             setStatus("completed");
             toast.success("Payment confirmed and booking completed");
             // redirect back to bookings page

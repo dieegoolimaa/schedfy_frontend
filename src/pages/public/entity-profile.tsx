@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  publicEntityApi,
+  publicService,
   PublicEntity,
   PublicService,
   PublicProfessional,
-} from "../../lib/api/public-entity.api";
+} from "../../services/public.service";
 import {
   Card,
   CardContent,
@@ -86,15 +86,15 @@ export function PublicEntityProfilePage() {
       setLoading(true);
       try {
         // Fetch entity by slug
-        const entityResponse = await publicEntityApi.getEntityBySlug(slug);
+        const entityResponse = await publicService.getEntityBySlug(slug);
         setEntity(entityResponse.data);
 
         const entityId = entityResponse.data.id;
 
         // Fetch services and professionals for this entity
         const [servicesResponse, professionalsResponse] = await Promise.all([
-          publicEntityApi.getEntityServices(entityId),
-          publicEntityApi.getEntityProfessionals(entityId),
+          publicService.getEntityServices(entityId),
+          publicService.getEntityProfessionals(entityId),
         ]);
 
         setServices(
@@ -132,7 +132,7 @@ export function PublicEntityProfilePage() {
       return;
 
     try {
-      const response = await publicEntityApi.getAvailableSlots({
+      const response = await publicService.getAvailableSlots({
         entityId: entity.id,
         serviceId: selectedService,
         professionalId: selectedProfessional,
@@ -187,7 +187,7 @@ export function PublicEntityProfilePage() {
 
     setBooking(true);
     try {
-      await publicEntityApi.createBooking({
+      await publicService.createBooking({
         entityId: entity.id,
         serviceId: selectedService,
         professionalId: selectedProfessional,

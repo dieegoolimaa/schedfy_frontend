@@ -12,7 +12,7 @@ import {
   LoginCredentials,
   RegisterData,
 } from "../types/auth";
-import { authApi } from "../lib/api/auth.api";
+import { authService } from "../services/auth.service";
 
 // Transform backend user response to frontend User type
 function transformBackendUser(backendUser: any): User {
@@ -158,7 +158,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         try {
           dispatch({ type: "AUTH_LOADING" });
           // Verify token with backend
-          const response = await authApi.getProfile();
+          const response = await authService.getProfile();
           console.log("[AuthProvider] Profile response:", response);
           if (response.data) {
             // Check if response.data has user and entity properties
@@ -196,7 +196,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     try {
       dispatch({ type: "AUTH_LOADING" });
 
-      const response = await authApi.login(credentials);
+      const response = await authService.login(credentials);
 
       console.log("Login response:", response);
       console.log("Response data:", response.data);
@@ -249,7 +249,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
 
       const region = regionMap[data.region || data.country || "PT"] || "PT";
 
-      const response = await authApi.register({
+      const response = await authService.register({
         name: data.name || data.firstName || "",
         email: data.email,
         password: data.password,
@@ -294,7 +294,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("No refresh token available");
       }
 
-      const response = await authApi.refreshToken(refreshTokenValue);
+      const response = await authService.refreshToken(refreshTokenValue);
 
       if (!response.data) {
         throw new Error("Token refresh failed");

@@ -1,4 +1,6 @@
-import { apiClient } from './client';
+/**
+ * Public Entity (Booking Page) Interfaces - Frontend
+ */
 
 export interface PublicEntity {
     id: string;
@@ -20,7 +22,7 @@ export interface PublicEntity {
             end: string;
             breakStart?: string;
             breakEnd?: string;
-        }
+        };
     };
     bookingSettings: {
         defaultSlotDuration: number;
@@ -52,13 +54,13 @@ export interface PublicProfessional {
     isAvailable: boolean;
 }
 
-export interface TimeSlot {
+export interface PublicTimeSlot {
     time: string;
     available: boolean;
     professionalId: string;
 }
 
-export interface CreateBookingRequest {
+export interface CreatePublicBookingRequest {
     entityId: string;
     serviceId: string;
     professionalId: string;
@@ -69,47 +71,3 @@ export interface CreateBookingRequest {
     clientPhone: string;
     notes?: string;
 }
-
-export const publicEntityApi = {
-    /**
-     * Get entity by public slug
-     */
-    async getEntityBySlug(slug: string) {
-        return apiClient.get<PublicEntity>(`/api/public/entities/slug/${slug}`);
-    },
-
-    /**
-     * Get services for an entity
-     */
-    async getEntityServices(entityId: string) {
-        return apiClient.get<PublicService[]>(`/api/public/entities/${entityId}/services`);
-    },
-
-    /**
-     * Get professionals for an entity
-     */
-    async getEntityProfessionals(entityId: string) {
-        return apiClient.get<PublicProfessional[]>(`/api/public/entities/${entityId}/professionals`);
-    },
-
-    /**
-     * Get available time slots
-     */
-    async getAvailableSlots(params: {
-        entityId: string;
-        serviceId: string;
-        professionalId: string;
-        date: string;
-    }) {
-        return apiClient.get<TimeSlot[]>('/api/public/availability/slots', {
-            params
-        });
-    },
-
-    /**
-     * Create a public booking
-     */
-    async createBooking(data: CreateBookingRequest) {
-        return apiClient.post('/api/public/bookings', data);
-    }
-};

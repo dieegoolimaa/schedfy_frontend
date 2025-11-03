@@ -1,122 +1,32 @@
-// Use VITE_API_BASE_URL if set, otherwise use empty string for relative URLs (proxy)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+/**
+ * API Module - Central export file for Frontend
+ * 
+ * This file provides backward compatibility by re-exporting all interfaces and services.
+ * New code should import directly from @/interfaces or @/services instead.
+ * 
+ * @deprecated Use direct imports from @/interfaces and @/services
+ * @example
+ * // Old way (deprecated)
+ * import { authApi, LoginCredentials } from '@/lib/api'
+ * 
+ * // New way (recommended)
+ * import { authService } from '@/services'
+ * import type { LoginCredentials } from '@/interfaces'
+ */
 
-interface ApiResponse<T = any> {
-    data?: T;
-    message?: string;
-    error?: string;
-}
+// Export API client
+export { apiClient } from './api-client';
 
-class ApiClient {
-    private readonly baseURL: string;
+// Export all interfaces
+export type * from '../interfaces';
 
-    constructor(baseURL: string) {
-        this.baseURL = baseURL;
-    }
-
-    private async request<T>(
-        endpoint: string,
-        options: RequestInit = {}
-    ): Promise<ApiResponse<T>> {
-        const url = `${this.baseURL}${endpoint}`;
-        const token = localStorage.getItem('schedfy-access-token');
-
-        const defaultOptions: RequestInit = {
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
-            },
-        };
-
-        const config = {
-            ...defaultOptions,
-            ...options,
-            headers: {
-                ...defaultOptions.headers,
-                ...options.headers,
-            },
-        };
-
-        try {
-            const response = await fetch(url, config);
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP error! status: ${response.status}`);
-            }
-
-            return { data };
-        } catch (error) {
-            console.error('API request failed:', error);
-            throw error;
-        }
-    }
-
-    async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-        return this.request<T>(endpoint, { method: 'GET' });
-    }
-
-    async post<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
-        return this.request<T>(endpoint, {
-            method: 'POST',
-            body: body ? JSON.stringify(body) : undefined,
-        });
-    }
-
-    async put<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
-        return this.request<T>(endpoint, {
-            method: 'PUT',
-            body: body ? JSON.stringify(body) : undefined,
-        });
-    }
-
-    async patch<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
-        return this.request<T>(endpoint, {
-            method: 'PATCH',
-            body: body ? JSON.stringify(body) : undefined,
-        });
-    }
-
-    async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-        return this.request<T>(endpoint, { method: 'DELETE' });
-    }
-}
-
-export const apiClient = new ApiClient(API_BASE_URL);
-
-// Auth API endpoints
-export const authApi = {
-    login: (credentials: { email: string; password: string }) =>
-        apiClient.post('/api/auth/login', credentials),
-
-    register: (data: { email: string; password: string; name: string; role?: string; region?: string }) =>
-        apiClient.post('/api/auth/register', data),
-
-    getProfile: () =>
-        apiClient.get('/api/auth/profile'),
-
-    refreshToken: (refreshToken: string) =>
-        apiClient.post('/api/auth/refresh', { refreshToken }),
-
-    googleAuth: () => {
-        globalThis.location.href = `${API_BASE_URL}/api/auth/google`;
-    },
-};
-
-// Users API endpoints
-export const usersApi = {
-    getUsers: () =>
-        apiClient.get('/api/users'),
-
-    createUser: (userData: any) =>
-        apiClient.post('/api/users', userData),
-
-    updateUser: (id: string, userData: any) =>
-        apiClient.put(`/api/users/${id}`, userData),
-
-    deleteUser: (id: string) =>
-        apiClient.delete(`/api/users/${id}`),
-};
-
-// Default export for backward compatibility
-export default apiClient;
+// Export all services with backward compatible names
+export { authService as authApi } from '../services/auth.service';
+export { usersService as usersApi } from '../services/users.service';
+export { bookingsService as bookingsApi } from '../services/bookings.service';
+export { servicesService as servicesApi } from '../services/services.service';
+export { clientsService as clientsApi } from '../services/clients.service';
+export { entitiesService as entitiesApi } from '../services/entities.service';
+export { professionalsService as professionalsApi } from '../services/professionals.service';
+export { paymentsService as paymentsApi } from '../services/payments.service';
+export { publicService as publicApi } from '../services/public.service';

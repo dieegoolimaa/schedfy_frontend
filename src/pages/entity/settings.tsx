@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
-import { entitiesApi, type Entity } from "../../lib/api/entities.api";
+import { entitiesService, type Entity } from "../services/entities.service";
 import { toast } from "sonner";
 import {
   Card,
@@ -60,7 +60,7 @@ export function SettingsPage() {
       }
 
       try {
-        const response = await entitiesApi.getById(user.entityId);
+        const response = await entitiesService.getById(user.entityId);
         setEntity(response.data || null);
       } catch (error) {
         console.error("Failed to load entity:", error);
@@ -293,7 +293,7 @@ export function SettingsPage() {
                   toast.success("Business profile updated successfully!");
                   // Reload entity data
                   if (user?.entityId) {
-                    entitiesApi.getById(user.entityId).then((response) => {
+                    entitiesService.getById(user.entityId).then((response) => {
                       setEntity(response.data || null);
                     });
                   }

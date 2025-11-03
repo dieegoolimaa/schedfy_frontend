@@ -1,10 +1,10 @@
-import { paymentsApi } from '../lib/api/payments.api';
+import { paymentsService } from "../services/payments.service';
 import { toast } from 'sonner';
 
 export function usePayments() {
     const createCheckoutSession = async (bookingId: string, successUrl?: string) => {
         try {
-            const res = await paymentsApi.createCheckoutSession(bookingId, successUrl);
+            const res = await paymentsService.createCheckoutSession(bookingId, successUrl);
             return res.data; // { url }
         } catch (err: any) {
             const msg = err?.message || 'Failed to create checkout session';
@@ -15,7 +15,7 @@ export function usePayments() {
 
     const createPaymentIntent = async (bookingId: string) => {
         try {
-            const res = await paymentsApi.createPaymentIntent(bookingId);
+            const res = await paymentsService.createPaymentIntent(bookingId);
             return res.data; // { clientSecret }
         } catch (err: any) {
             const msg = err?.message || 'Failed to create payment intent';

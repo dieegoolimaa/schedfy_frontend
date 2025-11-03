@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { professionalsApi, Professional } from "../lib/api/professionals.api";
+import { professionalsService, Professional } from "../services/professionals.service";
 import { useAuth } from "../contexts/auth-context";
 
 export function useProfessionalsApi() {
@@ -19,7 +19,7 @@ export function useProfessionalsApi() {
         setError(null);
 
         try {
-            const response = await professionalsApi.getProfessionals({
+            const response = await professionalsService.getProfessionals({
                 entityId: user.entityId,
             });
 
@@ -55,7 +55,7 @@ export function useProfessionalsApi() {
             setError(null);
 
             try {
-                const response = await professionalsApi.checkAvailability({
+                const response = await professionalsService.checkAvailability({
                     professionalId,
                     date,
                     startTime,

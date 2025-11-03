@@ -14,11 +14,11 @@ import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
-import { servicesApi } from "../../lib/api/services.api";
+import { servicesService } from "../services/services.service";
 import {
-  professionalsApi,
+  professionalsService,
   type Professional,
-} from "../../lib/api/professionals.api";
+} from "../services/professionals.service";
 
 interface AssignProfessionalsDialogProps {
   serviceId: string;
@@ -52,7 +52,7 @@ export function AssignProfessionalsDialog({
   const loadProfessionals = async () => {
     try {
       setLoading(true);
-      const response = await professionalsApi.getProfessionals({
+      const response = await professionalsService.getProfessionals({
         entityId,
       });
       setProfessionals(response.data || []);
@@ -86,12 +86,12 @@ export function AssignProfessionalsDialog({
 
       // Assign new professionals
       for (const professionalId of toAssign) {
-        await servicesApi.assignProfessional(serviceId, professionalId);
+        await servicesService.assignProfessional(serviceId, professionalId);
       }
 
       // Unassign removed professionals
       for (const professionalId of toUnassign) {
-        await servicesApi.unassignProfessional(serviceId, professionalId);
+        await servicesService.unassignProfessional(serviceId, professionalId);
       }
 
       toast.success(

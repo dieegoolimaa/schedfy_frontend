@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { toast } from "sonner";
 import {
-  professionalsApi,
+  professionalsService,
   Professional,
-} from "../../lib/api/professionals.api";
+} from "../services/professionals.service";
 import {
   Card,
   CardContent,
@@ -77,7 +77,7 @@ export function ProfessionalsPage() {
     try {
       setLoading(true);
       console.log("[Professionals] Fetching with entityId:", entityId);
-      const response = await professionalsApi.getProfessionals({ entityId });
+      const response = await professionalsService.getProfessionals({ entityId });
       console.log("[Professionals] API Response:", response);
       const professionalsData = Array.isArray(response.data)
         ? response.data
@@ -107,7 +107,7 @@ export function ProfessionalsPage() {
 
     try {
       if (editingProfessional) {
-        await professionalsApi.updateProfessional(editingProfessional.id, {
+        await professionalsService.updateProfessional(editingProfessional.id, {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
@@ -115,7 +115,7 @@ export function ProfessionalsPage() {
         });
         toast.success("Professional updated");
       } else {
-        const response = await professionalsApi.createProfessional({
+        const response = await professionalsService.createProfessional({
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
@@ -168,7 +168,7 @@ export function ProfessionalsPage() {
   const handleDelete = async (professionalId: string) => {
     if (!confirm("Delete this professional?")) return;
     try {
-      await professionalsApi.deleteProfessional(professionalId);
+      await professionalsService.deleteProfessional(professionalId);
       toast.success("Professional deleted");
       fetchProfessionals();
     } catch (error) {

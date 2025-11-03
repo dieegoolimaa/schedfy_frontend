@@ -70,7 +70,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
-import { professionalsApi } from "../../lib/api/professionals.api";
+import { professionalsService } from "../services/professionals.service";
 import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
 
 export function SimpleBookingsPage() {
@@ -125,7 +125,7 @@ export function SimpleBookingsPage() {
   // Fetch professionals
   const fetchProfessionals = async () => {
     try {
-      const response = await professionalsApi.getProfessionals({ entityId });
+      const response = await professionalsService.getProfessionals({ entityId });
       setProfessionals(response.data || []);
     } catch (error) {
       console.error("Failed to fetch professionals:", error);

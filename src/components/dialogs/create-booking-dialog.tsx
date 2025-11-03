@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TimeSlotPicker } from "@/components/time-slot-picker";
-import { TimeSlot } from "@/lib/api/bookings.api";
+import { TimeSlot } from "../services/bookings.service";
 import { toast } from "sonner";
 
 interface Service {

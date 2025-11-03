@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/auth-context";
-import { entitiesApi } from "../lib/api/entities.api";
+import { entitiesService } from "../services/entities.service";
 import { getDashboardRoute } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -80,7 +80,7 @@ export function OnboardingPage() {
         return;
       }
 
-      await entitiesApi.completeOnboarding(user.entityId, {
+      await entitiesService.completeOnboarding(user.entityId, {
         address: {
           street: formData.street,
           city: formData.city,
