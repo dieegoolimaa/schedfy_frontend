@@ -10,15 +10,17 @@ import { Badge } from "../components/ui/badge";
 import { ArrowLeft, Crown, Zap, Star, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/auth-context";
+import { useRegion } from "../contexts/region-context";
 
 export function UpgradePage() {
   const { user } = useAuth();
+  const { getPriceDisplay } = useRegion();
 
   const plans = [
     {
       id: "simple",
       name: "Simple",
-      price: "€9.99",
+      price: getPriceDisplay("simple", "monthly"),
       period: "/month",
       description: "Perfect for solo professionals",
       features: [
@@ -33,7 +35,7 @@ export function UpgradePage() {
     {
       id: "individual",
       name: "Individual",
-      price: "€19.99",
+      price: getPriceDisplay("individual", "monthly"),
       period: "/month",
       description: "AI-powered insights for growing businesses",
       features: [
@@ -49,7 +51,7 @@ export function UpgradePage() {
     {
       id: "business",
       name: "Business",
-      price: "€49.99",
+      price: getPriceDisplay("business", "monthly"),
       period: "/month",
       description: "Complete solution for teams",
       features: [

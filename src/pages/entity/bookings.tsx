@@ -679,7 +679,7 @@ export function BookingsPage() {
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">
-                            {booking.service?.duration.duration || 0} min
+                            {booking.service?.duration || 0} min
                           </span>
                         </TableCell>
                         <TableCell>

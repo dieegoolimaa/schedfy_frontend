@@ -29,6 +29,15 @@ export interface ServiceInfo {
     name: string;
     duration: number;
     price: number;
+    pricing?: {
+        basePrice: number;
+        currency: string;
+        discounts?: Array<{
+            type: string;
+            value: number;
+        }>;
+    };
+    category?: string;
 }
 
 export interface ClientInfo {

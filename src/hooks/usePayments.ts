@@ -1,6 +1,6 @@
 import { paymentsService } from "../services/payments.service";
 import { toast } from 'sonner';
-import type { CreateCheckoutSessionRequest } from "../interfaces/payments.interface";
+import type { CreateCheckoutSessionRequest } from "../types/models/payments.interface";
 
 export function usePayments() {
     const createCheckoutSession = async (data: CreateCheckoutSessionRequest) => {

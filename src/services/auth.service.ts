@@ -3,15 +3,16 @@
  */
 
 import { apiClient } from '../lib/api-client';
-import type { ApiResponse } from '../interfaces/common.interface';
+import type { ApiResponse } from '../types/dto/api';
+import type { LoginCredentials } from '../types/dto/auth';
 import type {
-    LoginCredentials,
     RegisterPayload,
+    RegisterWithVerificationPayload,
     RefreshTokenRequest,
     AuthUser,
     AuthResponseData,
     RefreshTokenResponse
-} from '../interfaces/auth.interface';
+} from '../types/models/auth.interface';
 
 export const authService = {
     /**
@@ -49,6 +50,60 @@ export const authService = {
         }
         if (response.data?.refresh_token) {
             localStorage.setItem('schedfy-refresh-token', response.data.refresh_token);
+        }
+        // Store user data
+        if (response.data?.user) {
+            localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
+        }
+
+        return response;
+    },
+
+    /**
+     * Send verification code to email (before registration)
+     */
+    sendVerificationCode: async (email: string): Promise<ApiResponse<{ success: boolean; message: string; expiresIn: number; code?: string }>> => {
+        return await apiClient.post('/api/onboarding/send-verification-code', { email });
+    },
+
+    /**
+     * Verify the code sent to email
+     */
+    verifyCode: async (email: string, code: string): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+        return await apiClient.post('/api/onboarding/verify-code', { email, code });
+    },
+
+    /**
+     * Register new user with verified email code
+     */
+    registerWithVerification: async (data: RegisterWithVerificationPayload): Promise<ApiResponse<AuthResponseData>> => {
+        // Transform to match backend expectations for onboarding
+        const payload = {
+            businessName: data.businessName || 'My Business',
+            ownerName: `${data.firstName} ${data.lastName}`,
+            email: data.email,
+            username: data.email.split('@')[0],
+            password: data.password,
+            verificationCode: data.verificationCode,
+            businessType: data.businessType || 'other',
+            timezone: data.timezone || 'America/Sao_Paulo',
+            locale: data.locale || 'pt-BR',
+            currency: data.currency || 'BRL',
+        };
+
+        const response = await apiClient.post<any>('/api/onboarding/entity-with-verification', payload);
+
+        // Handle both access_token and accessToken naming
+        const accessToken = response.data?.access_token || response.data?.accessToken;
+        const refreshToken = response.data?.refresh_token || response.data?.refreshToken;
+
+        // Store tokens
+        if (accessToken) {
+            localStorage.setItem('schedfy-token', accessToken);
+            localStorage.setItem('schedfy-access-token', accessToken);
+        }
+        if (refreshToken) {
+            localStorage.setItem('schedfy-refresh-token', refreshToken);
         }
         // Store user data
         if (response.data?.user) {

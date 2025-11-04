@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import {
+  detectRegion,
+  getRegionalConfig,
+  SupportedRegion,
+  type RegionalConfig,
+} from "../lib/regions.config";
 import {
   Card,
   CardContent,
@@ -56,6 +62,9 @@ const contactCategories = [
 
 export function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [regionalConfig, setRegionalConfig] = useState<RegionalConfig | null>(
+    null
+  );
 
   const {
     register,
@@ -74,21 +83,40 @@ export function ContactPage() {
     },
   });
 
+  // Detect user's region on mount
+  useEffect(() => {
+    const detectedRegion = detectRegion();
+    const config = getRegionalConfig(detectedRegion);
+    setRegionalConfig(config);
+  }, []);
+
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     try {
-      // Simulate form submission
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const { contactsService } = await import("../services/contacts.service");
 
-      console.log("Contact form submitted:", data);
+      // Use detected region or fallback to PT
+      const region = regionalConfig?.code || SupportedRegion.PORTUGAL;
+      const language = regionalConfig?.language || "pt-PT";
+
+      await contactsService.createContact({
+        ...data,
+        language: language as any,
+        region: region as any,
+      });
+
       toast.success(
-        "Thank you for your message! We'll get back to you within 24 hours."
+        regionalConfig?.language.startsWith("pt")
+          ? "Obrigado pela sua mensagem! Responderemos em até 24 horas."
+          : "Thank you for your message! We'll get back to you within 24 hours."
       );
       reset();
     } catch (error) {
       console.error("Contact form error:", error);
       toast.error(
-        "Failed to send message. Please try again or contact us directly."
+        regionalConfig?.language.startsWith("pt")
+          ? "Erro ao enviar mensagem. Por favor, tente novamente ou contacte-nos diretamente."
+          : "Failed to send message. Please try again or contact us directly."
       );
     } finally {
       setIsSubmitting(false);

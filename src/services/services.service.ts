@@ -8,10 +8,10 @@ import type {
     CreateServiceDto,
     UpdateServiceDto,
     ServiceFilters,
-} from '../interfaces/services.interface';
+} from '../types/models/services.interface';
 
 // Re-export types
-export type { Service, CreateServiceDto, UpdateServiceDto, ServiceFilters } from '../interfaces/services.interface';
+export type { Service, CreateServiceDto, UpdateServiceDto, ServiceFilters } from '../types/models/services.interface';
 
 export const servicesService = {
     getAll: async (params?: ServiceFilters) => {

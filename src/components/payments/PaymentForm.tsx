@@ -16,7 +16,16 @@ const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-function InnerPaymentForm({ bookingId, onSuccess, onCancel, clientName }: any) {
+function InnerPaymentForm({
+  bookingId,
+  onSuccess,
+  onCancel,
+  clientName,
+  amount,
+  entityId,
+  currency = "BRL",
+  description,
+}: any) {
   const stripe = useStripe();
   const elements = useElements();
   const { createPaymentIntent } = usePayments();
@@ -28,7 +37,13 @@ function InnerPaymentForm({ bookingId, onSuccess, onCancel, clientName }: any) {
     let mounted = true;
     (async () => {
       try {
-        const res = await createPaymentIntent(String(bookingId));
+        const res = await createPaymentIntent({
+          amount: amount || 0,
+          currency: currency || "BRL",
+          bookingId: String(bookingId),
+          entityId: String(entityId),
+          description: description || "Booking payment",
+        });
         if (mounted) setClientSecret(res?.clientSecret || null);
       } catch (err) {
         console.error(err);
@@ -38,7 +53,7 @@ function InnerPaymentForm({ bookingId, onSuccess, onCancel, clientName }: any) {
     return () => {
       mounted = false;
     };
-  }, [bookingId, createPaymentIntent]);
+  }, [bookingId, amount, entityId, currency, description, createPaymentIntent]);
 
   const handleSubmit = async () => {
     if (!stripe || !elements || !clientSecret) return;

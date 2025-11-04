@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { clientsService } from "../services/clients.service";
-import { Client, CreateClientDto, UpdateClientDto } from "../interfaces/clients.interface";
+import { Client, CreateClientDto, UpdateClientDto } from "../types/models/clients.interface";
 import { toast } from 'sonner';
 
 interface UseClientsOptions {

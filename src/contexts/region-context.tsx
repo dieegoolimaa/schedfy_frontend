@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
+import { useTranslation } from "react-i18next";
 import {
   RegionCode,
   RegionConfig,
@@ -7,7 +14,8 @@ import {
   getRegionConfig,
   setUserRegion as setStoredRegion,
   getAvailableRegions,
-} from '../lib/region-config';
+} from "../lib/region-config";
+import { usePricing, PricingEntry } from "../hooks/usePricing";
 
 interface RegionContextType {
   region: RegionCode;
@@ -15,6 +23,13 @@ interface RegionContextType {
   availableRegions: RegionConfig[];
   setRegion: (region: RegionCode) => void;
   isDetecting: boolean;
+  // Dynamic pricing
+  pricing: PricingEntry[];
+  pricingLoading: boolean;
+  getPriceDisplay: (
+    planType: "simple" | "individual" | "business",
+    billingPeriod?: "monthly" | "yearly"
+  ) => string;
 }
 
 const RegionContext = createContext<RegionContextType | undefined>(undefined);
@@ -28,47 +43,91 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
   const [isDetecting, setIsDetecting] = useState(true);
   const [region, setRegionState] = useState<RegionCode>(detectUserRegion());
 
+  // Fetch dynamic pricing from API
+  const {
+    pricing,
+    loading: pricingLoading,
+    getPriceForPlan,
+  } = usePricing(region);
+
   useEffect(() => {
     // Auto-detect region on mount
     const detectedRegion = detectUserRegion();
     setRegionState(detectedRegion);
-    
+
     // Update i18n language based on region
     const config = getRegionConfig(detectedRegion);
     if (i18n.language !== config.locale) {
       i18n.changeLanguage(config.locale);
     }
-    
+
     setIsDetecting(false);
   }, [i18n]);
 
   const setRegion = (newRegion: RegionCode) => {
     setRegionState(newRegion);
     setStoredRegion(newRegion);
-    
+
     // Update i18n language
     const config = getRegionConfig(newRegion);
     i18n.changeLanguage(config.locale);
   };
 
+  // Helper function to get price display with API-first, fallback-to-static logic
+  const regionConfig = getRegionConfig(region);
+  const getPriceDisplay = useCallback(
+    (planType: string, billingPeriod: string = "monthly") => {
+      // Try to get price from API first
+      if (!pricingLoading && pricing.length > 0) {
+        const apiPrice = getPriceForPlan(
+          planType as "simple" | "individual" | "business",
+          region,
+          billingPeriod as "monthly" | "yearly"
+        );
+        if (apiPrice) {
+          return apiPrice.displayPrice;
+        }
+      }
+      // Fallback to static pricing from region config
+      return (
+        regionConfig.priceFormat[
+          planType as keyof typeof regionConfig.priceFormat
+        ] || "N/A"
+      );
+    },
+    [pricing, pricingLoading, getPriceForPlan, region, regionConfig]
+  );
+
   const value = useMemo(
     () => ({
       region,
-      regionConfig: getRegionConfig(region),
+      regionConfig,
       availableRegions: getAvailableRegions(),
       setRegion,
       isDetecting,
+      pricing,
+      pricingLoading,
+      getPriceDisplay,
     }),
-    [region, isDetecting]
+    [
+      region,
+      regionConfig,
+      isDetecting,
+      pricing,
+      pricingLoading,
+      getPriceDisplay,
+    ]
   );
 
-  return <RegionContext.Provider value={value}>{children}</RegionContext.Provider>;
+  return (
+    <RegionContext.Provider value={value}>{children}</RegionContext.Provider>
+  );
 }
 
 export function useRegion() {
   const context = useContext(RegionContext);
   if (context === undefined) {
-    throw new Error('useRegion must be used within a RegionProvider');
+    throw new Error("useRegion must be used within a RegionProvider");
   }
   return context;
 }

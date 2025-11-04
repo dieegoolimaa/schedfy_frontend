@@ -11,14 +11,16 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, X } from "lucide-react";
+import { useRegion } from "@/contexts/region-context";
 
 export default function Pricing() {
   const { t } = useTranslation();
+  const { getPriceDisplay } = useRegion();
 
   const plans = [
     {
       name: t("pricing.simple.name", "Simple"),
-      price: "€9.99",
+      price: getPriceDisplay("simple", "monthly"),
       period: t("pricing.period", "/month"),
       description: t(
         "pricing.simple.description",
@@ -69,7 +71,7 @@ export default function Pricing() {
     },
     {
       name: t("pricing.individual.name", "Individual"),
-      price: "€19.99",
+      price: getPriceDisplay("individual", "monthly"),
       period: t("pricing.period", "/month"),
       description: t(
         "pricing.individual.description",
@@ -126,7 +128,7 @@ export default function Pricing() {
     },
     {
       name: t("pricing.business.name", "Business"),
-      price: "€49.99",
+      price: getPriceDisplay("business", "monthly"),
       period: t("pricing.period", "/month"),
       description: t(
         "pricing.business.description",

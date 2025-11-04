@@ -34,6 +34,35 @@ export function OnboardingPage() {
   const [isCreatingEntity, setIsCreatingEntity] = useState(false);
   const totalSteps = 3;
 
+  // Load existing entity data if available
+  useEffect(() => {
+    const loadEntityData = async () => {
+      if (entity?.id) {
+        try {
+          const response = await apiClient.get(`/api/entities/${entity.id}`);
+          const entityData = response.data as any;
+
+          // Pre-fill form with existing data
+          setFormData((prev) => ({
+            ...prev,
+            street: entityData.address || "",
+            city: entityData.city || "",
+            state: entityData.state || "",
+            zipCode: entityData.postalCode || "",
+            country: entityData.country || "BR",
+            phone: entityData.phone || "",
+            whatsapp: entityData.whatsapp || "",
+            workingHours: entityData.workingHours || getDefaultWorkingHours(),
+          }));
+        } catch (error) {
+          console.error("Failed to load entity data:", error);
+        }
+      }
+    };
+
+    loadEntityData();
+  }, [entity]);
+
   // Check for pending business data from registration
   useEffect(() => {
     const createEntityFromPendingData = async () => {
@@ -59,7 +88,7 @@ export function OnboardingPage() {
         });
 
         // Update user's entityId
-        if (response.data?.id) {
+        if ((response.data as any)?.id) {
           // Clear pending data
           localStorage.removeItem("schedfy-pending-business");
 
@@ -82,6 +111,59 @@ export function OnboardingPage() {
     createEntityFromPendingData();
   }, [user]);
 
+  // Default working hours based on backend schema
+  const getDefaultWorkingHours = () => ({
+    monday: {
+      enabled: true,
+      start: "09:00",
+      end: "22:00",
+      breakStart: "",
+      breakEnd: "",
+    },
+    tuesday: {
+      enabled: true,
+      start: "09:00",
+      end: "22:00",
+      breakStart: "",
+      breakEnd: "",
+    },
+    wednesday: {
+      enabled: true,
+      start: "09:00",
+      end: "22:00",
+      breakStart: "",
+      breakEnd: "",
+    },
+    thursday: {
+      enabled: true,
+      start: "09:00",
+      end: "22:00",
+      breakStart: "",
+      breakEnd: "",
+    },
+    friday: {
+      enabled: true,
+      start: "09:00",
+      end: "22:00",
+      breakStart: "",
+      breakEnd: "",
+    },
+    saturday: {
+      enabled: false,
+      start: "09:00",
+      end: "13:00",
+      breakStart: "",
+      breakEnd: "",
+    },
+    sunday: {
+      enabled: false,
+      start: "09:00",
+      end: "13:00",
+      breakStart: "",
+      breakEnd: "",
+    },
+  });
+
   const [formData, setFormData] = useState({
     // Step 1: Address
     street: "",
@@ -93,15 +175,7 @@ export function OnboardingPage() {
     // Step 2: Contact & Hours
     phone: "",
     whatsapp: "",
-    businessHours: {
-      monday: { open: "09:00", close: "18:00", closed: false },
-      tuesday: { open: "09:00", close: "18:00", closed: false },
-      wednesday: { open: "09:00", close: "18:00", closed: false },
-      thursday: { open: "09:00", close: "18:00", closed: false },
-      friday: { open: "09:00", close: "18:00", closed: false },
-      saturday: { open: "09:00", close: "13:00", closed: false },
-      sunday: { open: "", close: "", closed: true },
-    },
+    workingHours: getDefaultWorkingHours(),
 
     // Step 3: First Service
     serviceName: "",
@@ -140,7 +214,7 @@ export function OnboardingPage() {
         },
         phone: formData.phone,
         whatsapp: formData.whatsapp || undefined,
-        businessHours: formData.businessHours,
+        workingHours: formData.workingHours,
         firstService: formData.serviceName
           ? {
               name: formData.serviceName,
@@ -217,30 +291,30 @@ export function OnboardingPage() {
     }
   };
 
-  const toggleDayOff = (day: keyof typeof formData.businessHours) => {
+  const toggleDayEnabled = (day: keyof typeof formData.workingHours) => {
     setFormData({
       ...formData,
-      businessHours: {
-        ...formData.businessHours,
+      workingHours: {
+        ...formData.workingHours,
         [day]: {
-          ...formData.businessHours[day],
-          closed: !formData.businessHours[day].closed,
+          ...formData.workingHours[day],
+          enabled: !formData.workingHours[day].enabled,
         },
       },
     });
   };
 
-  const updateBusinessHours = (
-    day: keyof typeof formData.businessHours,
-    field: "open" | "close",
+  const updateWorkingHours = (
+    day: keyof typeof formData.workingHours,
+    field: "start" | "end" | "breakStart" | "breakEnd",
     value: string
   ) => {
     setFormData({
       ...formData,
-      businessHours: {
-        ...formData.businessHours,
+      workingHours: {
+        ...formData.workingHours,
         [day]: {
-          ...formData.businessHours[day],
+          ...formData.workingHours[day],
           [field]: value,
         },
       },
@@ -415,8 +489,13 @@ export function OnboardingPage() {
 
                   <div className="space-y-4">
                     <h3 className="font-medium">Horário de funcionamento</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Configure os horários de abertura e fechamento para cada
+                      dia da semana. Você também pode adicionar intervalos de
+                      almoço/pausa.
+                    </p>
                     <div className="space-y-3">
-                      {Object.entries(formData.businessHours).map(
+                      {Object.entries(formData.workingHours).map(
                         ([day, hours]) => {
                           const dayNames: Record<string, string> = {
                             monday: "Segunda",
@@ -429,59 +508,104 @@ export function OnboardingPage() {
                           };
 
                           return (
-                            <div key={day} className="flex items-center gap-3">
-                              <div className="w-24 text-sm">
-                                {dayNames[day]}
+                            <div key={day} className="space-y-2">
+                              <div className="flex items-center gap-3">
+                                <div className="w-24 text-sm font-medium">
+                                  {dayNames[day]}
+                                </div>
+                                <div className="flex items-center gap-2 flex-1">
+                                  <Input
+                                    type="time"
+                                    value={hours.start}
+                                    onChange={(e) =>
+                                      updateWorkingHours(
+                                        day as keyof typeof formData.workingHours,
+                                        "start",
+                                        e.target.value
+                                      )
+                                    }
+                                    disabled={!hours.enabled || isLoading}
+                                    className="w-32"
+                                  />
+                                  <span className="text-muted-foreground">
+                                    às
+                                  </span>
+                                  <Input
+                                    type="time"
+                                    value={hours.end}
+                                    onChange={(e) =>
+                                      updateWorkingHours(
+                                        day as keyof typeof formData.workingHours,
+                                        "end",
+                                        e.target.value
+                                      )
+                                    }
+                                    disabled={!hours.enabled || isLoading}
+                                    className="w-32"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`${day}-enabled`}
+                                    checked={hours.enabled}
+                                    onCheckedChange={() =>
+                                      toggleDayEnabled(
+                                        day as keyof typeof formData.workingHours
+                                      )
+                                    }
+                                    disabled={isLoading}
+                                  />
+                                  <Label
+                                    htmlFor={`${day}-enabled`}
+                                    className="text-sm cursor-pointer"
+                                  >
+                                    Aberto
+                                  </Label>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2 flex-1">
-                                <Input
-                                  type="time"
-                                  value={hours.open}
-                                  onChange={(e) =>
-                                    updateBusinessHours(
-                                      day as keyof typeof formData.businessHours,
-                                      "open",
-                                      e.target.value
-                                    )
-                                  }
-                                  disabled={hours.closed || isLoading}
-                                  className="w-32"
-                                />
-                                <span className="text-muted-foreground">
-                                  às
-                                </span>
-                                <Input
-                                  type="time"
-                                  value={hours.close}
-                                  onChange={(e) =>
-                                    updateBusinessHours(
-                                      day as keyof typeof formData.businessHours,
-                                      "close",
-                                      e.target.value
-                                    )
-                                  }
-                                  disabled={hours.closed || isLoading}
-                                  className="w-32"
-                                />
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id={`${day}-closed`}
-                                  checked={hours.closed}
-                                  onCheckedChange={() =>
-                                    toggleDayOff(
-                                      day as keyof typeof formData.businessHours
-                                    )
-                                  }
-                                  disabled={isLoading}
-                                />
-                                <Label
-                                  htmlFor={`${day}-closed`}
-                                  className="text-sm cursor-pointer"
-                                >
-                                  Fechado
-                                </Label>
-                              </div>
+
+                              {/* Break time (optional) */}
+                              {hours.enabled && (
+                                <div className="flex items-center gap-3 ml-28 pl-1">
+                                  <span className="text-xs text-muted-foreground w-16">
+                                    Intervalo:
+                                  </span>
+                                  <Input
+                                    type="time"
+                                    value={hours.breakStart || ""}
+                                    onChange={(e) =>
+                                      updateWorkingHours(
+                                        day as keyof typeof formData.workingHours,
+                                        "breakStart",
+                                        e.target.value
+                                      )
+                                    }
+                                    disabled={isLoading}
+                                    placeholder="--:--"
+                                    className="w-28 text-sm h-8"
+                                  />
+                                  <span className="text-xs text-muted-foreground">
+                                    às
+                                  </span>
+                                  <Input
+                                    type="time"
+                                    value={hours.breakEnd || ""}
+                                    onChange={(e) =>
+                                      updateWorkingHours(
+                                        day as keyof typeof formData.workingHours,
+                                        "breakEnd",
+                                        e.target.value
+                                      )
+                                    }
+                                    disabled={isLoading}
+                                    placeholder="--:--"
+                                    className="w-28 text-sm h-8"
+                                  />
+                                  <span className="text-xs text-muted-foreground">
+                                    (opcional)
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           );
                         }

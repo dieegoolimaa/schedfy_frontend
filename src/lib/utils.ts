@@ -97,7 +97,7 @@ export function getAvailableTimeSlotsForProfessionals(
 }
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { User } from "../types/auth";
+import { User } from "../types/dto/auth";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));

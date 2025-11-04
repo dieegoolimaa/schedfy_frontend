@@ -51,12 +51,12 @@ export function PublicBookingPage() {
         const cleanUsername = username.startsWith("@")
           ? username.slice(1)
           : username;
-        const entity = await entitiesService.findByUsername(cleanUsername);
+        const response = await entitiesService.findByUsername(cleanUsername);
 
-        if (entity) {
-          setEntity(entity);
+        if (response.data) {
+          setEntity(response.data);
           // Load services for this entity
-          loadServices(entity.id);
+          loadServices(response.data.id);
         } else {
           setError("Business not found");
         }

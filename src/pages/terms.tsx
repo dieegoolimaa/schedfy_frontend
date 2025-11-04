@@ -305,13 +305,13 @@ export function TermsPage() {
                 </p>
                 <div className="bg-muted p-4 rounded-lg">
                   <p>
-                    <strong>Email:</strong> legal@schedfy.com
+                    <strong>Email:</strong> geral@schedfy.com
                   </p>
                   <p>
                     <strong>Address:</strong> Schedfy, Lisbon, Portugal
                   </p>
                   <p>
-                    <strong>Phone:</strong> +351 XXX XXX XXX
+                    <strong>Phone:</strong> +351 915 536 144
                   </p>
                 </div>
               </CardContent>

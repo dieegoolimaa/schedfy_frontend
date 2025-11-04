@@ -43,6 +43,24 @@ export interface UpdateEntityProfileDto {
     banner?: string;
 }
 
+export interface WorkingHoursDay {
+    enabled: boolean;
+    start: string;
+    end: string;
+    breakStart?: string;
+    breakEnd?: string;
+}
+
+export interface WorkingHours {
+    monday: WorkingHoursDay;
+    tuesday: WorkingHoursDay;
+    wednesday: WorkingHoursDay;
+    thursday: WorkingHoursDay;
+    friday: WorkingHoursDay;
+    saturday: WorkingHoursDay;
+    sunday: WorkingHoursDay;
+}
+
 export interface CompleteOnboardingDto {
     address: {
         street: string;
@@ -53,15 +71,7 @@ export interface CompleteOnboardingDto {
     };
     phone: string;
     whatsapp?: string;
-    businessHours: {
-        monday: { open: string; close: string; closed: boolean };
-        tuesday: { open: string; close: string; closed: boolean };
-        wednesday: { open: string; close: string; closed: boolean };
-        thursday: { open: string; close: string; closed: boolean };
-        friday: { open: string; close: string; closed: boolean };
-        saturday: { open: string; close: string; closed: boolean };
-        sunday: { open: string; close: string; closed: boolean };
-    };
+    workingHours: WorkingHours;
     firstService?: {
         name: string;
         duration: number;

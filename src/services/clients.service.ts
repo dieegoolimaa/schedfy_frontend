@@ -8,7 +8,7 @@ import type {
     CreateClientDto,
     UpdateClientDto,
     ClientFilters,
-} from '../interfaces/clients.interface';
+} from '../types/models/clients.interface';
 
 export const clientsService = {
     getAll: async (params?: ClientFilters) => {

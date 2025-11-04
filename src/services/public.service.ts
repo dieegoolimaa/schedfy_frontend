@@ -7,11 +7,12 @@ import type {
     PublicEntity,
     PublicService,
     PublicTimeSlot,
+    PublicProfessional,
     CreatePublicBookingRequest,
-} from '../interfaces/public.interface';
+} from '../types/models/public.interface';
 
 // Re-export types (including PublicProfessional for external use)
-export type { PublicEntity, PublicService, PublicTimeSlot, PublicProfessional, CreatePublicBookingRequest } from '../interfaces/public.interface';
+export type { PublicEntity, PublicService, PublicTimeSlot, PublicProfessional, CreatePublicBookingRequest } from '../types/models/public.interface';
 
 export const publicService = {
     getEntityBySlug: async (slug: string) => {
@@ -65,7 +66,7 @@ export const publicService = {
     },
 
     getEntityProfessionals: async (entitySlug: string, serviceId?: string) => {
-        return apiClient.get(`/api/public/entity/${entitySlug}/professionals`, {
+        return apiClient.get<PublicProfessional[]>(`/api/public/entity/${entitySlug}/professionals`, {
             serviceId,
         });
     },

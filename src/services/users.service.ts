@@ -3,7 +3,7 @@
  */
 
 import { apiClient } from '../lib/api-client';
-import type { User, CreateUserData, UpdateUserData } from '../interfaces/users.interface';
+import type { User, CreateUserData, UpdateUserData } from '../types/models/users.interface';
 
 export const usersService = {
     /**

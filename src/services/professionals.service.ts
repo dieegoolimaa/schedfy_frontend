@@ -7,10 +7,10 @@ import type {
     Professional,
     AvailabilityCheckRequest,
     AvailabilityCheckResponse,
-} from '../interfaces/professionals.interface';
+} from '../types/models/professionals.interface';
 
 // Re-export types
-export type { Professional, AvailabilityCheckRequest, AvailabilityCheckResponse } from '../interfaces/professionals.interface';
+export type { Professional, AvailabilityCheckRequest, AvailabilityCheckResponse } from '../types/models/professionals.interface';
 
 export const professionalsService = {
     getAll: async (params?: { entityId?: string; active?: boolean }) => {
@@ -37,7 +37,9 @@ export const professionalsService = {
     },
 
     create: async (data: {
-        name: string;
+        name?: string;
+        firstName?: string;
+        lastName?: string;
         email: string;
         phone?: string;
         entityId: string;
@@ -45,16 +47,29 @@ export const professionalsService = {
         workingHours?: Professional['workingHours'];
         color?: string;
     }) => {
-        return apiClient.post<Professional>('/api/users', {
+        // Handle both name and firstName/lastName formats
+        const requestData: any = {
             ...data,
             role: 'professional',
             password: Math.random().toString(36).slice(-8), // temporary password
-        });
+        };
+
+        // If name is provided but not firstName/lastName, split it
+        if (data.name && !data.firstName && !data.lastName) {
+            const nameParts = data.name.trim().split(' ');
+            requestData.firstName = nameParts[0];
+            requestData.lastName = nameParts.slice(1).join(' ') || nameParts[0];
+            delete requestData.name;
+        }
+
+        return apiClient.post<Professional>('/api/users', requestData);
     },
 
     // Alias for backward compatibility
     createProfessional: async (data: {
-        name: string;
+        name?: string;
+        firstName?: string;
+        lastName?: string;
         email: string;
         phone?: string;
         entityId: string;

@@ -3,7 +3,7 @@
  */
 
 import { apiClient } from '../lib/api-client';
-import type { Payment, CreateCheckoutSessionRequest } from '../interfaces/payments.interface';
+import type { Payment, CreateCheckoutSessionRequest } from '../types/models/payments.interface';
 
 export const paymentsService = {
     getAll: async (params?: { entityId?: string; status?: string }) => {

@@ -8,11 +8,14 @@ import React, {
 import {
   AuthState,
   User,
-  Entity,
+  AuthEntity,
   LoginCredentials,
   RegisterData,
-} from "../types/auth";
+} from "../types/dto/auth";
 import { authService } from "../services/auth.service";
+
+// Use AuthEntity as Entity for this context
+type Entity = AuthEntity;
 
 // Transform backend user response to frontend User type
 function transformBackendUser(backendUser: any): User {

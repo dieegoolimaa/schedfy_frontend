@@ -8,177 +8,177 @@ export type CurrencyCode = 'EUR' | 'BRL' | 'USD';
 export type LocaleCode = 'en' | 'pt-BR';
 
 export interface RegionConfig {
-  code: RegionCode;
-  country: string;
-  currency: CurrencyCode;
-  currencySymbol: string;
-  locale: LocaleCode;
-  timezone: string;
-  flag: string;
-  phonePrefix: string;
-  dateFormat: string;
-  priceFormat: {
-    simple: string;
-    individual: string;
-    business: string;
-  };
+    code: RegionCode;
+    country: string;
+    currency: CurrencyCode;
+    currencySymbol: string;
+    locale: LocaleCode;
+    timezone: string;
+    flag: string;
+    phonePrefix: string;
+    dateFormat: string;
+    priceFormat: {
+        simple: string;
+        individual: string;
+        business: string;
+    };
 }
 
 export const REGIONS: Record<RegionCode, RegionConfig> = {
-  PT: {
-    code: 'PT',
-    country: 'Portugal',
-    currency: 'EUR',
-    currencySymbol: '€',
-    locale: 'en',
-    timezone: 'Europe/Lisbon',
-    flag: '🇵🇹',
-    phonePrefix: '+351',
-    dateFormat: 'DD/MM/YYYY',
-    priceFormat: {
-      simple: '€9.99',
-      individual: '€19.99',
-      business: '€49.99',
+    PT: {
+        code: 'PT',
+        country: 'Portugal',
+        currency: 'EUR',
+        currencySymbol: '€',
+        locale: 'en',
+        timezone: 'Europe/Lisbon',
+        flag: '🇵🇹',
+        phonePrefix: '+351',
+        dateFormat: 'DD/MM/YYYY',
+        priceFormat: {
+            simple: '€9.99',
+            individual: '€19.99',
+            business: '€49.99',
+        },
     },
-  },
-  BR: {
-    code: 'BR',
-    country: 'Brazil',
-    currency: 'BRL',
-    currencySymbol: 'R$',
-    locale: 'pt-BR',
-    timezone: 'America/Sao_Paulo',
-    flag: '🇧🇷',
-    phonePrefix: '+55',
-    dateFormat: 'DD/MM/YYYY',
-    priceFormat: {
-      simple: 'R$ 49,90',
-      individual: 'R$ 99,90',
-      business: 'R$ 249,90',
+    BR: {
+        code: 'BR',
+        country: 'Brazil',
+        currency: 'BRL',
+        currencySymbol: 'R$',
+        locale: 'pt-BR',
+        timezone: 'America/Sao_Paulo',
+        flag: '🇧🇷',
+        phonePrefix: '+55',
+        dateFormat: 'DD/MM/YYYY',
+        priceFormat: {
+            simple: 'R$ 49,90',
+            individual: 'R$ 99,90',
+            business: 'R$ 249,90',
+        },
     },
-  },
-  US: {
-    code: 'US',
-    country: 'United States',
-    currency: 'USD',
-    currencySymbol: '$',
-    locale: 'en',
-    timezone: 'America/New_York',
-    flag: '🇺🇸',
-    phonePrefix: '+1',
-    dateFormat: 'MM/DD/YYYY',
-    priceFormat: {
-      simple: '$9.99',
-      individual: '$19.99',
-      business: '$49.99',
+    US: {
+        code: 'US',
+        country: 'United States',
+        currency: 'USD',
+        currencySymbol: '$',
+        locale: 'en',
+        timezone: 'America/New_York',
+        flag: '🇺🇸',
+        phonePrefix: '+1',
+        dateFormat: 'MM/DD/YYYY',
+        priceFormat: {
+            simple: '$9.99',
+            individual: '$19.99',
+            business: '$49.99',
+        },
     },
-  },
 };
 
 /**
  * Detect user's region based on browser/system settings
  */
 export function detectUserRegion(): RegionCode {
-  // 1. Check localStorage first (user preference)
-  const stored = localStorage.getItem('schedfy-region') as RegionCode;
-  if (stored && REGIONS[stored]) {
-    return stored;
-  }
+    // 1. Check localStorage first (user preference)
+    const stored = localStorage.getItem('schedfy-region') as RegionCode;
+    if (stored && REGIONS[stored]) {
+        return stored;
+    }
 
-  // 2. Try to detect from browser language
-  const browserLang = navigator.language.toLowerCase();
-  
-  if (browserLang.startsWith('pt-br') || browserLang === 'pt') {
-    return 'BR';
-  }
-  
-  if (browserLang.startsWith('pt-pt')) {
+    // 2. Try to detect from browser language
+    const browserLang = navigator.language.toLowerCase();
+
+    if (browserLang.startsWith('pt-br') || browserLang === 'pt') {
+        return 'BR';
+    }
+
+    if (browserLang.startsWith('pt-pt')) {
+        return 'PT';
+    }
+
+    if (browserLang.startsWith('en-us') || browserLang.startsWith('en')) {
+        return 'US';
+    }
+
+    // 3. Try to detect from timezone
+    try {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        if (timezone.includes('Sao_Paulo') || timezone.includes('Brasilia')) {
+            return 'BR';
+        }
+
+        if (timezone.includes('Lisbon')) {
+            return 'PT';
+        }
+
+        if (timezone.includes('New_York') || timezone.includes('Los_Angeles') || timezone.includes('Chicago')) {
+            return 'US';
+        }
+    } catch (e) {
+        console.warn('Failed to detect timezone', e);
+    }
+
+    // 4. Default to Portugal (where the business is based)
     return 'PT';
-  }
-  
-  if (browserLang.startsWith('en-us') || browserLang.startsWith('en')) {
-    return 'US';
-  }
-
-  // 3. Try to detect from timezone
-  try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    
-    if (timezone.includes('Sao_Paulo') || timezone.includes('Brasilia')) {
-      return 'BR';
-    }
-    
-    if (timezone.includes('Lisbon')) {
-      return 'PT';
-    }
-    
-    if (timezone.includes('New_York') || timezone.includes('Los_Angeles') || timezone.includes('Chicago')) {
-      return 'US';
-    }
-  } catch (e) {
-    console.warn('Failed to detect timezone', e);
-  }
-
-  // 4. Default to Portugal (where the business is based)
-  return 'PT';
 }
 
 /**
  * Get region configuration
  */
 export function getRegionConfig(region?: RegionCode): RegionConfig {
-  const code = region || detectUserRegion();
-  return REGIONS[code];
+    const code = region || detectUserRegion();
+    return REGIONS[code];
 }
 
 /**
  * Set user's preferred region
  */
 export function setUserRegion(region: RegionCode): void {
-  localStorage.setItem('schedfy-region', region);
-  
-  // Update i18n locale
-  const config = REGIONS[region];
-  localStorage.setItem('schedfy-locale', config.locale);
-  
-  // Trigger storage event for other tabs
-  globalThis.dispatchEvent(new StorageEvent('storage', {
-    key: 'schedfy-region',
-    newValue: region,
-  }));
+    localStorage.setItem('schedfy-region', region);
+
+    // Update i18n locale
+    const config = REGIONS[region];
+    localStorage.setItem('schedfy-locale', config.locale);
+
+    // Trigger storage event for other tabs
+    globalThis.dispatchEvent(new StorageEvent('storage', {
+        key: 'schedfy-region',
+        newValue: region,
+    }));
 }
 
 /**
  * Format price based on region
  */
 export function formatPrice(amount: number, region?: RegionCode): string {
-  const config = getRegionConfig(region);
-  
-  return new Intl.NumberFormat(config.locale, {
-    style: 'currency',
-    currency: config.currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+    const config = getRegionConfig(region);
+
+    return new Intl.NumberFormat(config.locale, {
+        style: 'currency',
+        currency: config.currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(amount);
 }
 
 /**
  * Format date based on region
  */
 export function formatDate(date: Date | string, region?: RegionCode): string {
-  const config = getRegionConfig(region);
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  return new Intl.DateTimeFormat(config.locale, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(dateObj);
+    const config = getRegionConfig(region);
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    return new Intl.DateTimeFormat(config.locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(dateObj);
 }
 
 /**
  * Get all available regions for selection
  */
 export function getAvailableRegions(): RegionConfig[] {
-  return Object.values(REGIONS);
+    return Object.values(REGIONS);
 }

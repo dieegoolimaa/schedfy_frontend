@@ -7,10 +7,10 @@ import type {
     Entity,
     EntityProfile,
     CompleteOnboardingDto,
-} from '../interfaces/entities.interface';
+} from '../types/models/entities.interface';
 
 // Re-export types
-export type { Entity, EntityProfile, CompleteOnboardingDto } from '../interfaces/entities.interface';
+export type { Entity, EntityProfile, CompleteOnboardingDto } from '../types/models/entities.interface';
 
 export const entitiesService = {
     getProfile: async () => {
@@ -66,10 +66,16 @@ export const entitiesService = {
         }>('/api/entities/onboarding-status');
     },
 
-    updateBusinessHours: async (businessHours: CompleteOnboardingDto['businessHours']) => {
-        return apiClient.patch<EntityProfile>('/api/entities/profile/business-hours', {
-            businessHours,
+    updateWorkingHours: async (workingHours: CompleteOnboardingDto['workingHours']) => {
+        return apiClient.patch<EntityProfile>('/api/entities/profile/working-hours', {
+            workingHours,
         });
+    },
+
+    // Deprecated: Use updateWorkingHours instead
+    updateBusinessHours: async (businessHours: any) => {
+        console.warn('updateBusinessHours is deprecated. Use updateWorkingHours instead.');
+        return entitiesService.updateWorkingHours(businessHours);
     },
 
     updateAddress: async (address: CompleteOnboardingDto['address']) => {

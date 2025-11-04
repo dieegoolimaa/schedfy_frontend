@@ -14,7 +14,7 @@ export interface User {
     updatedAt: string;
 }
 
-export interface Entity {
+export interface AuthEntity {
     id: string;
     name: string;
     isOnboardingComplete: boolean;
@@ -27,9 +27,12 @@ export interface Entity {
     };
 }
 
+// Re-export Entity from models for convenience
+export type { Entity } from '../models/entities.interface';
+
 export interface AuthState {
     user: User | null;
-    entity: Entity | null;
+    entity: AuthEntity | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;

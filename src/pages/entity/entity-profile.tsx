@@ -73,14 +73,56 @@ export function EntityProfilePage() {
         country: "Portugal",
       },
     },
-    businessHours: {
-      monday: { enabled: true, open: "09:00", close: "19:00" },
-      tuesday: { enabled: true, open: "09:00", close: "19:00" },
-      wednesday: { enabled: true, open: "09:00", close: "19:00" },
-      thursday: { enabled: true, open: "09:00", close: "20:00" },
-      friday: { enabled: true, open: "09:00", close: "20:00" },
-      saturday: { enabled: true, open: "10:00", close: "18:00" },
-      sunday: { enabled: false, open: "10:00", close: "17:00" },
+    workingHours: {
+      monday: {
+        enabled: true,
+        start: "09:00",
+        end: "19:00",
+        breakStart: "",
+        breakEnd: "",
+      },
+      tuesday: {
+        enabled: true,
+        start: "09:00",
+        end: "19:00",
+        breakStart: "",
+        breakEnd: "",
+      },
+      wednesday: {
+        enabled: true,
+        start: "09:00",
+        end: "19:00",
+        breakStart: "",
+        breakEnd: "",
+      },
+      thursday: {
+        enabled: true,
+        start: "09:00",
+        end: "20:00",
+        breakStart: "",
+        breakEnd: "",
+      },
+      friday: {
+        enabled: true,
+        start: "09:00",
+        end: "20:00",
+        breakStart: "",
+        breakEnd: "",
+      },
+      saturday: {
+        enabled: true,
+        start: "10:00",
+        end: "18:00",
+        breakStart: "",
+        breakEnd: "",
+      },
+      sunday: {
+        enabled: false,
+        start: "10:00",
+        end: "17:00",
+        breakStart: "",
+        breakEnd: "",
+      },
     },
     socialMedia: {
       instagram: "@bellavitasalon",
@@ -445,8 +487,8 @@ export function EntityProfilePage() {
             <CardContent className="space-y-4">
               {weekDays.map((day) => {
                 const dayData =
-                  entityData.businessHours[
-                    day.key as keyof typeof entityData.businessHours
+                  entityData.workingHours[
+                    day.key as keyof typeof entityData.workingHours
                   ];
                 return (
                   <div
@@ -464,19 +506,25 @@ export function EntityProfilePage() {
                             <>
                               <Input
                                 type="time"
-                                defaultValue={dayData.open}
+                                defaultValue={dayData.start}
                                 className="w-32"
                               />
                               <span className="text-muted-foreground">to</span>
                               <Input
                                 type="time"
-                                defaultValue={dayData.close}
+                                defaultValue={dayData.end}
                                 className="w-32"
                               />
                             </>
                           ) : (
                             <span className="text-sm">
-                              {dayData.open} - {dayData.close}
+                              {dayData.start} - {dayData.end}
+                              {dayData.breakStart && dayData.breakEnd && (
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  (Break: {dayData.breakStart} -{" "}
+                                  {dayData.breakEnd})
+                                </span>
+                              )}
                             </span>
                           )}
                         </div>

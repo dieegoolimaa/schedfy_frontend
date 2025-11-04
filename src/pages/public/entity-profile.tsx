@@ -132,8 +132,7 @@ export function PublicEntityProfilePage() {
       return;
 
     try {
-      const response = await publicService.getAvailableSlots({
-        entityId: entity.id,
+      const response = await publicService.getAvailableSlots(entity.id, {
         serviceId: selectedService,
         professionalId: selectedProfessional,
         date: selectedDate,
@@ -187,7 +186,7 @@ export function PublicEntityProfilePage() {
 
     setBooking(true);
     try {
-      await publicService.createBooking({
+      await publicService.createBooking(entity.id, {
         entityId: entity.id,
         serviceId: selectedService,
         professionalId: selectedProfessional,

@@ -1,4 +1,4 @@
-import { ApiResponse, ApiError } from '../interfaces/common.interface';
+import { ApiResponse, ApiError } from '../types/dto/api';
 
 // In development, use empty string to leverage Vite proxy
 // In production, use the full API URL from env variable
@@ -59,10 +59,12 @@ export class ApiClient {
         }
 
         if (!response.ok) {
-            const error = new Error(data.message || data.error || 'An error occurred') as ApiError;
-            error.statusCode = response.status;
-            error.error = data.error;
-            error.errors = data.errors;
+            const error: ApiError = {
+                message: data.message || data.error || 'An error occurred',
+                statusCode: response.status,
+                error: data.error,
+                errors: data.errors,
+            };
             throw error;
         }
 
@@ -107,9 +109,11 @@ export class ApiClient {
             }
 
             // Handle network errors
-            const networkError = new Error(error.message || 'Network error occurred') as ApiError;
-            networkError.statusCode = 0;
-            networkError.error = 'NetworkError';
+            const networkError: ApiError = {
+                message: error.message || 'Network error occurred',
+                statusCode: 0,
+                error: 'NetworkError',
+            };
             throw networkError;
         }
     }
@@ -189,9 +193,11 @@ export class ApiClient {
             if (error.statusCode) {
                 throw error;
             }
-            const uploadError = new Error(error.message || 'File upload failed') as ApiError;
-            uploadError.statusCode = 0;
-            uploadError.error = 'UploadError';
+            const uploadError: ApiError = {
+                message: error.message || 'File upload failed',
+                statusCode: 0,
+                error: 'UploadError',
+            };
             throw uploadError;
         }
     }

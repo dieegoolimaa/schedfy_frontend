@@ -10,10 +10,10 @@ import type {
     BookingFilters,
     TimeSlot,
     SlotAvailability,
-} from '../interfaces/bookings.interface';
+} from '../types/models/bookings.interface';
 
 // Re-export types
-export type { Booking, CreateBookingDto, UpdateBookingDto, BookingFilters, TimeSlot, SlotAvailability } from '../interfaces/bookings.interface';
+export type { Booking, CreateBookingDto, UpdateBookingDto, BookingFilters, TimeSlot, SlotAvailability } from '../types/models/bookings.interface';
 
 export const bookingsService = {
     getAvailableSlots: async (params: {

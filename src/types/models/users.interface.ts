@@ -1,8 +1,14 @@
 /**
  * Users Interfaces - Frontend
+ * 
+ * Note: The main User interface is in types/dto/auth.ts
+ * This file contains user management specific interfaces
  */
 
-export interface User {
+// Re-export User from auth for convenience
+export type { User } from '../dto/auth';
+
+export interface UserProfile {
     id: string;
     email: string;
     name: string;

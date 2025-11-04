@@ -1,27 +1,12 @@
 /**
  * Authentication Interfaces - Frontend
+ * 
+ * Note: User, Entity, AuthState, LoginCredentials, and RegisterData 
+ * are now in types/dto/auth.ts as they are API-related DTOs.
+ * 
+ * This file is kept for backwards compatibility and may contain
+ * auth-specific business logic interfaces in the future.
  */
-
-export interface LoginCredentials {
-    email: string;
-    password: string;
-}
-
-export interface RegisterData {
-    email: string;
-    password: string;
-    firstName?: string;
-    lastName?: string;
-    name?: string;
-    role?: string;
-    region?: string;
-    country?: string;
-    plan?: 'simple' | 'individual' | 'business';
-    businessName?: string;
-    businessType?: string;
-    acceptTerms?: boolean;
-    acceptMarketing?: boolean;
-}
 
 export interface RegisterPayload {
     email: string;
@@ -29,6 +14,15 @@ export interface RegisterPayload {
     firstName: string;
     lastName: string;
     role?: string;
+}
+
+export interface RegisterWithVerificationPayload extends RegisterPayload {
+    verificationCode: string;
+    businessName?: string;
+    businessType?: string;
+    timezone?: string;
+    locale?: string;
+    currency?: string;
 }
 
 export interface AuthResponseData {

@@ -18,7 +18,7 @@
 export { apiClient } from './api-client';
 
 // Export all interfaces
-export type * from '../interfaces';
+export type * from '../types/models';
 
 // Export all services with backward compatible names
 export { authService as authApi } from '../services/auth.service';

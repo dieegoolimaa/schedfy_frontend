@@ -12,6 +12,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { Navigation } from "../components/layout/navigation";
 import { useAuth } from "../contexts/auth-context";
+import { useRegion } from "../contexts/region-context";
 import { getDashboardRoute } from "../lib/utils";
 import {
   Calendar,
@@ -29,6 +30,7 @@ import {
 export function HomePage() {
   const { t } = useTranslation();
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { regionConfig, getPriceDisplay } = useRegion();
   const navigate = useNavigate();
 
   // Redirect authenticated users to their appropriate dashboard
@@ -340,7 +342,9 @@ export function HomePage() {
                   )}
                 </CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">€9.99</span>
+                  <span className="text-4xl font-bold">
+                    {getPriceDisplay("simple", "monthly")}
+                  </span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
               </CardHeader>
@@ -389,7 +393,9 @@ export function HomePage() {
                   )}
                 </CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">€19.99</span>
+                  <span className="text-4xl font-bold">
+                    {getPriceDisplay("individual", "monthly")}
+                  </span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
               </CardHeader>
@@ -434,7 +440,9 @@ export function HomePage() {
                   {t("plans.business.description", "For teams and businesses")}
                 </CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">€49.99</span>
+                  <span className="text-4xl font-bold">
+                    {getPriceDisplay("business", "monthly")}
+                  </span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
               </CardHeader>
