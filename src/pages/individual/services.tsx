@@ -96,6 +96,7 @@ export function IndividualServicesPage() {
     duration: "",
     isActive: true,
     isPublic: true,
+    requireManualConfirmation: false, // For Individual/Business plans
   });
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export function IndividualServicesPage() {
       duration: "",
       isActive: true,
       isPublic: true,
+      requireManualConfirmation: false,
     });
     setSelectedService(null);
   };
@@ -147,6 +149,9 @@ export function IndividualServicesPage() {
         status: formData.isActive ? "active" : "inactive",
         seo: {
           isPublic: formData.isPublic,
+        },
+        bookingSettings: {
+          requireManualConfirmation: formData.requireManualConfirmation,
         },
         createdBy: user?.id || "",
       });
@@ -434,6 +439,21 @@ export function IndividualServicesPage() {
                     }
                   />
                   <Label htmlFor="active">Service is active and bookable</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="requireManualConfirmation"
+                    checked={formData.requireManualConfirmation}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, requireManualConfirmation: checked })
+                    }
+                  />
+                  <Label htmlFor="requireManualConfirmation">
+                    Require manual confirmation for bookings
+                    <span className="text-xs text-muted-foreground block mt-1">
+                      When enabled, bookings will require your approval before being confirmed
+                    </span>
+                  </Label>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button

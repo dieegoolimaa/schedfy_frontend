@@ -66,6 +66,7 @@ export interface CreateServiceDto {
         depositPercentage?: number;
         cancellationPolicy?: string;
         cancellationDeadlineHours?: number;
+        requireManualConfirmation?: boolean; // For Individual/Business plans
     };
     images?: string[];
     coverImage?: string;

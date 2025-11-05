@@ -99,6 +99,7 @@ export function ServicesPage() {
     price: "",
     isActive: false,
     isPublic: true,
+    requireManualConfirmation: false, // For Business plan
   });
 
   // Edit form state
@@ -188,6 +189,9 @@ export function ServicesPage() {
         seo: {
           isPublic: createFormData.isPublic,
         },
+        bookingSettings: {
+          requireManualConfirmation: createFormData.requireManualConfirmation,
+        },
         createdBy: user?.id || entityId,
       };
 
@@ -203,6 +207,7 @@ export function ServicesPage() {
         price: "",
         isActive: false,
         isPublic: true,
+        requireManualConfirmation: false,
       });
       setIsDialogOpen(false);
       toast.success("Service created successfully");
@@ -564,6 +569,25 @@ export function ServicesPage() {
                       />
                       <Label htmlFor="isPublic">
                         Make this service publicly visible
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="requireManualConfirmation"
+                        checked={createFormData.requireManualConfirmation}
+                        onChange={(e) =>
+                          setCreateFormData({
+                            ...createFormData,
+                            requireManualConfirmation: e.target.checked,
+                          })
+                        }
+                      />
+                      <Label htmlFor="requireManualConfirmation">
+                        Require manual confirmation for bookings
+                        <span className="text-xs text-muted-foreground block mt-1">
+                          When enabled, bookings will require your approval before being confirmed
+                        </span>
                       </Label>
                     </div>
                     <div className="flex justify-end gap-2">
