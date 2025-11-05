@@ -114,6 +114,31 @@ export const authService = {
     },
 
     /**
+     * Verify 2FA code during login
+     */
+    verify2FA: async (tempToken: string, code: string): Promise<ApiResponse<AuthResponseData>> => {
+        const response = await apiClient.post<AuthResponseData>('/api/auth/2fa/verify-login', {
+            tempToken,
+            code,
+        });
+
+        // Store tokens
+        if (response.data?.access_token) {
+            localStorage.setItem('schedfy-token', response.data.access_token);
+            localStorage.setItem('schedfy-access-token', response.data.access_token);
+        }
+        if (response.data?.refresh_token) {
+            localStorage.setItem('schedfy-refresh-token', response.data.refresh_token);
+        }
+        // Store user data
+        if (response.data?.user) {
+            localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
+        }
+
+        return response;
+    },
+
+    /**
      * Get current user profile
      */
     getProfile: async (): Promise<ApiResponse<AuthUser>> => {

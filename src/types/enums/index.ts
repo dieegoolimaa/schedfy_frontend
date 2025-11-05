@@ -14,6 +14,7 @@ export * from './user-role.enum';
 export * from './user-type.enum';
 export * from './user-status.enum';
 export * from './invite-type.enum';
+export * from './platform-context.enum';
 
 // Entity enums
 export * from './entity-plan.enum';

@@ -26,10 +26,13 @@ export interface RegisterWithVerificationPayload extends RegisterPayload {
 }
 
 export interface AuthResponseData {
-    user: AuthUser;
+    user?: AuthUser;
     entity?: any;
-    access_token: string;
+    access_token?: string;
     refresh_token?: string;
+    requires2FA?: boolean;
+    tempToken?: string;
+    message?: string;
 }
 
 export interface AuthUser {

@@ -14,7 +14,7 @@ export interface CreateContactData {
 
 export const contactsService = {
     async createContact(data: CreateContactData) {
-        const response = await apiClient.post('/contacts', data);
+        const response = await apiClient.post('/api/contacts', data);
         return response.data;
     },
 };

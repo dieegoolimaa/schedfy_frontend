@@ -98,12 +98,20 @@ export const professionalsService = {
         return professionalsService.delete(id);
     },
 
+    /**
+     * Assign a service to a professional
+     * Uses: PATCH /api/services/:serviceId/assign/:professionalId
+     */
     assignService: async (professionalId: string, serviceId: string) => {
-        return apiClient.post(`/api/users/${professionalId}/services`, { serviceId });
+        return apiClient.patch(`/api/services/${serviceId}/assign/${professionalId}`);
     },
 
+    /**
+     * Unassign a service from a professional
+     * Uses: PATCH /api/services/:serviceId/unassign/:professionalId
+     */
     unassignService: async (professionalId: string, serviceId: string) => {
-        return apiClient.delete(`/api/users/${professionalId}/services/${serviceId}`);
+        return apiClient.patch(`/api/services/${serviceId}/unassign/${professionalId}`);
     },
 
     checkAvailability: async (data: AvailabilityCheckRequest) => {
@@ -113,10 +121,19 @@ export const professionalsService = {
         );
     },
 
-    getAvailableSlots: async (professionalId: string, date: string, serviceId?: string) => {
-        return apiClient.get(`/api/users/${professionalId}/available-slots`, {
-            date,
+    /**
+     * Get available time slots for a professional
+     * Uses: GET /api/bookings/available-slots?entityId=...&serviceId=...&date=...&professionalId=...
+     */
+    getAvailableSlots: async (professionalId: string, date: string, serviceId?: string, entityId?: string) => {
+        if (!entityId) {
+            throw new Error('entityId is required to get available slots');
+        }
+        return apiClient.get(`/api/bookings/available-slots`, {
+            entityId,
             serviceId,
+            date,
+            professionalId,
         });
     },
 

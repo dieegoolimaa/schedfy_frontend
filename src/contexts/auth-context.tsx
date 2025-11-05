@@ -82,10 +82,12 @@ function transformBackendUser(backendUser: any): User {
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<User>;
-  register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<void>;
   oauthLogin: (provider: string) => Promise<void>;
+  requires2FA?: boolean;
+  tempToken?: string | null;
+  verify2FA: (code: string) => Promise<User>;
 }
 
 type AuthAction =
@@ -95,12 +97,14 @@ type AuthAction =
   | { type: "AUTH_LOGOUT" }
   | { type: "CLEAR_ERROR" };
 
-const initialState: AuthState = {
+const initialState: AuthState & { requires2FA?: boolean; tempToken?: string | null } = {
   user: null,
   entity: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  requires2FA: false,
+  tempToken: null,
 };
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -151,6 +155,8 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const [requires2FA, setRequires2FA] = React.useState(false);
+  const [tempToken, setTempToken] = React.useState<string | null>(null);
 
   // Check for existing token on app load
   useEffect(() => {
@@ -208,6 +214,15 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("Login failed - no data received");
       }
 
+      // Check if 2FA is required
+      if (response.data.requires2FA && response.data.tempToken) {
+        console.log("[AuthContext] 2FA required, storing temp token");
+        setTempToken(response.data.tempToken);
+        setRequires2FA(true);
+        dispatch({ type: "AUTH_LOADING" }); // Keep loading state
+        throw new Error("2FA_REQUIRED"); // Special error to trigger 2FA UI
+      }
+
       const { user, entity } = response.data;
 
       console.log("User from response:", user);
@@ -221,12 +236,20 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       const transformedUser = transformBackendUser(user);
       console.log("Transformed user:", transformedUser);
 
+      // Clear 2FA state on successful login
+      setRequires2FA(false);
+      setTempToken(null);
+
       dispatch({
         type: "AUTH_SUCCESS",
         payload: { user: transformedUser, entity: entity || null },
       });
       return transformedUser;
     } catch (error: any) {
+      // Don't show error for 2FA requirement
+      if (error.message === "2FA_REQUIRED") {
+        throw error; // Re-throw to let UI handle it
+      }
       console.error("Login error:", error);
       const errorMessage = error.message || "Login failed";
       dispatch({
@@ -237,34 +260,42 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const verify2FA = async (code: string): Promise<User> => {
+    if (!tempToken) {
+      throw new Error("No temporary token available");
+    }
+
     try {
       dispatch({ type: "AUTH_LOADING" });
 
-      // Map data correctly to backend expectations
-      const response = await authService.register({
-        firstName: data.firstName || "",
-        lastName: data.lastName || "",
-        email: data.email,
-        password: data.password,
-        role: "professional", // Default role
-      });
+      // Call 2FA verification endpoint
+      const response = await authService.verify2FA(tempToken, code);
 
       if (!response.data) {
-        throw new Error("Registration failed - no data received");
+        throw new Error("2FA verification failed - no data received");
       }
 
       const { user, entity } = response.data;
 
+      if (!user) {
+        throw new Error("2FA verification failed - no user in response");
+      }
+
       // Transform backend user to frontend User type
       const transformedUser = transformBackendUser(user);
+
+      // Clear 2FA state
+      setRequires2FA(false);
+      setTempToken(null);
 
       dispatch({
         type: "AUTH_SUCCESS",
         payload: { user: transformedUser, entity: entity || null },
       });
+      return transformedUser;
     } catch (error: any) {
-      const errorMessage = error.message || "Registration failed";
+      console.error("2FA verification error:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Invalid verification code";
       dispatch({
         type: "AUTH_ERROR",
         payload: errorMessage,
@@ -276,6 +307,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
   const logout = () => {
     localStorage.removeItem("schedfy-access-token");
     localStorage.removeItem("schedfy-refresh-token");
+    localStorage.removeItem("schedfy-token");
+    localStorage.removeItem("schedfy-user");
+    setRequires2FA(false);
+    setTempToken(null);
     dispatch({ type: "AUTH_LOGOUT" });
   };
 
@@ -324,12 +359,14 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     () => ({
       ...state,
       login,
-      register,
       logout,
       refreshToken,
       oauthLogin,
+      verify2FA,
+      requires2FA,
+      tempToken,
     }),
-    [state]
+    [state, requires2FA, tempToken]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
