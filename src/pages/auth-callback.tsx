@@ -43,6 +43,7 @@ export function AuthCallbackPage() {
           email: state === "login" ? "user@gmail.com" : "newuser@gmail.com",
           name: state === "login" ? "John Doe" : "Jane Smith",
           role: "owner" as const,
+          platform: "client" as const,
           avatar: "https://lh3.googleusercontent.com/a/default-user",
           provider: "google",
           plan: "business" as const,

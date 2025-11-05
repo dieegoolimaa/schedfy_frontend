@@ -10,7 +10,6 @@ import {
   User,
   AuthEntity,
   LoginCredentials,
-  RegisterData,
 } from "../types/dto/auth";
 import { authService } from "../services/auth.service";
 
@@ -70,6 +69,7 @@ function transformBackendUser(backendUser: any): User {
     avatar: backendUser.avatar,
     plan: normalizedPlan,
     role: backendUser.role,
+    platform: backendUser.platform || "client", // Default to client platform
     entityId: backendUser.entityId,
     country: backendUser.country || "PT",
     timezone: backendUser.timezone || "Europe/Lisbon",
