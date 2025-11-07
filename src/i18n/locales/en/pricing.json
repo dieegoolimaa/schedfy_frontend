@@ -1,41 +1,88 @@
 {
-  "title": "Pricing",
-  "subtitle": "Choose the perfect plan for your business",
+  "period": "/month",
+  "popular": "Most Popular",
+  "hero": {
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Choose the perfect plan for your business. All plans include a 14-day free trial."
+  },
   "simple": {
     "name": "Simple",
-    "description": "Perfect for individual professionals",
+    "description": "Perfect for individual professionals starting their journey",
+    "cta": "Start Free Trial",
     "feature1": "Up to 50 bookings/month",
-    "feature2": "1 professional",
-    "feature3": "Basic calendar",
-    "feature4": "Email support"
+    "feature2": "Basic calendar management",
+    "feature3": "Client management",
+    "feature4": "Email notifications",
+    "feature5": "Mobile app access",
+    "feature6": "Basic reporting",
+    "feature7": "Team management",
+    "feature8": "AI analytics",
+    "feature9": "Advanced integrations",
+    "feature10": "Priority support"
   },
   "individual": {
     "name": "Individual",
-    "description": "Ideal for small businesses",
+    "description": "Ideal for growing professionals with expanding client base",
+    "cta": "Start Free Trial",
     "feature1": "Up to 200 bookings/month",
-    "feature2": "Up to 3 professionals",
-    "feature3": "Advanced calendar",
-    "feature4": "Basic reports",
-    "feature5": "Priority support"
+    "feature2": "Advanced calendar features",
+    "feature3": "Client CRM",
+    "feature4": "SMS + Email notifications",
+    "feature5": "Mobile app access",
+    "feature6": "Advanced reporting",
+    "feature7": "Calendar sync (Google, Apple)",
+    "feature8": "Basic AI insights",
+    "feature9": "Team management",
+    "feature10": "Priority support"
   },
   "business": {
     "name": "Business",
-    "description": "For growing companies",
+    "description": "Complete solution for businesses with multiple professionals",
+    "cta": "Start Free Trial",
     "feature1": "Unlimited bookings",
-    "feature2": "Unlimited professionals",
-    "feature3": "Advanced features",
-    "feature4": "Complete API",
-    "feature5": "Dedicated support",
-    "feature6": "Custom integrations"
+    "feature2": "Multi-location support",
+    "feature3": "Team management",
+    "feature4": "Role-based permissions",
+    "feature5": "Commission tracking",
+    "feature6": "Advanced AI analytics",
+    "feature7": "Custom integrations",
+    "feature8": "Priority support",
+    "feature9": "Financial reports",
+    "feature10": "White-label option"
   },
-  "actions": {
-    "choose": "Choose Plan",
-    "contact": "Contact Sales",
-    "start": "Get Started"
+  "compare": {
+    "title": "All Plans Include",
+    "subtitle": "Core features available across all subscription tiers"
   },
-  "billing": {
-    "monthly": "Monthly",
-    "yearly": "Yearly",
-    "save": "Save"
+  "allPlans": {
+    "feature1": "Secure cloud storage",
+    "feature2": "Mobile & web access",
+    "feature3": "Client notifications",
+    "feature4": "Payment processing",
+    "feature5": "Data encryption",
+    "feature6": "Regular updates",
+    "feature7": "24/7 system monitoring",
+    "feature8": "GDPR compliance"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "Can I change my plan later?",
+    "a1": "Yes! You can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.",
+    "q2": "Is there a free trial?",
+    "a2": "Yes, all plans come with a 14-day free trial. No credit card required to start.",
+    "q3": "What payment methods do you accept?",
+    "a3": "We accept all major credit cards, debit cards, and local payment methods for Portugal, Brazil, and United States.",
+    "q4": "Can I cancel anytime?",
+    "a4": "Yes, you can cancel your subscription at any time. No long-term contracts or cancellation fees.",
+    "q5": "Do you offer discounts for annual billing?",
+    "a5": "Yes! Save 20% when you choose annual billing. Contact our sales team for more information.",
+    "q6": "What happens to my data if I cancel?",
+    "a6": "Your data remains accessible for 30 days after cancellation. You can export it anytime during this period."
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "subtitle": "Start your 14-day free trial. No credit card required.",
+    "start": "Start Free Trial",
+    "contact": "Contact Sales"
   }
 }

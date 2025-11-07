@@ -42,7 +42,16 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { Plus, Search, Edit, Trash2, Mail, Phone, Users } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Mail,
+  Phone,
+  Users,
+  Send,
+} from "lucide-react";
 
 export function ProfessionalsPage() {
   const { t } = useTranslation();
@@ -107,6 +116,11 @@ export function ProfessionalsPage() {
       return;
     }
 
+    if (!editingProfessional && !formData.email) {
+      toast.error("Email is required for new professionals");
+      return;
+    }
+
     try {
       if (editingProfessional) {
         await professionalsService.updateProfessional(editingProfessional.id, {
@@ -117,6 +131,7 @@ export function ProfessionalsPage() {
         });
         toast.success("Professional updated");
       } else {
+        // Create professional via invitation system
         const response = await professionalsService.createProfessional({
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -125,24 +140,47 @@ export function ProfessionalsPage() {
           entityId,
         });
 
-        // Show invitation link
+        // Show success message about email sent
         const professional = response.data;
+        toast.success(
+          <div className="space-y-1">
+            <p className="font-semibold">Professional invitation sent!</p>
+            <p className="text-xs">
+              An email has been sent to {formData.email}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              They will receive a link to complete their registration
+            </p>
+          </div>,
+          { duration: 8000 }
+        );
+
+        // Also show the invitation link for manual sharing if needed
         if (professional.invitationToken) {
           const invitationLink = `${window.location.origin}/accept-invitation?token=${professional.invitationToken}`;
 
-          // Copy to clipboard
-          navigator.clipboard.writeText(invitationLink);
-
-          toast.success(
-            <div className="space-y-1">
-              <p className="font-semibold">Professional created!</p>
-              <p className="text-xs">Invitation link copied to clipboard</p>
-              <p className="text-xs break-all">{invitationLink}</p>
-            </div>,
-            { duration: 10000 }
-          );
-        } else {
-          toast.success("Professional created");
+          setTimeout(() => {
+            toast.info(
+              <div className="space-y-1">
+                <p className="font-semibold">
+                  Invitation link (if email fails)
+                </p>
+                <p className="text-xs break-all">{invitationLink}</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(invitationLink);
+                    toast.success("Link copied to clipboard!");
+                  }}
+                >
+                  Copy Link
+                </Button>
+              </div>,
+              { duration: 15000 }
+            );
+          }, 1000);
         }
       }
       setIsDialogOpen(false);
@@ -178,12 +216,61 @@ export function ProfessionalsPage() {
     }
   };
 
+  const handleResendInvitation = async (
+    professionalId: string,
+    email: string
+  ) => {
+    try {
+      const response = await professionalsService.resendInvitation(
+        professionalId
+      );
+
+      const invitationToken = response.data?.invitationToken;
+
+      toast.success(
+        <div className="space-y-1">
+          <p className="font-semibold">Invitation resent!</p>
+          <p className="text-xs">Email sent to {email}</p>
+        </div>,
+        { duration: 5000 }
+      );
+
+      // Also show the link for manual sharing
+      if (invitationToken) {
+        const invitationLink = `${window.location.origin}/accept-invitation?token=${invitationToken}`;
+
+        setTimeout(() => {
+          toast.info(
+            <div className="space-y-1">
+              <p className="font-semibold">Invitation link</p>
+              <p className="text-xs break-all">{invitationLink}</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-2"
+                onClick={() => {
+                  navigator.clipboard.writeText(invitationLink);
+                  toast.success("Link copied!");
+                }}
+              >
+                Copy Link
+              </Button>
+            </div>,
+            { duration: 10000 }
+          );
+        }, 500);
+      }
+    } catch (error) {
+      toast.error("Failed to resend invitation");
+    }
+  };
+
   const filteredProfessionals = professionals.filter((prof) => {
     const searchLower = searchTerm.toLowerCase();
     const fullName = `${prof.firstName} ${prof.lastName}`.toLowerCase();
     return (
       fullName.includes(searchLower) ||
-      (prof.email && prof.email.toLowerCase().includes(searchLower))
+      prof.email?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -400,8 +487,9 @@ export function ProfessionalsPage() {
                         </Avatar>
                         <div>
                           <div className="font-medium">
-                            {`${professional.firstName} ${professional.lastName}` ||
-                              "Unnamed Professional"}
+                            {professional.firstName && professional.lastName
+                              ? `${professional.firstName} ${professional.lastName}`
+                              : "Unnamed Professional"}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             Since{" "}
@@ -440,6 +528,22 @@ export function ProfessionalsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        {professional.status === "pending" &&
+                          professional.email && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleResendInvitation(
+                                  professional.id,
+                                  professional.email!
+                                )
+                              }
+                              title="Resend invitation email"
+                            >
+                              <Send className="h-4 w-4 text-blue-500" />
+                            </Button>
+                          )}
                         <Button
                           variant="ghost"
                           size="sm"

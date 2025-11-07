@@ -51,7 +51,8 @@ export const professionalsService = {
         const requestData: any = {
             ...data,
             role: 'professional',
-            password: Math.random().toString(36).slice(-8), // temporary password
+            // No password needed - backend will generate temporary password
+            // User will set their own password when accepting invitation
         };
 
         // If name is provided but not firstName/lastName, split it
@@ -139,5 +140,13 @@ export const professionalsService = {
 
     updateWorkingHours: async (id: string, workingHours: Professional['workingHours']) => {
         return apiClient.patch<Professional>(`/api/users/${id}`, { workingHours });
+    },
+
+    /**
+     * Resend invitation to a professional
+     * Uses: POST /api/users/:id/resend-invitation
+     */
+    resendInvitation: async (id: string) => {
+        return apiClient.post<{ message: string; invitationToken: string }>(`/api/users/${id}/resend-invitation`);
     },
 };

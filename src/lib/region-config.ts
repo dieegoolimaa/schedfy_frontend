@@ -79,7 +79,7 @@ export const REGIONS: Record<RegionCode, RegionConfig> = {
  * Detect user's region based on browser/system settings
  */
 export function detectUserRegion(): RegionCode {
-    // 1. Check localStorage first (user preference)
+    // 1. Check localStorage first (user preference) - HIGHEST PRIORITY
     const stored = localStorage.getItem('schedfy-region') as RegionCode;
     if (stored && REGIONS[stored]) {
         return stored;
@@ -88,32 +88,36 @@ export function detectUserRegion(): RegionCode {
     // 2. Try to detect from browser language
     const browserLang = navigator.language.toLowerCase();
 
-    if (browserLang.startsWith('pt-br') || browserLang === 'pt') {
+    if (browserLang.startsWith('pt-br')) {
         return 'BR';
     }
 
-    if (browserLang.startsWith('pt-pt')) {
+    if (browserLang.startsWith('pt-pt') || browserLang === 'pt') {
         return 'PT';
-    }
-
-    if (browserLang.startsWith('en-us') || browserLang.startsWith('en')) {
-        return 'US';
     }
 
     // 3. Try to detect from timezone
     try {
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        if (timezone.includes('Sao_Paulo') || timezone.includes('Brasilia')) {
+        if (timezone.includes('Sao_Paulo') || timezone.includes('Brasilia') || timezone.includes('Recife') || timezone.includes('Manaus')) {
             return 'BR';
         }
 
-        if (timezone.includes('Lisbon')) {
+        if (timezone.includes('Lisbon') || timezone.includes('Porto') || timezone.includes('Madeira') || timezone.includes('Azores')) {
             return 'PT';
         }
 
-        if (timezone.includes('New_York') || timezone.includes('Los_Angeles') || timezone.includes('Chicago')) {
-            return 'US';
+        // European timezones that are not specifically Portuguese should default to PT
+        if (timezone.startsWith('Europe/')) {
+            return 'PT';
+        }
+
+        if (timezone.includes('New_York') || timezone.includes('Los_Angeles') || timezone.includes('Chicago') || timezone.startsWith('America/')) {
+            // Only use US for English-speaking Americas
+            if (browserLang.startsWith('en')) {
+                return 'US';
+            }
         }
     } catch (e) {
         console.warn('Failed to detect timezone', e);

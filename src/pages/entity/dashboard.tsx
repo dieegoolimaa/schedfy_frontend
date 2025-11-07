@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { useGoals } from "../../hooks/useGoals";
+import { QuickBookingDialog } from "../../components/dialogs/quick-booking-dialog";
+import { CalendarView } from "../../components/calendar/CalendarView";
 import {
   AreaChart,
   Area,
@@ -36,13 +39,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
 import { Progress } from "../../components/ui/progress";
 import {
   Tabs,
@@ -64,15 +60,16 @@ import {
 } from "lucide-react";
 
 const Dashboard = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [quickBookingDialogOpen, setQuickBookingDialogOpen] = useState(false);
 
   // Use hooks to fetch data
-  const { bookings } = useBookings({
+  const { bookings, fetchBookings } = useBookings({
     entityId,
     autoFetch: true,
   });
@@ -82,11 +79,14 @@ const Dashboard = () => {
     autoFetch: true,
   });
 
+  // Fetch monthly goals
+  const { goals, fetchCurrentMonthGoals } = useGoals({ entityId });
+
   useEffect(() => {
     if (entityId) {
-      // Data will be fetched automatically by hooks
+      fetchCurrentMonthGoals();
     }
-  }, [entityId]);
+  }, [entityId, fetchCurrentMonthGoals]);
 
   // Calculate real stats from bookings data
   const totalBookings = bookings.length;
@@ -218,20 +218,28 @@ const Dashboard = () => {
 
   // Handler functions for buttons
   const handleTodayView = () => {
-    console.log("Filtering to show today's appointments");
+    navigate("/entity/bookings?filter=today");
   };
 
   const handleViewCalendar = () => {
-    console.log("Opening calendar view");
+    setCalendarOpen(true);
   };
 
   const handleViewAllAppointments = () => {
-    console.log("Navigating to all appointments");
+    navigate("/entity/bookings");
+  };
+
+  const handleCreateBooking = () => {
+    setQuickBookingDialogOpen(true);
+  };
+
+  const handleBookingCreated = () => {
+    fetchBookings();
   };
 
   const stats = [
     {
-      title: "Total Revenue",
+      title: t("stats.totalrevenue"),
       value: `€${totalRevenue.toFixed(0)}`,
       change: "+12.5%",
       trend: "up",
@@ -239,7 +247,7 @@ const Dashboard = () => {
       color: "text-green-600",
     },
     {
-      title: "Total Bookings",
+      title: t("stats.totalbookings"),
       value: totalBookings.toString(),
       change: "+8.2%",
       trend: "up",
@@ -247,7 +255,7 @@ const Dashboard = () => {
       color: "text-blue-600",
     },
     {
-      title: "Active Clients",
+      title: t("stats.activeclients"),
       value: uniqueClients.toString(),
       change: "+15.3%",
       trend: "up",
@@ -255,7 +263,7 @@ const Dashboard = () => {
       color: "text-purple-600",
     },
     {
-      title: "Confirmed Today",
+      title: t("stats.confirmedtoday"),
       value: confirmedBookings.toString(),
       change: "+5.1%",
       trend: "up",
@@ -270,23 +278,18 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {t("dashboard.welcome", "Welcome back")}
+            {t("welcome")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t(
-              "dashboard.subtitle",
-              "Here's what's happening with your business today"
-            )}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={handleTodayView}>
             <CalendarDays className="mr-2 h-4 w-4" />
-            {t("dashboard.today", "Today")}
+            {t("today")}
           </Button>
           <Button size="sm" onClick={handleViewCalendar}>
             <Calendar className="mr-2 h-4 w-4" />
-            {t("dashboard.viewCalendar", "View Calendar")}
+            {t("viewCalendar")}
           </Button>
         </div>
       </div>
@@ -514,27 +517,37 @@ const Dashboard = () => {
               <CardDescription>Track your progress this month</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Revenue Goal</span>
-                  <span>€5,400 / €8,000</span>
+              {Array.isArray(goals) && goals.length > 0 ? (
+                goals.map((goal) => {
+                  const progress =
+                    goal.targetValue > 0
+                      ? (goal.currentValue / goal.targetValue) * 100
+                      : 0;
+                  const displayValue =
+                    goal.type === "revenue"
+                      ? `€${goal.currentValue.toFixed(
+                          0
+                        )} / €${goal.targetValue.toFixed(0)}`
+                      : `${goal.currentValue} / ${goal.targetValue}`;
+
+                  return (
+                    <div key={goal._id} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>{goal.name}</span>
+                        <span>{displayValue}</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-4 text-muted-foreground text-sm">
+                  <p>No goals set for this month</p>
+                  <p className="text-xs mt-1">
+                    Set your goals in Financial Reports
+                  </p>
                 </div>
-                <Progress value={67.5} className="h-2" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Appointments</span>
-                  <span>180 / 250</span>
-                </div>
-                <Progress value={72} className="h-2" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>New Clients</span>
-                  <span>12 / 20</span>
-                </div>
-                <Progress value={60} className="h-2" />
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -610,144 +623,19 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Calendar Modal */}
-      <Dialog open={calendarOpen} onOpenChange={setCalendarOpen}>
-        <DialogContent className="max-w-full sm:max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
-          <DialogHeader>
-            <DialogTitle>Calendar View</DialogTitle>
-            <DialogDescription>
-              View and manage your appointments and schedule
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 sm:space-y-6">
-            {/* Calendar Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                <h3 className="text-base sm:text-lg font-medium">March 2024</h3>
-                <div className="flex gap-1.5 sm:gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs px-2 h-8"
-                  >
-                    Prev
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs px-2 h-8"
-                  >
-                    Today
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs px-2 h-8"
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-              <div className="flex gap-1.5 sm:gap-2 w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-none text-xs h-8"
-                >
-                  Day
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-none text-xs h-8"
-                >
-                  Week
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="flex-1 sm:flex-none text-xs h-8"
-                >
-                  Month
-                </Button>
-              </div>
-            </div>
-
-            {/* Simple Calendar Grid */}
-            <div className="border rounded-lg p-2 sm:p-4">
-              <div className="grid grid-cols-7 gap-0.5 sm:gap-2 mb-2">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                  (day) => (
-                    <div
-                      key={day}
-                      className="p-1 sm:p-2 text-center font-medium text-[10px] sm:text-sm text-muted-foreground"
-                    >
-                      {day}
-                    </div>
-                  )
-                )}
-              </div>
-              <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
-                {Array.from({ length: 35 }, (_, i) => {
-                  const dayNum = i - 2; // Start from previous month
-                  const isCurrentMonth = dayNum > 0 && dayNum <= 31;
-                  const isToday = dayNum === 15; // Mock today
-                  const hasAppointments = [3, 8, 15, 22, 28].includes(dayNum); // Mock appointments
-
-                  return (
-                    <div
-                      key={i}
-                      className={`
-                        p-0.5 sm:p-2 h-10 sm:h-20 border rounded text-[10px] sm:text-sm cursor-pointer hover:bg-muted/50 transition-colors flex flex-col items-center justify-center
-                        ${
-                          !isCurrentMonth
-                            ? "text-muted-foreground bg-muted/20"
-                            : ""
-                        }
-                        ${
-                          isToday
-                            ? "bg-primary text-primary-foreground font-bold"
-                            : ""
-                        }
-                        ${hasAppointments ? "border-primary border-2" : ""}
-                      `}
-                    >
-                      <div className="font-medium">
-                        {isCurrentMonth ? dayNum : ""}
-                      </div>
-                      {hasAppointments && isCurrentMonth && (
-                        <div className="mt-1 space-y-0.5 sm:space-y-1">
-                          <div className="w-full h-0.5 sm:h-1 bg-primary rounded"></div>
-                          <div className="text-[10px] sm:text-xs hidden sm:block">
-                            2 appts
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="flex flex-col sm:flex-row gap-2 justify-end">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={() => navigate("/entity/booking-management")}
-              >
-                Create New Booking
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/entity/bookings")}
-              >
-                View All Bookings
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Dialogs */}
+      <CalendarView
+        open={calendarOpen}
+        onOpenChange={setCalendarOpen}
+        bookings={bookings}
+        title="Business Calendar"
+        description="View and manage all appointments"
+      />
+      <QuickBookingDialog
+        open={quickBookingDialogOpen}
+        onOpenChange={setQuickBookingDialogOpen}
+        onBookingCreated={handleBookingCreated}
+      />
     </div>
   );
 };

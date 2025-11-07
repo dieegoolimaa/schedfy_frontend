@@ -1,8 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { useGoals } from "../../hooks/useGoals";
+import { AddClientDialog } from "../../components/dialogs/add-client-dialog";
+import { QuickBookingDialog } from "../../components/dialogs/quick-booking-dialog";
+import { CalendarView } from "../../components/calendar/CalendarView";
 import {
   Card,
   CardContent,
@@ -31,12 +36,16 @@ import {
 } from "lucide-react";
 
 const IndividualDashboard = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
-  const { bookings, loading: bookingsLoading } = useBookings({
+  const {
+    bookings,
+    loading: bookingsLoading,
+    fetchBookings,
+  } = useBookings({
     entityId,
     autoFetch: true,
   });
@@ -45,6 +54,27 @@ const IndividualDashboard = () => {
     entityId,
     autoFetch: true,
   });
+
+  // Dialog states
+  const [addClientDialogOpen, setAddClientDialogOpen] = useState(false);
+  const [quickBookingDialogOpen, setQuickBookingDialogOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Fetch monthly goals
+  const { fetchCurrentMonthGoals, createDefaultMonthlyGoals } = useGoals({
+    entityId,
+  });
+
+  // Load goals on mount
+  useEffect(() => {
+    if (entityId) {
+      fetchCurrentMonthGoals().then((monthGoals) => {
+        if (!monthGoals || monthGoals.length === 0) {
+          createDefaultMonthlyGoals();
+        }
+      });
+    }
+  }, [entityId, fetchCurrentMonthGoals, createDefaultMonthlyGoals]);
 
   // Calculate real stats from bookings data
   const totalBookings = bookings.length;
@@ -113,11 +143,11 @@ const IndividualDashboard = () => {
 
   // Handler functions for navigation
   const handleNewBooking = () => {
-    navigate("/individual/bookings");
+    setQuickBookingDialogOpen(true);
   };
 
   const handleAddClient = () => {
-    console.log("Opening add client dialog");
+    setAddClientDialogOpen(true);
   };
 
   const handleViewSchedule = () => {
@@ -129,11 +159,11 @@ const IndividualDashboard = () => {
   };
 
   const handleViewCalendar = () => {
-    console.log("Opening calendar view");
+    setCalendarOpen(true);
   };
 
   const handleTodayView = () => {
-    console.log("Filtering to today's view");
+    navigate("/individual/bookings?filter=today");
   };
 
   // Format date/time helpers
@@ -158,9 +188,9 @@ const IndividualDashboard = () => {
     tomorrowOnly.setHours(0, 0, 0, 0);
 
     if (dateOnly.getTime() === todayOnly.getTime()) {
-      return "Today";
+      return t("time.today");
     } else if (dateOnly.getTime() === tomorrowOnly.getTime()) {
-      return "Tomorrow";
+      return t("time.tomorrow");
     } else {
       return date.toLocaleDateString([], { month: "short", day: "numeric" });
     }
@@ -168,15 +198,15 @@ const IndividualDashboard = () => {
 
   const stats = [
     {
-      title: "Total Bookings",
+      title: t("stats.totalbookings"),
       value: totalBookings.toString(),
       change: `${bookingsChange >= "0" ? "+" : ""}${bookingsChange}%`,
-      trend: parseFloat(bookingsChange) >= 0 ? "up" : "down",
+      trend: Number.parseFloat(bookingsChange) >= 0 ? "up" : "down",
       icon: CalendarDays,
       color: "text-blue-600",
     },
     {
-      title: "This Month Revenue",
+      title: t("stats.thismonthrevenue"),
       value: `€${totalRevenue.toFixed(0)}`,
       change: "+8.7%",
       trend: "up",
@@ -184,7 +214,7 @@ const IndividualDashboard = () => {
       color: "text-green-600",
     },
     {
-      title: "Active Clients",
+      title: t("stats.activeclients"),
       value: uniqueClients.toString(),
       change: "+5.2%",
       trend: "up",
@@ -192,7 +222,7 @@ const IndividualDashboard = () => {
       color: "text-purple-600",
     },
     {
-      title: "Completed Sessions",
+      title: t("stats.completedSessions"),
       value: completedBookings.toString(),
       change: `+${completedBookings}`,
       trend: "up",
@@ -206,21 +236,17 @@ const IndividualDashboard = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("dashboard.welcome", "Welcome back")}
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your individual practice and appointments
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("welcome")}</h1>
+          <p className="text-muted-foreground">{t("subtitleIndividual")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={handleTodayView}>
             <CalendarDays className="mr-2 h-4 w-4" />
-            {t("dashboard.today", "Today")}
+            {t("today")}
           </Button>
           <Button size="sm" onClick={handleViewCalendar}>
             <Calendar className="mr-2 h-4 w-4" />
-            {t("dashboard.viewCalendar", "View Calendar")}
+            {t("viewCalendar")}
           </Button>
         </div>
       </div>
@@ -465,6 +491,31 @@ const IndividualDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <CalendarView
+        open={calendarOpen}
+        onOpenChange={setCalendarOpen}
+        bookings={bookings}
+        title="My Calendar"
+        description="View and manage your appointments"
+      />
+
+      <AddClientDialog
+        open={addClientDialogOpen}
+        onOpenChange={setAddClientDialogOpen}
+        onClientAdded={() => {
+          console.log("Client added successfully");
+        }}
+      />
+
+      <QuickBookingDialog
+        open={quickBookingDialogOpen}
+        onOpenChange={setQuickBookingDialogOpen}
+        onBookingCreated={() => {
+          fetchBookings();
+        }}
+      />
     </div>
   );
 };

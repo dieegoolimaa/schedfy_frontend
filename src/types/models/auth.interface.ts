@@ -20,6 +20,8 @@ export interface RegisterWithVerificationPayload extends RegisterPayload {
     verificationCode: string;
     businessName?: string;
     businessType?: string;
+    plan?: string;
+    region?: string;
     timezone?: string;
     locale?: string;
     currency?: string;

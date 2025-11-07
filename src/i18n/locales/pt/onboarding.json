@@ -1,0 +1,70 @@
+{
+  "title": "Complete a configuração do seu negócio",
+  "step": "Etapa {{current}} de {{total}}",
+  "steps": {
+    "address": {
+      "title": "Vamos começar com o endereço do seu negócio",
+      "street": "Endereço",
+      "streetPlaceholder": "Rua das Flores, 123",
+      "city": "Cidade",
+      "cityPlaceholder": "Lisboa",
+      "state": "Estado/Distrito",
+      "statePlaceholder": "Lisboa",
+      "zipCode": "Código Postal",
+      "zipCodePlaceholder": "1000-001",
+      "country": "País",
+      "selectCountry": "Selecione o país"
+    },
+    "contact": {
+      "title": "Configure suas informações de contato e horários",
+      "contactInfo": "Informações de contato",
+      "phone": "Telefone",
+      "phonePlaceholder": "+351 912 345 678",
+      "whatsapp": "WhatsApp (opcional)",
+      "whatsappPlaceholder": "+351 912 345 678",
+      "workingHours": "Horário de funcionamento",
+      "workingHoursDescription": "Configure os horários de abertura e fechamento para cada dia da semana. Você também pode adicionar intervalos de almoço/pausa.",
+      "days": {
+        "monday": "Segunda",
+        "tuesday": "Terça",
+        "wednesday": "Quarta",
+        "thursday": "Quinta",
+        "friday": "Sexta",
+        "saturday": "Sábado",
+        "sunday": "Domingo"
+      },
+      "to": "às",
+      "open": "Aberto",
+      "interval": "Intervalo:",
+      "intervalOptional": "(opcional)"
+    },
+    "service": {
+      "title": "Crie seu primeiro serviço (opcional)",
+      "description": "Criar seu primeiro serviço é opcional, mas recomendado para começar rapidamente. Você pode adicionar mais serviços depois no seu painel.",
+      "name": "Nome do serviço",
+      "namePlaceholder": "Ex: Corte de cabelo, Massagem, Consulta",
+      "duration": "Duração (minutos)",
+      "price": "Preço",
+      "priceDescription": "Descrição (opcional)",
+      "priceDescriptionPlaceholder": "Breve descrição do serviço",
+      "preview": "Pré-visualização do serviço",
+      "previewText": "{{name}} • {{duration}} min • {{currency}}{{price}}"
+    }
+  },
+  "buttons": {
+    "back": "Voltar",
+    "next": "Próximo",
+    "finish": "Concluir configuração",
+    "processing": "Processando..."
+  },
+  "validation": {
+    "streetRequired": "Por favor, informe o endereço da sua empresa",
+    "cityRequired": "Por favor, informe a cidade",
+    "stateRequired": "Por favor, informe o estado/distrito",
+    "zipCodeRequired": "Por favor, informe o código postal",
+    "phoneRequired": "Por favor, informe um número de telefone para contato",
+    "servicePriceInvalid": "Por favor, defina um preço válido para o serviço",
+    "genericError": "Não foi possível concluir a configuração. Tente novamente."
+  },
+  "success": "Configuração concluída! Bem-vindo ao Schedfy!"
+}

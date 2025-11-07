@@ -95,12 +95,14 @@ export function ServicesPage() {
     name: "",
     description: "",
     category: "",
+    customCategory: "", // For custom category input
     duration: "",
     price: "",
     isActive: false,
     isPublic: true,
     requireManualConfirmation: false, // For Business plan
   });
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
@@ -186,11 +188,9 @@ export function ServicesPage() {
         status: createFormData.isActive
           ? ("active" as const)
           : ("inactive" as const),
-        seo: {
-          isPublic: createFormData.isPublic,
-        },
         bookingSettings: {
           requireManualConfirmation: createFormData.requireManualConfirmation,
+          allowOnlineBooking: createFormData.isPublic, // Map isPublic to allowOnlineBooking
         },
         createdBy: user?.id || entityId,
       };
@@ -203,12 +203,14 @@ export function ServicesPage() {
         name: "",
         description: "",
         category: "",
+        customCategory: "",
         duration: "",
         price: "",
         isActive: false,
         isPublic: true,
         requireManualConfirmation: false,
       });
+      setShowCustomCategory(false);
       setIsDialogOpen(false);
       toast.success("Service created successfully");
     } catch (error: any) {
@@ -269,8 +271,8 @@ export function ServicesPage() {
         status: editFormData.isActive
           ? ("active" as const)
           : ("inactive" as const),
-        seo: {
-          isPublic: editFormData.isPublic,
+        bookingSettings: {
+          allowOnlineBooking: editFormData.isPublic, // Map isPublic to allowOnlineBooking
         },
         updatedBy: user?.id || entityId,
       };
@@ -462,13 +464,27 @@ export function ServicesPage() {
                       <div className="space-y-2">
                         <Label htmlFor="category">Category *</Label>
                         <Select
-                          value={createFormData.category}
-                          onValueChange={(value) =>
-                            setCreateFormData({
-                              ...createFormData,
-                              category: value,
-                            })
+                          value={
+                            showCustomCategory
+                              ? "custom"
+                              : createFormData.category
                           }
+                          onValueChange={(value) => {
+                            if (value === "custom") {
+                              setShowCustomCategory(true);
+                              setCreateFormData({
+                                ...createFormData,
+                                category: "",
+                              });
+                            } else {
+                              setShowCustomCategory(false);
+                              setCreateFormData({
+                                ...createFormData,
+                                category: value,
+                                customCategory: "",
+                              });
+                            }
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select category" />
@@ -482,9 +498,29 @@ export function ServicesPage() {
                             <SelectItem value="Skincare">Skincare</SelectItem>
                             <SelectItem value="Spa">Spa</SelectItem>
                             <SelectItem value="Fitness">Fitness</SelectItem>
+                            <SelectItem value="Grooming">Grooming</SelectItem>
+                            <SelectItem value="Therapy">Therapy</SelectItem>
                             <SelectItem value="Other">Other</SelectItem>
+                            <SelectItem value="custom">
+                              ➕ Create Custom Category
+                            </SelectItem>
                           </SelectContent>
                         </Select>
+                        {showCustomCategory && (
+                          <Input
+                            placeholder="Enter custom category name"
+                            value={createFormData.customCategory}
+                            onChange={(e) =>
+                              setCreateFormData({
+                                ...createFormData,
+                                customCategory: e.target.value,
+                                category: e.target.value, // Update category with custom value
+                              })
+                            }
+                            className="mt-2"
+                            required
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -586,7 +622,8 @@ export function ServicesPage() {
                       <Label htmlFor="requireManualConfirmation">
                         Require manual confirmation for bookings
                         <span className="text-xs text-muted-foreground block mt-1">
-                          When enabled, bookings will require your approval before being confirmed
+                          When enabled, bookings will require your approval
+                          before being confirmed
                         </span>
                       </Label>
                     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -44,164 +44,133 @@ import {
   RefreshCw,
   Phone,
   Mail,
+  Calendar,
 } from "lucide-react";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { CalendarView } from "../../components/calendar/CalendarView";
 
 export function ProfessionalDashboardPage() {
   const [timeRange, setTimeRange] = useState("7d");
+  const [showCalendar, setShowCalendar] = useState(false);
+  const { user } = useAuth();
 
-  // Mock professional data
+  // Fetch real bookings
+  const { bookings } = useBookings({
+    entityId: user?.entityId || "",
+  });
+
+  // Filter bookings for this professional
+  const myBookings = useMemo(() => {
+    if (!user?.id) return [];
+    return bookings.filter((b) => b.professionalId === user.id);
+  }, [bookings, user?.id]);
+
+  // Calculate stats from real bookings
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const todaySchedule = myBookings
+    .filter((booking) => {
+      const bookingDate = new Date(booking.startTime);
+      return bookingDate >= today && bookingDate < tomorrow;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+
+  const thisWeekStart = new Date(today);
+  thisWeekStart.setDate(today.getDate() - today.getDay());
+  const weeklyBookings = myBookings.filter((b) => {
+    const bookingDate = new Date(b.startTime);
+    return bookingDate >= thisWeekStart;
+  });
+
+  const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const monthlyBookings = myBookings.filter((b) => {
+    const bookingDate = new Date(b.startTime);
+    return bookingDate >= thisMonthStart;
+  });
+
+  // Professional data from user context
   const professional = {
-    name: "Sofia Oliveira",
-    role: "Senior Hair Stylist",
-    avatar: "SO",
-    email: "sofia@bellavista.pt",
-    phone: "+351 123 456 789",
-    rating: 4.9,
-    totalReviews: 124,
-    joinDate: "2023-01-15",
-    specialties: ["Hair Coloring", "Styling", "Hair Treatment"],
+    name: user?.name || "Professional",
+    role: "Professional",
+    avatar: user?.name
+      ? user.name
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .toUpperCase()
+      : "PR",
+    email: user?.email || "",
+    phone: "",
+    rating: 0,
+    totalReviews: 0,
+    joinDate: user?.createdAt || new Date().toISOString(),
+    specialties: [] as string[],
     workingHours: "09:00 - 18:00",
     nextBreak: "13:00 - 14:00",
   };
 
   const stats = {
-    todayBookings: 8,
-    weeklyBookings: 32,
-    monthlyBookings: 124,
-    todayRevenue: 320,
-    weeklyRevenue: 1280,
-    monthlyRevenue: 4960,
-    completionRate: 96.8,
-    clientSatisfaction: 4.9,
+    todayBookings: todaySchedule.length,
+    weeklyBookings: weeklyBookings.length,
+    monthlyBookings: monthlyBookings.length,
+    todayRevenue: todaySchedule.reduce((sum, b) => {
+      const price =
+        typeof b.service === "object" && b.service?.price ? b.service.price : 0;
+      return sum + price;
+    }, 0),
+    weeklyRevenue: weeklyBookings.reduce((sum, b) => {
+      const price =
+        typeof b.service === "object" && b.service?.price ? b.service.price : 0;
+      return sum + price;
+    }, 0),
+    monthlyRevenue: monthlyBookings.reduce((sum, b) => {
+      const price =
+        typeof b.service === "object" && b.service?.price ? b.service.price : 0;
+      return sum + price;
+    }, 0),
+    completionRate: 0,
+    clientSatisfaction: 0,
     averageSessionTime: 45,
-    noShowRate: 3.2,
+    noShowRate: 0,
   };
 
-  const todaySchedule = [
-    {
-      id: 1,
-      time: "09:00",
-      duration: 60,
-      client: "Ana Silva",
-      service: "Hair Coloring",
-      status: "completed",
-      amount: 65,
-      notes: "First time client, prefers natural colors",
-    },
-    {
-      id: 2,
-      time: "10:30",
-      duration: 45,
-      client: "Maria Santos",
-      service: "Haircut & Styling",
-      status: "completed",
-      amount: 35,
-      notes: "Regular client, usual style",
-    },
-    {
-      id: 3,
-      time: "11:30",
-      duration: 30,
-      client: "João Costa",
-      service: "Beard Trim",
-      status: "completed",
-      amount: 15,
-      notes: "Quick trim before meeting",
-    },
-    {
-      id: 4,
-      time: "14:00",
-      duration: 90,
-      client: "Carla Oliveira",
-      service: "Hair Treatment",
-      status: "in-progress",
-      amount: 85,
-      notes: "Deep conditioning treatment",
-    },
-    {
-      id: 5,
-      time: "16:00",
-      duration: 60,
-      client: "Pedro Silva",
-      service: "Hair Coloring",
-      status: "scheduled",
-      amount: 70,
-      notes: "Cover gray roots",
-    },
-    {
-      id: 6,
-      time: "17:30",
-      duration: 45,
-      client: "Rita Fernandes",
-      service: "Styling",
-      status: "scheduled",
-      amount: 40,
-      notes: "Special event styling",
-    },
-  ];
+  // Get upcoming bookings (future bookings only)
+  const upcomingBookings = myBookings
+    .filter((booking) => {
+      const bookingDate = new Date(booking.startTime);
+      return bookingDate > new Date();
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    )
+    .slice(0, 5); // Show next 5 bookings
 
-  const recentClients = [
-    {
-      id: 1,
-      name: "Ana Silva",
-      avatar: "AS",
-      lastVisit: "2024-01-20",
-      totalVisits: 8,
-      preferredService: "Hair Coloring",
-      rating: 5,
-      notes: "Allergic to ammonia",
-    },
-    {
-      id: 2,
-      name: "Maria Santos",
-      avatar: "MS",
-      lastVisit: "2024-01-19",
-      totalVisits: 15,
-      preferredService: "Haircut",
-      rating: 5,
-      notes: "Comes every 6 weeks",
-    },
-    {
-      id: 3,
-      name: "Carla Oliveira",
-      avatar: "CO",
-      lastVisit: "2024-01-18",
-      totalVisits: 12,
-      preferredService: "Hair Treatment",
-      rating: 4,
-      notes: "Prefers morning appointments",
-    },
-  ];
+  // Format time from Date
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
 
-  const upcomingBookings = [
-    {
-      id: 1,
-      date: "2024-01-21",
-      time: "10:00",
-      client: "Luisa Costa",
-      service: "Hair Coloring",
-      duration: 120,
-      amount: 95,
-    },
-    {
-      id: 2,
-      date: "2024-01-21",
-      time: "14:30",
-      client: "Miguel Santos",
-      service: "Haircut",
-      duration: 45,
-      amount: 30,
-    },
-    {
-      id: 3,
-      date: "2024-01-22",
-      time: "09:00",
-      client: "Sofia Ribeiro",
-      service: "Styling",
-      duration: 60,
-      amount: 45,
-    },
-  ];
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -258,7 +227,15 @@ export function ProfessionalDashboardPage() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setShowCalendar(true)}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Calendar View
+          </Button>
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
@@ -280,6 +257,15 @@ export function ProfessionalDashboardPage() {
           </Button>
         </div>
       </div>
+
+      {/* Calendar View Dialog */}
+      <CalendarView
+        open={showCalendar}
+        onOpenChange={setShowCalendar}
+        bookings={myBookings}
+        title="My Calendar"
+        description="View and manage your appointments"
+      />
 
       {/* Quick Stats - Mobile-First Responsive Layout */}
       <ResponsiveCardGrid>
@@ -339,83 +325,78 @@ export function ProfessionalDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {todaySchedule.map((appointment) => (
-                <TableRow key={appointment.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {appointment.time}
-                    </div>
-                  </TableCell>
-                  <TableCell>{appointment.client}</TableCell>
-                  <TableCell>{appointment.service}</TableCell>
-                  <TableCell>{appointment.duration}min</TableCell>
-                  <TableCell>€{appointment.amount}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      {getStatusIcon(appointment.status)}
-                      <Badge
-                        variant="outline"
-                        className={`ml-2 ${getStatusColor(appointment.status)}`}
-                      >
-                        {appointment.status}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
-                    {appointment.notes}
+              {todaySchedule.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center text-muted-foreground"
+                  >
+                    No appointments scheduled for today
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                todaySchedule.map((appointment) => (
+                  <TableRow key={appointment.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                        {formatTime(appointment.startTime)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {typeof appointment.client === "string"
+                        ? appointment.client
+                        : appointment.client?.name || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {typeof appointment.service === "string"
+                        ? appointment.service
+                        : appointment.service?.name || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {typeof appointment.service === "object" &&
+                      appointment.service?.duration
+                        ? `${appointment.service.duration}min`
+                        : appointment.startTime && appointment.endTime
+                        ? `${Math.round(
+                            (new Date(appointment.endTime).getTime() -
+                              new Date(appointment.startTime).getTime()) /
+                              60000
+                          )}min`
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      €
+                      {typeof appointment.service === "object" &&
+                      appointment.service?.price
+                        ? appointment.service.price
+                        : 0}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {getStatusIcon(appointment.status)}
+                        <Badge
+                          variant="outline"
+                          className={`ml-2 ${getStatusColor(
+                            appointment.status
+                          )}`}
+                        >
+                          {appointment.status}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                      {appointment.notes || "-"}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Clients */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Clients</CardTitle>
-            <CardDescription>Clients you've served recently</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentClients.map((client) => (
-              <div
-                key={client.id}
-                className="flex items-center space-x-4 p-4 border rounded-lg"
-              >
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src="" />
-                  <AvatarFallback>{client.avatar}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {client.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Last visit:{" "}
-                    {new Date(client.lastVisit).toLocaleDateString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {client.totalVisits} visits • Prefers{" "}
-                    {client.preferredService}
-                  </p>
-                  {client.notes && (
-                    <p className="text-xs text-blue-600">
-                      Note: {client.notes}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                  <span className="text-sm font-medium">{client.rating}</span>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
         {/* Upcoming Bookings */}
         <Card>
           <CardHeader>
@@ -423,29 +404,78 @@ export function ProfessionalDashboardPage() {
             <CardDescription>Your next appointments</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {upcomingBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">{booking.client}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(booking.date).toLocaleDateString()} at{" "}
-                    {booking.time}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {booking.service} • {booking.duration}min
-                  </p>
+            {upcomingBookings.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">
+                No upcoming bookings
+              </p>
+            ) : (
+              upcomingBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">
+                      {typeof booking.client === "string"
+                        ? booking.client
+                        : booking.client?.name || "N/A"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(booking.startTime)} at{" "}
+                      {formatTime(booking.startTime)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {typeof booking.service === "string"
+                        ? booking.service
+                        : booking.service?.name || "N/A"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">
+                      €
+                      {typeof booking.service === "object" &&
+                      booking.service?.price
+                        ? booking.service.price
+                        : 0}
+                    </p>
+                    <Badge variant="outline" className="text-xs">
+                      {booking.status}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium">€{booking.amount}</p>
-                  <Badge variant="outline" className="text-xs">
-                    Scheduled
-                  </Badge>
-                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Performance Stats */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Overview</CardTitle>
+            <CardDescription>Your statistics this month</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center p-4 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">Total Bookings</p>
+                <p className="text-xs text-muted-foreground">This month</p>
               </div>
-            ))}
+              <p className="text-2xl font-bold">{stats.monthlyBookings}</p>
+            </div>
+            <div className="flex justify-between items-center p-4 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">Monthly Revenue</p>
+                <p className="text-xs text-muted-foreground">This month</p>
+              </div>
+              <p className="text-2xl font-bold">€{stats.monthlyRevenue}</p>
+            </div>
+            <div className="flex justify-between items-center p-4 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">Weekly Bookings</p>
+                <p className="text-xs text-muted-foreground">This week</p>
+              </div>
+              <p className="text-2xl font-bold">{stats.weeklyBookings}</p>
+            </div>
           </CardContent>
         </Card>
       </div>

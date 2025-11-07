@@ -31,6 +31,8 @@ import enFeatures from './locales/en/features.json'
 import ptFeatures from './locales/pt/features.json'
 import enPricing from './locales/en/pricing.json'
 import ptPricing from './locales/pt/pricing.json'
+import enOnboarding from './locales/en/onboarding.json'
+import ptOnboarding from './locales/pt/onboarding.json'
 
 const resources = {
     en: {
@@ -48,6 +50,7 @@ const resources = {
         about: enAbout,
         features: enFeatures,
         pricing: enPricing,
+        onboarding: enOnboarding,
     },
     pt: {
         common: ptCommon,
@@ -64,6 +67,7 @@ const resources = {
         about: ptAbout,
         features: ptFeatures,
         pricing: ptPricing,
+        onboarding: ptOnboarding,
     },
 }
 
@@ -81,8 +85,14 @@ i18n
         },
 
         detection: {
-            order: ['localStorage', 'navigator', 'htmlTag'],
+            // Priority order for language detection
+            order: [
+                'localStorage',      // 1. User's manual selection (stored)
+                'navigator',         // 2. Browser language
+                'htmlTag',          // 3. HTML lang attribute
+            ],
             caches: ['localStorage'],
+            lookupLocalStorage: 'schedfy-language',
         },
 
         react: {

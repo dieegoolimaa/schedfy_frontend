@@ -1,6 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
+import { useGoals } from "../../hooks/useGoals";
+import { useClients } from "../../hooks/useClients";
 import { PlanGate, UpgradePrompt } from "../../hooks/use-plan-restrictions";
 import {
   Card,
@@ -54,6 +56,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Eye,
+  Target,
+  Users,
+  Calendar,
+  Save,
 } from "lucide-react";
 
 export function FinancialReportsPage() {
@@ -66,10 +72,34 @@ export function FinancialReportsPage() {
     autoFetch: true,
   });
 
+  // Fetch clients data
+  const { clients } = useClients({
+    entityId,
+    autoFetch: true,
+  });
+
+  // Goals management
+  const { goals, fetchCurrentMonthGoals, createGoal } = useGoals({ entityId });
+
   const [dateRange, setDateRange] = useState("30days");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Goals form state
+  const [goalFormData, setGoalFormData] = useState({
+    revenueTarget: "",
+    bookingsTarget: "",
+    newClientsTarget: "",
+    period: "monthly" as "monthly" | "quarterly" | "yearly",
+  });
+
+  // Load goals on mount
+  useEffect(() => {
+    if (entityId) {
+      fetchCurrentMonthGoals();
+    }
+  }, [entityId, fetchCurrentMonthGoals]);
 
   // Calculate date range
   const getDateRangeFilter = () => {
@@ -429,6 +459,7 @@ export function FinancialReportsPage() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="goals">Goals & Targets</TabsTrigger>
             <TabsTrigger value="commissions">Commissions</TabsTrigger>
             <TabsTrigger value="vouchers">Vouchers</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
@@ -512,6 +543,322 @@ export function FinancialReportsPage() {
                       +{financialSummary.growth.transactions}%
                     </span>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="goals" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Set Goals Form */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-blue-600" />
+                    <CardTitle>Set Monthly Goals</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Define your business targets for revenue, bookings, and new
+                    clients
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="revenueTarget">Revenue Target (€)</Label>
+                    <Input
+                      id="revenueTarget"
+                      type="number"
+                      placeholder="e.g., 5000"
+                      value={goalFormData.revenueTarget}
+                      onChange={(e) =>
+                        setGoalFormData({
+                          ...goalFormData,
+                          revenueTarget: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bookingsTarget">Bookings Target</Label>
+                    <Input
+                      id="bookingsTarget"
+                      type="number"
+                      placeholder="e.g., 100"
+                      value={goalFormData.bookingsTarget}
+                      onChange={(e) =>
+                        setGoalFormData({
+                          ...goalFormData,
+                          bookingsTarget: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newClientsTarget">New Clients Target</Label>
+                    <Input
+                      id="newClientsTarget"
+                      type="number"
+                      placeholder="e.g., 20"
+                      value={goalFormData.newClientsTarget}
+                      onChange={(e) =>
+                        setGoalFormData({
+                          ...goalFormData,
+                          newClientsTarget: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="period">Period</Label>
+                    <Select
+                      value={goalFormData.period}
+                      onValueChange={(value: any) =>
+                        setGoalFormData({ ...goalFormData, period: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    className="w-full"
+                    onClick={async () => {
+                      if (!entityId) return;
+
+                      const now = new Date();
+                      const startDate = new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        1
+                      );
+                      const endDate = new Date(
+                        now.getFullYear(),
+                        now.getMonth() + 1,
+                        0
+                      );
+
+                      // Create revenue goal
+                      if (goalFormData.revenueTarget) {
+                        await createGoal({
+                          entityId,
+                          name: "Monthly Revenue",
+                          type: "revenue",
+                          targetValue: parseFloat(goalFormData.revenueTarget),
+                          period: goalFormData.period,
+                          startDate,
+                          endDate,
+                          metadata: { currency: "EUR" },
+                        });
+                      }
+
+                      // Create bookings goal
+                      if (goalFormData.bookingsTarget) {
+                        await createGoal({
+                          entityId,
+                          name: "Monthly Bookings",
+                          type: "bookings",
+                          targetValue: parseFloat(goalFormData.bookingsTarget),
+                          period: goalFormData.period,
+                          startDate,
+                          endDate,
+                        });
+                      }
+
+                      // Create new clients goal
+                      if (goalFormData.newClientsTarget) {
+                        await createGoal({
+                          entityId,
+                          name: "New Clients",
+                          type: "new_clients",
+                          targetValue: parseFloat(
+                            goalFormData.newClientsTarget
+                          ),
+                          period: goalFormData.period,
+                          startDate,
+                          endDate,
+                        });
+                      }
+
+                      // Refresh goals
+                      await fetchCurrentMonthGoals();
+
+                      // Reset form
+                      setGoalFormData({
+                        revenueTarget: "",
+                        bookingsTarget: "",
+                        newClientsTarget: "",
+                        period: "monthly",
+                      });
+                    }}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Goals
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Current Goals Progress */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Goals Progress</CardTitle>
+                  <CardDescription>
+                    Track your current performance vs. targets
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Revenue Goal */}
+                  {(() => {
+                    const completedBookings = bookings.filter(
+                      (b) => b.status === "completed"
+                    );
+                    const currentRevenue = completedBookings.reduce(
+                      (sum, b) =>
+                        sum +
+                        (b.service?.pricing?.basePrice ||
+                          b.service?.price ||
+                          0),
+                      0
+                    );
+                    const revenueGoal = Array.isArray(goals)
+                      ? goals.find((g) => g.type === "revenue")
+                      : undefined;
+                    const revenueTarget = revenueGoal?.targetValue || 0;
+                    const revenueProgress =
+                      revenueTarget > 0
+                        ? (currentRevenue / revenueTarget) * 100
+                        : 0;
+
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Euro className="h-4 w-4 text-green-600" />
+                            <span className="font-medium">Revenue</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            €{currentRevenue.toFixed(0)} / €
+                            {revenueTarget.toFixed(0)}
+                          </span>
+                        </div>
+                        <div className="relative pt-1">
+                          <div className="overflow-hidden h-2 text-xs flex rounded bg-green-100">
+                            <div
+                              style={{
+                                width: `${Math.min(revenueProgress, 100)}%`,
+                              }}
+                              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-600"
+                            ></div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {revenueProgress.toFixed(0)}% of target
+                          {revenueProgress >= 100 && " 🎉 Goal achieved!"}
+                        </p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Bookings Goal */}
+                  {(() => {
+                    const currentBookings = bookings.length;
+                    const bookingsGoal = Array.isArray(goals)
+                      ? goals.find((g) => g.type === "bookings")
+                      : undefined;
+                    const bookingsTarget = bookingsGoal?.targetValue || 0;
+                    const bookingsProgress =
+                      bookingsTarget > 0
+                        ? (currentBookings / bookingsTarget) * 100
+                        : 0;
+
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium">Bookings</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {currentBookings} / {bookingsTarget}
+                          </span>
+                        </div>
+                        <div className="relative pt-1">
+                          <div className="overflow-hidden h-2 text-xs flex rounded bg-blue-100">
+                            <div
+                              style={{
+                                width: `${Math.min(bookingsProgress, 100)}%`,
+                              }}
+                              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600"
+                            ></div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {bookingsProgress.toFixed(0)}% of target
+                          {bookingsProgress >= 100 && " 🎉 Goal achieved!"}
+                        </p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* New Clients Goal */}
+                  {(() => {
+                    const currentClients = clients.length;
+                    const clientsGoal = Array.isArray(goals)
+                      ? goals.find((g) => g.type === "new_clients")
+                      : undefined;
+                    const clientsTarget = clientsGoal?.targetValue || 0;
+                    const clientsProgress =
+                      clientsTarget > 0
+                        ? (currentClients / clientsTarget) * 100
+                        : 0;
+
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-purple-600" />
+                            <span className="font-medium">New Clients</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {currentClients} / {clientsTarget}
+                          </span>
+                        </div>
+                        <div className="relative pt-1">
+                          <div className="overflow-hidden h-2 text-xs flex rounded bg-purple-100">
+                            <div
+                              style={{
+                                width: `${Math.min(clientsProgress, 100)}%`,
+                              }}
+                              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-600"
+                            ></div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {clientsProgress.toFixed(0)}% of target
+                          {clientsProgress >= 100 && " 🎉 Goal achieved!"}
+                        </p>
+                      </div>
+                    );
+                  })()}
+
+                  {(!Array.isArray(goals) || goals.length === 0) && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Target className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No goals set yet</p>
+                      <p className="text-xs">
+                        Set your targets to track progress
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

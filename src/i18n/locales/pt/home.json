@@ -1,0 +1,151 @@
+{
+  "hero": {
+    "badge": "Confiado por mais de 10.000 empresas",
+    "title": "Simplifique seus",
+    "highlight": "Agendamentos",
+    "subtitle": "Plataforma profissional de agendamento projetada para empresas em Portugal, Brasil e EUA. Impulsionada por IA.",
+    "feature1": "Sem taxas de configuração",
+    "feature2": "Cancele quando quiser",
+    "feature3": "Migração gratuita"
+  },
+  "demo": {
+    "title": "Agenda de Hoje",
+    "appointments": "agendamentos"
+  },
+  "features": {
+    "title": "Tudo que você precisa para crescer",
+    "subtitle": "Recursos poderosos projetados para ajudá-lo a gerenciar seu negócio com eficiência",
+    "calendar": {
+      "title": "Agendamento Inteligente",
+      "desc": "Gerenciamento inteligente de calendário com resolução automática de conflitos"
+    },
+    "team": {
+      "title": "Gestão de Equipe",
+      "desc": "Gerencie vários membros da equipe e locais com eficiência"
+    },
+    "analytics": {
+      "title": "Analytics com IA",
+      "desc": "Obtenha insights sobre o desempenho do seu negócio com IA"
+    },
+    "mobile": {
+      "title": "Mobile First",
+      "desc": "Otimizado para dispositivos móveis e tablets"
+    },
+    "global": {
+      "title": "Multi-Regional",
+      "desc": "Suporte para Portugal, Brasil e Estados Unidos"
+    },
+    "security": {
+      "title": "Segurança Empresarial",
+      "desc": "Segurança de nível bancário com OAuth e criptografia"
+    }
+  },
+  "pricing": {
+    "title": "Escolha seu Plano",
+    "subtitle": "Comece grátis e escale conforme cresce. Sem taxas ocultas.",
+    "popular": "Mais Popular",
+    "startFree": "Iniciar Teste Grátis",
+    "perMonth": "/mês"
+  },
+  "plans": {
+    "simple": {
+      "name": "Simples",
+      "description": "Perfeito para profissionais individuais",
+      "features": {
+        "appointments": "Até 50 agendamentos/mês",
+        "calendar": "Integração básica de calendário",
+        "email": "Notificações por email",
+        "mobile": "Responsivo para mobile"
+      }
+    },
+    "individual": {
+      "name": "Individual",
+      "description": "Para profissionais em crescimento",
+      "features": {
+        "appointments": "Agendamentos ilimitados",
+        "calendar": "Sincronização avançada de calendário",
+        "notifications": "Notificações por SMS e Email",
+        "analytics": "Analytics básico",
+        "forms": "Formulários de reserva personalizados"
+      }
+    },
+    "business": {
+      "name": "Empresarial",
+      "description": "Para equipes e empresas",
+      "features": {
+        "everything": "Tudo do Individual",
+        "team": "Gestão de equipe",
+        "analytics": "Analytics avançado e insights de IA",
+        "locations": "Suporte multi-local",
+        "support": "Suporte prioritário"
+      }
+    }
+  },
+  "testimonials": {
+    "title": "Amado por milhares",
+    "subtitle": "Veja o que nossos clientes estão dizendo sobre o Schedfy",
+    "items": [
+      {
+        "name": "Maria Santos",
+        "role": "Proprietária de Salão, Lisboa",
+        "content": "O Schedfy transformou meu negócio de salão. Agora consigo gerenciar 3 locais sem esforço."
+      },
+      {
+        "name": "João Silva",
+        "role": "Dentista, Porto",
+        "content": "Os insights de IA me ajudaram a otimizar minha agenda e aumentar a receita em 30%."
+      },
+      {
+        "name": "Ana Costa",
+        "role": "Personal Trainer, São Paulo",
+        "content": "Meus clientes adoram o sistema de reservas fácil. É profissional e confiável."
+      }
+    ]
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "subtitle": "Tudo o que você precisa saber sobre o Schedfy",
+    "setup": {
+      "question": "Quanto tempo leva para configurar?",
+      "answer": "Você pode estar operacional em menos de 5 minutos. Não é necessário conhecimento técnico."
+    },
+    "migration": {
+      "question": "Posso migrar do meu sistema atual?",
+      "answer": "Sim, oferecemos assistência de migração gratuita para todos os clientes do plano Empresarial."
+    },
+    "support": {
+      "question": "Que suporte vocês oferecem?",
+      "answer": "Oferecemos suporte por email 24/7 para todos os planos, com suporte telefônico prioritário para clientes Empresariais."
+    },
+    "mobile": {
+      "question": "Existe um aplicativo móvel?",
+      "answer": "Nosso aplicativo web é totalmente responsivo e funciona perfeitamente no mobile. Um aplicativo nativo está chegando em breve."
+    }
+  },
+  "cta": {
+    "title": "Pronto para transformar seu negócio?",
+    "subtitle": "Junte-se a milhares de empresas que já usam o Schedfy para otimizar suas operações",
+    "start": "Iniciar Teste Grátis",
+    "contact": "Falar com Vendas"
+  },
+  "footer": {
+    "description": "Plataforma moderna de agendamento para empresas em todo o mundo",
+    "product": "Produto",
+    "features": "Recursos",
+    "pricing": "Preços",
+    "integrations": "Integrações",
+    "company": "Empresa",
+    "about": "Sobre",
+    "blog": "Blog",
+    "careers": "Carreiras",
+    "support": "Suporte",
+    "help": "Central de Ajuda",
+    "contact": "Contato",
+    "privacy": "Privacidade",
+    "rights": "Todos os direitos reservados."
+  },
+  "common": {
+    "getStarted": "Começar",
+    "signIn": "Entrar"
+  }
+}

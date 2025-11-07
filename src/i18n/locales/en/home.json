@@ -1,0 +1,151 @@
+{
+  "hero": {
+    "badge": "Trusted by 10,000+ businesses",
+    "title": "Simplify Your",
+    "highlight": "Scheduling",
+    "subtitle": "Professional scheduling platform designed for businesses in Portugal, Brazil, and USA. Powered by AI.",
+    "feature1": "No setup fees",
+    "feature2": "Cancel anytime",
+    "feature3": "Free migration"
+  },
+  "demo": {
+    "title": "Today's Schedule",
+    "appointments": "appointments"
+  },
+  "features": {
+    "title": "Everything you need to grow",
+    "subtitle": "Powerful features designed to help you manage your business efficiently",
+    "calendar": {
+      "title": "Smart Scheduling",
+      "desc": "Intelligent calendar management with automatic conflicts resolution"
+    },
+    "team": {
+      "title": "Team Management",
+      "desc": "Manage multiple team members and locations efficiently"
+    },
+    "analytics": {
+      "title": "AI Analytics",
+      "desc": "Get insights about your business performance with AI"
+    },
+    "mobile": {
+      "title": "Mobile First",
+      "desc": "Optimized for mobile devices and tablets"
+    },
+    "global": {
+      "title": "Multi-Regional",
+      "desc": "Support for Portugal, Brazil, and United States"
+    },
+    "security": {
+      "title": "Enterprise Security",
+      "desc": "Bank-level security with OAuth and encryption"
+    }
+  },
+  "pricing": {
+    "title": "Choose Your Plan",
+    "subtitle": "Start free and scale as you grow. No hidden fees.",
+    "popular": "Most Popular",
+    "startFree": "Start Free Trial",
+    "perMonth": "/month"
+  },
+  "plans": {
+    "simple": {
+      "name": "Simple",
+      "description": "Perfect for individual professionals",
+      "features": {
+        "appointments": "Up to 50 appointments/month",
+        "calendar": "Basic calendar integration",
+        "email": "Email notifications",
+        "mobile": "Mobile responsive"
+      }
+    },
+    "individual": {
+      "name": "Individual",
+      "description": "For growing professionals",
+      "features": {
+        "appointments": "Unlimited appointments",
+        "calendar": "Advanced calendar sync",
+        "notifications": "SMS & Email notifications",
+        "analytics": "Basic analytics",
+        "forms": "Custom booking forms"
+      }
+    },
+    "business": {
+      "name": "Business",
+      "description": "For teams and businesses",
+      "features": {
+        "everything": "Everything in Individual",
+        "team": "Team management",
+        "analytics": "Advanced analytics & AI insights",
+        "locations": "Multi-location support",
+        "support": "Priority support"
+      }
+    }
+  },
+  "testimonials": {
+    "title": "Loved by thousands",
+    "subtitle": "See what our customers are saying about Schedfy",
+    "items": [
+      {
+        "name": "Maria Santos",
+        "role": "Salon Owner, Lisbon",
+        "content": "Schedfy transformed my salon business. I can now manage 3 locations effortlessly."
+      },
+      {
+        "name": "João Silva",
+        "role": "Dentist, Porto",
+        "content": "The AI insights helped me optimize my schedule and increase revenue by 30%."
+      },
+      {
+        "name": "Ana Costa",
+        "role": "Personal Trainer, São Paulo",
+        "content": "My clients love the easy booking system. It's professional and reliable."
+      }
+    ]
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about Schedfy",
+    "setup": {
+      "question": "How long does it take to set up?",
+      "answer": "You can be up and running in less than 5 minutes. No technical knowledge required."
+    },
+    "migration": {
+      "question": "Can I migrate from my current system?",
+      "answer": "Yes, we offer free migration assistance for all Business plan customers."
+    },
+    "support": {
+      "question": "What support do you provide?",
+      "answer": "We provide 24/7 email support for all plans, with priority phone support for Business customers."
+    },
+    "mobile": {
+      "question": "Is there a mobile app?",
+      "answer": "Our web app is fully responsive and works perfectly on mobile. A native app is coming soon."
+    }
+  },
+  "cta": {
+    "title": "Ready to transform your business?",
+    "subtitle": "Join thousands of businesses already using Schedfy to streamline their operations",
+    "start": "Start Free Trial",
+    "contact": "Contact Sales"
+  },
+  "footer": {
+    "description": "Modern scheduling platform for businesses worldwide",
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "integrations": "Integrations",
+    "company": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "careers": "Careers",
+    "support": "Support",
+    "help": "Help Center",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "rights": "All rights reserved."
+  },
+  "common": {
+    "getStarted": "Get Started",
+    "signIn": "Sign In"
+  }
+}

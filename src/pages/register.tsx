@@ -85,21 +85,21 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-const businessTypes = [
-  { value: "healthcare", label: "Healthcare" },
-  { value: "beauty", label: "Beauty & Wellness" },
-  { value: "fitness", label: "Fitness & Sports" },
-  { value: "education", label: "Education" },
-  { value: "consulting", label: "Consulting" },
-  { value: "legal", label: "Legal Services" },
-  { value: "automotive", label: "Automotive" },
-  { value: "home-services", label: "Home Services" },
-  { value: "professional", label: "Professional Services" },
-  { value: "other", label: "Other" },
-];
-
 export function RegisterPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("auth");
+
+  const businessTypes = [
+    { value: "healthcare", label: t("businessTypes.healthcare") },
+    { value: "beauty", label: t("businessTypes.beauty") },
+    { value: "fitness", label: t("businessTypes.fitness") },
+    { value: "education", label: t("businessTypes.education") },
+    { value: "consulting", label: t("businessTypes.consulting") },
+    { value: "legal", label: t("businessTypes.legal") },
+    { value: "automotive", label: t("businessTypes.automotive") },
+    { value: "home-services", label: t("businessTypes.homeServices") },
+    { value: "professional", label: t("businessTypes.professional") },
+    { value: "other", label: t("businessTypes.other") },
+  ];
   const { isLoading } = useAuth();
   const { availableRegions, getPriceDisplay } = useRegion();
   const [searchParams] = useSearchParams();
@@ -107,6 +107,8 @@ export function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [verificationCode, setVerificationCode] = useState("");
+  const [isCodeVerified, setIsCodeVerified] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
   const [codeExpiresIn, setCodeExpiresIn] = useState(0);
   const totalSteps = 5; // Plan, Personal, Password, Company, Verification
 
@@ -167,10 +169,10 @@ export function RegisterPage() {
   const passwordStrength = getPasswordStrength(password || "");
 
   const getPasswordStrengthLabel = (strength: number) => {
-    if (strength >= 80) return "Strong";
-    if (strength >= 60) return "Good";
-    if (strength >= 30) return "Fair";
-    return "Weak";
+    if (strength >= 80) return t("passwordStrength.strong");
+    if (strength >= 60) return t("passwordStrength.good");
+    if (strength >= 30) return t("passwordStrength.fair");
+    return t("passwordStrength.weak");
   };
 
   const getPasswordStrengthColor = (strength: number) => {
@@ -246,7 +248,38 @@ export function RegisterPage() {
   };
 
   const handleResendCode = async () => {
+    setIsCodeVerified(false);
+    setVerificationCode("");
     await handleSendVerificationCode();
+  };
+
+  // Auto-verify code when 6 digits are entered
+  const handleCodeChange = async (value: string) => {
+    // eslint-disable-next-line prefer-named-capture-group
+    const numericValue = value.replace(/\D/g, "");
+    setVerificationCode(numericValue);
+    setIsCodeVerified(false);
+
+    // Auto-verify when 6 digits are entered
+    if (numericValue.length === 6) {
+      setIsVerifyingCode(true);
+      try {
+        await authService.verifyCode(email, numericValue);
+        setIsCodeVerified(true);
+        toast.success("Code verified successfully!");
+        console.log("[Register] Code auto-verified successfully");
+      } catch (error: any) {
+        setIsCodeVerified(false);
+        console.error("[Register] Code auto-verification failed:", error);
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Invalid verification code";
+        toast.error(errorMessage);
+      } finally {
+        setIsVerifyingCode(false);
+      }
+    }
   };
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -255,12 +288,17 @@ export function RegisterPage() {
       return;
     }
 
+    if (!isCodeVerified) {
+      toast.error("Please wait for the code to be verified");
+      return;
+    }
+
     try {
       const selectedRegion = REGIONS[data.region as RegionCode];
 
-      console.log("[Register] Creating account with verification...");
+      console.log("[Register] Creating account with verified code...");
 
-      // Register with verification code
+      // Create account with verified code (code already verified via auto-verify)
       await authService.registerWithVerification({
         email: data.email,
         password: data.password,
@@ -269,6 +307,8 @@ export function RegisterPage() {
         verificationCode: verificationCode,
         businessName: data.businessName,
         businessType: data.businessType,
+        plan: data.plan, // Include selected plan
+        region: data.region, // Include region code (e.g., 'BR', 'PT', 'US')
         timezone: selectedRegion.timezone,
         locale: selectedRegion.locale,
         currency: selectedRegion.currency,
@@ -324,9 +364,11 @@ export function RegisterPage() {
         return (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">Choose Your Plan</h3>
+              <h3 className="text-xl font-semibold">
+                {t("register.steps.plan.title")}
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Select the plan that best fits your needs
+                {t("register.steps.plan.subtitle")}
               </p>
             </div>
 
@@ -347,14 +389,16 @@ export function RegisterPage() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <h4 className="font-semibold text-lg">Simple</h4>
+                        <h4 className="font-semibold text-lg">
+                          {t("register.steps.plan.simple.name")}
+                        </h4>
                         <p className="text-sm text-muted-foreground">
-                          Perfect for individual professionals
+                          {t("register.steps.plan.simple.description")}
                         </p>
                         <p className="text-2xl font-bold mt-2">
                           {getPriceDisplay("simple", "monthly")}
                           <span className="text-sm font-normal text-muted-foreground">
-                            /month
+                            {t("register.steps.plan.simple.perMonth")}
                           </span>
                         </p>
                       </div>
@@ -374,17 +418,21 @@ export function RegisterPage() {
                         : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <Badge className="absolute top-2 right-2">Popular</Badge>
+                    <Badge className="absolute top-2 right-2">
+                      {t("register.steps.plan.individual.badge")}
+                    </Badge>
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <h4 className="font-semibold text-lg">Individual</h4>
+                        <h4 className="font-semibold text-lg">
+                          {t("register.steps.plan.individual.name")}
+                        </h4>
                         <p className="text-sm text-muted-foreground">
-                          For growing professionals
+                          {t("register.steps.plan.individual.description")}
                         </p>
                         <p className="text-2xl font-bold mt-2">
                           {getPriceDisplay("individual", "monthly")}
                           <span className="text-sm font-normal text-muted-foreground">
-                            /month
+                            {t("register.steps.plan.individual.perMonth")}
                           </span>
                         </p>
                       </div>
@@ -406,14 +454,16 @@ export function RegisterPage() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <h4 className="font-semibold text-lg">Business</h4>
+                        <h4 className="font-semibold text-lg">
+                          {t("register.steps.plan.business.name")}
+                        </h4>
                         <p className="text-sm text-muted-foreground">
-                          Complete solution for teams
+                          {t("register.steps.plan.business.description")}
                         </p>
                         <p className="text-2xl font-bold mt-2">
                           {getPriceDisplay("business", "monthly")}
                           <span className="text-sm font-normal text-muted-foreground">
-                            /month
+                            {t("register.steps.plan.business.perMonth")}
                           </span>
                         </p>
                       </div>
@@ -438,19 +488,22 @@ export function RegisterPage() {
         // Personal Information
         return (
           <div className="space-y-4">
+            <div className="text-center space-y-2 mb-6">
+              <h3 className="text-xl font-semibold">
+                {t("register.steps.personal.title")}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t("register.steps.personal.subtitle")}
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">
-                  {t("auth.firstName", "First Name")}
-                </Label>
+                <Label htmlFor="firstName">{t("register.firstName")}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="firstName"
-                    placeholder={t(
-                      "auth.firstNamePlaceholder",
-                      "Enter your first name"
-                    )}
+                    placeholder={t("register.firstNamePlaceholder")}
                     className="pl-10"
                     {...register("firstName")}
                     aria-invalid={errors.firstName ? "true" : "false"}
@@ -464,9 +517,7 @@ export function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName">
-                  {t("auth.lastName", "Last Name")}
-                </Label>
+                <Label htmlFor="lastName">{t("register.lastName")}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -548,7 +599,7 @@ export function RegisterPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">
-                      Password strength
+                      {t("passwordStrength.label")}
                     </span>
                     <span
                       className={`font-medium ${getPasswordStrengthColor(
@@ -570,7 +621,9 @@ export function RegisterPage() {
                       ) : (
                         <X className="h-3 w-3" />
                       )}
-                      <span>At least 8 characters</span>
+                      <span>
+                        {t("passwordStrength.requirements.minLength")}
+                      </span>
                     </div>
                     <div
                       className={`flex items-center space-x-2 ${
@@ -582,7 +635,9 @@ export function RegisterPage() {
                       ) : (
                         <X className="h-3 w-3" />
                       )}
-                      <span>One uppercase letter</span>
+                      <span>
+                        {t("passwordStrength.requirements.uppercase")}
+                      </span>
                     </div>
                     <div
                       className={`flex items-center space-x-2 ${
@@ -594,7 +649,7 @@ export function RegisterPage() {
                       ) : (
                         <X className="h-3 w-3" />
                       )}
-                      <span>One number</span>
+                      <span>{t("passwordStrength.requirements.number")}</span>
                     </div>
                     <div
                       className={`flex items-center space-x-2 ${
@@ -606,7 +661,7 @@ export function RegisterPage() {
                       ) : (
                         <X className="h-3 w-3" />
                       )}
-                      <span>One special character</span>
+                      <span>{t("passwordStrength.requirements.special")}</span>
                     </div>
                   </div>
                 </div>
@@ -827,18 +882,38 @@ export function RegisterPage() {
               <Label htmlFor="verificationCode">
                 {t("auth.verificationCode", "Verification Code")} *
               </Label>
-              <Input
-                id="verificationCode"
-                type="text"
-                placeholder="000000"
-                maxLength={6}
-                value={verificationCode}
-                onChange={(e) =>
-                  setVerificationCode(e.target.value.replace(/\D/g, ""))
-                }
-                disabled={isSubmitting}
-                className="text-center text-2xl font-mono tracking-widest"
-              />
+              <div className="relative">
+                <Input
+                  id="verificationCode"
+                  type="text"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={(e) => handleCodeChange(e.target.value)}
+                  disabled={isSubmitting || isVerifyingCode}
+                  className={`text-center text-2xl font-mono tracking-widest ${
+                    isCodeVerified
+                      ? "border-green-500 focus:border-green-500"
+                      : ""
+                  }`}
+                />
+                {isVerifyingCode && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {isCodeVerified && !isVerifyingCode && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  </div>
+                )}
+              </div>
+              {isCodeVerified && (
+                <p className="text-sm text-green-600 text-center flex items-center justify-center gap-1">
+                  <Check className="h-4 w-4" />
+                  {t("auth.codeVerified", "Code verified successfully!")}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground text-center">
                 {codeExpiresIn > 0 ? (
                   <>
@@ -959,10 +1034,12 @@ export function RegisterPage() {
               <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>
-                    Step {currentStep} of {totalSteps}
+                    {t("common.step", "Step")} {currentStep} {t("common.of")}{" "}
+                    {totalSteps}
                   </span>
                   <span>
-                    {Math.round((currentStep / totalSteps) * 100)}% complete
+                    {Math.round((currentStep / totalSteps) * 100)}%{" "}
+                    {t("common.complete")}
                   </span>
                 </div>
                 <Progress
@@ -1028,6 +1105,8 @@ export function RegisterPage() {
                         disabled={
                           isSubmitting ||
                           isLoading ||
+                          isVerifyingCode ||
+                          !isCodeVerified ||
                           codeExpiresIn === 0 ||
                           verificationCode.length !== 6
                         }
@@ -1055,9 +1134,9 @@ export function RegisterPage() {
 
           {/* Mobile Footer */}
           <div className="lg:hidden text-center text-sm text-muted-foreground">
-            {t("auth.alreadyHaveAccount", "Already have an account?")}{" "}
+            {t("register.hasAccount")}{" "}
             <Link to="/login" className="text-primary hover:underline">
-              {t("auth.signIn", "Sign in")}
+              {t("register.signIn")}
             </Link>
           </div>
         </div>

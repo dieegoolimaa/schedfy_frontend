@@ -28,9 +28,9 @@ import {
 } from "lucide-react";
 
 export function HomePage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("home");
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { regionConfig, getPriceDisplay } = useRegion();
+  const { getPriceDisplay } = useRegion();
   const navigate = useNavigate();
 
   // Redirect authenticated users to their appropriate dashboard
@@ -97,26 +97,32 @@ export function HomePage() {
 
   const testimonials = [
     {
-      name: "Maria Santos",
-      role: "Salon Owner, Lisbon",
-      content:
-        "Schedfy transformed my salon business. I can now manage 3 locations effortlessly.",
+      name: t("testimonials.items.0.name", "Maria Santos"),
+      role: t("testimonials.items.0.role", "Salon Owner, Lisbon"),
+      content: t(
+        "testimonials.items.0.content",
+        "Schedfy transformed my salon business. I can now manage 3 locations effortlessly."
+      ),
       rating: 5,
       avatar: "MS",
     },
     {
-      name: "João Silva",
-      role: "Dentist, Porto",
-      content:
-        "The AI insights helped me optimize my schedule and increase revenue by 30%.",
+      name: t("testimonials.items.1.name", "João Silva"),
+      role: t("testimonials.items.1.role", "Dentist, Porto"),
+      content: t(
+        "testimonials.items.1.content",
+        "The AI insights helped me optimize my schedule and increase revenue by 30%."
+      ),
       rating: 5,
       avatar: "JS",
     },
     {
-      name: "Ana Costa",
-      role: "Personal Trainer, São Paulo",
-      content:
-        "My clients love the easy booking system. It's professional and reliable.",
+      name: t("testimonials.items.2.name", "Ana Costa"),
+      role: t("testimonials.items.2.role", "Personal Trainer, São Paulo"),
+      content: t(
+        "testimonials.items.2.content",
+        "My clients love the easy booking system. It's professional and reliable."
+      ),
       rating: 5,
       avatar: "AC",
     },
@@ -345,26 +351,42 @@ export function HomePage() {
                   <span className="text-4xl font-bold">
                     {getPriceDisplay("simple", "monthly")}
                   </span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className="text-muted-foreground">
+                    {t("pricing.perMonth", "/month")}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Up to 50 appointments/month</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.simple.features.appointments",
+                        "Up to 50 appointments/month"
+                      )}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Basic calendar integration</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.simple.features.calendar",
+                        "Basic calendar integration"
+                      )}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Email notifications</span>
+                    <span className="text-sm">
+                      {t("plans.simple.features.email", "Email notifications")}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Mobile responsive</span>
+                    <span className="text-sm">
+                      {t("plans.simple.features.mobile", "Mobile responsive")}
+                    </span>
                   </li>
                 </ul>
                 <Button className="w-full mt-6" variant="outline" asChild>
@@ -396,30 +418,57 @@ export function HomePage() {
                   <span className="text-4xl font-bold">
                     {getPriceDisplay("individual", "monthly")}
                   </span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className="text-muted-foreground">
+                    {t("pricing.perMonth", "/month")}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Unlimited appointments</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.individual.features.appointments",
+                        "Unlimited appointments"
+                      )}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Advanced calendar sync</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.individual.features.calendar",
+                        "Advanced calendar sync"
+                      )}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">SMS & Email notifications</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.individual.features.notifications",
+                        "SMS & Email notifications"
+                      )}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Basic analytics</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.individual.features.analytics",
+                        "Basic analytics"
+                      )}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Custom booking forms</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.individual.features.forms",
+                        "Custom booking forms"
+                      )}
+                    </span>
                   </li>
                 </ul>
                 <Button className="w-full mt-6" asChild>
@@ -443,32 +492,51 @@ export function HomePage() {
                   <span className="text-4xl font-bold">
                     {getPriceDisplay("business", "monthly")}
                   </span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className="text-muted-foreground">
+                    {t("pricing.perMonth", "/month")}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Everything in Individual</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Team management</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
                     <span className="text-sm">
-                      Advanced analytics & AI insights
+                      {t(
+                        "plans.business.features.everything",
+                        "Everything in Individual"
+                      )}
                     </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Multi-location support</span>
+                    <span className="text-sm">
+                      {t("plans.business.features.team", "Team management")}
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">Priority support</span>
+                    <span className="text-sm">
+                      {t(
+                        "plans.business.features.analytics",
+                        "Advanced analytics & AI insights"
+                      )}
+                    </span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                    <span className="text-sm">
+                      {t(
+                        "plans.business.features.locations",
+                        "Multi-location support"
+                      )}
+                    </span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                    <span className="text-sm">
+                      {t("plans.business.features.support", "Priority support")}
+                    </span>
                   </li>
                 </ul>
                 <Button className="w-full mt-6" variant="outline" asChild>

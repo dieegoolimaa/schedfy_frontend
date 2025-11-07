@@ -4,6 +4,8 @@ import { useAuth } from "../../contexts/auth-context";
 import { useFeatureFlags } from "../../contexts/feature-flags-context";
 import { Button } from "../ui/button";
 import { useTheme } from "../theme-provider";
+import { LanguageSwitcher } from "../language-switcher";
+import { RegionSelector } from "../region-selector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -615,6 +617,10 @@ export function Navigation() {
             >
               <Menu className="h-5 w-5" />
             </Button>
+
+            {/* Language & Region Switcher */}
+            <RegionSelector />
+            <LanguageSwitcher />
 
             <Button
               variant="ghost"

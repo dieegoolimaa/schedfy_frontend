@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { QuickBookingDialog } from "../../components/dialogs/quick-booking-dialog";
 import {
   Card,
   CardContent,
@@ -25,12 +27,16 @@ import {
 } from "lucide-react";
 
 const SimpleDashboard = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
-  const { bookings, loading: bookingsLoading } = useBookings({
+  const {
+    bookings,
+    loading: bookingsLoading,
+    fetchBookings,
+  } = useBookings({
     entityId,
     autoFetch: true,
   });
@@ -39,6 +45,9 @@ const SimpleDashboard = () => {
     entityId,
     autoFetch: true,
   });
+
+  // Dialog states
+  const [quickBookingDialogOpen, setQuickBookingDialogOpen] = useState(false);
 
   // Calculate real stats from bookings data
   const totalBookings = bookings.length;
@@ -98,7 +107,7 @@ const SimpleDashboard = () => {
 
   const stats = [
     {
-      title: "Total Bookings",
+      title: t("stats.totalbookings"),
       value: totalBookings.toString(),
       change:
         bookingsChange > 0 ? `+${bookingsChange}` : bookingsChange.toString(),
@@ -107,7 +116,7 @@ const SimpleDashboard = () => {
       color: "text-blue-600",
     },
     {
-      title: "Completed Sessions",
+      title: t("stats.completedSessions"),
       value: completedSessions.toString(),
       change:
         completedChange > 0
@@ -123,7 +132,7 @@ const SimpleDashboard = () => {
 
   // Handler functions for navigation
   const handleNewBooking = () => {
-    navigate("/simple/bookings");
+    setQuickBookingDialogOpen(true);
   };
 
   const handleViewSchedule = () => {
@@ -139,8 +148,11 @@ const SimpleDashboard = () => {
   };
 
   const handleTodayView = () => {
-    // Filter to today's bookings - in a real implementation, you'd pass this as state
-    navigate("/simple/bookings");
+    navigate("/simple/bookings?filter=today");
+  };
+
+  const handleBookingCreated = () => {
+    fetchBookings();
   };
 
   // Format date/time helpers
@@ -166,9 +178,9 @@ const SimpleDashboard = () => {
     tomorrowOnly.setHours(0, 0, 0, 0);
 
     if (dateOnly.getTime() === todayOnly.getTime()) {
-      return "Today";
+      return t("time.today");
     } else if (dateOnly.getTime() === tomorrowOnly.getTime()) {
-      return "Tomorrow";
+      return t("time.tomorrow");
     } else {
       return date.toLocaleDateString([], { month: "short", day: "numeric" });
     }
@@ -179,17 +191,15 @@ const SimpleDashboard = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("dashboard.welcome", "Welcome back")}
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("welcome")}</h1>
           <p className="text-muted-foreground">
-            Manage your appointments and services
+            {t("quickActions.description")}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={handleTodayView}>
             <CalendarDays className="mr-2 h-4 w-4" />
-            {t("dashboard.today", "Today")}
+            {t("today")}
           </Button>
         </div>
       </div>
@@ -199,16 +209,16 @@ const SimpleDashboard = () => {
         {loading ? (
           <>
             <MobileStatsCard
-              title="Loading..."
-              value="--"
+              title={t("loading.title")}
+              value={t("loading.value")}
               color="gray"
-              subtitle="Fetching data..."
+              subtitle={t("loading.subtitle")}
             />
             <MobileStatsCard
-              title="Loading..."
-              value="--"
+              title={t("loading.title")}
+              value={t("loading.value")}
               color="gray"
-              subtitle="Fetching data..."
+              subtitle={t("loading.subtitle")}
             />
           </>
         ) : (
@@ -217,11 +227,13 @@ const SimpleDashboard = () => {
               key={stat.title}
               title={stat.title}
               value={stat.value}
-              subtitle={`${stat.change} this month`}
+              subtitle={`${stat.change} ${t("stats.thisMonth")}`}
               color={
-                stat.title.includes("Bookings")
+                stat.title.includes("Bookings") ||
+                stat.title.includes("Agendamentos")
                   ? "blue"
-                  : stat.title.includes("Completed")
+                  : stat.title.includes("Completed") ||
+                    stat.title.includes("Concluídas")
                   ? "green"
                   : "gray"
               }
@@ -237,11 +249,13 @@ const SimpleDashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Upcoming Bookings</CardTitle>
-                <CardDescription>Your next appointments</CardDescription>
+                <CardTitle>{t("upcomingBookings.title")}</CardTitle>
+                <CardDescription>
+                  {t("upcomingBookings.description")}
+                </CardDescription>
               </div>
               <Button variant="ghost" size="sm">
-                View All
+                {t("viewAll")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -254,7 +268,7 @@ const SimpleDashboard = () => {
             ) : upcomingBookings.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No upcoming bookings</p>
+                <p>{t("upcomingBookings.noBookings")}</p>
                 <Button
                   variant="outline"
                   size="sm"
@@ -262,7 +276,7 @@ const SimpleDashboard = () => {
                   onClick={handleNewBooking}
                 >
                   <CalendarDays className="mr-2 h-4 w-4" />
-                  Create Booking
+                  {t("upcomingBookings.createBooking")}
                 </Button>
               </div>
             ) : (
@@ -283,10 +297,12 @@ const SimpleDashboard = () => {
                       />
                       <div>
                         <p className="font-medium">
-                          {booking.client?.name || "Unknown Client"}
+                          {booking.client?.name ||
+                            t("upcomingBookings.unknownClient")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {booking.service?.name || "Unknown Service"}
+                          {booking.service?.name ||
+                            t("upcomingBookings.unknownService")}
                         </p>
                       </div>
                     </div>
@@ -308,10 +324,8 @@ const SimpleDashboard = () => {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Essential features for your business
-            </CardDescription>
+            <CardTitle>{t("quickActions.title")}</CardTitle>
+            <CardDescription>{t("quickActions.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
@@ -320,7 +334,7 @@ const SimpleDashboard = () => {
                 onClick={handleNewBooking}
               >
                 <CalendarDays className="mr-3 h-5 w-5" />
-                New Booking
+                {t("quickActions.newBooking")}
               </Button>
               <Button
                 variant="outline"
@@ -328,7 +342,7 @@ const SimpleDashboard = () => {
                 onClick={handleViewSchedule}
               >
                 <Clock className="mr-3 h-5 w-5" />
-                View Schedule
+                {t("quickActions.viewSchedule")}
               </Button>
               <Button
                 variant="outline"
@@ -336,24 +350,23 @@ const SimpleDashboard = () => {
                 onClick={handleViewReports}
               >
                 <DollarSign className="mr-3 h-5 w-5" />
-                View Reports
+                {t("quickActions.viewReports")}
               </Button>
 
               {/* Upgrade Banner */}
               <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
                 <h3 className="font-semibold text-blue-900 mb-2">
-                  Unlock More Features
+                  {t("upgradeBanner.title")}
                 </h3>
                 <p className="text-sm text-blue-700 mb-3">
-                  Upgrade to Individual or Business plan for advanced analytics,
-                  team management, and more.
+                  {t("upgradeBanner.description")}
                 </p>
                 <Button
                   size="sm"
                   className="w-full"
                   onClick={handleUpgradePlan}
                 >
-                  Upgrade Plan
+                  {t("upgradeBanner.button")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -365,28 +378,43 @@ const SimpleDashboard = () => {
       {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Latest updates</CardDescription>
+          <CardTitle>{t("recentActivity.title")}</CardTitle>
+          <CardDescription>{t("recentActivity.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <div className="w-2 h-2 bg-green-500 rounded-full" />
               <div className="flex-1">
-                <p className="text-sm">New booking confirmed for tomorrow</p>
-                <p className="text-xs text-muted-foreground">2 minutes ago</p>
+                <p className="text-sm">
+                  {t("recentActivity.newBookingConfirmed")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("recentActivity.minutesAgo", { count: 2 })}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="w-2 h-2 bg-blue-500 rounded-full" />
               <div className="flex-1">
-                <p className="text-sm">Session completed successfully</p>
-                <p className="text-xs text-muted-foreground">1 hour ago</p>
+                <p className="text-sm">
+                  {t("recentActivity.sessionCompleted")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("recentActivity.hourAgo")}
+                </p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <QuickBookingDialog
+        open={quickBookingDialogOpen}
+        onOpenChange={setQuickBookingDialogOpen}
+        onBookingCreated={handleBookingCreated}
+      />
     </div>
   );
 };

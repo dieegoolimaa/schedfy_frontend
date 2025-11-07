@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -35,6 +38,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { Label } from "../../components/ui/label";
+import { CalendarView } from "../../components/calendar/CalendarView";
 import {
   BarChart,
   Bar,
@@ -64,97 +68,149 @@ import {
 } from "lucide-react";
 
 export function ProfessionalDashboard() {
+  const { user } = useAuth();
   const [timeFilter, setTimeFilter] = useState("week");
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Mock professional data
+  // Debug: Log user data
+  useEffect(() => {
+    console.log("[Professional Dashboard] User data:", user);
+  }, [user]);
+
+  const entityId = user?.entityId || "";
+  const professionalId = user?.id || "";
+
+  // Fetch bookings for this professional
+  const {
+    bookings,
+    loading: bookingsLoading,
+    fetchBookings,
+    confirmBooking,
+    completeBooking,
+  } = useBookings({ entityId });
+
+  useEffect(() => {
+    if (entityId) {
+      fetchBookings();
+    }
+  }, [entityId]);
+
+  // Filter bookings for this professional only
+  const myBookings = bookings.filter(
+    (b) =>
+      b.professionalId === professionalId ||
+      b.professional?.id === professionalId
+  );
+
+  // Today's bookings
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const todaySchedule = myBookings
+    .filter((booking) => {
+      const bookingDate = new Date(booking.startTime);
+      return bookingDate >= today && bookingDate < tomorrow;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+
+  // Professional data from user context
   const professionalData = {
-    id: 1,
-    name: "João Santos",
-    role: "Senior Stylist",
-    avatar: "JS",
-    email: "joao.santos@schedfy.com",
-    phone: "+351 123 456 789",
-    businessName: "Bella Vita Salon & Spa",
-    startDate: "2023-01-15",
-    specialities: ["Haircut", "Styling", "Color"],
+    id: user?.id || "",
+    name: user?.name || "Professional",
+    role: "Professional",
+    avatar: user?.name
+      ? user.name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "PR",
+    email: user?.email || "",
+    phone: "",
+    businessName: "Business Name",
+    startDate: user?.createdAt || new Date().toISOString(),
+    specialities: [],
     rating: 4.8,
-    totalReviews: 156,
+    totalReviews: 0,
   };
 
-  // Today's schedule
-  const todaySchedule = [
-    {
-      id: 1,
-      time: "09:00",
-      duration: 60,
-      client: "Ana Silva",
-      service: "Haircut & Styling",
-      status: "confirmed",
-      phone: "+351 123 456 789",
-      notes: "First time client",
-    },
-    {
-      id: 2,
-      time: "10:30",
-      duration: 45,
-      client: "Maria Oliveira",
-      service: "Hair Styling",
-      status: "confirmed",
-      phone: "+351 987 654 321",
-      notes: "Regular client, prefers volume",
-    },
-    {
-      id: 3,
-      time: "12:00",
-      duration: 90,
-      client: "Sofia Costa",
-      service: "Hair Coloring",
-      status: "pending",
-      phone: "+351 555 123 456",
-      notes: "Wants to go blonde",
-    },
-    {
-      id: 4,
-      time: "14:30",
-      duration: 60,
-      client: "Pedro Santos",
-      service: "Haircut",
-      status: "confirmed",
-      phone: "+351 444 555 666",
-      notes: "",
-    },
-    {
-      id: 5,
-      time: "16:00",
-      duration: 45,
-      client: "Luisa Fernandes",
-      service: "Styling",
-      status: "confirmed",
-      phone: "+351 777 888 999",
-      notes: "Special occasion styling",
-    },
-  ];
+  // Calculate stats from real data
+  const thisMonth = new Date();
+  thisMonth.setDate(1);
+  thisMonth.setHours(0, 0, 0, 0);
 
-  // Performance data
-  const weeklyData = [
-    { day: "Mon", bookings: 6, revenue: 240 },
-    { day: "Tue", bookings: 8, revenue: 320 },
-    { day: "Wed", bookings: 5, revenue: 200 },
-    { day: "Thu", bookings: 7, revenue: 280 },
-    { day: "Fri", bookings: 9, revenue: 360 },
-    { day: "Sat", bookings: 11, revenue: 440 },
-    { day: "Sun", bookings: 3, revenue: 120 },
-  ];
+  const thisMonthBookings = myBookings.filter((booking) => {
+    const bookingDate = new Date(booking.startTime);
+    return bookingDate >= thisMonth;
+  });
 
-  const monthlyData = [
-    { month: "Jan", bookings: 52, revenue: 2080 },
-    { month: "Feb", bookings: 48, revenue: 1920 },
-    { month: "Mar", bookings: 56, revenue: 2240 },
-    { month: "Apr", bookings: 61, revenue: 2440 },
-    { month: "May", bookings: 58, revenue: 2320 },
-    { month: "Jun", bookings: 67, revenue: 2680 },
-  ];
+  // Calculate weekly/monthly data for charts
+  const calculateWeeklyData = () => {
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of week
+    weekStart.setHours(0, 0, 0, 0);
 
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    return daysOfWeek.map((day, index) => {
+      const dayDate = new Date(weekStart);
+      dayDate.setDate(weekStart.getDate() + index);
+      const nextDay = new Date(dayDate);
+      nextDay.setDate(dayDate.getDate() + 1);
+
+      const dayBookings = myBookings.filter((b) => {
+        const bookingDate = new Date(b.startTime);
+        return bookingDate >= dayDate && bookingDate < nextDay;
+      });
+
+      const revenue = dayBookings.reduce(
+        (sum, b) => sum + (b.service?.price || 0),
+        0
+      );
+
+      return {
+        day,
+        bookings: dayBookings.length,
+        revenue,
+      };
+    });
+  };
+
+  const calculateMonthlyData = () => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+    const currentMonth = new Date().getMonth();
+
+    return months
+      .map((month, index) => {
+        const monthBookings = myBookings.filter((b) => {
+          const bookingDate = new Date(b.startTime);
+          return (
+            bookingDate.getMonth() === index &&
+            bookingDate.getFullYear() === new Date().getFullYear()
+          );
+        });
+
+        const revenue = monthBookings.reduce(
+          (sum, b) => sum + (b.service?.price || 0),
+          0
+        );
+
+        return {
+          month,
+          bookings: monthBookings.length,
+          revenue,
+        };
+      })
+      .filter((_, index) => index <= currentMonth);
+  };
+
+  const weeklyData = calculateWeeklyData();
+  const monthlyData = calculateMonthlyData();
   const currentData = timeFilter === "week" ? weeklyData : monthlyData;
 
   // Stats
@@ -163,34 +219,56 @@ export function ProfessionalDashboard() {
       bookings: todaySchedule.length,
       confirmed: todaySchedule.filter((b) => b.status === "confirmed").length,
       pending: todaySchedule.filter((b) => b.status === "pending").length,
-      revenue: todaySchedule.reduce((sum, b) => {
-        let servicePrice;
-        if (b.service === "Haircut & Styling") {
-          servicePrice = 35;
-        } else if (b.service === "Hair Coloring") {
-          servicePrice = 85;
-        } else if (b.service === "Haircut") {
-          servicePrice = 25;
-        } else {
-          servicePrice = 30;
-        }
-        return sum + servicePrice;
-      }, 0),
+      revenue: todaySchedule.reduce(
+        (sum, b) => sum + (b.service?.price || 0),
+        0
+      ),
     },
     thisMonth: {
-      bookings: 67,
-      revenue: 2680,
-      commission: 1608, // 60% commission
+      bookings: thisMonthBookings.length,
+      revenue: thisMonthBookings.reduce(
+        (sum, b) => sum + (b.service?.price || 0),
+        0
+      ),
+      commission:
+        thisMonthBookings.reduce((sum, b) => sum + (b.service?.price || 0), 0) *
+        0.6, // 60% commission
       rating: 4.8,
-      newClients: 12,
+      newClients: new Set(thisMonthBookings.map((b) => b.clientId)).size,
     },
     overall: {
-      totalBookings: 342,
-      totalRevenue: 13680,
-      totalCommission: 8208,
+      totalBookings: myBookings.length,
+      totalRevenue: myBookings.reduce(
+        (sum, b) => sum + (b.service?.price || 0),
+        0
+      ),
+      totalCommission:
+        myBookings.reduce((sum, b) => sum + (b.service?.price || 0), 0) * 0.6,
       averageRating: 4.8,
-      totalClients: 198,
+      totalClients: new Set(myBookings.map((b) => b.clientId)).size,
     },
+  };
+
+  const handleConfirmBooking = async (bookingId: string) => {
+    try {
+      await confirmBooking(bookingId);
+      toast.success("Booking confirmed successfully");
+      fetchBookings();
+    } catch (error: any) {
+      console.error("Error confirming booking:", error);
+      toast.error(error.message || "Failed to confirm booking");
+    }
+  };
+
+  const handleCompleteBooking = async (bookingId: string) => {
+    try {
+      await completeBooking(bookingId);
+      toast.success("Booking marked as completed");
+      fetchBookings();
+    } catch (error: any) {
+      console.error("Error completing booking:", error);
+      toast.error(error.message || "Failed to complete booking");
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -236,6 +314,10 @@ export function ProfessionalDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => setCalendarOpen(true)}>
+            <Calendar className="h-4 w-4 mr-2" />
+            Calendar View
+          </Button>
           <div className="flex items-center space-x-2">
             <Star className="h-4 w-4 text-yellow-500" />
             <span className="font-medium">{professionalData.rating}</span>
@@ -249,6 +331,15 @@ export function ProfessionalDashboard() {
           </Avatar>
         </div>
       </div>
+
+      {/* Calendar View Dialog */}
+      <CalendarView
+        open={calendarOpen}
+        onOpenChange={setCalendarOpen}
+        bookings={myBookings}
+        title="My Calendar"
+        description="View and manage your appointments"
+      />
 
       {/* Today's Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -334,63 +425,110 @@ export function ProfessionalDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {todaySchedule.map((appointment) => (
-                    <TableRow key={appointment.id}>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span className="font-medium">
-                            {appointment.time}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">
-                            {appointment.client}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            <div className="flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {appointment.phone}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">
-                          {appointment.service}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span>{appointment.duration} min</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`${getStatusColor(appointment.status)} flex items-center gap-1 w-fit`}
-                        >
-                          {getStatusIcon(appointment.status)}
-                          {appointment.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {appointment.notes || "No notes"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <Button variant="outline" size="sm">
-                            Contact
-                          </Button>
-                          {appointment.status === "pending" && (
-                            <Button size="sm">Confirm</Button>
-                          )}
+                  {bookingsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : todaySchedule.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <Calendar className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-2" />
+                        <p className="text-muted-foreground">
+                          No appointments scheduled for today
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    todaySchedule.map((appointment) => {
+                      const startTime = new Date(appointment.startTime);
+                      const endTime = new Date(appointment.endTime);
+                      const duration = Math.round(
+                        (endTime.getTime() - startTime.getTime()) / (1000 * 60)
+                      );
+
+                      return (
+                        <TableRow key={appointment.id}>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                              <span className="font-medium">
+                                {startTime.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="font-medium">
+                                {appointment.client?.name || "Unknown"}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                <div className="flex items-center">
+                                  <Phone className="h-3 w-3 mr-1" />
+                                  {appointment.client?.phone || "N/A"}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">
+                              {appointment.service?.name || "Service"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span>{duration} min</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={`${getStatusColor(
+                                appointment.status
+                              )} flex items-center gap-1 w-fit`}
+                            >
+                              {getStatusIcon(appointment.status)}
+                              {appointment.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">
+                              {appointment.notes || "No notes"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-1">
+                              {appointment.status === "pending" && (
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    handleConfirmBooking(appointment.id)
+                                  }
+                                >
+                                  Confirm
+                                </Button>
+                              )}
+                              {appointment.status === "confirmed" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleCompleteBooking(appointment.id)
+                                  }
+                                >
+                                  Complete
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

@@ -14,7 +14,7 @@ import { CheckCircle2, X } from "lucide-react";
 import { useRegion } from "@/contexts/region-context";
 
 export default function Pricing() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("pricing");
   const { getPriceDisplay } = useRegion();
 
   const plans = [

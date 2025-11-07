@@ -1,41 +1,88 @@
 {
-  "title": "Preços",
-  "subtitle": "Escolha o plano ideal para o seu negócio",
+  "period": "/mês",
+  "popular": "Mais Popular",
+  "hero": {
+    "title": "Preços Simples e Transparentes",
+    "subtitle": "Escolha o plano perfeito para seu negócio. Todos os planos incluem 14 dias de teste grátis."
+  },
   "simple": {
     "name": "Simples",
-    "description": "Perfeito para profissionais individuais",
+    "description": "Perfeito para profissionais individuais iniciando sua jornada",
+    "cta": "Iniciar Teste Grátis",
     "feature1": "Até 50 agendamentos/mês",
-    "feature2": "1 profissional",
-    "feature3": "Calendário básico",
-    "feature4": "Suporte por email"
+    "feature2": "Gestão básica de calendário",
+    "feature3": "Gestão de clientes",
+    "feature4": "Notificações por email",
+    "feature5": "Acesso ao app móvel",
+    "feature6": "Relatórios básicos",
+    "feature7": "Gestão de equipe",
+    "feature8": "Analytics com IA",
+    "feature9": "Integrações avançadas",
+    "feature10": "Suporte prioritário"
   },
   "individual": {
     "name": "Individual",
-    "description": "Ideal para pequenos negócios",
+    "description": "Ideal para profissionais em crescimento com base de clientes em expansão",
+    "cta": "Iniciar Teste Grátis",
     "feature1": "Até 200 agendamentos/mês",
-    "feature2": "Até 3 profissionais",
-    "feature3": "Calendário avançado",
-    "feature4": "Relatórios básicos",
-    "feature5": "Suporte prioritário"
+    "feature2": "Recursos avançados de calendário",
+    "feature3": "CRM de clientes",
+    "feature4": "Notificações por SMS e Email",
+    "feature5": "Acesso ao app móvel",
+    "feature6": "Relatórios avançados",
+    "feature7": "Sincronização de calendário (Google, Apple)",
+    "feature8": "Insights básicos de IA",
+    "feature9": "Gestão de equipe",
+    "feature10": "Suporte prioritário"
   },
   "business": {
     "name": "Empresarial",
-    "description": "Para empresas em crescimento",
+    "description": "Solução completa para empresas com vários profissionais",
+    "cta": "Iniciar Teste Grátis",
     "feature1": "Agendamentos ilimitados",
-    "feature2": "Profissionais ilimitados",
-    "feature3": "Recursos avançados",
-    "feature4": "API completa",
-    "feature5": "Suporte dedicado",
-    "feature6": "Integrações personalizadas"
+    "feature2": "Suporte multi-local",
+    "feature3": "Gestão de equipe",
+    "feature4": "Permissões baseadas em função",
+    "feature5": "Rastreamento de comissões",
+    "feature6": "Analytics avançado com IA",
+    "feature7": "Integrações personalizadas",
+    "feature8": "Suporte prioritário",
+    "feature9": "Relatórios financeiros",
+    "feature10": "Opção white-label"
   },
-  "actions": {
-    "choose": "Escolher Plano",
-    "contact": "Falar com Vendas",
-    "start": "Começar Agora"
+  "compare": {
+    "title": "Todos os Planos Incluem",
+    "subtitle": "Recursos principais disponíveis em todos os níveis de assinatura"
   },
-  "billing": {
-    "monthly": "Mensal",
-    "yearly": "Anual",
-    "save": "Economize"
+  "allPlans": {
+    "feature1": "Armazenamento seguro na nuvem",
+    "feature2": "Acesso móvel e web",
+    "feature3": "Notificações para clientes",
+    "feature4": "Processamento de pagamentos",
+    "feature5": "Criptografia de dados",
+    "feature6": "Atualizações regulares",
+    "feature7": "Monitoramento 24/7 do sistema",
+    "feature8": "Conformidade com GDPR"
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "q1": "Posso mudar meu plano depois?",
+    "a1": "Sim! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. As alterações serão refletidas no próximo ciclo de cobrança.",
+    "q2": "Existe um teste grátis?",
+    "a2": "Sim, todos os planos vêm com 14 dias de teste grátis. Não é necessário cartão de crédito para começar.",
+    "q3": "Quais formas de pagamento vocês aceitam?",
+    "a3": "Aceitamos todos os principais cartões de crédito, cartões de débito e métodos de pagamento locais para Portugal, Brasil e Estados Unidos.",
+    "q4": "Posso cancelar a qualquer momento?",
+    "a4": "Sim, você pode cancelar sua assinatura a qualquer momento. Sem contratos de longo prazo ou taxas de cancelamento.",
+    "q5": "Vocês oferecem descontos para cobrança anual?",
+    "a5": "Sim! Economize 20% quando você escolhe a cobrança anual. Entre em contato com nossa equipe de vendas para mais informações.",
+    "q6": "O que acontece com meus dados se eu cancelar?",
+    "a6": "Seus dados permanecem acessíveis por 30 dias após o cancelamento. Você pode exportá-los a qualquer momento durante este período."
+  },
+  "cta": {
+    "title": "Pronto para Começar?",
+    "subtitle": "Inicie seu teste grátis de 14 dias. Não é necessário cartão de crédito.",
+    "start": "Iniciar Teste Grátis",
+    "contact": "Falar com Vendas"
   }
 }

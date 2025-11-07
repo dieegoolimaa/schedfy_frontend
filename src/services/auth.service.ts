@@ -86,6 +86,8 @@ export const authService = {
             password: data.password,
             verificationCode: data.verificationCode,
             businessType: data.businessType || 'other',
+            plan: data.plan || 'simple', // Include plan
+            region: data.region || 'BR', // Include region code
             timezone: data.timezone || 'America/Sao_Paulo',
             locale: data.locale || 'pt-BR',
             currency: data.currency || 'BRL',

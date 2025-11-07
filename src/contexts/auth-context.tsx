@@ -97,7 +97,10 @@ type AuthAction =
   | { type: "AUTH_LOGOUT" }
   | { type: "CLEAR_ERROR" };
 
-const initialState: AuthState & { requires2FA?: boolean; tempToken?: string | null } = {
+const initialState: AuthState & {
+  requires2FA?: boolean;
+  tempToken?: string | null;
+} = {
   user: null,
   entity: null,
   isAuthenticated: false,
@@ -295,7 +298,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       return transformedUser;
     } catch (error: any) {
       console.error("2FA verification error:", error);
-      const errorMessage = error.response?.data?.message || error.message || "Invalid verification code";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Invalid verification code";
       dispatch({
         type: "AUTH_ERROR",
         payload: errorMessage,

@@ -147,11 +147,9 @@ export function IndividualServicesPage() {
           bufferAfter: 0,
         },
         status: formData.isActive ? "active" : "inactive",
-        seo: {
-          isPublic: formData.isPublic,
-        },
         bookingSettings: {
           requireManualConfirmation: formData.requireManualConfirmation,
+          allowOnlineBooking: formData.isPublic,
         },
         createdBy: user?.id || "",
       });
@@ -185,8 +183,8 @@ export function IndividualServicesPage() {
           bufferAfter: 0,
         },
         status: formData.isActive ? "active" : "inactive",
-        seo: {
-          isPublic: formData.isPublic,
+        bookingSettings: {
+          allowOnlineBooking: formData.isPublic,
         },
       });
 
@@ -445,13 +443,17 @@ export function IndividualServicesPage() {
                     id="requireManualConfirmation"
                     checked={formData.requireManualConfirmation}
                     onCheckedChange={(checked) =>
-                      setFormData({ ...formData, requireManualConfirmation: checked })
+                      setFormData({
+                        ...formData,
+                        requireManualConfirmation: checked,
+                      })
                     }
                   />
                   <Label htmlFor="requireManualConfirmation">
                     Require manual confirmation for bookings
                     <span className="text-xs text-muted-foreground block mt-1">
-                      When enabled, bookings will require your approval before being confirmed
+                      When enabled, bookings will require your approval before
+                      being confirmed
                     </span>
                   </Label>
                 </div>

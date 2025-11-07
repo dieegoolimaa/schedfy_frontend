@@ -55,10 +55,13 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
     const detectedRegion = detectUserRegion();
     setRegionState(detectedRegion);
 
-    // Update i18n language based on region
-    const config = getRegionConfig(detectedRegion);
-    if (i18n.language !== config.locale) {
-      i18n.changeLanguage(config.locale);
+    // Only update i18n language if user hasn't manually selected one
+    const manualLanguage = localStorage.getItem("schedfy-language");
+    if (!manualLanguage) {
+      const config = getRegionConfig(detectedRegion);
+      if (i18n.language !== config.locale) {
+        i18n.changeLanguage(config.locale);
+      }
     }
 
     setIsDetecting(false);
@@ -68,9 +71,20 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
     setRegionState(newRegion);
     setStoredRegion(newRegion);
 
-    // Update i18n language
+    // Only update language if user hasn't manually selected one
+    // OR if switching to Brazil (always use PT for Brazil)
+    const manualLanguage = localStorage.getItem("schedfy-language");
     const config = getRegionConfig(newRegion);
-    i18n.changeLanguage(config.locale);
+
+    // Special handling: Brazil always uses pt-BR
+    if (newRegion === "BR") {
+      i18n.changeLanguage("pt");
+      localStorage.setItem("schedfy-language", "pt");
+    }
+    // If no manual language choice, sync with region
+    else if (!manualLanguage) {
+      i18n.changeLanguage(config.locale);
+    }
   };
 
   // Helper function to get price display with API-first, fallback-to-static logic
