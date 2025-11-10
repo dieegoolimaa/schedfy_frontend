@@ -85,9 +85,11 @@ export function PublicEntityProfilePage() {
       try {
         // Fetch entity by slug
         const entityResponse = await publicService.getEntityBySlug(slug);
+        console.log("Entity response:", entityResponse.data);
         setEntity(entityResponse.data);
 
-        const entityId = entityResponse.data.id;
+        const entityId = entityResponse.data.id || (entityResponse.data as any)._id;
+        console.log("Entity ID:", entityId);
 
         // Fetch services and professionals for this entity
         const [servicesResponse, professionalsResponse] = await Promise.all([
@@ -95,14 +97,26 @@ export function PublicEntityProfilePage() {
           publicService.getEntityProfessionals(entityId),
         ]);
 
-        setServices(
-          servicesResponse.data.filter((service) => service.isActive)
-        );
-        setProfessionals(
-          professionalsResponse.data.filter(
-            (professional) => professional.isAvailable
-          )
-        );
+        console.log("Services response:", servicesResponse.data);
+        console.log("Professionals response:", professionalsResponse.data);
+        
+        // Map services to ensure consistent id field (handle both id and _id)
+        const mappedServices = servicesResponse.data.map((service: any) => ({
+          ...service,
+          id: service.id || service._id,
+        })).filter((service: any) => service.isActive !== false && service.status !== 'inactive');
+        
+        // Map professionals to ensure consistent id field
+        const mappedProfessionals = professionalsResponse.data.map((prof: any) => ({
+          ...prof,
+          id: prof.id || prof._id,
+        })).filter((prof: any) => prof.isAvailable !== false && prof.status === 'active');
+        
+        console.log("Mapped services:", mappedServices);
+        console.log("Mapped professionals:", mappedProfessionals);
+        
+        setServices(mappedServices);
+        setProfessionals(mappedProfessionals);
       } catch (error: any) {
         console.error("Failed to load entity data:", error);
         if (error.response?.status === 404) {
@@ -261,7 +275,7 @@ export function PublicEntityProfilePage() {
 
       {/* Profile Header */}
       <div className="container mx-auto px-4 -mt-16 sm:-mt-20 pb-8">
-        <div className="bg-card rounded-lg shadow-xl p-6 mb-8">
+        <div className="relative z-10 bg-card rounded-lg shadow-xl p-6 mb-8">
           <div className="flex flex-col sm:flex-row gap-6 items-start">
             {/* Profile Avatar */}
             <Avatar className="h-28 w-28 sm:h-32 sm:w-32 border-4 border-background shadow-lg shrink-0">
@@ -276,7 +290,7 @@ export function PublicEntityProfilePage() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 break-words">
                 {entity.name}
               </h1>
-              
+
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm sm:text-base text-muted-foreground mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 shrink-0" />
@@ -304,19 +318,22 @@ export function PublicEntityProfilePage() {
                     toast.error("No services available to book");
                     return;
                   }
-                  const bookingSection = document.getElementById("booking-form");
+                  const bookingSection =
+                    document.getElementById("booking-form");
                   if (bookingSection) {
                     setTimeout(() => {
-                      bookingSection.scrollIntoView({ 
+                      bookingSection.scrollIntoView({
                         behavior: "smooth",
-                        block: "start"
+                        block: "start",
                       });
                     }, 100);
                   }
                 }}
               >
                 <CalendarDays className="h-5 w-5 mr-2" />
-                {services.length === 0 ? "No Services Available" : "Book Appointment"}
+                {services.length === 0
+                  ? "No Services Available"
+                  : "Book Appointment"}
               </Button>
             </div>
           </div>
@@ -390,9 +407,14 @@ export function PublicEntityProfilePage() {
               {entity.instagram && entity.instagram.trim() !== "" && (
                 <div className="pt-4 border-t">
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground">Follow us:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Follow us:
+                    </span>
                     <a
-                      href={`https://instagram.com/${entity.instagram.replace("@", "")}`}
+                      href={`https://instagram.com/${entity.instagram.replace(
+                        "@",
+                        ""
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-sm hover:text-primary transition-colors group"
@@ -421,7 +443,9 @@ export function PublicEntityProfilePage() {
                 <Card>
                   <CardContent className="py-12 text-center">
                     <CalendarDays className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="font-semibold text-lg mb-2">No Services Available</h3>
+                    <h3 className="font-semibold text-lg mb-2">
+                      No Services Available
+                    </h3>
                     <p className="text-muted-foreground text-sm">
                       This business hasn't added any services yet.
                     </p>
@@ -443,10 +467,12 @@ export function PublicEntityProfilePage() {
                         setSelectedDate("");
                         setSelectedSlot(null);
                         setTimeout(() => {
-                          document.getElementById("booking-form")?.scrollIntoView({ 
-                            behavior: "smooth",
-                            block: "start"
-                          });
+                          document
+                            .getElementById("booking-form")
+                            ?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
                         }, 100);
                       }}
                     >
@@ -471,7 +497,10 @@ export function PublicEntityProfilePage() {
                               {service.duration} min
                             </span>
                           </div>
-                          <Badge variant="secondary" className="font-semibold text-base px-3 py-1">
+                          <Badge
+                            variant="secondary"
+                            className="font-semibold text-base px-3 py-1"
+                          >
                             €{service.price}
                           </Badge>
                         </div>
@@ -495,256 +524,266 @@ export function PublicEntityProfilePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
-                {!selectedService && (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                      <CalendarDays className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">Select a Service to Continue</h3>
-                    <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                      Choose from our services above to check availability and book your appointment
-                    </p>
-                  </div>
-                )}
-
-                {selectedService && (
-                  <>
-                    {/* Selected Service Display */}
-                    <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground mb-1">
-                            Selected Service
-                          </p>
-                          <p className="font-semibold truncate">
-                            {services.find((s) => s.id === selectedService)?.name}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedService("");
-                            setSelectedProfessional("");
-                            setSelectedDate("");
-                            setSelectedSlot(null);
-                          }}
-                        >
-                          Change
-                        </Button>
+                  {!selectedService && (
+                    <div className="text-center py-12">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                        <CalendarDays className="h-8 w-8 text-primary" />
                       </div>
+                      <h3 className="font-semibold text-lg mb-2">
+                        Select a Service to Continue
+                      </h3>
+                      <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                        Choose from our services above to check availability and
+                        book your appointment
+                      </p>
                     </div>
+                  )}
 
-                    {/* Professional Selection (Optional) */}
-                    {professionals.length > 0 && (
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-base font-semibold flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            Choose Professional (Optional)
-                          </Label>
-                          {selectedProfessional && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedProfessional("");
-                                setSelectedSlot(null); // Reset slot when professional changes
-                              }}
-                            >
-                              Any available
-                            </Button>
-                          )}
+                  {selectedService && (
+                    <>
+                      {/* Selected Service Display */}
+                      <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Selected Service
+                            </p>
+                            <p className="font-semibold truncate">
+                              {
+                                services.find((s) => s.id === selectedService)
+                                  ?.name
+                              }
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedService("");
+                              setSelectedProfessional("");
+                              setSelectedDate("");
+                              setSelectedSlot(null);
+                            }}
+                          >
+                            Change
+                          </Button>
                         </div>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          {professionals
-                            .filter((prof) => prof.isAvailable)
-                            .map((professional) => (
-                              <Card
-                                key={professional.id}
-                                className={`cursor-pointer transition-all ${
-                                  selectedProfessional === professional.id
-                                    ? "ring-2 ring-primary shadow-md scale-[1.02]"
-                                    : "hover:shadow-md hover:scale-[1.01]"
-                                }`}
+                      </div>
+
+                      {/* Professional Selection (Optional) */}
+                      {professionals.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-base font-semibold flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              Choose Professional (Optional)
+                            </Label>
+                            {selectedProfessional && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => {
-                                  setSelectedProfessional(
-                                    selectedProfessional === professional.id
-                                      ? ""
-                                      : professional.id
-                                  );
+                                  setSelectedProfessional("");
                                   setSelectedSlot(null); // Reset slot when professional changes
                                 }}
                               >
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-12 w-12 shrink-0">
-                                      <AvatarImage src={professional.avatar} />
-                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                                        {getInitials(
-                                          `${professional.firstName} ${professional.lastName}`
-                                        )}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 min-w-0">
-                                      <h3 className="font-medium truncate">
-                                        {professional.firstName}{" "}
-                                        {professional.lastName}
-                                      </h3>
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 shrink-0" />
-                                        <span className="text-muted-foreground">{professional.rating}</span>
+                                Any available
+                              </Button>
+                            )}
+                          </div>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {professionals
+                              .filter((prof) => prof.isAvailable)
+                              .map((professional) => (
+                                <Card
+                                  key={professional.id}
+                                  className={`cursor-pointer transition-all ${
+                                    selectedProfessional === professional.id
+                                      ? "ring-2 ring-primary shadow-md scale-[1.02]"
+                                      : "hover:shadow-md hover:scale-[1.01]"
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedProfessional(
+                                      selectedProfessional === professional.id
+                                        ? ""
+                                        : professional.id
+                                    );
+                                    setSelectedSlot(null); // Reset slot when professional changes
+                                  }}
+                                >
+                                  <CardContent className="p-4">
+                                    <div className="flex items-center gap-3">
+                                      <Avatar className="h-12 w-12 shrink-0">
+                                        <AvatarImage
+                                          src={professional.avatar}
+                                        />
+                                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                                          {getInitials(
+                                            `${professional.firstName} ${professional.lastName}`
+                                          )}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1 min-w-0">
+                                        <h3 className="font-medium truncate">
+                                          {professional.firstName}{" "}
+                                          {professional.lastName}
+                                        </h3>
+                                        <div className="flex items-center gap-2 text-sm">
+                                          <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 shrink-0" />
+                                          <span className="text-muted-foreground">
+                                            {professional.rating}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                  {professional.specialties.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-3">
-                                      {professional.specialties
-                                        .slice(0, 2)
-                                        .map((specialty) => (
-                                          <Badge
-                                            key={specialty}
-                                            variant="secondary"
-                                            className="text-xs"
-                                          >
-                                            {specialty}
-                                          </Badge>
-                                        ))}
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            ))}
+                                    {professional.specialties.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-3">
+                                        {professional.specialties
+                                          .slice(0, 2)
+                                          .map((specialty) => (
+                                            <Badge
+                                              key={specialty}
+                                              variant="secondary"
+                                              className="text-xs"
+                                            >
+                                              {specialty}
+                                            </Badge>
+                                          ))}
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Date Selection */}
-                    <div className="space-y-3">
-                      <Label className="text-base font-semibold flex items-center gap-2">
-                        <CalendarDays className="h-4 w-4" />
-                        Select Date
-                      </Label>
-                      <Input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => {
-                          setSelectedDate(e.target.value);
-                          setSelectedSlot(null); // Reset slot when date changes
-                        }}
-                        min={new Date().toISOString().split("T")[0]}
-                        className="text-base"
-                      />
-                    </div>
-
-                    {/* Time Slot Selection using TimeSlotPicker */}
-                    {selectedDate && entity && (
+                      {/* Date Selection */}
                       <div className="space-y-3">
-                        <TimeSlotPicker
-                          entityId={entity.id}
-                          serviceId={selectedService}
-                          date={selectedDate}
-                          professionalId={selectedProfessional || undefined}
-                          selectedSlot={selectedSlot}
-                          onSelectSlot={setSelectedSlot}
+                        <Label className="text-base font-semibold flex items-center gap-2">
+                          <CalendarDays className="h-4 w-4" />
+                          Select Date
+                        </Label>
+                        <Input
+                          type="date"
+                          value={selectedDate}
+                          onChange={(e) => {
+                            setSelectedDate(e.target.value);
+                            setSelectedSlot(null); // Reset slot when date changes
+                          }}
+                          min={new Date().toISOString().split("T")[0]}
+                          className="text-base"
                         />
                       </div>
-                    )}
 
-                    {/* Client Information */}
-                    {selectedSlot && (
-                      <>
-                        <Separator />
-                        <div className="space-y-4">
-                          <h3 className="text-base font-semibold">
-                            Your Information
-                          </h3>
-                          <div className="grid gap-4 sm:grid-cols-2">
+                      {/* Time Slot Selection using TimeSlotPicker */}
+                      {selectedDate && entity && (
+                        <div className="space-y-3">
+                          <TimeSlotPicker
+                            entityId={entity.id}
+                            serviceId={selectedService}
+                            date={selectedDate}
+                            professionalId={selectedProfessional || undefined}
+                            selectedSlot={selectedSlot}
+                            onSelectSlot={setSelectedSlot}
+                          />
+                        </div>
+                      )}
+
+                      {/* Client Information */}
+                      {selectedSlot && (
+                        <>
+                          <Separator />
+                          <div className="space-y-4">
+                            <h3 className="text-base font-semibold">
+                              Your Information
+                            </h3>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor="name">Full Name *</Label>
+                                <Input
+                                  id="name"
+                                  value={clientData.name}
+                                  onChange={(e) =>
+                                    setClientData({
+                                      ...clientData,
+                                      name: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Your full name"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="phone">Phone Number *</Label>
+                                <Input
+                                  id="phone"
+                                  value={clientData.phone}
+                                  onChange={(e) =>
+                                    setClientData({
+                                      ...clientData,
+                                      phone: e.target.value,
+                                    })
+                                  }
+                                  placeholder="+351 123 456 789"
+                                />
+                              </div>
+                            </div>
                             <div className="space-y-2">
-                              <Label htmlFor="name">Full Name *</Label>
+                              <Label htmlFor="email">Email Address *</Label>
                               <Input
-                                id="name"
-                                value={clientData.name}
+                                id="email"
+                                type="email"
+                                value={clientData.email}
                                 onChange={(e) =>
                                   setClientData({
                                     ...clientData,
-                                    name: e.target.value,
+                                    email: e.target.value,
                                   })
                                 }
-                                placeholder="Your full name"
+                                placeholder="your.email@example.com"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="phone">Phone Number *</Label>
-                              <Input
-                                id="phone"
-                                value={clientData.phone}
+                              <Label htmlFor="notes">
+                                Additional Notes (Optional)
+                              </Label>
+                              <Textarea
+                                id="notes"
+                                value={clientData.notes}
                                 onChange={(e) =>
                                   setClientData({
                                     ...clientData,
-                                    phone: e.target.value,
+                                    notes: e.target.value,
                                   })
                                 }
-                                placeholder="+351 123 456 789"
+                                placeholder="Any special requests or notes..."
+                                rows={3}
                               />
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="email">Email Address *</Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              value={clientData.email}
-                              onChange={(e) =>
-                                setClientData({
-                                  ...clientData,
-                                  email: e.target.value,
-                                })
-                              }
-                              placeholder="your.email@example.com"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="notes">
-                              Additional Notes (Optional)
-                            </Label>
-                            <Textarea
-                              id="notes"
-                              value={clientData.notes}
-                              onChange={(e) =>
-                                setClientData({
-                                  ...clientData,
-                                  notes: e.target.value,
-                                })
-                              }
-                              placeholder="Any special requests or notes..."
-                              rows={3}
-                            />
-                          </div>
-                        </div>
 
-                        <div className="flex justify-end pt-4">
-                          <Button
-                            onClick={handleBooking}
-                            disabled={booking}
-                            size="lg"
-                            className="w-full sm:w-auto shadow-lg"
-                          >
-                            {booking && (
-                              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                            )}
-                            {!booking && (
-                              <CheckCircle className="h-5 w-5 mr-2" />
-                            )}
-                            Confirm Booking
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                          <div className="flex justify-end pt-4">
+                            <Button
+                              onClick={handleBooking}
+                              disabled={booking}
+                              size="lg"
+                              className="w-full sm:w-auto shadow-lg"
+                            >
+                              {booking && (
+                                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                              )}
+                              {!booking && (
+                                <CheckCircle className="h-5 w-5 mr-2" />
+                              )}
+                              Confirm Booking
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             )}
           </div>
 
@@ -848,8 +887,12 @@ export function PublicEntityProfilePage() {
                     <Phone className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-0.5">Call us</div>
-                    <div className="text-sm font-medium truncate">{entity.phone}</div>
+                    <div className="text-xs text-muted-foreground mb-0.5">
+                      Call us
+                    </div>
+                    <div className="text-sm font-medium truncate">
+                      {entity.phone}
+                    </div>
                   </div>
                 </a>
                 <a
@@ -860,8 +903,12 @@ export function PublicEntityProfilePage() {
                     <Mail className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-0.5">Email us</div>
-                    <div className="text-sm font-medium truncate">{entity.email}</div>
+                    <div className="text-xs text-muted-foreground mb-0.5">
+                      Email us
+                    </div>
+                    <div className="text-sm font-medium truncate">
+                      {entity.email}
+                    </div>
                   </div>
                 </a>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
@@ -869,8 +916,12 @@ export function PublicEntityProfilePage() {
                     <MapPin className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-0.5">Visit us</div>
-                    <div className="text-sm font-medium leading-tight">{entity.address}</div>
+                    <div className="text-xs text-muted-foreground mb-0.5">
+                      Visit us
+                    </div>
+                    <div className="text-sm font-medium leading-tight">
+                      {entity.address}
+                    </div>
                   </div>
                 </div>
               </CardContent>
