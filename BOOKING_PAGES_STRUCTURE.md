@@ -1,35 +1,99 @@
-# Estrutura de Páginas de Agendamento - Schedfy
+# Estrutura de Páginas - Schedfy
 
 ## 📋 Visão Geral
 
-As páginas de agendamento foram organizadas em **2 categorias principais**:
+**Planos Disponíveis:** Simple, Individual, Business
 
-### 1. 🌐 Agendamento Público (Cliente Externo)
+As páginas foram organizadas em **2 categorias principais**: **Públicas** e **Internas**
+
+---
+
+## 🌐 PÁGINAS PÚBLICAS (Clientes sem Login)
+
+### 1. Perfil Público da Empresa
 
 **Localização:** `/pages/public/entity-profile.tsx`
 
-**Acesso:** Página pública acessível via `/book/:slug` (ex: `/book/dieegoolimaa`)
+**Acesso:** `/book/:slug` (ex: `/book/dieegoolimaa`)
+
+**Propósito:** Página pública que clientes acessam para conhecer a empresa e fazer agendamentos
 
 **Características:**
+- ✅ Estilo de **perfil de rede social**
+- ✅ Informações da empresa (nome, descrição, avaliações)
+- ✅ Galeria de fotos/trabalhos
+- ✅ Lista de serviços disponíveis
+- ✅ Equipe de profissionais
+- ✅ Horário de funcionamento
+- ✅ Localização e contato
+- ✅ Redes sociais
+- ✅ **Formulário de agendamento integrado**
 
-- ✅ Cliente público pode agendar sem login
+**Customização:**
+- ⚠️ **NÃO customizável pela conta** (aparência padrão do sistema)
+- Dados vêm das configurações em Settings
+- Layout fixo tipo Instagram/Facebook profile
+
+### 2. Agendamento Público
+
+**Integrado em:** `/pages/public/entity-profile.tsx` (mesmo arquivo acima)
+
+**Integrado em:** `/pages/public/entity-profile.tsx` (mesmo arquivo acima)
+
+**Características do Agendamento:**
+- ✅ Cliente pode agendar **sem login**
 - ✅ Seleção de serviço
 - ✅ Seleção de profissional (opcional)
 - ✅ Seleção de data e horário usando `TimeSlotPicker`
 - ✅ **Apenas 1 agendamento por vez**
-- ✅ Formulário com dados do cliente (nome, email, telefone)
-- ✅ Visualização de horários de funcionamento
-- ✅ Informações da empresa (avaliações, endereço, contato)
+- ✅ Formulário com dados do cliente (nome, email, telefone, notas)
+- ✅ Visualização de horários disponíveis em tempo real
 
 **Tecnologia:**
-
 - Usa `publicService.createBooking()`
 - Componente `TimeSlotPicker` para seleção de horários
-- Busca disponibilidade em tempo real
+- Busca disponibilidade em tempo real do backend
 
 ---
 
-### 2. 🔐 Agendamento Interno (Usuários Autenticados)
+## 🔐 PÁGINAS INTERNAS (Usuários Autenticados)
+
+### 1. Perfil Interno da Empresa
+
+**Localização:** `/pages/common/entity-profile.tsx`
+
+**Acesso:** `/entity/profile`, `/individual/profile`, `/simple/profile`
+
+**Propósito:** Página interna estilo **perfil de rede social** para gerenciar informações da empresa
+
+**Características:**
+- ✅ Modo visualização e modo edição
+- ✅ Cover image customizável
+- ✅ Logo/Avatar da empresa
+- ✅ Informações de contato
+- ✅ Redes sociais
+- ✅ Horário de funcionamento
+- ✅ Estatísticas da conta
+- ✅ Configurações de assinatura
+
+**Customização:**
+- ✅ **Editável** pelos usuários autenticados
+- ✅ Upload de logo e cover image
+- ✅ Edição de descrição e informações
+- ✅ Gerenciamento de horários
+- ✅ Links de redes sociais
+
+**Dados vêm de Settings:**
+- Nome da empresa
+- Descrição
+- Endereço e contato
+- Redes sociais (Instagram, Facebook, etc.)
+- Horários de funcionamento
+- Logo e imagens
+
+---
+
+### 2. Páginas de Agendamento Interno
 
 #### A. Páginas Simples de Visualização
 
@@ -60,18 +124,16 @@ As páginas de agendamento foram organizadas em **2 categorias principais**:
 
 #### B. Página Avançada de Gestão de Agendamentos
 
-**Planos:** Individual e Business (somente)
+**Planos:** Individual e Business
 
 **Localização:** `/pages/common/booking-management.tsx` ⭐ (COMPARTILHADA)
 
 **Rotas:**
-
 - `/individual/booking-management` - Gestão avançada para Individual
 - `/entity/booking-management` - Gestão avançada para Business
 
 **Características Avançadas:**
-
-- ✅ **Criação de múltiplos agendamentos em lote**
+- ✅ **Criação de múltiplos agendamentos em lote (Batch operations)**
 - ✅ Seleção de múltiplos serviços
 - ✅ Múltiplas datas e horários
 - ✅ **Suporte a Pacotes de Serviços**
@@ -83,7 +145,7 @@ As páginas de agendamento foram organizadas em **2 categorias principais**:
 - ✅ Filtros avançados (serviço, profissional, status de pagamento)
 - ✅ Gestão de pagamentos
 - ✅ Histórico detalhado
-- ✅ Batch operations
+- ✅ **Batch operations disponível para Individual E Business**
 
 **Componentes Usados:**
 
@@ -145,16 +207,23 @@ interface CreateBookingDialogProps {
 
 ## 📊 Comparação de Funcionalidades
 
-| Funcionalidade          | Público | Simple | Individual | Business |
-| ----------------------- | ------- | ------ | ---------- | -------- |
-| Agendamento único       | ✅      | ✅     | ✅         | ✅       |
-| Múltiplos agendamentos  | ❌      | ❌     | ✅         | ✅       |
-| Seleção de profissional | ✅      | ❌     | ✅         | ✅       |
-| Pacotes de serviços     | ❌      | ❌     | ✅         | ✅       |
-| Gestão avançada         | ❌      | ❌     | ✅         | ✅       |
-| AI Insights             | ❌      | ❌     | ✅         | ✅       |
-| Pagamentos              | ❌      | ❌     | ✅         | ✅       |
-| Batch operations        | ❌      | ❌     | ❌         | ✅       |
+| Funcionalidade              | Público | Simple | Individual | Business |
+|-----------------------------|---------|--------|------------|----------|
+| Agendamento único           | ✅      | ✅     | ✅         | ✅       |
+| Múltiplos agendamentos      | ❌      | ❌     | ✅         | ✅       |
+| Seleção de profissional     | ✅      | ❌     | ✅         | ✅       |
+| Pacotes de serviços         | ❌      | ❌     | ✅         | ✅       |
+| Gestão avançada             | ❌      | ❌     | ✅         | ✅       |
+| AI Insights                 | ❌      | ❌     | ✅         | ✅       |
+| Pagamentos                  | ❌      | ❌     | ✅         | ✅       |
+| **Batch operations**        | ❌      | ❌     | **✅**     | **✅**   |
+| Perfil editável             | ❌      | ✅     | ✅         | ✅       |
+| Customização visual pública | ❌      | ❌     | ❌         | ❌       |
+
+**Nota sobre Páginas Públicas:**
+- 🌐 **Perfil público** (`/book/:slug`) = Aparência **FIXA** tipo rede social
+- 🔧 **Dados** vêm de Settings mas **layout NÃO é customizável**
+- 🔐 **Perfil interno** (`/entity/profile`) = **Editável** pelos usuários
 
 ---
 
@@ -251,14 +320,32 @@ interface CreateBookingDialogProps {
 ```
 src/pages/
 ├── public/
-│   └── entity-profile.tsx          # Agendamento público
+│   ├── entity-profile.tsx          # 🌐 PERFIL PÚBLICO + Agendamento
+│   │                               # Aparência FIXA tipo rede social
+│   │                               # Clientes sem login
+│   └── business-discovery.tsx      # Lista pública de empresas
 ├── common/
-│   ├── client-profile.tsx          # Gestão de clientes (todos os planos)
-│   ├── entity-profile.tsx          # Perfil da empresa (todos os planos)
+│   ├── client-profile.tsx          # Gestão de clientes (Simple, Individual, Business)
+│   ├── entity-profile.tsx          # 🔐 PERFIL INTERNO editável
+│   │                               # Estilo rede social MAS customizável
+│   │                               # Settings definem os dados
 │   └── booking-management.tsx      # Gestão avançada (Individual + Business)
+│                                   # Batch operations para AMBOS
 ├── simple/
 │   ├── dashboard.tsx               # Usa CreateBookingDialog
-│   └── bookings.tsx                # Lista + CreateBookingDialog
+│   ├── bookings.tsx                # Lista + CreateBookingDialog
+│   └── settings.tsx                # Configurações básicas
+├── individual/
+│   ├── dashboard.tsx               # Usa CreateBookingDialog
+│   ├── bookings.tsx                # Lista + CreateBookingDialog
+│   ├── package-management.tsx      # Gestão de pacotes
+│   └── settings.tsx                # Configurações + perfil público
+└── business/
+    ├── dashboard.tsx               # Usa CreateBookingDialog
+    ├── bookings.tsx                # Lista + CreateBookingDialog
+    ├── package-management.tsx      # Gestão de pacotes
+    ├── professionals.tsx           # Gestão de equipe
+    └── settings.tsx                # Configurações completas + perfil público
 ├── individual/
 │   ├── dashboard.tsx               # Usa CreateBookingDialog
 │   ├── bookings.tsx                # Lista + CreateBookingDialog
@@ -271,7 +358,30 @@ src/pages/
 src/components/
 ├── dialogs/
 │   └── create-booking-dialog.tsx   # Dialog unificado
-└── time-slot-picker.tsx            # Seletor de horários
+├── time-slot-picker.tsx            # Seletor de horários
+└── business-profile-manager.tsx    # Componente de settings para perfil público
+```
+
+**Settings:** Configurações que alimentam o perfil público:
+```
+business/settings.tsx (ou individual/settings.tsx):
+├── Business Info Tab
+│   ├── Nome da empresa
+│   ├── Descrição
+│   ├── Logo/Avatar
+│   ├── Cover image
+│   ├── Tipo de negócio
+│   └── Endereço completo
+├── Contact Tab
+│   ├── Email
+│   ├── Telefone
+│   ├── Website
+│   └── Redes sociais (Instagram, Facebook, etc.)
+├── Working Hours Tab
+│   └── Horários para cada dia da semana
+└── Appearance Tab (apenas visual interno)
+    ├── Theme (light/dark)
+    └── Idioma
 ```
 
 ---
@@ -279,16 +389,15 @@ src/components/
 ## ✅ Integração Completa
 
 ### Backend Integration
-
 - ✅ `publicService.createBooking()` - Agendamentos públicos
 - ✅ `useBookings().createBooking()` - Agendamentos internos
 - ✅ `useServices()` - Lista de serviços
 - ✅ `useClients()` - Busca de clientes
+- ✅ `entitiesService.getById()` - Dados da empresa para perfil público
 - ✅ TimeSlotPicker busca slots do backend
 - ✅ Validação de disponibilidade em tempo real
 
 ### Package Integration
-
 - ✅ `clientSubscriptions` - Lista de pacotes ativos
 - ✅ Validação de sessões disponíveis
 - ✅ Validação de serviços incluídos
@@ -297,10 +406,99 @@ src/components/
 
 ---
 
+## 🎯 PLANOS E FUNCIONALIDADES
+
+### Simple Plan
+- ✅ Agendamentos básicos (1 por vez)
+- ✅ Perfil interno editável
+- ✅ Settings básicas
+- ❌ Sem pacotes
+- ❌ Sem batch operations
+- ❌ Sem múltiplos profissionais
+
+### Individual Plan
+- ✅ Todos do Simple +
+- ✅ Pacotes de serviços
+- ✅ **Batch operations** (múltiplos agendamentos)
+- ✅ Gestão avançada (booking-management.tsx)
+- ✅ AI Insights
+- ✅ Payment management
+- ❌ Sem gestão de equipe (apenas 1 profissional: o dono)
+
+### Business Plan
+- ✅ Todos do Individual +
+- ✅ Múltiplos profissionais
+- ✅ Gestão de equipe (professionals.tsx)
+- ✅ User management
+- ✅ Analytics avançados
+- ✅ Comissões
+- ✅ Loyalty programs
+
+**Nota:** Não existem outros planos (Professional, etc.). Apenas Simple, Individual e Business.
+
+---
+
 ## 🚀 Próximos Passos
 
 1. ✅ Páginas consolidadas e organizadas
 2. ✅ Dialog unificado implementado
+3. ✅ Suporte a pacotes integrado
+4. ✅ TimeSlotPicker funcionando
+5. ✅ Batch operations para Individual E Business
+6. ✅ Estrutura de planos clarificada (Simple, Individual, Business)
+7. ⏳ Redesign do perfil público tipo rede social
+8. ⏳ Integração visual entre Settings e perfil público
+9. ⏳ Testes end-to-end
+10. ⏳ Documentação de API
+
+---
+
+## 📝 Notas Importantes
+
+### Sobre Páginas Públicas vs Internas
+
+**🌐 PÚBLICAS** (Clientes sem login):
+- `/book/:slug` - Perfil público da empresa + Agendamento
+- Layout **FIXO** tipo Instagram/Facebook profile
+- **NÃO customizável** visualmente pela conta
+- Dados vêm de Settings mas aparência é padronizada
+- Objetivo: Consistência e profissionalismo
+
+**🔐 INTERNAS** (Usuários autenticados):
+- `/entity/profile` ou `/individual/profile` - Perfil interno
+- Layout estilo rede social **MAS editável**
+- Usuários podem editar informações, logo, cover, etc.
+- Dados também vêm de Settings
+
+### Sobre Planos
+
+✅ **Planos Existentes:**
+- Simple
+- Individual  
+- Business
+
+❌ **Não existem:**
+- Professional
+- Enterprise
+- Outros planos customizados
+
+### Sobre Batch Operations
+
+- ✅ Disponível para **Individual** (não só Business)
+- ✅ Permite criar múltiplos agendamentos de uma vez
+- ✅ Suporta múltiplos serviços e datas
+- ✅ Integrado com pacotes
+- ✅ Usado em `booking-management.tsx` (comum para Individual e Business)
+
+### Sobre Settings
+
+Settings é onde os dados do perfil público são gerenciados:
+- Business Info → Nome, descrição, logo, cover
+- Contact → Email, telefone, website, redes sociais  
+- Working Hours → Horários de funcionamento
+- Appearance → Apenas para visual interno (theme, idioma)
+
+O perfil público **consome** esses dados mas **não permite customização visual** da página em si.
 3. ✅ Suporte a pacotes integrado
 4. ✅ TimeSlotPicker funcionando
 5. ⏳ Testes end-to-end
