@@ -210,14 +210,19 @@ interface CreateBookingDialogProps {
 | Funcionalidade              | Público | Simple | Individual | Business |
 |-----------------------------|---------|--------|------------|----------|
 | Agendamento único           | ✅      | ✅     | ✅         | ✅       |
+| Múltiplos profissionais     | ✅      | ✅     | ❌         | ✅       |
 | Múltiplos agendamentos      | ❌      | ❌     | ✅         | ✅       |
-| Seleção de profissional     | ✅      | ❌     | ✅         | ✅       |
+| Seleção de profissional     | ✅      | ✅     | ❌         | ✅       |
 | Pacotes de serviços         | ❌      | ❌     | ✅         | ✅       |
 | Gestão avançada             | ❌      | ❌     | ✅         | ✅       |
 | AI Insights                 | ❌      | ❌     | ✅         | ✅       |
 | Pagamentos                  | ❌      | ❌     | ✅         | ✅       |
 | **Batch operations**        | ❌      | ❌     | **✅**     | **✅**   |
 | Perfil editável             | ❌      | ✅     | ✅         | ✅       |
+| Gestão de equipe            | ❌      | ✅     | ❌         | ✅       |
+| User management/permissões  | ❌      | ❌     | ❌         | ✅       |
+| Comissões                   | ❌      | ❌     | ❌         | ✅       |
+| Loyalty programs            | ❌      | ❌     | ❌         | ✅       |
 | Customização visual pública | ❌      | ❌     | ❌         | ❌       |
 
 **Nota sobre Páginas Públicas:**
@@ -334,6 +339,9 @@ src/pages/
 ├── simple/
 │   ├── dashboard.tsx               # Usa CreateBookingDialog
 │   ├── bookings.tsx                # Lista + CreateBookingDialog
+│   ├── services.tsx                # Gestão de serviços
+│   ├── professionals.tsx           # Gestão de profissionais ⭐
+│   ├── reports.tsx                 # Relatórios básicos
 │   └── settings.tsx                # Configurações básicas
 ├── individual/
 │   ├── dashboard.tsx               # Usa CreateBookingDialog
@@ -409,30 +417,38 @@ business/settings.tsx (ou individual/settings.tsx):
 ## 🎯 PLANOS E FUNCIONALIDADES
 
 ### Simple Plan
+**Foco:** Agendamento e atendimento (ideal para departamentos públicos, clínicas simples)
 - ✅ Agendamentos básicos (1 por vez)
+- ✅ **Múltiplos profissionais** (gestão de equipe)
 - ✅ Perfil interno editável
 - ✅ Settings básicas
+- ✅ Gestão de profissionais (professionals.tsx)
 - ❌ Sem pacotes
 - ❌ Sem batch operations
-- ❌ Sem múltiplos profissionais
 
 ### Individual Plan
-- ✅ Todos do Simple +
+**Foco:** Profissional autônomo ou pequeno negócio (1 pessoa)
+- ✅ Agendamentos básicos
 - ✅ Pacotes de serviços
 - ✅ **Batch operations** (múltiplos agendamentos)
 - ✅ Gestão avançada (booking-management.tsx)
 - ✅ AI Insights
 - ✅ Payment management
-- ❌ Sem gestão de equipe (apenas 1 profissional: o dono)
+- ❌ **Apenas 1 profissional** (o próprio dono)
+- ❌ Sem gestão de equipe
 
 ### Business Plan
-- ✅ Todos do Individual +
-- ✅ Múltiplos profissionais
+**Foco:** Empresas completas com recursos avançados
+- ✅ **Múltiplos profissionais**
 - ✅ Gestão de equipe (professionals.tsx)
-- ✅ User management
+- ✅ Pacotes de serviços
+- ✅ **Batch operations** (múltiplos agendamentos)
+- ✅ Gestão avançada (booking-management.tsx)
+- ✅ User management (permissões e roles)
 - ✅ Analytics avançados
-- ✅ Comissões
+- ✅ Sistema de comissões
 - ✅ Loyalty programs
+- ✅ AI Insights
 
 **Nota:** Não existem outros planos (Professional, etc.). Apenas Simple, Individual e Business.
 
