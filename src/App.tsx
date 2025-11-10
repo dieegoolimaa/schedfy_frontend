@@ -20,7 +20,6 @@ import { SimpleServicesPage } from "./pages/simple/services";
 import { SimpleBookingsPage } from "./pages/simple/bookings";
 import { SimpleReportsPage } from "./pages/simple/reports";
 import { SimpleSettingsPage } from "./pages/simple/settings";
-import { ClientProfilePage as SimpleClientProfilePage } from "./pages/simple/client-profile";
 
 // Individual Plan pages
 import IndividualDashboardPage from "./pages/individual/dashboard";
@@ -28,28 +27,29 @@ import { IndividualServicesPage } from "./pages/individual/services";
 import { IndividualBookingsPage } from "./pages/individual/bookings";
 import { IndividualReportsPage } from "./pages/individual/reports";
 import IndividualPaymentManagementPage from "./pages/individual/payment-management";
-import { ClientProfilePage as IndividualClientProfilePage } from "./pages/individual/client-profile";
 import IndividualPackageManagementPage from "./pages/individual/package-management";
 
 // Business/Entity Plan pages
-import EntityDashboardPage from "./pages/entity/dashboard";
-import { BookingsPage as EntityBookingsPage } from "./pages/entity/bookings";
-import { ServicesPage as EntityServicesPage } from "./pages/entity/services";
-import { ReportsPage as EntityReportsPage } from "./pages/entity/reports";
-import { BookingManagementPage as EntityBookingManagementPage } from "./pages/entity/booking-management";
-import { ProfessionalsPage as EntityProfessionalsPage } from "./pages/entity/professionals";
-import { EntityProfilePage } from "./pages/entity/entity-profile";
-import { UserManagementPage as EntityUserManagementPage } from "./pages/entity/user-management";
-import { SubscriptionManagementPage as EntitySubscriptionManagementPage } from "./pages/entity/subscription-management";
-import { ClientProfilePage as EntityClientProfilePage } from "./pages/entity/client-profile";
-import { DataAnalyticsPage as EntityDataAnalyticsPage } from "./pages/entity/data-analytics";
-import { SettingsPage as EntitySettingsPage } from "./pages/entity/settings";
-import { CommissionsManagementPage } from "./pages/entity/commissions-management";
-import { PaymentManagementPage } from "./pages/entity/payment-management";
-import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/entity/financial-reports";
-import { AIPremiumPage } from "./pages/entity/ai-premium";
-import { LoyaltyManagementPage } from "./pages/entity/loyalty-management";
-import { NotificationCenterPage } from "./pages/entity/notification-center";
+import EntityDashboardPage from "./pages/business/dashboard";
+import { BookingsPage as EntityBookingsPage } from "./pages/business/bookings";
+import { ServicesPage as EntityServicesPage } from "./pages/business/services";
+import { ReportsPage as EntityReportsPage } from "./pages/business/reports";
+import { BookingManagementPage as EntityBookingManagementPage } from "./pages/business/booking-management";
+import { ProfessionalsPage as EntityProfessionalsPage } from "./pages/business/professionals";
+import { UserManagementPage as EntityUserManagementPage } from "./pages/business/user-management";
+import { SubscriptionManagementPage as EntitySubscriptionManagementPage } from "./pages/business/subscription-management";
+import { DataAnalyticsPage as EntityDataAnalyticsPage } from "./pages/business/data-analytics";
+
+// Common pages (shared across all plan types)
+import { ClientProfilePage } from "./pages/common/client-profile";
+import { EntityProfilePage } from "./pages/common/entity-profile";
+import { SettingsPage as EntitySettingsPage } from "./pages/business/settings";
+import { CommissionsManagementPage } from "./pages/business/commissions-management";
+import { PaymentManagementPage } from "./pages/business/payment-management";
+import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
+import { AIPremiumPage } from "./pages/business/ai-premium";
+import { LoyaltyManagementPage } from "./pages/business/loyalty-management";
+import { NotificationCenterPage } from "./pages/business/notification-center";
 import PackageManagementPage from "./pages/business/package-management";
 
 // Professional pages
@@ -227,7 +227,7 @@ function App() {
                     >
                       <OnboardingGuard>
                         <Layout>
-                          <SimpleClientProfilePage />
+                          <ClientProfilePage />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -301,7 +301,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <IndividualClientProfilePage />
+                          <ClientProfilePage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -488,7 +488,7 @@ function App() {
                   element={
                     <EntityRoute>
                       <Layout>
-                        <EntityClientProfilePage />
+                        <ClientProfilePage />
                       </Layout>
                     </EntityRoute>
                   }
@@ -498,7 +498,7 @@ function App() {
                   element={
                     <EntityRoute>
                       <Layout>
-                        <EntityClientProfilePage />
+                        <ClientProfilePage />
                       </Layout>
                     </EntityRoute>
                   }

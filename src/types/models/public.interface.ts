@@ -10,6 +10,7 @@ export interface PublicEntity {
     phone: string;
     email: string;
     website: string;
+    instagram?: string;
     publicSlug: string;
     logo?: string;
     coverImage?: string;

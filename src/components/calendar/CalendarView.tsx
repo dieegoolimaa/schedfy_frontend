@@ -32,6 +32,10 @@ interface CalendarViewProps {
   bookings: Booking[];
   title?: string;
   description?: string;
+  workingHours?: {
+    start?: string; // "09:00"
+    end?: string; // "18:00"
+  };
 }
 
 type ViewMode = "month" | "week" | "day";
@@ -42,6 +46,7 @@ export function CalendarView({
   bookings,
   title = "Calendar View",
   description = "View and manage your appointments",
+  workingHours = { start: "09:00", end: "18:00" },
 }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
@@ -247,7 +252,15 @@ export function CalendarView({
       return day;
     });
 
-    const hours = Array.from({ length: 24 }, (_, i) => i);
+    // Parse working hours
+    const startHour = parseInt(workingHours.start?.split(":")[0] || "9");
+    const endHour = parseInt(workingHours.end?.split(":")[0] || "18");
+
+    // Generate hours based on working hours
+    const hours = Array.from(
+      { length: endHour - startHour + 1 },
+      (_, i) => startHour + i
+    );
 
     return (
       <div className="space-y-4">

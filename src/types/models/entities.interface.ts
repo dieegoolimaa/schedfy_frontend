@@ -30,6 +30,7 @@ export interface EntityProfile {
     website?: string;
     logo?: string;
     banner?: string;
+    workingHours?: WorkingHours;
 }
 
 export interface UpdateEntityProfileDto {

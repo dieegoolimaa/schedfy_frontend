@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { useEntity } from "../../hooks/useEntity";
+import { CalendarView } from "../../components/calendar/CalendarView";
 import {
   Card,
   CardContent,
@@ -71,6 +73,38 @@ import {
 } from "lucide-react";
 import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
 import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
+import type { WorkingHours } from "../../types/models/entities.interface";
+
+// Helper functions to get earliest/latest working hours
+function getEarliestWorkingHour(workingHours?: WorkingHours): string {
+  if (!workingHours) return "09:00";
+
+  const days = Object.values(workingHours);
+  const enabledDays = days.filter((day) => day.enabled);
+
+  if (enabledDays.length === 0) return "09:00";
+
+  const earliestStart = enabledDays.reduce((earliest, day) => {
+    return day.start < earliest ? day.start : earliest;
+  }, enabledDays[0].start);
+
+  return earliestStart;
+}
+
+function getLatestWorkingHour(workingHours?: WorkingHours): string {
+  if (!workingHours) return "18:00";
+
+  const days = Object.values(workingHours);
+  const enabledDays = days.filter((day) => day.enabled);
+
+  if (enabledDays.length === 0) return "18:00";
+
+  const latestEnd = enabledDays.reduce((latest, day) => {
+    return day.end > latest ? day.end : latest;
+  }, enabledDays[0].end);
+
+  return latestEnd;
+}
 
 export function BookingsPage() {
   const { t } = useTranslation();
@@ -87,6 +121,8 @@ export function BookingsPage() {
   } = useBookings({ entityId, autoFetch: true });
 
   const { services, fetchServices } = useServices({ entityId });
+
+  const { entity } = useEntity({ autoFetch: true });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -746,30 +782,19 @@ export function BookingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Calendar View (Simplified for Simple Plan) */}
+        {/* Calendar View */}
         <TabsContent value="calendar">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar View</CardTitle>
-              <CardDescription>
-                View your appointments in calendar format
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  Calendar Coming Soon
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Calendar view will be available in a future update.
-                </p>
-                <Button variant="outline">
-                  Upgrade to Individual Plan for Advanced Calendar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CalendarView
+            open={true}
+            onOpenChange={() => {}}
+            bookings={filteredBookings}
+            title="Business Calendar"
+            description="View and manage all appointments"
+            workingHours={{
+              start: getEarliestWorkingHour(entity?.workingHours),
+              end: getLatestWorkingHour(entity?.workingHours),
+            }}
+          />
         </TabsContent>
       </Tabs>
 

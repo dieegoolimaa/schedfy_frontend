@@ -49,15 +49,61 @@ import {
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { CalendarView } from "../../components/calendar/CalendarView";
+import { useEntity } from "../../hooks/useEntity";
+import { WorkingHours } from "../../types/models/entities.interface";
+import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
+import { useServices } from "../../hooks/useServices";
+import { toast } from "sonner";
+
+// Helper functions to extract working hours range
+const getEarliestWorkingHour = (workingHours?: WorkingHours): string => {
+  if (!workingHours) return "09:00";
+
+  const times = Object.values(workingHours)
+    .filter((day) => day.enabled && day.start)
+    .map((day) => day.start);
+
+  if (times.length === 0) return "09:00";
+
+  return times.reduce(
+    (earliest, time) => (time < earliest ? time : earliest),
+    times[0]
+  );
+};
+
+const getLatestWorkingHour = (workingHours?: WorkingHours): string => {
+  if (!workingHours) return "18:00";
+
+  const times = Object.values(workingHours)
+    .filter((day) => day.enabled && day.end)
+    .map((day) => day.end);
+
+  if (times.length === 0) return "18:00";
+
+  return times.reduce(
+    (latest, time) => (time > latest ? time : latest),
+    times[0]
+  );
+};
 
 export function ProfessionalDashboardPage() {
   const [timeRange, setTimeRange] = useState("7d");
   const [showCalendar, setShowCalendar] = useState(false);
+  const [createBookingOpen, setCreateBookingOpen] = useState(false);
   const { user } = useAuth();
 
+  // Fetch entity profile to get working hours
+  const { entity } = useEntity({ autoFetch: true });
+
   // Fetch real bookings
-  const { bookings } = useBookings({
+  const { bookings, fetchBookings, createBooking } = useBookings({
     entityId: user?.entityId || "",
+  });
+
+  // Fetch services
+  const { services } = useServices({
+    entityId: user?.entityId || "",
+    autoFetch: true,
   });
 
   // Filter bookings for this professional
@@ -98,7 +144,7 @@ export function ProfessionalDashboardPage() {
   // Professional data from user context
   const professional = {
     name: user?.name || "Professional",
-    role: "Professional",
+    role: user?.professionalInfo?.jobFunction || "Professional",
     avatar: user?.name
       ? user.name
           .split(" ")
@@ -107,11 +153,11 @@ export function ProfessionalDashboardPage() {
           .toUpperCase()
       : "PR",
     email: user?.email || "",
-    phone: "",
+    phone: user?.phone || "Not provided",
     rating: 0,
     totalReviews: 0,
     joinDate: user?.createdAt || new Date().toISOString(),
-    specialties: [] as string[],
+    specialties: user?.professionalInfo?.specialties || [],
     workingHours: "09:00 - 18:00",
     nextBreak: "13:00 - 14:00",
   };
@@ -265,6 +311,14 @@ export function ProfessionalDashboardPage() {
         bookings={myBookings}
         title="My Calendar"
         description="View and manage your appointments"
+        workingHours={
+          entity?.workingHours
+            ? {
+                start: getEarliestWorkingHour(entity.workingHours),
+                end: getLatestWorkingHour(entity.workingHours),
+              }
+            : { start: "09:00", end: "18:00" }
+        }
       />
 
       {/* Quick Stats - Mobile-First Responsive Layout */}
@@ -305,7 +359,7 @@ export function ProfessionalDashboardPage() {
                 Your appointments for {new Date().toLocaleDateString()}
               </CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => setCreateBookingOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Booking
             </Button>
@@ -522,15 +576,24 @@ export function ProfessionalDashboardPage() {
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium mb-2">Specialties</h4>
-                <div className="flex flex-wrap gap-2">
-                  {professional.specialties.map((specialty) => (
-                    <Badge key={specialty} variant="secondary">
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
+                <h4 className="text-sm font-medium mb-2">Function</h4>
+                <Badge variant="secondary" className="text-sm">
+                  {professional.role}
+                </Badge>
               </div>
+
+              {professional.specialties.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Specialties</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {professional.specialties.map((specialty) => (
+                      <Badge key={specialty} variant="outline">
+                        {specialty}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <h4 className="text-sm font-medium mb-2">Performance</h4>
@@ -555,6 +618,25 @@ export function ProfessionalDashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Booking Dialog */}
+      <CreateBookingDialog
+        open={createBookingOpen}
+        onOpenChange={setCreateBookingOpen}
+        entityId={user?.entityId || ""}
+        services={services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          duration: s.duration,
+          price: s.price,
+        }))}
+        onSubmit={async (bookingData) => {
+          await createBooking(bookingData);
+          await fetchBookings();
+          setCreateBookingOpen(false);
+          toast.success("Booking created successfully!");
+        }}
+      />
     </div>
   );
 }

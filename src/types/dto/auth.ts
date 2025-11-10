@@ -11,6 +11,19 @@ export interface User {
     timezone: string;
     locale: string;
     isEmailVerified: boolean;
+    phone?: string;
+    professionalInfo?: {
+        jobFunction?: string;
+        specialties?: string[];
+        bio?: string;
+        experience?: number;
+        certifications?: string[];
+        socialMedia?: {
+            instagram?: string;
+            linkedin?: string;
+            website?: string;
+        };
+    };
     createdAt: string;
     updatedAt: string;
 }

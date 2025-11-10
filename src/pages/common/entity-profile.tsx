@@ -66,6 +66,7 @@ export function EntityProfilePage() {
       email: "info@bellavita.pt",
       phone: "+351 123 456 789",
       website: "https://bellavita.pt",
+      instagram: "@bellavita_salon",
       address: {
         street: "Rua das Flores, 123",
         city: "Lisboa",
@@ -399,6 +400,37 @@ export function EntityProfilePage() {
                       >
                         {entityData.contact.website}
                       </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <div className="flex items-center space-x-2">
+                    <Instagram className="h-4 w-4 text-muted-foreground" />
+                    {editMode ? (
+                      <Input
+                        id="instagram"
+                        placeholder="@username"
+                        defaultValue={entityData.contact.instagram}
+                        className="flex-1"
+                      />
+                    ) : entityData.contact.instagram ? (
+                      <a
+                        href={`https://instagram.com/${entityData.contact.instagram.replace(
+                          "@",
+                          ""
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 text-blue-600 hover:underline"
+                      >
+                        {entityData.contact.instagram}
+                      </a>
+                    ) : (
+                      <span className="flex-1 text-muted-foreground">
+                        Not set
+                      </span>
                     )}
                   </div>
                 </div>

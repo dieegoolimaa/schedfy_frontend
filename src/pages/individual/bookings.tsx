@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { CalendarView } from "../../components/calendar/CalendarView";
 import {
   Card,
   CardContent,
@@ -72,8 +73,41 @@ import {
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { useEntity } from "../../hooks/useEntity";
 import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
 import { getAvailableTimeSlots, generateTimeSlots } from "../../lib/utils";
+import type { WorkingHours } from "../../types/models/entities.interface";
+
+// Helper functions to get earliest/latest working hours
+function getEarliestWorkingHour(workingHours?: WorkingHours): string {
+  if (!workingHours) return "09:00";
+
+  const days = Object.values(workingHours);
+  const enabledDays = days.filter((day) => day.enabled);
+
+  if (enabledDays.length === 0) return "09:00";
+
+  const earliestStart = enabledDays.reduce((earliest, day) => {
+    return day.start < earliest ? day.start : earliest;
+  }, enabledDays[0].start);
+
+  return earliestStart;
+}
+
+function getLatestWorkingHour(workingHours?: WorkingHours): string {
+  if (!workingHours) return "18:00";
+
+  const days = Object.values(workingHours);
+  const enabledDays = days.filter((day) => day.enabled);
+
+  if (enabledDays.length === 0) return "18:00";
+
+  const latestEnd = enabledDays.reduce((latest, day) => {
+    return day.end > latest ? day.end : latest;
+  }, enabledDays[0].end);
+
+  return latestEnd;
+}
 
 export function IndividualBookingsPage() {
   const { user } = useAuth();
@@ -84,6 +118,7 @@ export function IndividualBookingsPage() {
     autoFetch: true,
   });
   const { services } = useServices({ entityId });
+  const { entity } = useEntity({ autoFetch: true });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -181,7 +216,8 @@ export function IndividualBookingsPage() {
     await createBooking({
       entityId,
       serviceId: bookingData.serviceId,
-      professionalId: bookingData.professionalId,
+      // Individual plan: professional is always the owner
+      professionalId: user?.id || "",
       clientInfo: {
         name: bookingData.clientName,
         email: bookingData.clientEmail || undefined,
@@ -696,23 +732,17 @@ export function IndividualBookingsPage() {
         </TabsContent>
 
         <TabsContent value="calendar">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar View</CardTitle>
-              <CardDescription>
-                Visual calendar with booking overview
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-12">
-                <Calendar className="h-12 w-12 mx-auto mb-4" />
-                <p>Calendar integration coming soon</p>
-                <p className="text-sm">
-                  Full calendar view with drag-and-drop scheduling
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <CalendarView
+            open={true}
+            onOpenChange={() => {}}
+            bookings={filteredBookings}
+            title="My Calendar"
+            description="View and manage your appointments"
+            workingHours={{
+              start: getEarliestWorkingHour(entity?.workingHours),
+              end: getLatestWorkingHour(entity?.workingHours),
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="insights">
