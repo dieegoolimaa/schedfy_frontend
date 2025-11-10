@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
-import { QuickBookingDialog } from "../../components/dialogs/quick-booking-dialog";
+import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
 import {
   Card,
   CardContent,
@@ -36,12 +36,13 @@ const SimpleDashboard = () => {
     bookings,
     loading: bookingsLoading,
     fetchBookings,
+    createBooking,
   } = useBookings({
     entityId,
     autoFetch: true,
   });
 
-  const { loading: servicesLoading } = useServices({
+  const { services, loading: servicesLoading } = useServices({
     entityId,
     autoFetch: true,
   });
@@ -410,10 +411,20 @@ const SimpleDashboard = () => {
       </Card>
 
       {/* Dialogs */}
-      <QuickBookingDialog
+      <CreateBookingDialog
         open={quickBookingDialogOpen}
         onOpenChange={setQuickBookingDialogOpen}
-        onBookingCreated={handleBookingCreated}
+        entityId={entityId}
+        services={services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          duration: s.duration || 60,
+          price: s.price,
+        }))}
+        onSubmit={async (bookingData) => {
+          await createBooking(bookingData);
+          handleBookingCreated();
+        }}
       />
     </div>
   );

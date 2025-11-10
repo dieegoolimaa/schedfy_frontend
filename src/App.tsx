@@ -20,6 +20,7 @@ import { SimpleServicesPage } from "./pages/simple/services";
 import { SimpleBookingsPage } from "./pages/simple/bookings";
 import { SimpleReportsPage } from "./pages/simple/reports";
 import { SimpleSettingsPage } from "./pages/simple/settings";
+import { ClientProfilePage as SimpleClientProfilePage } from "./pages/simple/client-profile";
 
 // Individual Plan pages
 import IndividualDashboardPage from "./pages/individual/dashboard";
@@ -27,6 +28,8 @@ import { IndividualServicesPage } from "./pages/individual/services";
 import { IndividualBookingsPage } from "./pages/individual/bookings";
 import { IndividualReportsPage } from "./pages/individual/reports";
 import IndividualPaymentManagementPage from "./pages/individual/payment-management";
+import { ClientProfilePage as IndividualClientProfilePage } from "./pages/individual/client-profile";
+import IndividualPackageManagementPage from "./pages/individual/package-management";
 
 // Business/Entity Plan pages
 import EntityDashboardPage from "./pages/entity/dashboard";
@@ -55,7 +58,6 @@ import { ProfessionalDashboardPage } from "./pages/professional/professional-das
 // Public pages
 import { BusinessDiscoveryPage } from "./pages/public/business-discovery";
 import { PublicEntityProfilePage } from "./pages/public/entity-profile";
-import { PublicBookingPage } from "./pages/public/booking";
 
 // Legal and informational pages
 import { TermsPage } from "./pages/terms";
@@ -115,7 +117,6 @@ function App() {
                 />
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
-                <Route path="/book/:username" element={<PublicBookingPage />} />
                 <Route
                   path="/book/:slug"
                   element={<PublicEntityProfilePage />}
@@ -218,6 +219,20 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/simple/client-profile"
+                  element={
+                    <ProtectedRoute
+                      allowedPlans={["simple", "individual", "business"]}
+                    >
+                      <OnboardingGuard>
+                        <Layout>
+                          <SimpleClientProfilePage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Individual Plan Routes */}
                 <Route
@@ -275,6 +290,30 @@ function App() {
                       <OnboardingGuard>
                         <Layout>
                           <IndividualPaymentManagementPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+                <Route
+                  path="/individual/client-profile"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <IndividualClientProfilePage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+                <Route
+                  path="/individual/package-management"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <IndividualPackageManagementPage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>

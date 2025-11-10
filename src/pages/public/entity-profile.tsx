@@ -7,6 +7,8 @@ import {
   PublicService,
   PublicProfessional,
 } from "../../services/public.service";
+import { TimeSlotPicker } from "../../components/time-slot-picker";
+import { TimeSlot } from "../../services/bookings.service";
 import {
   Card,
   CardContent,
@@ -30,20 +32,14 @@ import {
   MapPin,
   Phone,
   Mail,
-  Globe,
   Star,
   Users,
   CheckCircle,
   ArrowLeft,
   Loader2,
   CalendarDays,
+  Instagram,
 } from "lucide-react";
-
-interface TimeSlot {
-  time: string;
-  available: boolean;
-  professionalId?: string;
-}
 
 export function PublicEntityProfilePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -57,8 +53,7 @@ export function PublicEntityProfilePage() {
   const [selectedService, setSelectedService] = useState<string>("");
   const [selectedProfessional, setSelectedProfessional] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
   // Client information for booking
   const [clientData, setClientData] = useState({
@@ -121,77 +116,27 @@ export function PublicEntityProfilePage() {
   }, [slug]);
 
   // Generate available time slots when service, professional, and date are selected
-  useEffect(() => {
-    if (selectedService && selectedProfessional && selectedDate && entity) {
-      generateAvailableSlots();
-    }
-  }, [selectedService, selectedProfessional, selectedDate, entity]);
-
-  const generateAvailableSlots = async () => {
-    if (!entity || !selectedService || !selectedProfessional || !selectedDate)
-      return;
-
-    try {
-      const response = await publicService.getAvailableSlots(entity.id, {
-        serviceId: selectedService,
-        professionalId: selectedProfessional,
-        date: selectedDate,
-      });
-
-      setAvailableSlots(response.data);
-    } catch (error) {
-      console.error("Failed to load available slots:", error);
-      // Fallback to mock data for now
-      const slots: TimeSlot[] = [];
-      const startHour = 9;
-      const endHour = 17;
-
-      for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += 30) {
-          const timeString = `${hour.toString().padStart(2, "0")}:${minute
-            .toString()
-            .padStart(2, "0")}`;
-          slots.push({
-            time: timeString,
-            available: Math.random() > 0.3,
-            professionalId: selectedProfessional,
-          });
-        }
-      }
-
-      setAvailableSlots(slots);
-    }
-  };
+  // Now handled by TimeSlotPicker component
 
   const handleBooking = async () => {
-    if (
-      !selectedService ||
-      !selectedProfessional ||
-      !selectedDate ||
-      !selectedTime
-    ) {
+    if (!selectedService || !selectedDate || !selectedSlot) {
       toast.error("Please select all booking details");
       return;
     }
 
     if (!clientData.name || !clientData.email || !clientData.phone) {
-      toast.error("Please fill in your contact information");
-      return;
-    }
-
-    if (!entity) {
-      toast.error("Entity information not loaded");
+      toast.error("Please fill in all required information");
       return;
     }
 
     setBooking(true);
     try {
-      await publicService.createBooking(entity.id, {
-        entityId: entity.id,
+      await publicService.createBooking(entity!.id, {
+        entityId: entity!.id,
         serviceId: selectedService,
-        professionalId: selectedProfessional,
+        professionalId: selectedSlot.professionalId!,
         date: selectedDate,
-        time: selectedTime,
+        time: selectedSlot.time,
         clientName: clientData.name,
         clientEmail: clientData.email,
         clientPhone: clientData.phone,
@@ -206,7 +151,7 @@ export function PublicEntityProfilePage() {
       setSelectedService("");
       setSelectedProfessional("");
       setSelectedDate("");
-      setSelectedTime("");
+      setSelectedSlot(null);
       setClientData({ name: "", email: "", phone: "", notes: "" });
     } catch (error: any) {
       console.error("Booking failed:", error);
@@ -314,7 +259,7 @@ export function PublicEntityProfilePage() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Booking Form */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card id="booking-form">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CalendarDays className="h-5 w-5" />
@@ -358,61 +303,78 @@ export function PublicEntityProfilePage() {
 
                 {selectedService && (
                   <>
-                    {/* Professional Selection */}
-                    <div className="space-y-3">
-                      <Label>Choose Professional</Label>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {professionals
-                          .filter((prof) => prof.isAvailable)
-                          .map((professional) => (
-                            <div
-                              key={professional.id}
-                              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                                selectedProfessional === professional.id
-                                  ? "border-primary bg-primary/5"
-                                  : "border-border hover:border-primary/50"
-                              }`}
-                              onClick={() =>
-                                setSelectedProfessional(professional.id)
-                              }
+                    {/* Professional Selection (Optional) */}
+                    {professionals.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <Label>Choose Professional (Optional)</Label>
+                          {selectedProfessional && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedProfessional("")}
                             >
-                              <div className="flex items-center gap-3">
-                                <Avatar>
-                                  <AvatarImage src={professional.avatar} />
-                                  <AvatarFallback>
-                                    {getInitials(
-                                      `${professional.firstName} ${professional.lastName}`
-                                    )}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <h3 className="font-medium">
-                                    {professional.firstName}{" "}
-                                    {professional.lastName}
-                                  </h3>
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Star className="h-3 w-3 text-yellow-500" />
-                                    <span>{professional.rating}</span>
-                                  </div>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {professional.specialties.map(
-                                      (specialty) => (
-                                        <Badge
-                                          key={specialty}
-                                          variant="outline"
-                                          className="text-xs"
-                                        >
-                                          {specialty}
-                                        </Badge>
-                                      )
-                                    )}
+                              Clear selection
+                            </Button>
+                          )}
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {professionals
+                            .filter((prof) => prof.isAvailable)
+                            .map((professional) => (
+                              <div
+                                key={professional.id}
+                                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                                  selectedProfessional === professional.id
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border hover:border-primary/50"
+                                }`}
+                                onClick={() =>
+                                  setSelectedProfessional(
+                                    selectedProfessional === professional.id
+                                      ? ""
+                                      : professional.id
+                                  )
+                                }
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Avatar>
+                                    <AvatarImage src={professional.avatar} />
+                                    <AvatarFallback>
+                                      {getInitials(
+                                        `${professional.firstName} ${professional.lastName}`
+                                      )}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <h3 className="font-medium">
+                                      {professional.firstName}{" "}
+                                      {professional.lastName}
+                                    </h3>
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Star className="h-3 w-3 text-yellow-500" />
+                                      <span>{professional.rating}</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {professional.specialties.map(
+                                        (specialty) => (
+                                          <Badge
+                                            key={specialty}
+                                            variant="outline"
+                                            className="text-xs"
+                                          >
+                                            {specialty}
+                                          </Badge>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Date Selection */}
                     <div className="space-y-3">
@@ -425,33 +387,20 @@ export function PublicEntityProfilePage() {
                       />
                     </div>
 
-                    {/* Time Slot Selection */}
-                    {selectedDate && availableSlots.length > 0 && (
-                      <div className="space-y-3">
-                        <Label>Select Time</Label>
-                        <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 md:grid-cols-6">
-                          {availableSlots.map((slot) => (
-                            <Button
-                              key={slot.time}
-                              variant={
-                                selectedTime === slot.time
-                                  ? "default"
-                                  : "outline"
-                              }
-                              size="sm"
-                              disabled={!slot.available}
-                              onClick={() => setSelectedTime(slot.time)}
-                              className="text-xs"
-                            >
-                              {slot.time}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
+                    {/* Time Slot Selection using TimeSlotPicker */}
+                    {selectedDate && entity && (
+                      <TimeSlotPicker
+                        entityId={entity.id}
+                        serviceId={selectedService}
+                        date={selectedDate}
+                        professionalId={selectedProfessional || undefined}
+                        selectedSlot={selectedSlot}
+                        onSelectSlot={setSelectedSlot}
+                      />
                     )}
 
                     {/* Client Information */}
-                    {selectedTime && (
+                    {selectedSlot && (
                       <>
                         <Separator />
                         <div className="space-y-4">
@@ -581,19 +530,35 @@ export function PublicEntityProfilePage() {
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span>{entity.address}</span>
                 </div>
-                {entity.website && (
+                {entity.instagram && (
                   <div className="flex items-center gap-3 text-sm">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <Instagram className="h-4 w-4 text-muted-foreground" />
                     <a
-                      href={entity.website}
+                      href={`https://instagram.com/${entity.instagram.replace(
+                        "@",
+                        ""
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"
                     >
-                      Visit Website
+                      {entity.instagram}
                     </a>
                   </div>
                 )}
+                <Separator className="my-4" />
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={() => {
+                    const bookingSection =
+                      document.getElementById("booking-form");
+                    bookingSection?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  <CalendarDays className="h-4 w-4 mr-2" />
+                  Book Now
+                </Button>
               </CardContent>
             </Card>
 

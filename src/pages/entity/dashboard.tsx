@@ -5,7 +5,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
 import { useGoals } from "../../hooks/useGoals";
-import { QuickBookingDialog } from "../../components/dialogs/quick-booking-dialog";
+import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
 import { CalendarView } from "../../components/calendar/CalendarView";
 import {
   AreaChart,
@@ -69,12 +69,12 @@ const Dashboard = () => {
   const [quickBookingDialogOpen, setQuickBookingDialogOpen] = useState(false);
 
   // Use hooks to fetch data
-  const { bookings, fetchBookings } = useBookings({
+  const { bookings, fetchBookings, createBooking } = useBookings({
     entityId,
     autoFetch: true,
   });
 
-  useServices({
+  const { services } = useServices({
     entityId,
     autoFetch: true,
   });
@@ -631,10 +631,20 @@ const Dashboard = () => {
         title="Business Calendar"
         description="View and manage all appointments"
       />
-      <QuickBookingDialog
+      <CreateBookingDialog
         open={quickBookingDialogOpen}
         onOpenChange={setQuickBookingDialogOpen}
-        onBookingCreated={handleBookingCreated}
+        entityId={entityId}
+        services={services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          duration: s.duration || 60,
+          price: s.price,
+        }))}
+        onSubmit={async (bookingData) => {
+          await createBooking(bookingData);
+          handleBookingCreated();
+        }}
       />
     </div>
   );
