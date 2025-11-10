@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { bookingsService, TimeSlot } from "../services/bookings.service";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, User } from "lucide-react";
+import { Clock, User, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TimeSlotPickerProps {
@@ -113,12 +114,17 @@ export function TimeSlotPicker({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="text-sm font-medium flex items-center gap-2">
-        <Clock className="h-4 w-4" />
-        Available Times ({slots.length} slots)
+      <div className="flex items-center justify-between">
+        <div className="text-base font-semibold flex items-center gap-2">
+          <Clock className="h-5 w-5" />
+          Available Times
+        </div>
+        <Badge variant="secondary" className="text-xs">
+          {slots.length === 1 ? '1 slot' : `${slots.length} slots`} available
+        </Badge>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 max-h-80 overflow-y-auto pr-2 pb-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 max-h-96 overflow-y-auto pr-2 pb-2 scrollbar-thin">
         {slots.map((slot, index) => {
           const isSelected =
             selectedSlot?.time === slot.time &&
@@ -133,18 +139,22 @@ export function TimeSlotPicker({
               variant={isSelected ? "default" : "outline"}
               size="sm"
               className={cn(
-                "flex flex-col items-center justify-center h-auto py-3 px-3 min-h-[68px] transition-all duration-200 hover:shadow-md",
-                isSelected && "ring-2 ring-primary ring-offset-2 shadow-lg"
+                "flex flex-col items-center justify-center h-auto py-3.5 px-3 min-h-[76px] transition-all duration-200",
+                isSelected 
+                  ? "ring-2 ring-primary ring-offset-2 shadow-lg scale-105" 
+                  : "hover:shadow-md hover:scale-[1.02]"
               )}
               onClick={() => onSelectSlot(slot)}
             >
-              <span className="font-semibold text-base leading-tight">
+              <span className="font-bold text-base leading-tight mb-1">
                 {slot.time}
               </span>
               {slot.professionalName && (
-                <span className="text-xs opacity-70 flex items-center gap-1 mt-1.5">
-                  <User className="h-3 w-3" />
-                  <span className="truncate max-w-[85px]">{firstName}</span>
+                <span className="text-xs opacity-80 flex items-center gap-1 mt-1">
+                  <User className="h-3 w-3 shrink-0" />
+                  <span className="truncate max-w-[90px]" title={slot.professionalName}>
+                    {firstName}
+                  </span>
                 </span>
               )}
             </Button>
@@ -153,18 +163,23 @@ export function TimeSlotPicker({
       </div>
 
       {selectedSlot && (
-        <div className="p-4 bg-muted/50 rounded-lg text-sm space-y-2 border border-muted">
-          <div className="font-medium text-foreground">Selected Time</div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>
-              {selectedSlot.time} ({selectedSlot.duration} minutes)
-            </span>
+        <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+          <div className="font-semibold text-sm text-foreground flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-primary" />
+            Selected Time Slot
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-4 w-4 shrink-0" />
+              <span className="font-medium">{selectedSlot.time}</span>
+            </div>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-muted-foreground">{selectedSlot.duration} min</span>
           </div>
           {selectedSlot.professionalName && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <User className="h-4 w-4" />
-              <span>{selectedSlot.professionalName}</span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4 shrink-0" />
+              <span>with {selectedSlot.professionalName}</span>
             </div>
           )}
         </div>
