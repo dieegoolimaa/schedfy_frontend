@@ -120,7 +120,7 @@ export function TimeSlotPicker({
           Available Times
         </div>
         <Badge variant="secondary" className="text-xs">
-          {slots.length === 1 ? '1 slot' : `${slots.length} slots`} available
+          {slots.length === 1 ? "1 slot" : `${slots.length} slots`} available
         </Badge>
       </div>
 
@@ -139,9 +139,11 @@ export function TimeSlotPicker({
               variant={isSelected ? "default" : "outline"}
               size="sm"
               className={cn(
-                "flex flex-col items-center justify-center h-auto py-3.5 px-3 min-h-[76px] transition-all duration-200",
-                isSelected 
-                  ? "ring-2 ring-primary ring-offset-2 shadow-lg scale-105" 
+                "flex flex-col items-center justify-center h-auto py-3.5 px-3 transition-all duration-200",
+                // Adjust height based on whether we're showing professional name
+                professionalId ? "min-h-[60px]" : "min-h-[76px]",
+                isSelected
+                  ? "ring-2 ring-primary ring-offset-2 shadow-lg scale-105"
                   : "hover:shadow-md hover:scale-[1.02]"
               )}
               onClick={() => onSelectSlot(slot)}
@@ -149,10 +151,14 @@ export function TimeSlotPicker({
               <span className="font-bold text-base leading-tight mb-1">
                 {slot.time}
               </span>
-              {slot.professionalName && (
+              {/* Only show professional name if no specific professional was selected */}
+              {!professionalId && slot.professionalName && (
                 <span className="text-xs opacity-80 flex items-center gap-1 mt-1">
                   <User className="h-3 w-3 shrink-0" />
-                  <span className="truncate max-w-[90px]" title={slot.professionalName}>
+                  <span
+                    className="truncate max-w-[90px]"
+                    title={slot.professionalName}
+                  >
                     {firstName}
                   </span>
                 </span>
@@ -174,7 +180,9 @@ export function TimeSlotPicker({
               <span className="font-medium">{selectedSlot.time}</span>
             </div>
             <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground">{selectedSlot.duration} min</span>
+            <span className="text-muted-foreground">
+              {selectedSlot.duration} min
+            </span>
           </div>
           {selectedSlot.professionalName && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

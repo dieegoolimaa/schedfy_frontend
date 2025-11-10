@@ -593,25 +593,47 @@ export function PublicEntityProfilePage() {
                       {/* Professional Selection (Optional) */}
                       {professionals.length > 0 && (
                         <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <Label className="text-base font-semibold flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              Choose Professional (Optional)
-                            </Label>
-                            {selectedProfessional && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedProfessional("");
-                                  setSelectedSlot(null); // Reset slot when professional changes
-                                }}
-                              >
-                                Any available
-                              </Button>
-                            )}
-                          </div>
+                          <Label className="text-base font-semibold flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Choose Professional (Optional)
+                          </Label>
+                          <p className="text-sm text-muted-foreground -mt-1">
+                            Select a specific professional or leave unselected for the first available
+                          </p>
                           <div className="grid gap-3 sm:grid-cols-2">
+                            {/* "No Preference" Option */}
+                            <Card
+                              className={`cursor-pointer transition-all ${
+                                selectedProfessional === ""
+                                  ? "ring-2 ring-primary shadow-md scale-[1.02]"
+                                  : "hover:shadow-md hover:scale-[1.01]"
+                              }`}
+                              onClick={() => {
+                                setSelectedProfessional("");
+                                setSelectedSlot(null);
+                              }}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white shrink-0">
+                                    <Users className="h-6 w-6" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium">
+                                      No Preference
+                                    </h3>
+                                    <p className="text-xs text-muted-foreground">
+                                      First available
+                                    </p>
+                                  </div>
+                                  {selectedProfessional === "" && (
+                                    <CheckCircle className="h-5 w-5 text-primary shrink-0" />
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                            
+                            {/* Professional Options */}
                             {professionals
                               .filter((prof) => prof.isAvailable)
                               .map((professional) => (
@@ -623,12 +645,8 @@ export function PublicEntityProfilePage() {
                                       : "hover:shadow-md hover:scale-[1.01]"
                                   }`}
                                   onClick={() => {
-                                    setSelectedProfessional(
-                                      selectedProfessional === professional.id
-                                        ? ""
-                                        : professional.id
-                                    );
-                                    setSelectedSlot(null); // Reset slot when professional changes
+                                    setSelectedProfessional(professional.id);
+                                    setSelectedSlot(null);
                                   }}
                                 >
                                   <CardContent className="p-4">
@@ -655,6 +673,9 @@ export function PublicEntityProfilePage() {
                                           </span>
                                         </div>
                                       </div>
+                                      {selectedProfessional === professional.id && (
+                                        <CheckCircle className="h-5 w-5 text-primary shrink-0" />
+                                      )}
                                     </div>
                                     {professional.specialties.length > 0 && (
                                       <div className="flex flex-wrap gap-1 mt-3">
