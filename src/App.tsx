@@ -34,7 +34,6 @@ import EntityDashboardPage from "./pages/business/dashboard";
 import { BookingsPage as EntityBookingsPage } from "./pages/business/bookings";
 import { ServicesPage as EntityServicesPage } from "./pages/business/services";
 import { ReportsPage as EntityReportsPage } from "./pages/business/reports";
-import { BookingManagementPage as EntityBookingManagementPage } from "./pages/business/booking-management";
 import { ProfessionalsPage as EntityProfessionalsPage } from "./pages/business/professionals";
 import { UserManagementPage as EntityUserManagementPage } from "./pages/business/user-management";
 import { SubscriptionManagementPage as EntitySubscriptionManagementPage } from "./pages/business/subscription-management";
@@ -43,6 +42,7 @@ import { DataAnalyticsPage as EntityDataAnalyticsPage } from "./pages/business/d
 // Common pages (shared across all plan types)
 import { ClientProfilePage } from "./pages/common/client-profile";
 import { EntityProfilePage } from "./pages/common/entity-profile";
+import { BookingManagementPage } from "./pages/common/booking-management";
 import { SettingsPage as EntitySettingsPage } from "./pages/business/settings";
 import { CommissionsManagementPage } from "./pages/business/commissions-management";
 import { PaymentManagementPage } from "./pages/business/payment-management";
@@ -319,6 +319,18 @@ function App() {
                     </IndividualPlusRoute>
                   }
                 />
+                <Route
+                  path="/individual/booking-management"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <BookingManagementPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
 
                 {/* Business/Entity Plan Routes */}
                 <Route
@@ -399,7 +411,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <EntityBookingManagementPage />
+                          <BookingManagementPage />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
