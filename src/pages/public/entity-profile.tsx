@@ -88,7 +88,8 @@ export function PublicEntityProfilePage() {
         console.log("Entity response:", entityResponse.data);
         setEntity(entityResponse.data);
 
-        const entityId = entityResponse.data.id || (entityResponse.data as any)._id;
+        const entityId =
+          entityResponse.data.id || (entityResponse.data as any)._id;
         console.log("Entity ID:", entityId);
 
         // Fetch services and professionals for this entity
@@ -99,22 +100,41 @@ export function PublicEntityProfilePage() {
 
         console.log("Services response:", servicesResponse.data);
         console.log("Professionals response:", professionalsResponse.data);
-        
+
         // Map services to ensure consistent id field (handle both id and _id)
-        const mappedServices = servicesResponse.data.map((service: any) => ({
-          ...service,
-          id: service.id || service._id,
-        })).filter((service: any) => service.isActive !== false && service.status !== 'inactive');
-        
+        // Also normalize duration and price from nested objects
+        const mappedServices = servicesResponse.data
+          .map((service: any) => ({
+            ...service,
+            id: service.id || service._id,
+            // Extract duration from nested duration object
+            duration: typeof service.duration === 'object' 
+              ? service.duration.duration 
+              : service.duration,
+            // Extract price from nested pricing object
+            price: typeof service.pricing === 'object'
+              ? service.pricing.basePrice
+              : service.price,
+          }))
+          .filter(
+            (service: any) =>
+              service.isActive !== false && service.status !== "inactive"
+          );
+
         // Map professionals to ensure consistent id field
-        const mappedProfessionals = professionalsResponse.data.map((prof: any) => ({
-          ...prof,
-          id: prof.id || prof._id,
-        })).filter((prof: any) => prof.isAvailable !== false && prof.status === 'active');
-        
+        const mappedProfessionals = professionalsResponse.data
+          .map((prof: any) => ({
+            ...prof,
+            id: prof.id || prof._id,
+          }))
+          .filter(
+            (prof: any) =>
+              prof.isAvailable !== false && prof.status === "active"
+          );
+
         console.log("Mapped services:", mappedServices);
         console.log("Mapped professionals:", mappedProfessionals);
-        
+
         setServices(mappedServices);
         setProfessionals(mappedProfessionals);
       } catch (error: any) {
