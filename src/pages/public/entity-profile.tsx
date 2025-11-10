@@ -298,14 +298,31 @@ export function PublicEntityProfilePage() {
                 <Button
                   size="lg"
                   className="w-full md:w-auto shadow-lg hover:shadow-xl transition-shadow"
-                  onClick={() => {
-                    const bookingSection =
-                      document.getElementById("booking-form");
-                    bookingSection?.scrollIntoView({ behavior: "smooth" });
+                  disabled={services.length === 0}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (services.length === 0) {
+                      toast.error("No services available to book");
+                      return;
+                    }
+                    const bookingSection = document.getElementById("booking-form");
+                    if (bookingSection) {
+                      console.log("Scrolling to booking form...");
+                      // Pequeno delay para garantir que o DOM está pronto
+                      setTimeout(() => {
+                        bookingSection.scrollIntoView({ 
+                          behavior: "smooth",
+                          block: "start"
+                        });
+                      }, 100);
+                    } else {
+                      console.warn("Booking form element not found");
+                      toast.error("Booking form not available");
+                    }
                   }}
                 >
                   <CalendarDays className="h-5 w-5 mr-2" />
-                  Book Appointment
+                  {services.length === 0 ? "No Services Available" : "Book Appointment"}
                 </Button>
               </div>
             </div>
@@ -377,7 +394,7 @@ export function PublicEntityProfilePage() {
               </div>
 
               {/* Social Media */}
-              {entity.instagram && (
+              {entity.instagram && entity.instagram.trim() !== "" && (
                 <div className="pt-4 border-t">
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground">Follow us:</span>
@@ -466,18 +483,19 @@ export function PublicEntityProfilePage() {
               )}
             </div>
 
-            {/* Booking Form */}
-            <Card id="booking-form" className="scroll-mt-24">
-              <CardHeader className="border-b bg-muted/30">
-                <CardTitle className="flex items-center gap-2 text-2xl">
-                  <CalendarDays className="h-6 w-6" />
-                  Book Your Appointment
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Choose your preferred service, date, and time
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+            {/* Booking Form - Only show if there are services */}
+            {services.length > 0 && (
+              <Card id="booking-form" className="scroll-mt-24">
+                <CardHeader className="border-b bg-muted/30">
+                  <CardTitle className="flex items-center gap-2 text-2xl">
+                    <CalendarDays className="h-6 w-6" />
+                    Book Your Appointment
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Choose your preferred service, date, and time
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
                 {!selectedService && (
                   <div className="text-center py-12">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -728,6 +746,7 @@ export function PublicEntityProfilePage() {
                 )}
               </CardContent>
             </Card>
+            )}
           </div>
 
           {/* Right Sidebar */}
