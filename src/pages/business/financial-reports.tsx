@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -368,102 +369,67 @@ export function FinancialReportsPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total Revenue
-                  </p>
-                  <p className="text-2xl font-bold">
-                    €{financialSummary.totalRevenue.toFixed(2)}
-                  </p>
-                  <div className="flex items-center text-sm text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />+
-                    {financialSummary.growth.revenue}% vs last period
-                  </div>
-                </div>
-                <Euro className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Total Revenue"
+            value={`€${financialSummary.totalRevenue.toFixed(2)}`}
+            icon={Euro}
+            trend={{
+              value: `+${financialSummary.growth.revenue}%`,
+              isPositive: true,
+            }}
+            subtitle="vs last period"
+          />
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total Commissions
-                  </p>
-                  <p className="text-2xl font-bold text-red-600">
-                    €{financialSummary.totalCommissions.toFixed(2)}
-                  </p>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Percent className="h-4 w-4 mr-1" />
-                    10% of revenue
-                  </div>
-                </div>
-                <ArrowDownRight className="h-8 w-8 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Total Commissions"
+            value={`€${financialSummary.totalCommissions.toFixed(2)}`}
+            subtitle="10% of revenue"
+            icon={ArrowDownRight}
+            variant="danger"
+          />
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Vouchers Used
-                  </p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    €{financialSummary.totalVouchers.toFixed(2)}
-                  </p>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Gift className="h-4 w-4 mr-1" />
-                    {(
-                      (financialSummary.totalVouchers /
-                        financialSummary.totalRevenue) *
-                      100
-                    ).toFixed(1)}
-                    % of revenue
-                  </div>
-                </div>
-                <Gift className="h-8 w-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Vouchers Used"
+            value={`€${financialSummary.totalVouchers.toFixed(2)}`}
+            subtitle={`${(
+              (financialSummary.totalVouchers / financialSummary.totalRevenue) *
+              100
+            ).toFixed(1)}% of revenue`}
+            icon={Gift}
+            variant="warning"
+          />
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Net Revenue
-                  </p>
-                  <p className="text-2xl font-bold text-green-600">
-                    €{financialSummary.netRevenue.toFixed(2)}
-                  </p>
-                  <div className="flex items-center text-sm text-green-600">
-                    <ArrowUpRight className="h-4 w-4 mr-1" />
-                    After all deductions
-                  </div>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Net Revenue"
+            value={`€${financialSummary.netRevenue.toFixed(2)}`}
+            subtitle="After all deductions"
+            icon={TrendingUp}
+            variant="success"
+          />
         </div>
 
         {/* Financial Breakdown */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="goals">Goals & Targets</TabsTrigger>
-            <TabsTrigger value="commissions">Commissions</TabsTrigger>
-            <TabsTrigger value="vouchers">Vouchers</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          </TabsList>
+          <div className="border-b">
+            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-0 bg-transparent">
+              <TabsTrigger value="overview" className="whitespace-nowrap">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="goals" className="whitespace-nowrap">
+                Goals & Targets
+              </TabsTrigger>
+              <TabsTrigger value="commissions" className="whitespace-nowrap">
+                Commissions
+              </TabsTrigger>
+              <TabsTrigger value="vouchers" className="whitespace-nowrap">
+                Vouchers
+              </TabsTrigger>
+              <TabsTrigger value="transactions" className="whitespace-nowrap">
+                Transactions
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">

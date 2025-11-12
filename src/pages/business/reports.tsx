@@ -26,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import {
   Tabs,
@@ -283,78 +284,64 @@ export function ReportsPage() {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                €{totalRevenue.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                +12.5% from last period
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Appointments
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalAppointments}</div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                +8.2% from last period
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Clients</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalNewClients}</div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                +15.3% from last period
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Average Rating
-              </CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{avgRating.toFixed(1)}</div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
-                -0.1 from last period
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Total Revenue"
+            value={`€${totalRevenue.toLocaleString()}`}
+            icon={DollarSign}
+            trend={{ value: "+12.5%", isPositive: true }}
+            subtitle="from last period"
+          />
+
+          <StatCard
+            title="Total Appointments"
+            value={totalAppointments}
+            icon={Calendar}
+            trend={{ value: "+8.2%", isPositive: true }}
+            subtitle="from last period"
+            variant="info"
+          />
+
+          <StatCard
+            title="New Clients"
+            value={totalNewClients}
+            icon={Users}
+            trend={{ value: "+15.3%", isPositive: true }}
+            subtitle="from last period"
+            variant="success"
+          />
+
+          <StatCard
+            title="Average Rating"
+            value={avgRating.toFixed(1)}
+            icon={Star}
+            trend={{ value: "-0.1", isPositive: false }}
+            subtitle="from last period"
+            variant="warning"
+          />
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="clients">Clients</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
-          </TabsList>
+          <div className="border-b overflow-x-auto">
+            <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
+              <TabsTrigger value="overview" className="whitespace-nowrap">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="revenue" className="whitespace-nowrap">
+                Revenue
+              </TabsTrigger>
+              <TabsTrigger value="services" className="whitespace-nowrap">
+                Services
+              </TabsTrigger>
+              <TabsTrigger value="clients" className="whitespace-nowrap">
+                Clients
+              </TabsTrigger>
+              <TabsTrigger value="trends" className="whitespace-nowrap">
+                Trends
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">

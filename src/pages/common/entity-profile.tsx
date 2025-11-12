@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { useAuth } from "../../contexts/auth-context";
+import { apiClient } from "../../lib/api-client";
 import {
   Card,
   CardContent,
@@ -47,122 +50,127 @@ import {
   Twitter,
   Linkedin,
   CreditCard,
+  Users,
+  Loader2,
+  Clock,
 } from "lucide-react";
 
 export function EntityProfilePage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Mock entity data
-  const entityData = {
-    id: 1,
-    name: "Bella Vita Salon & Spa",
-    type: "Beauty Salon",
-    description:
-      "Premium beauty salon offering comprehensive hair, nail, and wellness services in the heart of Lisbon. Our experienced team provides personalized treatments in a relaxing, modern environment.",
-    logo: "",
-    coverImage: "",
-    contact: {
-      email: "info@bellavita.pt",
-      phone: "+351 123 456 789",
-      website: "https://bellavita.pt",
-      instagram: "@bellavita_salon",
-      address: {
-        street: "Rua das Flores, 123",
-        city: "Lisboa",
-        postalCode: "1200-100",
-        country: "Portugal",
-      },
-    },
-    workingHours: {
-      monday: {
-        enabled: true,
-        start: "09:00",
-        end: "19:00",
-        breakStart: "",
-        breakEnd: "",
-      },
-      tuesday: {
-        enabled: true,
-        start: "09:00",
-        end: "19:00",
-        breakStart: "",
-        breakEnd: "",
-      },
-      wednesday: {
-        enabled: true,
-        start: "09:00",
-        end: "19:00",
-        breakStart: "",
-        breakEnd: "",
-      },
-      thursday: {
-        enabled: true,
-        start: "09:00",
-        end: "20:00",
-        breakStart: "",
-        breakEnd: "",
-      },
-      friday: {
-        enabled: true,
-        start: "09:00",
-        end: "20:00",
-        breakStart: "",
-        breakEnd: "",
-      },
-      saturday: {
-        enabled: true,
-        start: "10:00",
-        end: "18:00",
-        breakStart: "",
-        breakEnd: "",
-      },
-      sunday: {
-        enabled: false,
-        start: "10:00",
-        end: "17:00",
-        breakStart: "",
-        breakEnd: "",
-      },
-    },
-    socialMedia: {
-      instagram: "@bellavitasalon",
-      facebook: "BellaVitaSalonSpa",
-      twitter: "@bellavitaspa",
-      linkedin: "bella-vita-salon-spa",
-    },
-    settings: {
-      onlineBooking: true,
-      emailNotifications: true,
-      smsNotifications: true,
-      publicProfile: true,
-      showPrices: true,
-      allowCancellation: true,
-      requireDeposit: false,
-      autoConfirm: false,
-    },
-    subscription: {
-      plan: "Business",
-      status: "active",
-      validUntil: "2024-12-31",
-      features: [
-        "Unlimited bookings",
-        "Multi-professional management",
-        "Advanced analytics",
-        "Priority support",
-        "Custom branding",
-      ],
-    },
-    stats: {
-      totalBookings: 2847,
-      activeClients: 642,
-      professionals: 8,
-      averageRating: 4.7,
-      totalRevenue: 187420,
-      thisMonthBookings: 156,
-      thisMonthRevenue: 12340,
-    },
+  // State for entity data
+  const [entityData, setEntityData] = useState<any>(null);
+  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+
+  // Fetch entity data
+  useEffect(() => {
+    const fetchEntityData = async () => {
+      if (!user?.entityId) {
+        console.log("No entityId found");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Fetch entity details
+        const entityResponse = await apiClient.get(
+          `/entities/${user.entityId}`
+        );
+        console.log("Entity data:", entityResponse.data);
+        setEntityData(entityResponse.data);
+
+        // Fetch professionals
+        const professionalsResponse = await apiClient.get(
+          `/users/professionals?entityId=${user.entityId}`
+        );
+        console.log("Professionals:", professionalsResponse.data);
+        setProfessionals(
+          Array.isArray(professionalsResponse.data)
+            ? professionalsResponse.data
+            : []
+        );
+
+        // Fetch services
+        const servicesResponse = await apiClient.get(
+          `/services?entityId=${user.entityId}`
+        );
+        console.log("Services:", servicesResponse.data);
+        setServices(
+          Array.isArray(servicesResponse.data)
+            ? servicesResponse.data.map((service: any) => ({
+                ...service,
+                id: service.id || service._id,
+                duration:
+                  typeof service.duration === "object"
+                    ? service.duration.duration
+                    : service.duration,
+                price:
+                  typeof service.pricing === "object"
+                    ? service.pricing.basePrice
+                    : service.price,
+                professionalIds:
+                  service.assignedProfessionalIds ||
+                  service.assignedProfessionals ||
+                  service.professionalIds ||
+                  [],
+              }))
+            : []
+        );
+      } catch (error: any) {
+        console.error("Error fetching entity data:", error);
+        toast.error(
+          error.response?.data?.message || "Failed to load entity data"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEntityData();
+  }, [user?.entityId]);
+
+  const handleSave = async () => {
+    if (!entityData) return;
+
+    setSaving(true);
+    try {
+      await apiClient.put(
+        `/entities/${entityData.id || entityData._id}`,
+        entityData
+      );
+      toast.success("Entity profile updated successfully");
+      setEditMode(false);
+    } catch (error: any) {
+      console.error("Error saving entity:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to save entity profile"
+      );
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!entityData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <Building2 className="h-16 w-16 text-muted-foreground" />
+        <p className="text-lg text-muted-foreground">No entity data found</p>
+      </div>
+    );
+  }
 
   const weekDays = [
     { key: "monday", label: "Monday" },
@@ -196,11 +204,26 @@ export function EntityProfilePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {entityData?.slug && (
+            <Button
+              variant="secondary"
+              onClick={() => window.open(`/book/${entityData.slug}`, "_blank")}
+            >
+              <Globe className="h-4 w-4 mr-2" />
+              View Public Page
+            </Button>
+          )}
           <Button
             variant={editMode ? "default" : "outline"}
-            onClick={() => setEditMode(!editMode)}
+            onClick={() => (editMode ? handleSave() : setEditMode(true))}
+            disabled={saving}
           >
-            {editMode ? (
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : editMode ? (
               <>
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
@@ -255,44 +278,57 @@ export function EntityProfilePage() {
                 <div className="space-y-2">
                   {editMode ? (
                     <Input
-                      defaultValue={entityData.name}
+                      value={entityData.name || ""}
+                      onChange={(e) =>
+                        setEntityData({ ...entityData, name: e.target.value })
+                      }
                       className="text-2xl font-bold h-auto p-2"
                     />
                   ) : (
                     <h2 className="text-2xl font-bold">{entityData.name}</h2>
                   )}
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">{entityData.type}</Badge>
-                    <Badge
-                      variant="outline"
-                      className={
-                        subscriptionColors[
-                          entityData.subscription
-                            .plan as keyof typeof subscriptionColors
-                        ]
-                      }
-                    >
-                      {entityData.subscription.plan} Plan
+                    <Badge variant="outline">
+                      {entityData.entityType || entityData.type || "Business"}
                     </Badge>
+                    {entityData.subscription?.plan && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          subscriptionColors[
+                            entityData.subscription
+                              .plan as keyof typeof subscriptionColors
+                          ] || "bg-gray-100 text-gray-800 border-gray-200"
+                        }
+                      >
+                        {entityData.subscription.plan} Plan
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
                 {editMode ? (
                   <Textarea
-                    defaultValue={entityData.description}
+                    value={entityData.description || ""}
+                    onChange={(e) =>
+                      setEntityData({
+                        ...entityData,
+                        description: e.target.value,
+                      })
+                    }
                     placeholder="Business description..."
                     rows={3}
                   />
                 ) : (
                   <p className="text-muted-foreground leading-relaxed">
-                    {entityData.description}
+                    {entityData.description || "No description available"}
                   </p>
                 )}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {entityData.stats.totalBookings.toLocaleString()}
+                      {(entityData.stats?.totalBookings || 0).toLocaleString()}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Total Bookings
@@ -300,7 +336,7 @@ export function EntityProfilePage() {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {entityData.stats.activeClients}
+                      {entityData.stats?.activeClients || 0}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Active Clients
@@ -308,7 +344,7 @@ export function EntityProfilePage() {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">
-                      {entityData.stats.professionals}
+                      {professionals.length}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Professionals
@@ -317,7 +353,7 @@ export function EntityProfilePage() {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-yellow-600 flex items-center justify-center">
                       <Star className="h-5 w-5 mr-1" />
-                      {entityData.stats.averageRating}
+                      {entityData.stats?.averageRating || "N/A"}
                     </div>
                     <p className="text-sm text-muted-foreground">Rating</p>
                   </div>
@@ -330,13 +366,28 @@ export function EntityProfilePage() {
 
       {/* Content Tabs */}
       <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="basic">Basic Info</TabsTrigger>
-          <TabsTrigger value="hours">Business Hours</TabsTrigger>
-          <TabsTrigger value="social">Social Media</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
-        </TabsList>
+        <div className="border-b overflow-x-auto">
+          <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
+            <TabsTrigger value="basic" className="whitespace-nowrap">
+              Basic Info
+            </TabsTrigger>
+            <TabsTrigger value="hours" className="whitespace-nowrap">
+              Business Hours
+            </TabsTrigger>
+            <TabsTrigger value="team" className="whitespace-nowrap">
+              Team
+            </TabsTrigger>
+            <TabsTrigger value="social" className="whitespace-nowrap">
+              Social Media
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="whitespace-nowrap">
+              Settings
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="whitespace-nowrap">
+              Subscription
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Basic Information */}
         <TabsContent value="basic" className="space-y-6">
@@ -356,11 +407,22 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="email"
-                        defaultValue={entityData.contact.email}
+                        value={entityData.contact?.email || ""}
+                        onChange={(e) =>
+                          setEntityData({
+                            ...entityData,
+                            contact: {
+                              ...entityData.contact,
+                              email: e.target.value,
+                            },
+                          })
+                        }
                         className="flex-1"
                       />
                     ) : (
-                      <span className="flex-1">{entityData.contact.email}</span>
+                      <span className="flex-1">
+                        {entityData.contact?.email || "Not set"}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -372,11 +434,22 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="phone"
-                        defaultValue={entityData.contact.phone}
+                        value={entityData.contact?.phone || ""}
+                        onChange={(e) =>
+                          setEntityData({
+                            ...entityData,
+                            contact: {
+                              ...entityData.contact,
+                              phone: e.target.value,
+                            },
+                          })
+                        }
                         className="flex-1"
                       />
                     ) : (
-                      <span className="flex-1">{entityData.contact.phone}</span>
+                      <span className="flex-1">
+                        {entityData.contact?.phone || "Not set"}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -519,9 +592,12 @@ export function EntityProfilePage() {
             <CardContent className="space-y-4">
               {weekDays.map((day) => {
                 const dayData =
-                  entityData.workingHours[
+                  entityData.workingHours?.[
                     day.key as keyof typeof entityData.workingHours
                   ];
+
+                if (!dayData) return null;
+
                 return (
                   <div
                     key={day.key}
@@ -531,26 +607,68 @@ export function EntityProfilePage() {
                       <Label className="font-medium">{day.label}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Switch checked={dayData.enabled} disabled={!editMode} />
+                      <Switch
+                        checked={dayData.enabled || false}
+                        disabled={!editMode}
+                        onCheckedChange={(checked) => {
+                          if (editMode) {
+                            setEntityData({
+                              ...entityData,
+                              workingHours: {
+                                ...entityData.workingHours,
+                                [day.key]: {
+                                  ...dayData,
+                                  enabled: checked,
+                                },
+                              },
+                            });
+                          }
+                        }}
+                      />
                       {dayData.enabled ? (
                         <div className="flex items-center space-x-2">
                           {editMode ? (
                             <>
                               <Input
                                 type="time"
-                                defaultValue={dayData.start}
+                                value={dayData.start || "09:00"}
+                                onChange={(e) => {
+                                  setEntityData({
+                                    ...entityData,
+                                    workingHours: {
+                                      ...entityData.workingHours,
+                                      [day.key]: {
+                                        ...dayData,
+                                        start: e.target.value,
+                                      },
+                                    },
+                                  });
+                                }}
                                 className="w-32"
                               />
                               <span className="text-muted-foreground">to</span>
                               <Input
                                 type="time"
-                                defaultValue={dayData.end}
+                                value={dayData.end || "18:00"}
+                                onChange={(e) => {
+                                  setEntityData({
+                                    ...entityData,
+                                    workingHours: {
+                                      ...entityData.workingHours,
+                                      [day.key]: {
+                                        ...dayData,
+                                        end: e.target.value,
+                                      },
+                                    },
+                                  });
+                                }}
                                 className="w-32"
                               />
                             </>
                           ) : (
                             <span className="text-sm">
-                              {dayData.start} - {dayData.end}
+                              {dayData.start || "09:00"} -{" "}
+                              {dayData.end || "18:00"}
                               {dayData.breakStart && dayData.breakEnd && (
                                 <span className="text-xs text-muted-foreground ml-2">
                                   (Break: {dayData.breakStart} -{" "}
@@ -569,6 +687,161 @@ export function EntityProfilePage() {
                   </div>
                 );
               })}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Team Tab */}
+        <TabsContent value="team">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Team Members
+              </CardTitle>
+              <CardDescription>
+                Manage your team of professionals
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {professionals.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    No professionals found. Add team members to get started.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {professionals.map((professional) => (
+                    <Card
+                      key={professional.id || professional._id}
+                      className="hover:shadow-md transition-shadow"
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={professional.profilePicture} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                              {professional.firstName?.[0]}
+                              {professional.lastName?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium truncate">
+                              {professional.firstName} {professional.lastName}
+                            </h3>
+                            <div className="flex items-center gap-2 text-sm mt-1">
+                              <div className="flex items-center">
+                                <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                <span className="ml-1 text-muted-foreground">
+                                  {professional.rating || "N/A"}
+                                </span>
+                              </div>
+                              {professional.isAvailable !== undefined && (
+                                <Badge
+                                  variant={
+                                    professional.isAvailable
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                  className="text-xs"
+                                >
+                                  {professional.isAvailable
+                                    ? "Available"
+                                    : "Unavailable"}
+                                </Badge>
+                              )}
+                            </div>
+                            {professional.specialties &&
+                              professional.specialties.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {professional.specialties
+                                    .slice(0, 2)
+                                    .map((specialty: string) => (
+                                      <Badge
+                                        key={specialty}
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {specialty}
+                                      </Badge>
+                                    ))}
+                                  {professional.specialties.length > 2 && (
+                                    <span className="text-xs text-muted-foreground">
+                                      +{professional.specialties.length - 2}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Services Card */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Services Offered
+              </CardTitle>
+              <CardDescription>
+                Active services available for booking
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {services.length === 0 ? (
+                <div className="text-center py-8">
+                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    No services found. Add services to start accepting bookings.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {services.map((service) => {
+                    const duration =
+                      typeof service.duration === "object"
+                        ? service.duration.duration
+                        : service.duration;
+                    const price =
+                      typeof service.pricing === "object"
+                        ? service.pricing.basePrice
+                        : service.price;
+
+                    return (
+                      <div
+                        key={service.id || service._id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium">{service.name}</h4>
+                          {service.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {service.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span>{duration || 0} min</span>
+                          </div>
+                          <div className="font-semibold">
+                            €{price?.toFixed(2) || "0.00"}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -851,12 +1124,17 @@ export function EntityProfilePage() {
                 <div className="space-y-4">
                   <h4 className="font-medium">Included Features</h4>
                   <ul className="space-y-2">
-                    {entityData.subscription.features.map((feature) => (
-                      <li key={feature} className="flex items-center space-x-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
+                    {entityData.subscription?.features?.map(
+                      (feature: string) => (
+                        <li
+                          key={feature}
+                          className="flex items-center space-x-2"
+                        >
+                          <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      )
+                    )}
                   </ul>
                 </div>
 

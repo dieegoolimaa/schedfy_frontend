@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -376,102 +377,66 @@ export function NotificationCenterPage() {
       </div>
 
       {/* Channel Performance Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Email</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{channelStats.email.rate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {channelStats.email.opened.toLocaleString()} opened of{" "}
-              {channelStats.email.sent.toLocaleString()}
-            </p>
-            <div className="mt-2 flex items-center text-xs text-green-600">
-              <TrendingUp className="mr-1 h-3 w-3" />
-              +5.2% vs last month
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Email"
+          value={`${channelStats.email.rate}%`}
+          subtitle={`${channelStats.email.opened.toLocaleString()} opened of ${channelStats.email.sent.toLocaleString()}`}
+          icon={Mail}
+          trend={{ value: "+5.2%", isPositive: true }}
+          variant="info"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SMS</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{channelStats.sms.rate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {channelStats.sms.opened.toLocaleString()} opened of{" "}
-              {channelStats.sms.sent.toLocaleString()}
-            </p>
-            <div className="mt-2 flex items-center text-xs text-green-600">
-              <TrendingUp className="mr-1 h-3 w-3" />
-              +3.8% vs last month
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="SMS"
+          value={`${channelStats.sms.rate}%`}
+          subtitle={`${channelStats.sms.opened.toLocaleString()} opened of ${channelStats.sms.sent.toLocaleString()}`}
+          icon={MessageSquare}
+          trend={{ value: "+3.8%", isPositive: true }}
+          variant="success"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">WhatsApp</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {channelStats.whatsapp.rate}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {channelStats.whatsapp.opened.toLocaleString()} opened of{" "}
-              {channelStats.whatsapp.sent.toLocaleString()}
-            </p>
-            <div className="mt-2 flex items-center text-xs text-green-600">
-              <TrendingUp className="mr-1 h-3 w-3" />
-              +12.4% vs last month
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="WhatsApp"
+          value={`${channelStats.whatsapp.rate}%`}
+          subtitle={`${channelStats.whatsapp.opened.toLocaleString()} opened of ${channelStats.whatsapp.sent.toLocaleString()}`}
+          icon={MessageSquare}
+          trend={{ value: "+12.4%", isPositive: true }}
+          variant="success"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Push</CardTitle>
-            <Smartphone className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{channelStats.push.rate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {channelStats.push.opened.toLocaleString()} opened of{" "}
-              {channelStats.push.sent.toLocaleString()}
-            </p>
-            <div className="mt-2 flex items-center text-xs text-red-600">
-              <AlertCircle className="mr-1 h-3 w-3" />
-              -2.1% vs last month
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Push"
+          value={`${channelStats.push.rate}%`}
+          subtitle={`${channelStats.push.opened.toLocaleString()} opened of ${channelStats.push.sent.toLocaleString()}`}
+          icon={Smartphone}
+          trend={{ value: "-2.1%", isPositive: false }}
+          variant="warning"
+        />
       </div>
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="templates" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="templates">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Templates
-          </TabsTrigger>
-          <TabsTrigger value="automation">
-            <Zap className="mr-2 h-4 w-4" />
-            Automation
-          </TabsTrigger>
-          <TabsTrigger value="analytics">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="ai-features">
-            <Bot className="mr-2 h-4 w-4" />
-            AI Features
-          </TabsTrigger>
-        </TabsList>
+        <div className="border-b overflow-x-auto">
+          <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
+            <TabsTrigger value="templates" className="whitespace-nowrap">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Templates
+            </TabsTrigger>
+            <TabsTrigger value="automation" className="whitespace-nowrap">
+              <Zap className="mr-2 h-4 w-4" />
+              Automation
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="whitespace-nowrap">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="ai-features" className="whitespace-nowrap">
+              <Bot className="mr-2 h-4 w-4" />
+              AI Features
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-4">

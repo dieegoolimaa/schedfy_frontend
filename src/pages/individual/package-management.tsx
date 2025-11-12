@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -349,97 +350,55 @@ const PackageManagement: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total de Pacotes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalPackages}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {activePackages} ativos
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <StatCard
+          title="Total de Pacotes"
+          value={totalPackages}
+          subtitle={`${activePackages} ativos`}
+          icon={Package}
+        />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Assinaturas Ativas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold flex items-center gap-2">
-              <Users className="w-5 h-5 text-green-500" />
-              {activeSubscriptions}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              de {totalSubscriptions} totais
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Assinaturas Ativas"
+          value={activeSubscriptions}
+          subtitle={`de ${totalSubscriptions} totais`}
+          icon={Users}
+          variant="success"
+        />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Receita Total
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-blue-500" />
-              R$ {totalRevenue.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              de pacotes vendidos
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Receita Total"
+          value={`R$ ${totalRevenue.toFixed(2)}`}
+          subtitle="de pacotes vendidos"
+          icon={DollarSign}
+          variant="info"
+        />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Taxa de Conversão
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-500" />
-              {totalPackages > 0
-                ? ((activeSubscriptions / totalPackages) * 100).toFixed(1)
-                : 0}
-              %
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              pacotes convertidos
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Taxa de Conversão"
+          value={`${
+            totalPackages > 0
+              ? ((activeSubscriptions / totalPackages) * 100).toFixed(1)
+              : 0
+          }%`}
+          subtitle="pacotes convertidos"
+          icon={TrendingUp}
+        />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Desconto Médio
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold flex items-center gap-2">
-              <Activity className="w-5 h-5 text-orange-500" />
-              {packages.length > 0
-                ? (
-                    packages.reduce((sum, p) => sum + p.pricing.discount, 0) /
-                    packages.length
-                  ).toFixed(1)
-                : 0}
-              %
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              oferecido nos pacotes
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Desconto Médio"
+          value={`${
+            packages.length > 0
+              ? (
+                  packages.reduce((sum, p) => sum + p.pricing.discount, 0) /
+                  packages.length
+                ).toFixed(1)
+              : 0
+          }%`}
+          subtitle="oferecido nos pacotes"
+          icon={Activity}
+          variant="warning"
+        />
       </div>
 
       {/* Tabs */}

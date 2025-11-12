@@ -13,10 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import {
-  ResponsiveCardGrid,
-  MobileStatsCard,
-} from "../../components/ui/responsive-card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -34,6 +31,14 @@ import {
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
+import { Switch } from "../../components/ui/switch";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -51,6 +56,11 @@ import {
   Phone,
   Users,
   Send,
+  TrendingUp,
+  X,
+  Briefcase,
+  Award,
+  DollarSign,
 } from "lucide-react";
 
 export function ProfessionalsPage() {
@@ -67,11 +77,27 @@ export function ProfessionalsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProfessional, setEditingProfessional] =
     useState<Professional | null>(null);
+
+  // Temporary inputs for adding items to arrays
+  const [newSpecialty, setNewSpecialty] = useState("");
+  const [newCertification, setNewCertification] = useState("");
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    jobFunction: "",
+    bio: "",
+    experience: "",
+    specialties: [] as string[],
+    certifications: [] as string[],
+    instagram: "",
+    linkedin: "",
+    website: "",
+    commissionEnabled: false,
+    commissionPercentage: "",
+    commissionFixedAmount: "",
   });
 
   const fetchProfessionals = async () => {
@@ -122,23 +148,65 @@ export function ProfessionalsPage() {
     }
 
     try {
+      const professionalData: any = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+      };
+
+      // Add professional info if provided
+      if (
+        formData.jobFunction ||
+        formData.bio ||
+        formData.experience ||
+        formData.specialties.length > 0 ||
+        formData.certifications.length > 0 ||
+        formData.instagram ||
+        formData.linkedin ||
+        formData.website
+      ) {
+        professionalData.professionalInfo = {
+          jobFunction: formData.jobFunction || undefined,
+          bio: formData.bio || undefined,
+          experience: formData.experience
+            ? parseInt(formData.experience)
+            : undefined,
+          specialties: formData.specialties.filter((s) => s.trim()),
+          certifications: formData.certifications.filter((c) => c.trim()),
+          socialMedia: {
+            instagram: formData.instagram || undefined,
+            linkedin: formData.linkedin || undefined,
+            website: formData.website || undefined,
+          },
+        };
+      }
+
+      // Add commission if enabled
+      if (formData.commissionEnabled) {
+        professionalData.commission = {
+          enabled: true,
+          percentage: formData.commissionPercentage
+            ? parseFloat(formData.commissionPercentage)
+            : undefined,
+          fixedAmount: formData.commissionFixedAmount
+            ? parseFloat(formData.commissionFixedAmount)
+            : undefined,
+        };
+      }
+
       if (editingProfessional) {
-        await professionalsService.updateProfessional(editingProfessional.id, {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-        });
+        await professionalsService.updateProfessional(
+          editingProfessional.id,
+          professionalData
+        );
         toast.success("Professional updated");
       } else {
+        professionalData.entityId = entityId;
         // Create professional via invitation system
-        const response = await professionalsService.createProfessional({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          entityId,
-        });
+        const response = await professionalsService.createProfessional(
+          professionalData
+        );
 
         // Show success message about email sent
         const professional = response.data;
@@ -185,7 +253,23 @@ export function ProfessionalsPage() {
       }
       setIsDialogOpen(false);
       setEditingProfessional(null);
-      setFormData({ firstName: "", lastName: "", email: "", phone: "" });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        jobFunction: "",
+        bio: "",
+        experience: "",
+        specialties: [],
+        certifications: [],
+        instagram: "",
+        linkedin: "",
+        website: "",
+        commissionEnabled: false,
+        commissionPercentage: "",
+        commissionFixedAmount: "",
+      });
       fetchProfessionals();
     } catch (error: any) {
       toast.error(
@@ -201,6 +285,27 @@ export function ProfessionalsPage() {
       lastName: professional.lastName,
       email: professional.email || "",
       phone: professional.phone || "",
+      jobFunction: (professional as any).professionalInfo?.jobFunction || "",
+      bio: (professional as any).professionalInfo?.bio || "",
+      experience: (professional as any).professionalInfo?.experience
+        ? String((professional as any).professionalInfo.experience)
+        : "",
+      specialties: (professional as any).professionalInfo?.specialties || [],
+      certifications:
+        (professional as any).professionalInfo?.certifications || [],
+      instagram:
+        (professional as any).professionalInfo?.socialMedia?.instagram || "",
+      linkedin:
+        (professional as any).professionalInfo?.socialMedia?.linkedin || "",
+      website:
+        (professional as any).professionalInfo?.socialMedia?.website || "",
+      commissionEnabled: (professional as any).commission?.enabled || false,
+      commissionPercentage: (professional as any).commission?.percentage
+        ? String((professional as any).commission.percentage)
+        : "",
+      commissionFixedAmount: (professional as any).commission?.fixedAmount
+        ? String((professional as any).commission.fixedAmount)
+        : "",
     });
     setIsDialogOpen(true);
   };
@@ -312,11 +417,24 @@ export function ProfessionalsPage() {
             setIsDialogOpen(open);
             if (!open) {
               setEditingProfessional(null);
+              setNewSpecialty("");
+              setNewCertification("");
               setFormData({
                 firstName: "",
                 lastName: "",
                 email: "",
                 phone: "",
+                jobFunction: "",
+                bio: "",
+                experience: "",
+                specialties: [],
+                certifications: [],
+                instagram: "",
+                linkedin: "",
+                website: "",
+                commissionEnabled: false,
+                commissionPercentage: "",
+                commissionFixedAmount: "",
               });
             }
           }}
@@ -327,7 +445,7 @@ export function ProfessionalsPage() {
               Add Professional
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingProfessional
@@ -337,59 +455,370 @@ export function ProfessionalsPage() {
               <DialogDescription>
                 {editingProfessional
                   ? "Update professional information"
-                  : "Create new professional account"}
+                  : "Create new professional account and send invitation"}
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                <TabsTrigger value="professional">Professional</TabsTrigger>
+                <TabsTrigger value="social">Social Media</TabsTrigger>
+                <TabsTrigger value="commission">Commission</TabsTrigger>
+              </TabsList>
+
+              {/* Basic Information Tab */}
+              <TabsContent value="basic" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name *</Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, firstName: e.target.value })
+                      }
+                      placeholder="John"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, lastName: e.target.value })
+                      }
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
-                    id="firstName"
-                    value={formData.firstName}
+                    id="email"
+                    type="email"
+                    value={formData.email}
                     onChange={(e) =>
-                      setFormData({ ...formData, firstName: e.target.value })
+                      setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="John"
+                    placeholder="john.doe@example.com"
+                    disabled={!!editingProfessional}
+                  />
+                  {!editingProfessional && (
+                    <p className="text-xs text-muted-foreground">
+                      An invitation will be sent to this email
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    placeholder="+351 123 456 789"
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Professional Information Tab */}
+              <TabsContent value="professional" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="jobFunction">
+                    <Briefcase className="inline h-4 w-4 mr-2" />
+                    Job Function / Title
+                  </Label>
+                  <Input
+                    id="jobFunction"
+                    value={formData.jobFunction}
+                    onChange={(e) =>
+                      setFormData({ ...formData, jobFunction: e.target.value })
+                    }
+                    placeholder="e.g., Barber, Hair Stylist, Massage Therapist"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio / Description</Label>
+                  <Textarea
+                    id="bio"
+                    value={formData.bio}
+                    onChange={(e) =>
+                      setFormData({ ...formData, bio: e.target.value })
+                    }
+                    placeholder="Tell us about your professional background..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="experience">Years of Experience</Label>
+                  <Input
+                    id="experience"
+                    type="number"
+                    min="0"
+                    value={formData.experience}
+                    onChange={(e) =>
+                      setFormData({ ...formData, experience: e.target.value })
+                    }
+                    placeholder="5"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    <Award className="inline h-4 w-4 mr-2" />
+                    Specialties
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newSpecialty}
+                      onChange={(e) => setNewSpecialty(e.target.value)}
+                      placeholder="Add specialty..."
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (newSpecialty.trim()) {
+                            setFormData({
+                              ...formData,
+                              specialties: [
+                                ...formData.specialties,
+                                newSpecialty.trim(),
+                              ],
+                            });
+                            setNewSpecialty("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (newSpecialty.trim()) {
+                          setFormData({
+                            ...formData,
+                            specialties: [
+                              ...formData.specialties,
+                              newSpecialty.trim(),
+                            ],
+                          });
+                          setNewSpecialty("");
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.specialties.map((specialty, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="cursor-pointer"
+                      >
+                        {specialty}
+                        <X
+                          className="h-3 w-3 ml-1"
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              specialties: formData.specialties.filter(
+                                (_, i) => i !== index
+                              ),
+                            });
+                          }}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    <Award className="inline h-4 w-4 mr-2" />
+                    Certifications
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newCertification}
+                      onChange={(e) => setNewCertification(e.target.value)}
+                      placeholder="Add certification..."
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (newCertification.trim()) {
+                            setFormData({
+                              ...formData,
+                              certifications: [
+                                ...formData.certifications,
+                                newCertification.trim(),
+                              ],
+                            });
+                            setNewCertification("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (newCertification.trim()) {
+                          setFormData({
+                            ...formData,
+                            certifications: [
+                              ...formData.certifications,
+                              newCertification.trim(),
+                            ],
+                          });
+                          setNewCertification("");
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.certifications.map((cert, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="cursor-pointer"
+                      >
+                        {cert}
+                        <X
+                          className="h-3 w-3 ml-1"
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              certifications: formData.certifications.filter(
+                                (_, i) => i !== index
+                              ),
+                            });
+                          }}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* Social Media Tab */}
+              <TabsContent value="social" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    value={formData.instagram}
+                    onChange={(e) =>
+                      setFormData({ ...formData, instagram: e.target.value })
+                    }
+                    placeholder="@username or full URL"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="linkedin">LinkedIn</Label>
                   <Input
-                    id="lastName"
-                    value={formData.lastName}
+                    id="linkedin"
+                    value={formData.linkedin}
                     onChange={(e) =>
-                      setFormData({ ...formData, lastName: e.target.value })
+                      setFormData({ ...formData, linkedin: e.target.value })
                     }
-                    placeholder="Doe"
+                    placeholder="LinkedIn profile URL"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder="john.doe@example.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder="+351 123 456 789"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
+                <div className="space-y-2">
+                  <Label htmlFor="website">Personal Website</Label>
+                  <Input
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) =>
+                      setFormData({ ...formData, website: e.target.value })
+                    }
+                    placeholder="https://yourwebsite.com"
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Commission Tab */}
+              <TabsContent value="commission" className="space-y-4">
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="flex-1">
+                    <Label htmlFor="commissionEnabled">
+                      <DollarSign className="inline h-4 w-4 mr-2" />
+                      Enable Commission
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Set commission rates for this professional
+                    </p>
+                  </div>
+                  <Switch
+                    id="commissionEnabled"
+                    checked={formData.commissionEnabled}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, commissionEnabled: checked })
+                    }
+                  />
+                </div>
+
+                {formData.commissionEnabled && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="commissionPercentage">
+                        Commission Percentage (%)
+                      </Label>
+                      <Input
+                        id="commissionPercentage"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={formData.commissionPercentage}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            commissionPercentage: e.target.value,
+                          })
+                        }
+                        placeholder="10.00"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Percentage of booking value
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="commissionFixedAmount">
+                        Fixed Amount per Booking (€)
+                      </Label>
+                      <Input
+                        id="commissionFixedAmount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.commissionFixedAmount}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            commissionFixedAmount: e.target.value,
+                          })
+                        }
+                        placeholder="5.00"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Fixed amount per completed booking
+                      </p>
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
@@ -398,7 +827,7 @@ export function ProfessionalsPage() {
                   ? "Saving..."
                   : editingProfessional
                   ? "Update"
-                  : "Create"}
+                  : "Create & Send Invitation"}
               </Button>
             </div>
           </DialogContent>
@@ -415,26 +844,28 @@ export function ProfessionalsPage() {
         />
       </div>
 
-      <ResponsiveCardGrid>
-        <MobileStatsCard
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+        <StatCard
           title="Total"
           value={professionals.length}
           subtitle="Team members"
-          color="blue"
+          icon={Users}
         />
-        <MobileStatsCard
+        <StatCard
           title="Active"
           value={professionals.filter((p) => p.status === "active").length}
           subtitle="Working"
-          color="green"
+          icon={TrendingUp}
+          variant="success"
         />
-        <MobileStatsCard
+        <StatCard
           title="Inactive"
           value={professionals.filter((p) => p.status !== "active").length}
           subtitle="Not available"
-          color="red"
+          icon={Users}
+          variant="danger"
         />
-      </ResponsiveCardGrid>
+      </div>
 
       <Card>
         <CardHeader>
