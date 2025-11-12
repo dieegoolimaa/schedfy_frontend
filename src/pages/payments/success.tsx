@@ -40,12 +40,12 @@ export default function PaymentsSuccessPage() {
             setStatus("completed");
             toast.success("Payment confirmed and booking completed");
             // redirect back to bookings page
-            navigate("/entity/booking-management");
+            navigate("/entity/bookings");
           } catch (err) {
             console.error(err);
             setStatus("error");
             toast.error("Payment confirmed but failed to complete booking");
-            navigate("/entity/booking-management");
+            navigate("/entity/bookings");
           }
           return;
         }
@@ -55,7 +55,7 @@ export default function PaymentsSuccessPage() {
           toast.error(
             "Payment confirmation timed out. Please check your booking status later."
           );
-          navigate("/entity/booking-management");
+          navigate("/entity/bookings");
           return;
         }
 
@@ -66,7 +66,7 @@ export default function PaymentsSuccessPage() {
         if (!mounted) return;
         setStatus("error");
         toast.error("Failed to verify payment status");
-        navigate("/entity/booking-management");
+        navigate("/entity/bookings");
       }
     };
 
