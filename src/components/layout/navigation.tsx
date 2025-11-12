@@ -101,7 +101,7 @@ export function Navigation() {
         ],
         operations: [
           {
-            path: "/entity/booking-management",
+            path: "/entity/bookings",
             label: t("nav.bookings", "Bookings"),
           },
           { path: "/entity/services", label: t("nav.services", "Services") },

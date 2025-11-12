@@ -3,7 +3,7 @@ import { bookingsService, TimeSlot } from "../services/bookings.service";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, User, CheckCircle } from "lucide-react";
+import { Clock, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TimeSlotPickerProps {
@@ -124,44 +124,34 @@ export function TimeSlotPicker({
         </Badge>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 max-h-96 overflow-y-auto pr-2 pb-2 scrollbar-thin">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 max-h-96 overflow-y-auto pr-2 pb-2 scrollbar-thin p-1">
         {slots.map((slot, index) => {
           const isSelected =
             selectedSlot?.time === slot.time &&
             selectedSlot?.professionalId === slot.professionalId;
 
-          // Extract first name from professional name
-          const firstName = slot.professionalName?.split(" ")[0] || "Staff";
-
           return (
             <Button
               key={`${slot.time}-${slot.professionalId}-${index}`}
               variant={isSelected ? "default" : "outline"}
-              size="sm"
+              size="lg"
               className={cn(
-                "flex flex-col items-center justify-center h-auto py-3.5 px-3 transition-all duration-200",
-                // Adjust height based on whether we're showing professional name
-                professionalId ? "min-h-[60px]" : "min-h-[76px]",
+                "flex flex-col items-center justify-center h-auto py-4 px-4 transition-all duration-200 relative",
+                "min-h-[70px] w-full",
                 isSelected
-                  ? "ring-2 ring-primary ring-offset-2 shadow-lg scale-105"
-                  : "hover:shadow-md hover:scale-[1.02]"
+                  ? "ring-2 ring-primary shadow-lg bg-primary text-primary-foreground"
+                  : "hover:shadow-md hover:border-primary/50"
               )}
               onClick={() => onSelectSlot(slot)}
             >
-              <span className="font-bold text-base leading-tight mb-1">
+              <span className="font-bold text-lg leading-tight mb-0.5">
                 {slot.time}
               </span>
-              {/* Only show professional name if no specific professional was selected */}
-              {!professionalId && slot.professionalName && (
-                <span className="text-xs opacity-80 flex items-center gap-1 mt-1">
-                  <User className="h-3 w-3 shrink-0" />
-                  <span
-                    className="truncate max-w-[90px]"
-                    title={slot.professionalName}
-                  >
-                    {firstName}
-                  </span>
-                </span>
+              {slot.duration && (
+                <span className="text-xs opacity-80">{slot.duration} min</span>
+              )}
+              {isSelected && (
+                <CheckCircle className="absolute top-1 right-1 h-4 w-4" />
               )}
             </Button>
           );
@@ -184,12 +174,6 @@ export function TimeSlotPicker({
               {selectedSlot.duration} min
             </span>
           </div>
-          {selectedSlot.professionalName && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="h-4 w-4 shrink-0" />
-              <span>with {selectedSlot.professionalName}</span>
-            </div>
-          )}
         </div>
       )}
     </div>

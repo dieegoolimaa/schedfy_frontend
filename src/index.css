@@ -27,25 +27,37 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    /* Slate Dark - Modern Professional Theme */
+    --background: 222.2 84% 4.9%; /* slate-950 - Deep blue-gray */
+    --foreground: 210 40% 98%; /* slate-50 - Bright text */
+
+    --card: 217.2 32.6% 17.5%; /* slate-800 - Elevated surface */
+    --card-foreground: 210 40% 98%; /* slate-50 */
+
+    --popover: 222.2 47.4% 11.2%; /* slate-900 - Slightly lighter than bg */
+    --popover-foreground: 210 40% 98%; /* slate-50 */
+
+    --primary: 217.2 91.2% 59.8%; /* blue-500 - Vibrant primary */
+    --primary-foreground: 210 40% 98%; /* slate-50 */
+
+    --secondary: 215 27.9% 16.9%; /* slate-700/800 mix - Subtle surface */
+    --secondary-foreground: 210 40% 98%; /* slate-50 */
+
+    --muted: 215.4 16.3% 23.9%; /* slate-700 - Muted background */
+    --muted-foreground: 215.4 16.3% 56.9%; /* slate-400 - Muted text */
+
+    --accent: 217.2 32.6% 17.5%; /* slate-800 - Accent surface */
+    --accent-foreground: 210 40% 98%; /* slate-50 */
+
+    --destructive: 0 84.2% 60.2%; /* red-500 - Error state */
+    --destructive-foreground: 210 40% 98%; /* slate-50 */
+
+    --border: 217.2 32.6% 25%; /* Lighter borders for better separation */
+    --input: 217.2 32.6% 20%; /* Slightly lighter input background */
+    --ring: 217.2 91.2% 59.8%; /* blue-500 - Focus ring */
+
+    --success: 142.1 76.2% 36.3%; /* green-600 */
+    --warning: 38 92% 50%; /* yellow-500 */
   }
 }
 
@@ -55,9 +67,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings:
-      "rlig" 1,
-      "calt" 1;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
@@ -102,6 +112,78 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/50;
+}
+
+/* Improved Dialog Styling for Dark Theme */
+.dark [role="dialog"] {
+  background: hsl(
+    217.2 32.6% 20%
+  ); /* Lighter than card for better separation */
+  border: 1px solid hsl(217.2 32.6% 28%); /* More visible border */
+}
+
+.dark [role="dialog"] input,
+.dark [role="dialog"] textarea,
+.dark [role="dialog"] select {
+  background: hsl(217.2 32.6% 15%); /* Darker input for contrast */
+  border: 1px solid hsl(217.2 32.6% 30%);
+  color: hsl(210 40% 98%);
+}
+
+.dark [role="dialog"] input:focus,
+.dark [role="dialog"] textarea:focus,
+.dark [role="dialog"] select:focus {
+  border-color: hsl(217.2 91.2% 59.8%); /* Primary color on focus */
+  outline: none;
+  ring: 2px;
+  ring-color: hsl(217.2 91.2% 59.8%);
+}
+
+.dark [role="dialog"] label {
+  color: hsl(215.4 16.3% 70%); /* Lighter label text */
+  font-weight: 500;
+}
+
+/* Better Badge Contrast in Dark Mode */
+.dark .badge-success {
+  background: hsl(142.1 76.2% 25%);
+  color: hsl(142.1 76.2% 85%);
+  border: 1px solid hsl(142.1 76.2% 40%);
+}
+
+.dark .badge-warning {
+  background: hsl(38 92% 35%);
+  color: hsl(38 92% 95%);
+  border: 1px solid hsl(38 92% 55%);
+}
+
+.dark .badge-error {
+  background: hsl(0 84.2% 40%);
+  color: hsl(0 84.2% 95%);
+  border: 1px solid hsl(0 84.2% 60%);
+}
+
+.dark .badge-info {
+  background: hsl(217.2 91.2% 40%);
+  color: hsl(217.2 91.2% 95%);
+  border: 1px solid hsl(217.2 91.2% 60%);
+}
+
+/* Console/Log Text Improvements */
+.dark .text-muted-foreground {
+  color: hsl(215.4 16.3% 65%); /* Brighter muted text */
+}
+
+.dark .text-destructive {
+  color: hsl(0 84.2% 70%); /* Brighter error text */
+}
+
+.dark .text-success {
+  color: hsl(142.1 76.2% 60%); /* Brighter success text */
+}
+
+.dark .text-warning {
+  color: hsl(38 92% 65%); /* Brighter warning text */
 }
 
 /* Mobile-optimized card spacing */

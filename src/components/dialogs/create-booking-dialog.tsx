@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,15 +22,52 @@ import { type TimeSlot } from "../../services/bookings.service";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { X, Plus, Info, Package } from "lucide-react";
+import { X, Plus, Info, Package, Clock, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { apiClient } from "@/lib/api-client";
+
+interface Alert {
+  variant?: "default" | "destructive";
+  children: React.ReactNode;
+}
+
+interface AlertTitle {
+  children: React.ReactNode;
+}
+
+interface AlertDescription {
+  children: React.ReactNode;
+}
+
+const Alert = ({ children, variant }: Alert) => (
+  <div
+    className={`rounded-lg border p-4 ${
+      variant === "destructive"
+        ? "border-destructive bg-destructive/10"
+        : "border-primary/20 bg-primary/5"
+    }`}
+  >
+    {children}
+  </div>
+);
+
+const AlertTitle = ({ children }: AlertTitle) => (
+  <h5 className="mb-1 font-medium leading-none tracking-tight">{children}</h5>
+);
+
+const AlertDescription = ({ children }: AlertDescription) => (
+  <div className="text-sm text-muted-foreground [&_p]:leading-relaxed">
+    {children}
+  </div>
+);
 
 interface Service {
   id: string;
   name: string;
   duration: number;
   price?: number;
+  professionalIds?: string[];
+  assignedProfessionals?: string[];
 }
 
 interface ServicePackage {
@@ -56,6 +93,7 @@ interface PackageSubscription {
 interface BookingSlot {
   id: string;
   serviceId: string;
+  professionalId?: string;
   date: string;
   slot: TimeSlot | null;
 }
@@ -91,10 +129,109 @@ export function CreateBookingDialog({
   const [usePackage, setUsePackage] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<string>("");
 
+  // Booking mode: 'time' or 'professional'
+  const [bookingMode, setBookingMode] = useState<"time" | "professional">(
+    "time"
+  );
+
+  // Professionals list
+  const [professionals, setProfessionals] = useState<any[]>([]);
+
   // Multiple bookings state
   const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([
-    { id: "1", serviceId: "", date: "", slot: null },
+    { id: "1", serviceId: "", professionalId: undefined, date: "", slot: null },
   ]);
+
+  // Load professionals when dialog opens
+  useEffect(() => {
+    if (open && entityId) {
+      console.log(
+        "[CreateBookingDialog] Loading professionals for entity:",
+        entityId
+      );
+      const loadProfessionals = async () => {
+        try {
+          const response = await apiClient.get(`/api/users`, {
+            role: "professional",
+            entityId,
+          });
+          console.log(
+            "[CreateBookingDialog] Professionals loaded:",
+            response.data
+          );
+          setProfessionals(Array.isArray(response.data) ? response.data : []);
+        } catch (error) {
+          console.error("Error loading professionals:", error);
+          setProfessionals([]);
+        }
+      };
+      loadProfessionals();
+    }
+  }, [open, entityId]);
+
+  // Filter professionals by selected service
+  // Only show professionals assigned to the selected service
+  const availableProfessionalsForService = useMemo(() => {
+    // Get current booking slot
+    const currentSlot = bookingSlots[0];
+    if (!currentSlot?.serviceId) {
+      return professionals; // No service selected, show all
+    }
+
+    // Find selected service
+    const selectedService = services.find(
+      (s) => s.id === currentSlot.serviceId
+    );
+    if (!selectedService) {
+      console.log(
+        "[CreateBookingDialog] Service not found:",
+        currentSlot.serviceId
+      );
+      return professionals;
+    }
+
+    // Check if service has assigned professionals
+    const assignedProfessionalIds = selectedService.professionalIds || [];
+
+    console.log("[CreateBookingDialog] Filtering professionals:", {
+      service: selectedService.name,
+      assignedProfessionalIds,
+      assignedProfessionalIdsType: assignedProfessionalIds.map(
+        (id: any) => typeof id
+      ),
+      allProfessionals: professionals.length,
+      professionalsIds: professionals.map((p) => ({
+        id: p.id || p._id,
+        type: typeof (p.id || p._id),
+      })),
+    });
+
+    // If no professionals assigned to service, show all (fallback)
+    if (assignedProfessionalIds.length === 0) {
+      console.log(
+        "[CreateBookingDialog] No professionals assigned to service, showing all"
+      );
+      return professionals;
+    }
+
+    // Convert assigned IDs to strings for comparison (handles both ObjectId and string formats)
+    const assignedIdsAsStrings = assignedProfessionalIds.map((id: any) =>
+      String(id)
+    );
+
+    // Filter professionals by service assignment
+    const filtered = professionals.filter((prof) => {
+      const profId = String(prof.id || prof._id);
+      return assignedIdsAsStrings.includes(profId);
+    });
+
+    console.log("[CreateBookingDialog] Filtered professionals:", {
+      filtered: filtered.length,
+      professionalNames: filtered.map((p) => `${p.firstName} ${p.lastName}`),
+    });
+
+    return filtered;
+  }, [bookingSlots, services, professionals]);
 
   // Get selected subscription details
   const selectedSubscriptionData = clientSubscriptions.find(
@@ -130,7 +267,13 @@ export function CreateBookingDialog({
     const newId = (bookingSlots.length + 1).toString();
     setBookingSlots([
       ...bookingSlots,
-      { id: newId, serviceId: "", date: "", slot: null },
+      {
+        id: newId,
+        serviceId: "",
+        professionalId: undefined,
+        date: "",
+        slot: null,
+      },
     ]);
   };
 
@@ -144,8 +287,8 @@ export function CreateBookingDialog({
 
   const updateBookingSlot = (
     id: string,
-    field: "serviceId" | "date" | "slot",
-    value: string | TimeSlot | null
+    field: "serviceId" | "professionalId" | "date" | "slot",
+    value: string | TimeSlot | null | undefined
   ) => {
     setBookingSlots(
       bookingSlots.map((slot) =>
@@ -153,8 +296,10 @@ export function CreateBookingDialog({
           ? {
               ...slot,
               [field]: value,
-              // Reset slot when service or date changes
-              ...(field === "serviceId" || field === "date"
+              // Reset slot when service, professional, or date changes
+              ...(field === "serviceId" ||
+              field === "professionalId" ||
+              field === "date"
                 ? { slot: null }
                 : {}),
             }
@@ -170,7 +315,16 @@ export function CreateBookingDialog({
     setNotes("");
     setUsePackage(false);
     setSelectedSubscription("");
-    setBookingSlots([{ id: "1", serviceId: "", date: "", slot: null }]);
+    setBookingMode("time");
+    setBookingSlots([
+      {
+        id: "1",
+        serviceId: "",
+        professionalId: undefined,
+        date: "",
+        slot: null,
+      },
+    ]);
   };
 
   const handleSubmit = async () => {
@@ -195,6 +349,17 @@ export function CreateBookingDialog({
     if (incompleteSlots.length > 0) {
       toast.error("Please select a service for all booking slots");
       return;
+    }
+
+    // Validate professional selection when in professional mode
+    if (bookingMode === "professional") {
+      const missingProfessional = bookingSlots.filter(
+        (bs) => bs.serviceId && !bs.professionalId
+      );
+      if (missingProfessional.length > 0) {
+        toast.error("Please select a professional for all booking slots");
+        return;
+      }
     }
 
     // Validate package usage
@@ -537,6 +702,118 @@ export function CreateBookingDialog({
                     </Select>
                   </div>
 
+                  {/* Booking Mode Selection - ALWAYS show when service is selected */}
+                  {bookingSlot.serviceId && (
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">
+                        Booking Preference
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Card
+                          className={`cursor-pointer transition-all ${
+                            bookingMode === "time"
+                              ? "ring-2 ring-primary shadow-sm"
+                              : "hover:shadow-sm"
+                          }`}
+                          onClick={() => {
+                            setBookingMode("time");
+                            updateBookingSlot(
+                              bookingSlot.id,
+                              "professionalId",
+                              undefined
+                            );
+                          }}
+                        >
+                          <CardContent className="p-4 text-center">
+                            <Clock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                            <h4 className="text-sm font-medium">By Time</h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Any professional
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card
+                          className={`cursor-pointer transition-all ${
+                            bookingMode === "professional"
+                              ? "ring-2 ring-primary shadow-sm"
+                              : "hover:shadow-sm"
+                          }`}
+                          onClick={() => setBookingMode("professional")}
+                        >
+                          <CardContent className="p-4 text-center">
+                            <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                            <h4 className="text-sm font-medium">
+                              By Professional
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Choose professional
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Professional Selection - Only show if mode is 'professional' */}
+                  {bookingSlot.serviceId &&
+                    bookingMode === "professional" &&
+                    availableProfessionalsForService.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>
+                          Select Professional{" "}
+                          <span className="text-destructive">*</span>
+                        </Label>
+                        <Select
+                          value={bookingSlot.professionalId || ""}
+                          onValueChange={(value) =>
+                            updateBookingSlot(
+                              bookingSlot.id,
+                              "professionalId",
+                              value
+                            )
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a professional" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableProfessionalsForService.map(
+                              (professional) => (
+                                <SelectItem
+                                  key={professional.id || professional._id}
+                                  value={professional.id || professional._id}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span>
+                                      {professional.firstName}{" "}
+                                      {professional.lastName}
+                                    </span>
+                                    {professional.rating && (
+                                      <span className="text-xs text-muted-foreground">
+                                        ⭐ {professional.rating}
+                                      </span>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                  {/* Warning when "By Professional" selected but no professionals available */}
+                  {bookingSlot.serviceId &&
+                    bookingMode === "professional" &&
+                    availableProfessionalsForService.length === 0 && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                        <p className="text-sm text-amber-800">
+                          ⚠️ No professionals available for this service. Please
+                          use "By Time" mode.
+                        </p>
+                      </div>
+                    )}
+
                   <div className="space-y-2">
                     <Label>
                       Date <span className="text-destructive">*</span>
@@ -560,6 +837,12 @@ export function CreateBookingDialog({
                       entityId={entityId}
                       serviceId={bookingSlot.serviceId}
                       date={bookingSlot.date}
+                      professionalId={
+                        bookingMode === "professional" &&
+                        bookingSlot.professionalId
+                          ? bookingSlot.professionalId
+                          : undefined
+                      }
                       selectedSlot={bookingSlot.slot}
                       onSelectSlot={(slot) =>
                         updateBookingSlot(bookingSlot.id, "slot", slot)
@@ -615,6 +898,10 @@ export function CreateBookingDialog({
               !clientName ||
               !clientPhone ||
               !bookingSlots.some((bs) => bs.serviceId && bs.date && bs.slot) ||
+              (bookingMode === "professional" &&
+                bookingSlots.some(
+                  (bs) => bs.serviceId && !bs.professionalId
+                )) ||
               (usePackage && !selectedSubscription) ||
               (usePackage && !hasEnoughSessions) ||
               (usePackage && !allServicesInPackage) ||
