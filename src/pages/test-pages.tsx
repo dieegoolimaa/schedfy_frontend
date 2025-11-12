@@ -110,14 +110,9 @@ export function TestPagesPage() {
           description: "Business overview",
         },
         {
-          name: "Booking Management",
-          path: "/entity/booking-management",
-          description: "Manage bookings",
-        },
-        {
           name: "Bookings",
           path: "/entity/bookings",
-          description: "View bookings",
+          description: "Manage bookings (consolidated for all plans)",
         },
         {
           name: "Services",

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
-import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
+import { BookingCreator } from "../../components/booking";
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import {
   ResponsiveCardGrid,
@@ -36,7 +37,6 @@ const SimpleDashboard = () => {
     bookings,
     loading: bookingsLoading,
     fetchBookings,
-    createBooking,
   } = useBookings({
     entityId,
     autoFetch: true,
@@ -206,42 +206,37 @@ const SimpleDashboard = () => {
       </div>
 
       {/* Stats Grid - Mobile-First Responsive Layout */}
-      <ResponsiveCardGrid>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {loading ? (
           <>
-            <MobileStatsCard
+            <StatCard
               title={t("loading.title")}
               value={t("loading.value")}
-              color="gray"
-              subtitle={t("loading.subtitle")}
+              description={t("loading.subtitle")}
+              icon={Clock}
+              trend="neutral"
             />
-            <MobileStatsCard
+            <StatCard
               title={t("loading.title")}
               value={t("loading.value")}
-              color="gray"
-              subtitle={t("loading.subtitle")}
+              description={t("loading.subtitle")}
+              icon={Clock}
+              trend="neutral"
             />
           </>
         ) : (
           stats.map((stat) => (
-            <MobileStatsCard
+            <StatCard
               key={stat.title}
               title={stat.title}
               value={stat.value}
-              subtitle={`${stat.change} ${t("stats.thisMonth")}`}
-              color={
-                stat.title.includes("Bookings") ||
-                stat.title.includes("Agendamentos")
-                  ? "blue"
-                  : stat.title.includes("Completed") ||
-                    stat.title.includes("Concluídas")
-                  ? "green"
-                  : "gray"
-              }
+              description={`${stat.change} ${t("stats.thisMonth")}`}
+              icon={stat.icon}
+              trend={stat.trend as "up" | "down" | "neutral"}
             />
           ))
         )}
-      </ResponsiveCardGrid>
+      </div>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -411,20 +406,13 @@ const SimpleDashboard = () => {
       </Card>
 
       {/* Dialogs */}
-      <CreateBookingDialog
+      <BookingCreator
         open={quickBookingDialogOpen}
         onOpenChange={setQuickBookingDialogOpen}
-        entityId={entityId}
-        services={services.map((s) => ({
-          id: s.id,
-          name: s.name,
-          duration: s.duration || 60,
-          price: s.price,
-        }))}
-        onSubmit={async (bookingData) => {
-          await createBooking(bookingData);
-          handleBookingCreated();
-        }}
+        services={services}
+        planType="simple"
+        showPricing={false}
+        onSuccess={handleBookingCreated}
       />
     </div>
   );
