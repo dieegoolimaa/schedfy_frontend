@@ -26,6 +26,19 @@ export interface Service {
     rating?: number;
     popularity?: number;
     image?: string;
+    requiresManualConfirmation?: boolean;
+    bookingSettings?: {
+        maxAdvanceBookingDays?: number;
+        minAdvanceBookingHours?: number;
+        maxBookingsPerDay?: number;
+        allowOnlineBooking?: boolean;
+        requireDeposit?: boolean;
+        depositPercentage?: number;
+        cancellationPolicy?: string;
+        cancellationDeadlineHours?: number;
+        requiresManualConfirmation?: boolean;
+        requireManualConfirmation?: boolean; // For Individual/Business plans
+    };
 }
 
 export interface CreateServiceDto {

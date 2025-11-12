@@ -110,9 +110,19 @@ export const publicService = {
             role: 'professional',
             status: 'active',
         };
-        
+
         // If serviceId is provided, we need to filter professionals who have this service assigned
         // This might require backend support or client-side filtering
         return apiClient.get<PublicProfessional[]>(`/api/users`, params);
+    },
+
+    /**
+     * Get active packages for an entity (public)
+     * Uses: GET /api/packages/entity/:entityId
+     */
+    getEntityPackages: async (entityId: string) => {
+        return apiClient.get<any[]>(`/api/packages/entity/${entityId}`, {
+            status: 'active',
+        });
     },
 };

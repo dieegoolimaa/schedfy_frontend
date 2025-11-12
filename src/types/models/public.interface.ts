@@ -64,11 +64,12 @@ export interface PublicTimeSlot {
 export interface CreatePublicBookingRequest {
     entityId: string;
     serviceId: string;
-    professionalId: string;
-    date: string;
-    time: string;
+    professionalId?: string | null;
+    startTime: string; // ISO datetime string
+    endTime: string; // ISO datetime string
     clientName: string;
     clientEmail: string;
     clientPhone: string;
     notes?: string;
+    status?: string;
 }

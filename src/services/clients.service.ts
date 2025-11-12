@@ -12,11 +12,11 @@ import type {
 
 export const clientsService = {
     getAll: async (params?: ClientFilters) => {
-        return apiClient.get<Client[]>('/api/clients', { params });
+        return apiClient.get<Client[]>('/api/clients', params);
     },
 
     getByEntity: async (entityId: string, params?: Record<string, any>) => {
-        return apiClient.get<Client[]>(`/api/clients/entity/${entityId}`, { params });
+        return apiClient.get<Client[]>(`/api/clients/entity/${entityId}`, params);
     },
 
     search: async (entityId: string, query: string) => {

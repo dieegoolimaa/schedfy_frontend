@@ -10,6 +10,9 @@ export interface Booking {
     professionalId?: string;
     startTime: string;
     endTime: string;
+    // Backend também pode retornar startDateTime/endDateTime
+    startDateTime?: string;
+    endDateTime?: string;
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
     notes?: string;
     createdAt: string;
@@ -22,6 +25,7 @@ export interface Booking {
     service?: ServiceInfo;
     client?: ClientInfo;
     professional?: ProfessionalInfo;
+    clientInfo?: ClientInfo; // Backend também pode retornar clientInfo
 }
 
 export interface ServiceInfo {
