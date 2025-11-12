@@ -6,7 +6,7 @@ import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
 import { useGoals } from "../../hooks/useGoals";
 import { AddClientDialog } from "../../components/dialogs/add-client-dialog";
-import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
+import { BookingCreator } from "../../components/booking";
 import { CalendarView } from "../../components/calendar/CalendarView";
 import {
   Card,
@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -45,7 +46,6 @@ const IndividualDashboard = () => {
     bookings,
     loading: bookingsLoading,
     fetchBookings,
-    createBooking,
   } = useBookings({
     entityId,
     autoFetch: true,
@@ -253,28 +253,18 @@ const IndividualDashboard = () => {
       </div>
 
       {/* Stats Grid - Mobile-First Responsive Layout */}
-      <ResponsiveCardGrid>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <MobileStatsCard
+          <StatCard
             key={stat.title}
             title={stat.title}
             value={stat.value}
-            subtitle={`${stat.change} from last month`}
-            color={
-              stat.title.includes("Bookings")
-                ? "blue"
-                : stat.title.includes("Revenue") ||
-                  stat.title.includes("Earnings")
-                ? "green"
-                : stat.title.includes("Clients")
-                ? "purple"
-                : stat.title.includes("Rating")
-                ? "yellow"
-                : "gray"
-            }
+            description={`${stat.change} from last month`}
+            icon={stat.icon}
+            trend={stat.trend as "up" | "down" | "neutral"}
           />
         ))}
-      </ResponsiveCardGrid>
+      </div>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -510,20 +500,12 @@ const IndividualDashboard = () => {
         }}
       />
 
-      <CreateBookingDialog
+      <BookingCreator
         open={quickBookingDialogOpen}
         onOpenChange={setQuickBookingDialogOpen}
-        entityId={entityId}
-        services={services.map((s) => ({
-          id: s.id,
-          name: s.name,
-          duration: s.duration || 60,
-          price: s.price,
-        }))}
-        onSubmit={async (bookingData) => {
-          await createBooking(bookingData);
-          fetchBookings();
-        }}
+        services={services}
+        planType="individual"
+        onSuccess={() => fetchBookings()}
       />
     </div>
   );

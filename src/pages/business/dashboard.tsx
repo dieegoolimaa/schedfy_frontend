@@ -4,9 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { useEntity } from "../../hooks/useEntity";
 import { useGoals } from "../../hooks/useGoals";
-import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
+import { BookingCreator } from "../../components/booking";
 import { CalendarView } from "../../components/calendar/CalendarView";
+import { apiClient } from "../../lib/api-client";
+import { toast } from "sonner";
 import {
   AreaChart,
   Area,
@@ -29,6 +32,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import {
   ResponsiveCardGrid,
@@ -47,6 +51,15 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { Label } from "../../components/ui/label";
+import { Badge } from "../../components/ui/badge";
+import {
   CalendarDays,
   Users,
   DollarSign,
@@ -57,6 +70,8 @@ import {
   Target,
   AlertCircle,
   CheckCircle,
+  Eye,
+  Clock,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -67,6 +82,9 @@ const Dashboard = () => {
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [quickBookingDialogOpen, setQuickBookingDialogOpen] = useState(false);
+  const [selectedBookingDetails, setSelectedBookingDetails] =
+    useState<any>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   // Use hooks to fetch data
   const { bookings, fetchBookings, createBooking } = useBookings({
@@ -237,6 +255,23 @@ const Dashboard = () => {
     fetchBookings();
   };
 
+  const handleViewDetails = (booking: any) => {
+    setSelectedBookingDetails(booking);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const handleConfirmBooking = async (bookingId: string) => {
+    try {
+      await apiClient.patch(`/api/bookings/${bookingId}/confirm`);
+      toast.success("Booking confirmed successfully!");
+      fetchBookings();
+      setIsDetailsDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to confirm booking:", error);
+      toast.error("Failed to confirm booking");
+    }
+  };
+
   const stats = [
     {
       title: t("stats.totalrevenue"),
@@ -295,31 +330,21 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid - Mobile-First Responsive Layout */}
-      <ResponsiveCardGrid>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <MobileStatsCard
+          <StatCard
             key={stat.title}
             title={t(
               `dashboard.stats.${stat.title.toLowerCase().replace(" ", "")}`,
               stat.title
             )}
             value={stat.value}
-            subtitle={`${stat.change} from last month`}
-            color={
-              stat.title.includes("Revenue") || stat.title.includes("Earnings")
-                ? "green"
-                : stat.title.includes("Bookings")
-                ? "blue"
-                : stat.title.includes("Clients") || stat.title.includes("Users")
-                ? "purple"
-                : stat.title.includes("Rating") ||
-                  stat.title.includes("Satisfaction")
-                ? "yellow"
-                : "gray"
-            }
+            description={`${stat.change} from last month`}
+            icon={stat.icon}
+            trend={stat.trend as "up" | "down" | "neutral"}
           />
         ))}
-      </ResponsiveCardGrid>
+      </div>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -432,45 +457,86 @@ const Dashboard = () => {
                 {upcomingBookings.length} appointments scheduled
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {upcomingBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex items-center space-x-4 rounded-lg border p-3"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="text-xs">
-                      {booking.client?.name?.[0] || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {booking.client?.name || "Unknown"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {booking.service?.name || "Unknown Service"}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {new Date(booking.startTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <p
-                      className={`text-xs ${
-                        booking.status === "confirmed"
-                          ? "text-green-600"
-                          : "text-yellow-600"
-                      }`}
-                    >
-                      {booking.status}
-                    </p>
-                  </div>
+            <CardContent className="space-y-3">
+              {upcomingBookings.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CalendarDays className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No appointments scheduled for today</p>
                 </div>
-              ))}
+              ) : (
+                upcomingBookings.map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="flex items-start gap-3 rounded-lg border p-3 hover:bg-accent/50 transition-colors"
+                  >
+                    <Avatar className="h-10 w-10 mt-1">
+                      <AvatarImage src="" />
+                      <AvatarFallback className="text-sm font-medium">
+                        {booking.client?.name?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold leading-none truncate">
+                            {booking.client?.name || "Unknown"}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 truncate">
+                            {booking.service?.name || "Unknown Service"}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="flex items-center gap-1 text-sm font-medium">
+                            <Clock className="h-3 w-3" />
+                            {new Date(booking.startTime).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </div>
+                          <p
+                            className={`text-xs mt-0.5 ${
+                              booking.status === "confirmed"
+                                ? "text-green-600"
+                                : "text-amber-600"
+                            }`}
+                          >
+                            {booking.status === "pending"
+                              ? "pending"
+                              : booking.status}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 pt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2"
+                          onClick={() => handleViewDetails(booking)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          <span className="text-xs">View</span>
+                        </Button>
+
+                        {booking.status === "pending" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => handleConfirmBooking(booking.id)}
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            <span className="text-xs">Confirm</span>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
               <Button
                 variant="outline"
                 className="w-full"
@@ -623,6 +689,166 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Booking Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Booking Details</DialogTitle>
+            <DialogDescription>
+              Complete information about this booking
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBookingDetails && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Client
+                  </Label>
+                  <p className="text-base font-semibold mt-1">
+                    {selectedBookingDetails.client?.name || "N/A"}
+                  </p>
+                  {selectedBookingDetails.client?.email && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedBookingDetails.client.email}
+                    </p>
+                  )}
+                  {selectedBookingDetails.client?.phone && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedBookingDetails.client.phone}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Status
+                  </Label>
+                  <div className="mt-1">
+                    <Badge
+                      variant="outline"
+                      className={
+                        selectedBookingDetails.status === "confirmed"
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : selectedBookingDetails.status === "pending"
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : selectedBookingDetails.status === "completed"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-gray-50 text-gray-700 border-gray-200"
+                      }
+                    >
+                      {selectedBookingDetails.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Service
+                  </Label>
+                  <p className="text-sm font-semibold mt-1">
+                    {selectedBookingDetails.service?.name || "N/A"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedBookingDetails.service?.duration || 0} min • €
+                    {selectedBookingDetails.service?.pricing?.basePrice ||
+                      selectedBookingDetails.service?.price ||
+                      0}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Professional
+                  </Label>
+                  <p className="text-sm font-semibold mt-1">
+                    {selectedBookingDetails.professional?.name || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Date & Time
+                  </Label>
+                  <p className="text-sm font-semibold mt-1">
+                    {selectedBookingDetails.startTime
+                      ? new Date(
+                          selectedBookingDetails.startTime
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "N/A"}
+                  </p>
+                  <p className="text-xs text-muted-foreground flex items-center mt-1">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {selectedBookingDetails.startTime
+                      ? new Date(
+                          selectedBookingDetails.startTime
+                        ).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Payment Status
+                  </Label>
+                  <div className="mt-1">
+                    <Badge
+                      variant="outline"
+                      className={
+                        selectedBookingDetails.paymentStatus === "paid"
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      }
+                    >
+                      {selectedBookingDetails.paymentStatus || "pending"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {selectedBookingDetails.notes && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Notes
+                  </Label>
+                  <p className="text-sm mt-1 p-3 bg-muted rounded-lg">
+                    {selectedBookingDetails.notes}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDetailsDialogOpen(false)}
+                >
+                  Close
+                </Button>
+                {selectedBookingDetails.status === "pending" && (
+                  <Button
+                    onClick={() =>
+                      handleConfirmBooking(selectedBookingDetails.id)
+                    }
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Confirm Booking
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Dialogs */}
       <CalendarView
         open={calendarOpen}
@@ -631,20 +857,12 @@ const Dashboard = () => {
         title="Business Calendar"
         description="View and manage all appointments"
       />
-      <CreateBookingDialog
+      <BookingCreator
         open={quickBookingDialogOpen}
         onOpenChange={setQuickBookingDialogOpen}
-        entityId={entityId}
-        services={services.map((s) => ({
-          id: s.id,
-          name: s.name,
-          duration: s.duration || 60,
-          price: s.price,
-        }))}
-        onSubmit={async (bookingData) => {
-          await createBooking(bookingData);
-          handleBookingCreated();
-        }}
+        services={services}
+        planType="business"
+        onSuccess={handleBookingCreated}
       />
     </div>
   );

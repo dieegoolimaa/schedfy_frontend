@@ -51,7 +51,7 @@ import { useBookings } from "../../hooks/useBookings";
 import { CalendarView } from "../../components/calendar/CalendarView";
 import { useEntity } from "../../hooks/useEntity";
 import { WorkingHours } from "../../types/models/entities.interface";
-import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
+import { BookingCreator } from "../../components/booking";
 import { useServices } from "../../hooks/useServices";
 import { toast } from "sonner";
 
@@ -620,18 +620,12 @@ export function ProfessionalDashboardPage() {
       </Card>
 
       {/* Create Booking Dialog */}
-      <CreateBookingDialog
+      <BookingCreator
         open={createBookingOpen}
         onOpenChange={setCreateBookingOpen}
-        entityId={user?.entityId || ""}
-        services={services.map((s) => ({
-          id: s.id,
-          name: s.name,
-          duration: s.duration,
-          price: s.price,
-        }))}
-        onSubmit={async (bookingData) => {
-          await createBooking(bookingData);
+        services={services}
+        planType="individual"
+        onSuccess={async () => {
           await fetchBookings();
           setCreateBookingOpen(false);
           toast.success("Booking created successfully!");
