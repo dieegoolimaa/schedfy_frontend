@@ -17,10 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import {
-  ResponsiveCardGrid,
-  MobileStatsCard,
-} from "../../components/ui/responsive-card";
+import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -105,19 +102,27 @@ export function ClientProfilePage() {
     lastName: "",
     email: "",
     phone: "",
-    birthDate: "",
-    address: "",
+    birthDate: undefined as Date | undefined,
     notes: "",
   });
 
   const handleViewClient = async (client: any) => {
     try {
+      toast.loading("Loading client details...", { id: "view-client" });
+      
       const full = await getClientWithBookings(String(client.id));
+      // Ensure full name is available
+      if (full && !full.name) {
+        full.name = `${full.firstName || ""} ${full.lastName || ""}`.trim();
+      }
       setSelectedClient(full);
       setShowClientDetails(true);
-    } catch (err) {
+      
+      toast.success("Client details loaded", { id: "view-client" });
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to load client details");
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to load client details";
+      toast.error(errorMessage, { id: "view-client" });
     }
   };
 
@@ -127,23 +132,89 @@ export function ClientProfilePage() {
   };
 
   const handleEditClientSave = async () => {
-    if (!editingClientData || !editingClientData.id) return;
+    if (!editingClientData?.id) return;
+    
+    // Validação de campos obrigatórios
+    if (!editingClientData.name?.trim() && !editingClientData.firstName?.trim()) {
+      toast.error("Client name is required");
+      return;
+    }
+    
+    if (!editingClientData.email?.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    // Validação de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editingClientData.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Validação de duplicidade (exceto o cliente atual)
+    const emailExists = clientsArray.some(
+      (c) => 
+        c.id !== editingClientData.id && 
+        c.email.toLowerCase() === editingClientData.email.toLowerCase()
+    );
+    if (emailExists) {
+      toast.error("Another client with this email already exists");
+      return;
+    }
+
+    if (editingClientData.phone) {
+      const phoneExists = clientsArray.some(
+        (c) => 
+          c.id !== editingClientData.id && 
+          c.phone === editingClientData.phone
+      );
+      if (phoneExists) {
+        toast.error("Another client with this phone number already exists");
+        return;
+      }
+    }
+
     try {
+      toast.loading("Updating client...", { id: "update-client" });
+      
+      // Split name into firstName and lastName if needed
+      let firstName = editingClientData.firstName;
+      let lastName = editingClientData.lastName;
+
+      if (!firstName && !lastName && editingClientData.name) {
+        const parts = editingClientData.name.trim().split(" ");
+        firstName = parts[0] || "";
+        lastName = parts.slice(1).join(" ") || "";
+      }
+
       await updateClient(String(editingClientData.id), {
-        firstName: editingClientData.firstName || "",
-        lastName: editingClientData.lastName || "",
-        email: editingClientData.email || "",
-        phone: editingClientData.phone || "",
-        address: editingClientData.address || "",
-        notes: editingClientData.notes || "",
+        firstName: firstName?.trim() || "",
+        lastName: lastName?.trim() || "",
+        email: editingClientData.email.toLowerCase().trim() || "",
+        phone: editingClientData.phone?.trim() || "",
+        notes: editingClientData.notes?.trim() || "",
         dateOfBirth: editingClientData.birthDate || "",
       });
+      
       setIsEditDialogOpen(false);
-      fetchClients();
-      toast.success("Client updated");
-    } catch (err) {
+      await fetchClients();
+      
+      toast.success(
+        `Client ${firstName} ${lastName} updated successfully`,
+        { id: "update-client" }
+      );
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to update client");
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to update client";
+      
+      if (errorMessage.includes("email already exists")) {
+        toast.error("Another client with this email already exists", { id: "update-client" });
+      } else if (errorMessage.includes("phone already exists")) {
+        toast.error("Another client with this phone number already exists", { id: "update-client" });
+      } else {
+        toast.error(errorMessage, { id: "update-client" });
+      }
     }
   };
 
@@ -154,14 +225,23 @@ export function ClientProfilePage() {
 
   const handleDeleteClient = async () => {
     if (!clientToDelete?.id) return;
+    
+    const clientName = clientToDelete.name || `${clientToDelete.firstName} ${clientToDelete.lastName}`;
+    
     try {
+      toast.loading("Deleting client...", { id: "delete-client" });
+      
       await deleteClient(String(clientToDelete.id));
+      
       setIsDeleteDialogOpen(false);
       setClientToDelete(null);
-      fetchClients();
-    } catch (err) {
+      await fetchClients();
+      
+      toast.success(`Client ${clientName} deleted successfully`, { id: "delete-client" });
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to delete client");
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to delete client";
+      toast.error(errorMessage, { id: "delete-client" });
     }
   };
 
@@ -213,32 +293,89 @@ export function ClientProfilePage() {
   }, [clients, getClientWithBookings]);
 
   const handleAddClientSubmit = async () => {
+    // Validação de campos obrigatórios
+    if (!newClient.firstName.trim()) {
+      toast.error("First name is required");
+      return;
+    }
+    if (!newClient.lastName.trim()) {
+      toast.error("Last name is required");
+      return;
+    }
+    if (!newClient.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    // Validação de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newClient.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Validação de duplicidade local (antes de enviar ao backend)
+    const emailExists = clientsArray.some(
+      (c) => c.email.toLowerCase() === newClient.email.toLowerCase()
+    );
+    if (emailExists) {
+      toast.error("A client with this email already exists");
+      return;
+    }
+
+    if (newClient.phone) {
+      const phoneExists = clientsArray.some(
+        (c) => c.phone === newClient.phone
+      );
+      if (phoneExists) {
+        toast.error("A client with this phone number already exists");
+        return;
+      }
+    }
+
     try {
+      toast.loading("Creating client...", { id: "create-client" });
+      
       await createClient({
         entityId,
-        firstName: newClient.firstName,
-        lastName: newClient.lastName,
-        email: newClient.email,
-        phone: newClient.phone || undefined,
-        notes: newClient.notes || undefined,
-        dateOfBirth: newClient.birthDate || undefined,
+        firstName: newClient.firstName.trim(),
+        lastName: newClient.lastName.trim(),
+        email: newClient.email.toLowerCase().trim(),
+        phone: newClient.phone?.trim() || undefined,
+        notes: newClient.notes?.trim() || undefined,
+        dateOfBirth:
+          newClient.birthDate?.toISOString().split("T")[0] || undefined,
         createdBy: user?.id || entityId,
       });
+      
       setNewClient({
         firstName: "",
         lastName: "",
         email: "",
         phone: "",
-        birthDate: "",
-        address: "",
+        birthDate: undefined,
         notes: "",
       });
+      
       // refresh list (createClient already appends but ensure consistency)
-      fetchClients();
-      toast.success("Client created successfully");
-    } catch (err) {
+      await fetchClients();
+      
+      toast.success(
+        `Client ${newClient.firstName} ${newClient.lastName} created successfully`,
+        { id: "create-client" }
+      );
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to create client");
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to create client";
+      
+      // Tratamento específico de erros do backend
+      if (errorMessage.includes("email already exists")) {
+        toast.error("A client with this email already exists", { id: "create-client" });
+      } else if (errorMessage.includes("phone already exists")) {
+        toast.error("A client with this phone number already exists", { id: "create-client" });
+      } else {
+        toast.error(errorMessage, { id: "create-client" });
+      }
     }
   };
 
@@ -262,27 +399,47 @@ export function ClientProfilePage() {
     return { tier: "Bronze", color: "text-amber-700" };
   };
 
-  const filteredClients = clients.filter((client) => {
-    const matchesSearch =
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (client.phone || "").includes(searchTerm);
+  // Ensure client has name field constructed from firstName/lastName
+  const ensureClientName = (client: any) => {
+    if (!client.name && (client.firstName || client.lastName)) {
+      client.name = `${client.firstName || ""} ${client.lastName || ""}`.trim();
+    }
+    return client;
+  };
 
-    const matchesStatus =
-      statusFilter === "all" || client.status === statusFilter;
+  // Ensure clients is always an array
+  const clientsArray = Array.isArray(clients) ? clients : [];
 
-    return matchesSearch && matchesStatus;
-  });
+  const filteredClients = clientsArray
+    .map(ensureClientName)
+    .filter((client) => {
+      const matchesSearch =
+        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (client.phone || "").includes(searchTerm);
+
+      const matchesStatus =
+        statusFilter === "all" || client.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
 
   const stats = {
-    total: clients.length,
-    active: clients.filter((c) => c.status === "active").length,
-    inactive: clients.filter((c) => c.status === "inactive").length,
-    vip: clients.filter((c) => (c.loyaltyPoints || 0) >= 400).length,
-    totalRevenue: clients.reduce((sum, c) => sum + (c.totalSpent || 0), 0),
+    total: clientsArray.length,
+    active: clientsArray.filter((c) => c.status === "active").length,
+    inactive: clientsArray.filter(
+      (c) => c.status === "inactive" || c.status === "blocked"
+    ).length,
+    vip: clientsArray.filter((c) => (c.stats?.totalSpent || 0) >= 1000).length, // VIP based on spending
+    totalRevenue: clientsArray.reduce(
+      (sum, c) => sum + (c.stats?.totalSpent || 0),
+      0
+    ),
     averageSpent:
-      clients.reduce((sum, c) => sum + (c.averageSpent || 0), 0) /
-      clients.length,
+      clientsArray.length > 0
+        ? clientsArray.reduce((sum, c) => sum + (c.stats?.totalSpent || 0), 0) /
+          clientsArray.length
+        : 0,
   };
 
   return (
@@ -303,20 +460,28 @@ export function ClientProfilePage() {
                 Add Client
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Client</DialogTitle>
+                <DialogTitle className="text-xl font-semibold">
+                  Add New Client
+                </DialogTitle>
                 <DialogDescription>
-                  Create a new client profile.
+                  Create a client profile with essential information.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-6 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client-firstName">First Name</Label>
+              <div className="space-y-4 py-4">
+                {/* Name Fields */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client-firstName"
+                      className="text-sm font-medium"
+                    >
+                      First Name *
+                    </Label>
                     <Input
                       id="client-firstName"
-                      placeholder="Enter first name"
+                      placeholder="John"
                       value={newClient.firstName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setNewClient({
@@ -324,100 +489,135 @@ export function ClientProfilePage() {
                           firstName: e.target.value,
                         })
                       }
+                      className="h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="client-lastName">Last Name</Label>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client-lastName"
+                      className="text-sm font-medium"
+                    >
+                      Last Name *
+                    </Label>
                     <Input
                       id="client-lastName"
-                      placeholder="Enter last name"
+                      placeholder="Doe"
                       value={newClient.lastName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setNewClient({ ...newClient, lastName: e.target.value })
                       }
+                      className="h-10"
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client-email">Email</Label>
-                    <Input
-                      id="client-email"
-                      type="email"
-                      placeholder="client@email.com"
-                      value={newClient.email}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewClient({ ...newClient, email: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="client-phone">Phone</Label>
-                    <Input
-                      id="client-phone"
-                      placeholder="+351 123 456 789"
-                      value={newClient.phone}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewClient({ ...newClient, phone: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="birth-date">Birth Date</Label>
-                    <Input
-                      id="birth-date"
-                      type="date"
-                      value={newClient.birthDate}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewClient({
-                          ...newClient,
-                          birthDate: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      placeholder="Street address, city"
-                      value={newClient.address}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewClient({ ...newClient, address: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="preferred-services">Preferred Services</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select preferred services" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="haircut">Haircut</SelectItem>
-                      <SelectItem value="styling">Styling</SelectItem>
-                      <SelectItem value="coloring">Hair Coloring</SelectItem>
-                      <SelectItem value="treatment">Hair Treatment</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Special notes, preferences, allergies..."
-                    rows={3}
-                    value={newClient.notes}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setNewClient({ ...newClient, notes: e.target.value })
+
+                {/* Contact Fields */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="client-email" className="text-sm font-medium">
+                    Email *
+                  </Label>
+                  <Input
+                    id="client-email"
+                    type="email"
+                    placeholder="john.doe@example.com"
+                    value={newClient.email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewClient({ ...newClient, email: e.target.value })
                     }
+                    className="h-10"
                   />
                 </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline">Cancel</Button>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="client-phone" className="text-sm font-medium">
+                    Phone (Optional)
+                  </Label>
+                  <Input
+                    id="client-phone"
+                    placeholder="+351 123 456 789"
+                    value={newClient.phone}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewClient({ ...newClient, phone: e.target.value })
+                    }
+                    className="h-10"
+                  />
+                </div>
+
+                {/* Optional Fields - Collapsible */}
+                <div className="pt-2 border-t">
+                  <details className="group">
+                    <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                      <span>Additional Information (Optional)</span>
+                      <span className="transition-transform group-open:rotate-180">
+                        ▼
+                      </span>
+                    </summary>
+                    <div className="mt-4 space-y-4">
+                      {/* Birth Date */}
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="birth-date"
+                          className="text-sm font-medium"
+                        >
+                          Birth Date
+                        </Label>
+                        <Input
+                          id="birth-date"
+                          type="date"
+                          value={
+                            newClient.birthDate
+                              ? newClient.birthDate instanceof Date
+                                ? newClient.birthDate
+                                    .toISOString()
+                                    .split("T")[0]
+                                : newClient.birthDate
+                              : ""
+                          }
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setNewClient({
+                              ...newClient,
+                              birthDate: e.target.value
+                                ? new Date(e.target.value)
+                                : undefined,
+                            })
+                          }
+                          max={new Date().toISOString().split("T")[0]}
+                          className="h-10"
+                        />
+                      </div>
+
+                      {/* Notes */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="notes" className="text-sm font-medium">
+                          Notes
+                        </Label>
+                        <Textarea
+                          id="notes"
+                          placeholder="Allergies, preferences, special requests..."
+                          rows={3}
+                          value={newClient.notes}
+                          onChange={(
+                            e: React.ChangeEvent<HTMLTextAreaElement>
+                          ) =>
+                            setNewClient({
+                              ...newClient,
+                              notes: e.target.value,
+                            })
+                          }
+                          className="resize-none"
+                        />
+                      </div>
+                    </div>
+                  </details>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 pt-4">
+                  <DialogTrigger asChild>
+                    <Button variant="outline" type="button">
+                      Cancel
+                    </Button>
+                  </DialogTrigger>
                   <Button onClick={handleAddClientSubmit}>Add Client</Button>
                 </div>
               </div>
@@ -428,50 +628,55 @@ export function ClientProfilePage() {
 
       {/* Stats Cards */}
       {clientsLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-16" />
+            <Skeleton key={i} className="h-24" />
           ))}
         </div>
       ) : (
-        <ResponsiveCardGrid>
-          <MobileStatsCard
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+          <StatCard
             title="Total"
             value={stats.total}
             subtitle="Clients"
-            color="blue"
+            icon={Users}
           />
-          <MobileStatsCard
+          <StatCard
             title="Active"
             value={stats.active}
             subtitle="Engaged"
-            color="green"
+            icon={TrendingUp}
+            variant="success"
           />
-          <MobileStatsCard
+          <StatCard
             title="Inactive"
             value={stats.inactive}
             subtitle="Dormant"
-            color="red"
+            icon={Clock}
+            variant="danger"
           />
-          <MobileStatsCard
+          <StatCard
             title="VIP"
             value={stats.vip}
             subtitle="Premium"
-            color="purple"
+            icon={Heart}
+            variant="info"
           />
-          <MobileStatsCard
+          <StatCard
             title="Revenue"
             value={`€${stats.totalRevenue.toLocaleString()}`}
             subtitle="Total"
-            color="green"
+            icon={Euro}
+            variant="success"
           />
-          <MobileStatsCard
+          <StatCard
             title="Avg. Spent"
             value={`€${stats.averageSpent.toFixed(0)}`}
             subtitle="Per Client"
-            color="yellow"
+            icon={Euro}
+            variant="warning"
           />
-        </ResponsiveCardGrid>
+        </div>
       )}
 
       {/* Filters */}
@@ -508,11 +713,19 @@ export function ClientProfilePage() {
 
       {/* Content Tabs */}
       <Tabs defaultValue="clients" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="clients">All Clients</TabsTrigger>
-          <TabsTrigger value="recent">Recent Activity</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+        <div className="border-b overflow-x-auto">
+          <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
+            <TabsTrigger value="clients" className="whitespace-nowrap">
+              All Clients
+            </TabsTrigger>
+            <TabsTrigger value="recent" className="whitespace-nowrap">
+              Recent Activity
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="whitespace-nowrap">
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Clients List */}
         <TabsContent value="clients">
@@ -564,9 +777,19 @@ export function ClientProfilePage() {
                         </TableRow>
                       ))
                     : filteredClients.map((client) => {
-                        const loyaltyInfo = getLoyaltyTier(
-                          client.loyaltyPoints || 0
-                        );
+                        const totalSpent = client.stats?.totalSpent || 0;
+                        const loyaltyInfo = getLoyaltyTier(totalSpent);
+                        const totalBookings = client.stats?.totalBookings || 0;
+                        const lastVisit =
+                          client.stats?.lastBookingDate || client.createdAt;
+                        const averageSpent =
+                          client.stats?.averageBookingValue || 0;
+
+                        // Generate initials for avatar
+                        const initials = `${client.firstName?.[0] || ""}${
+                          client.lastName?.[0] || ""
+                        }`.toUpperCase();
+
                         return (
                           <TableRow key={client.id}>
                             <TableCell>
@@ -574,7 +797,7 @@ export function ClientProfilePage() {
                                 <Avatar className="h-8 w-8">
                                   <AvatarImage src="" />
                                   <AvatarFallback className="text-xs">
-                                    {client.avatar}
+                                    {initials}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -584,7 +807,7 @@ export function ClientProfilePage() {
                                   <div className="text-sm text-muted-foreground">
                                     Member since{" "}
                                     {new Date(
-                                      client.joinDate || 0
+                                      client.createdAt
                                     ).toLocaleDateString()}
                                   </div>
                                 </div>
@@ -596,23 +819,25 @@ export function ClientProfilePage() {
                                   <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
                                   {client.email}
                                 </div>
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                  <Phone className="h-3 w-3 mr-1" />
-                                  {client.phone}
-                                </div>
+                                {client.phone && (
+                                  <div className="flex items-center text-sm text-muted-foreground">
+                                    <Phone className="h-3 w-3 mr-1" />
+                                    {client.phone}
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="space-y-1">
                                 <div className="font-medium">
-                                  {client.totalBookings} bookings
+                                  {totalBookings} bookings
                                 </div>
-                                <div className="text-sm text-muted-foreground">
-                                  Last:{" "}
-                                  {new Date(
-                                    client.lastVisit || 0
-                                  ).toLocaleDateString()}
-                                </div>
+                                {lastVisit && (
+                                  <div className="text-sm text-muted-foreground">
+                                    Last:{" "}
+                                    {new Date(lastVisit).toLocaleDateString()}
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -623,26 +848,28 @@ export function ClientProfilePage() {
                                   {loyaltyInfo.tier}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  {client.loyaltyPoints} points
+                                  €{totalSpent.toFixed(2)} spent
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="space-y-1">
                                 <div className="font-medium">
-                                  €{client.totalSpent}
+                                  €{totalSpent.toFixed(2)}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Avg: €{(client.averageSpent || 0).toFixed(2)}
+                                  Avg: €{averageSpent.toFixed(2)}
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <Badge
                                 variant="outline"
-                                className={getStatusColor(client.status || "")}
+                                className={getStatusColor(
+                                  client.status || "active"
+                                )}
                               >
-                                {client.status}
+                                {client.status || "active"}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -651,6 +878,7 @@ export function ClientProfilePage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleViewClient(client)}
+                                  title="View Details"
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
@@ -665,6 +893,7 @@ export function ClientProfilePage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => confirmDeleteClient(client)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
                                   Delete
                                 </Button>
@@ -751,42 +980,55 @@ export function ClientProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {[...clients]
-                  .sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0))
+                  .map(ensureClientName)
+                  .sort(
+                    (a, b) =>
+                      (b.stats?.totalSpent || 0) - (a.stats?.totalSpent || 0)
+                  )
                   .slice(0, 5)
-                  .map((client, index) => (
-                    <div
-                      key={client.id}
-                      className="flex items-center space-x-4"
-                    >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                        <span className="text-sm font-medium">
-                          #{index + 1}
-                        </span>
+                  .map((client, index) => {
+                    const initials = `${client.firstName?.[0] || ""}${
+                      client.lastName?.[0] || ""
+                    }`.toUpperCase();
+                    const totalSpent = client.stats?.totalSpent || 0;
+                    const totalBookings = client.stats?.totalBookings || 0;
+                    const loyaltyTier = getLoyaltyTier(totalSpent);
+
+                    return (
+                      <div
+                        key={client.id}
+                        className="flex items-center space-x-4"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                          <span className="text-sm font-medium">
+                            #{index + 1}
+                          </span>
+                        </div>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="" />
+                          <AvatarFallback className="text-xs">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-sm font-medium leading-none">
+                            {client.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {totalBookings} bookings
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">
+                            €{totalSpent.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {loyaltyTier.tier}
+                          </p>
+                        </div>
                       </div>
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="text-xs">
-                          {client.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          {client.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {client.totalBookings} bookings
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">
-                          €{client.totalSpent}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {getLoyaltyTier(client.loyaltyPoints || 0).tier}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </CardContent>
             </Card>
 
@@ -864,11 +1106,22 @@ export function ClientProfilePage() {
 
           {selectedClient && (
             <Tabs defaultValue="profile" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="bookings">Booking History</TabsTrigger>
-                <TabsTrigger value="preferences">Preferences</TabsTrigger>
-              </TabsList>
+              <div className="border-b overflow-x-auto">
+                <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
+                  <TabsTrigger value="profile" className="whitespace-nowrap">
+                    Profile
+                  </TabsTrigger>
+                  <TabsTrigger value="bookings" className="whitespace-nowrap">
+                    Booking History
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="preferences"
+                    className="whitespace-nowrap"
+                  >
+                    Preferences
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               {/* Profile Tab */}
               <TabsContent value="profile" className="space-y-4">
@@ -1168,7 +1421,7 @@ export function ClientProfilePage() {
                 <div className="space-y-2">
                   <Label>Phone</Label>
                   <Input
-                    value={editingClientData.phone}
+                    value={editingClientData.phone || ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setEditingClientData({
                         ...editingClientData,
@@ -1178,38 +1431,26 @@ export function ClientProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Birth Date</Label>
+                  <Label>Birth Date (Optional)</Label>
                   <Input
                     type="date"
-                    value={editingClientData.birthDate}
+                    value={editingClientData.birthDate || ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setEditingClientData({
                         ...editingClientData,
                         birthDate: e.target.value,
                       })
                     }
+                    max={new Date().toISOString().split("T")[0]}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Address</Label>
-                <Input
-                  value={editingClientData.address}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setEditingClientData({
-                      ...editingClientData,
-                      address: e.target.value,
-                    })
-                  }
-                />
               </div>
 
               <div className="space-y-2">
                 <Label>Notes</Label>
                 <Textarea
                   rows={3}
-                  value={editingClientData.notes}
+                  value={editingClientData.notes || ""}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                     setEditingClientData({
                       ...editingClientData,
