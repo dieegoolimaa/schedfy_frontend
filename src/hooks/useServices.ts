@@ -26,6 +26,17 @@ function transformService(service: any): Service {
     const isActive = service.status === 'active' || service.isActive === true;
     const isPublic = service.seo?.isPublic ?? service.isPublic ?? true;
 
+    const professionalIds = service.assignedProfessionals || service.professionalIds || [];
+
+    // Debug: Log assigned professionals
+    console.log('[transformService]', {
+        serviceName: service.name,
+        assignedProfessionals: service.assignedProfessionals,
+        professionalIds: service.professionalIds,
+        finalProfessionalIds: professionalIds,
+        types: professionalIds.map((id: any) => typeof id),
+    });
+
     return {
         ...service,
         id: service._id || service.id, // Map MongoDB _id to id
@@ -40,7 +51,7 @@ function transformService(service: any): Service {
         image: service.coverImage || service.imageUrl,
         imageUrl: service.coverImage || service.imageUrl,
         slug: service.seo?.slug || service.slug || '',
-        professionalIds: service.assignedProfessionals || service.professionalIds || [],
+        professionalIds,
         // These would ideally come from backend analytics
         rating: service.analytics?.averageRating || service.rating || 0,
         popularity: service.popularity || 0,

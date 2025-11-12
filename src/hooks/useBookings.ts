@@ -11,6 +11,65 @@ interface UseBookingsOptions {
     autoFetch?: boolean;
 }
 
+// Transform booking to normalize field names
+function transformBooking(booking: any): Booking {
+    // Handle professional data (can be professionalId object or professional object)
+    let professional = booking.professional;
+    if (booking.professionalId && typeof booking.professionalId === 'object') {
+        professional = {
+            id: booking.professionalId._id || booking.professionalId.id,
+            name: `${booking.professionalId.firstName || ''} ${booking.professionalId.lastName || ''}`.trim(),
+            firstName: booking.professionalId.firstName,
+            lastName: booking.professionalId.lastName,
+        };
+    } else if (!professional && booking.professionalId) {
+        professional = { id: booking.professionalId };
+    }
+
+    // Handle service data
+    let service = booking.service;
+    if (booking.serviceId && typeof booking.serviceId === 'object') {
+        service = {
+            id: booking.serviceId._id || booking.serviceId.id,
+            name: booking.serviceId.name,
+            duration: booking.serviceId.duration?.duration || booking.serviceId.duration || 0,
+            price: booking.serviceId.pricing?.basePrice || booking.serviceId.price || 0,
+            category: booking.serviceId.category,
+        };
+    }
+
+    // Handle client data
+    let client = booking.client || booking.clientInfo;
+    if (booking.clientId && typeof booking.clientId === 'object') {
+        client = {
+            id: booking.clientId._id || booking.clientId.id,
+            name: `${booking.clientId.firstName || ''} ${booking.clientId.lastName || ''}`.trim() || booking.clientId.name,
+            email: booking.clientId.email,
+            phone: booking.clientId.phone,
+        };
+    } else if (!client && booking.clientInfo) {
+        client = {
+            id: booking.clientInfo._id || booking.clientInfo.id,
+            name: booking.clientInfo.name,
+            email: booking.clientInfo.email,
+            phone: booking.clientInfo.phone,
+        };
+    }
+
+    return {
+        ...booking,
+        id: booking.id || booking._id,
+        startTime: booking.startTime || booking.startDateTime,
+        endTime: booking.endTime || booking.endDateTime,
+        client,
+        service,
+        professional,
+        clientId: booking.clientId?._id || booking.clientId?.id || booking.clientId || client?.id,
+        professionalId: booking.professionalId?._id || booking.professionalId?.id || booking.professionalId,
+        serviceId: booking.serviceId?._id || booking.serviceId?.id || booking.serviceId,
+    };
+}
+
 export function useBookings(options: UseBookingsOptions = {}) {
     const { entityId, clientId, professionalId, serviceId, autoFetch = false } = options;
 
@@ -42,7 +101,10 @@ export function useBookings(options: UseBookingsOptions = {}) {
             }
 
             if (response?.data) {
-                setBookings(response.data);
+                const transformed = Array.isArray(response.data)
+                    ? response.data.map(transformBooking)
+                    : [transformBooking(response.data)];
+                setBookings(transformed);
             }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load bookings';
@@ -66,7 +128,10 @@ export function useBookings(options: UseBookingsOptions = {}) {
 
             const response = await bookingsService.getByDateRange(entityId, startDate, endDate);
             if (response.data) {
-                setBookings(response.data);
+                const transformed = Array.isArray(response.data)
+                    ? response.data.map(transformBooking)
+                    : [transformBooking(response.data)];
+                setBookings(transformed);
             }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load bookings';

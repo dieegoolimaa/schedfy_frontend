@@ -28,11 +28,14 @@ export function useClients(options: UseClientsOptions = {}) {
 
             const response = await clientsService.getByEntity(entityId);
             if (response.data) {
-                setClients(response.data);
+                setClients(Array.isArray(response.data) ? response.data : []);
+            } else {
+                setClients([]);
             }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to load clients';
             setError(errorMessage);
+            setClients([]); // Reset to empty array on error
             toast.error(errorMessage);
         } finally {
             setLoading(false);
@@ -52,11 +55,14 @@ export function useClients(options: UseClientsOptions = {}) {
 
             const response = await clientsService.search(entityId, query);
             if (response.data) {
-                setClients(response.data);
+                setClients(Array.isArray(response.data) ? response.data : []);
+            } else {
+                setClients([]);
             }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to search clients';
             setError(errorMessage);
+            setClients([]); // Reset to empty array on error
             toast.error(errorMessage);
         } finally {
             setLoading(false);
@@ -101,7 +107,10 @@ export function useClients(options: UseClientsOptions = {}) {
 
             const response = await clientsService.create(data);
             if (response.data) {
-                setClients(prev => [...prev, response.data!]);
+                setClients(prev => {
+                    const currentClients = Array.isArray(prev) ? prev : [];
+                    return [...currentClients, response.data!];
+                });
             }
 
             toast.success('Client created successfully!');
@@ -124,9 +133,12 @@ export function useClients(options: UseClientsOptions = {}) {
 
             const response = await clientsService.update(id, data);
             if (response.data) {
-                setClients(prev => prev.map(client =>
-                    client.id === id ? response.data! : client
-                ));
+                setClients(prev => {
+                    const currentClients = Array.isArray(prev) ? prev : [];
+                    return currentClients.map(client =>
+                        client.id === id ? response.data! : client
+                    );
+                });
             }
 
             toast.success('Client updated successfully!');
@@ -148,7 +160,10 @@ export function useClients(options: UseClientsOptions = {}) {
             setError(null);
 
             await clientsService.delete(id);
-            setClients(prev => prev.filter(client => client.id !== id));
+            setClients(prev => {
+                const currentClients = Array.isArray(prev) ? prev : [];
+                return currentClients.filter(client => client.id !== id);
+            });
 
             toast.success('Client deleted successfully');
         } catch (err: any) {
@@ -169,9 +184,12 @@ export function useClients(options: UseClientsOptions = {}) {
 
             const response = await clientsService.addTags(id, tags);
             if (response.data) {
-                setClients(prev => prev.map(client =>
-                    client.id === id ? response.data! : client
-                ));
+                setClients(prev => {
+                    const currentClients = Array.isArray(prev) ? prev : [];
+                    return currentClients.map(client =>
+                        client.id === id ? response.data! : client
+                    );
+                });
             }
 
             toast.success('Tags added successfully');
@@ -194,9 +212,12 @@ export function useClients(options: UseClientsOptions = {}) {
 
             const response = await clientsService.removeTags(id, tags);
             if (response.data) {
-                setClients(prev => prev.map(client =>
-                    client.id === id ? response.data! : client
-                ));
+                setClients(prev => {
+                    const currentClients = Array.isArray(prev) ? prev : [];
+                    return currentClients.map(client =>
+                        client.id === id ? response.data! : client
+                    );
+                });
             }
 
             toast.success('Tags removed successfully');
