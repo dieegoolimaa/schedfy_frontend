@@ -416,22 +416,34 @@ export function NotificationCenterPage() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="templates" className="space-y-4">
-        <div className="border-b overflow-x-auto">
-          <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
-            <TabsTrigger value="templates" className="whitespace-nowrap">
+      <Tabs defaultValue="templates" className="space-y-6">
+        <div className="border-b">
+          <TabsList className="w-full justify-start h-auto p-0 bg-transparent">
+            <TabsTrigger
+              value="templates"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3"
+            >
               <MessageSquare className="mr-2 h-4 w-4" />
               Templates
             </TabsTrigger>
-            <TabsTrigger value="automation" className="whitespace-nowrap">
+            <TabsTrigger
+              value="automation"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3"
+            >
               <Zap className="mr-2 h-4 w-4" />
               Automation
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="whitespace-nowrap">
+            <TabsTrigger
+              value="analytics"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3"
+            >
               <TrendingUp className="mr-2 h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="ai-features" className="whitespace-nowrap">
+            <TabsTrigger
+              value="ai-features"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3"
+            >
               <Bot className="mr-2 h-4 w-4" />
               AI Features
             </TabsTrigger>
@@ -440,112 +452,137 @@ export function NotificationCenterPage() {
 
         {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Templates</CardTitle>
-              <CardDescription>
-                Manage your multi-channel notification templates with smart
-                variables and personalization
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Template Name</TableHead>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Channels</TableHead>
-                    <TableHead>Timing</TableHead>
-                    <TableHead>AI Features</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {notificationTemplates.map((template) => (
-                    <TableRow key={template.id}>
-                      <TableCell className="font-medium">
-                        {template.name}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getEventBadgeColor(template.event)}>
-                          {template.event.replace("_", " ")}
+          <div className="grid gap-4">
+            {notificationTemplates.map((template) => (
+              <Card
+                key={template.id}
+                className="overflow-hidden hover:shadow-md transition-shadow"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    {/* Left side - Template info */}
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold">
+                          {template.name}
+                        </h3>
+                        <Badge
+                          className={`${getEventBadgeColor(
+                            template.event
+                          )} text-white`}
+                        >
+                          {template.event.replace(/_/g, " ")}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {template.channels.map((channel) => (
-                            <Badge
-                              key={channel}
-                              variant="outline"
-                              className="flex items-center gap-1"
-                            >
-                              {getChannelIcon(channel)}
-                              {channel}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {template.timing}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
+                      </div>
+
+                      {/* Channels */}
+                      <div className="flex flex-wrap gap-2">
+                        {template.channels.map((channel) => (
+                          <Badge
+                            key={channel}
+                            variant="outline"
+                            className="flex items-center gap-1.5 px-3 py-1"
+                          >
+                            {getChannelIcon(channel)}
+                            <span className="capitalize">{channel}</span>
+                          </Badge>
+                        ))}
+                      </div>
+
+                      {/* Timing */}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span>{template.timing}</span>
+                      </div>
+
+                      {/* AI Features */}
+                      {(template.smartFeatures.aiOptimizedTiming ||
+                        template.smartFeatures.personalization ||
+                        template.smartFeatures.sentimentAnalysis ||
+                        template.smartFeatures.autoTranslation) && (
+                        <div className="flex flex-wrap gap-2">
                           {template.smartFeatures.aiOptimizedTiming && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Sparkles className="mr-1 h-3 w-3" />
+                            <Badge
+                              variant="secondary"
+                              className="text-xs gap-1"
+                            >
+                              <Sparkles className="h-3 w-3" />
                               Smart Time
                             </Badge>
                           )}
                           {template.smartFeatures.personalization && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Target className="mr-1 h-3 w-3" />
+                            <Badge
+                              variant="secondary"
+                              className="text-xs gap-1"
+                            >
+                              <Target className="h-3 w-3" />
                               Personal
                             </Badge>
                           )}
+                          {template.smartFeatures.sentimentAnalysis && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs gap-1"
+                            >
+                              <Heart className="h-3 w-3" />
+                              Sentiment
+                            </Badge>
+                          )}
+                          {template.smartFeatures.autoTranslation && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs gap-1"
+                            >
+                              <Globe className="h-3 w-3" />
+                              Translation
+                            </Badge>
+                          )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={template.enabled}
-                          onCheckedChange={() =>
-                            toggleTemplateStatus(template.id)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlePreviewTemplate(template)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditTemplate(template)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                      )}
+                    </div>
+
+                    {/* Right side - Actions */}
+                    <div className="flex flex-col items-end gap-3">
+                      <Switch
+                        checked={template.enabled}
+                        onCheckedChange={() =>
+                          toggleTemplateStatus(template.id)
+                        }
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePreviewTemplate(template)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditTemplate(template)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </TabsContent>
 
         {/* Automation Tab */}
