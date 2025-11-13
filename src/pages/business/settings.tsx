@@ -14,6 +14,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
+import { Badge } from "../../components/ui/badge";
 import {
   Tabs,
   TabsContent,
@@ -42,6 +43,9 @@ import {
   Camera,
   Save,
   AlertTriangle,
+  Mail,
+  Smartphone,
+  MessageSquare,
 } from "lucide-react";
 
 export function SettingsPage() {
@@ -308,81 +312,224 @@ export function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Bell className="h-5 w-5 mr-2" />
-                  Notification Preferences
+                  Notification Channels
                 </CardTitle>
                 <CardDescription>
-                  Choose how you want to be notified about appointments and
-                  updates.
+                  Configure how you want to notify your clients. Email is always
+                  enabled. SMS and WhatsApp are optional.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Email Notifications</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications via email
-                      </p>
+                  {/* Email - Always Enabled */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Mail className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Email Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Primary notification channel (always active)
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <Badge variant="default" className="bg-green-500">
+                        Active
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* SMS - Optional */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Smartphone className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-base">SMS Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Send text messages via Twilio (requires configuration)
+                        </p>
+                      </div>
                     </div>
                     <Switch
-                      checked={settings.emailNotifications}
-                      onCheckedChange={(checked: boolean) =>
-                        updateSetting("emailNotifications", checked)
+                      checked={
+                        entity?.notificationSettings?.smsEnabled || false
                       }
+                      onCheckedChange={async (checked: boolean) => {
+                        try {
+                          await entitiesService.updateNotificationSettings({
+                            smsEnabled: checked,
+                          });
+                          toast.success(
+                            "SMS notifications " +
+                              (checked ? "enabled" : "disabled")
+                          );
+                          // Reload entity
+                          if (user?.entityId) {
+                            const response = await entitiesService.getById(
+                              user.entityId
+                            );
+                            setEntity(response.data || null);
+                          }
+                        } catch (error) {
+                          toast.error("Failed to update SMS settings");
+                        }
+                      }}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>SMS Notifications</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications via text message
-                      </p>
+                  {/* WhatsApp - Optional */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <MessageSquare className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-base">
+                          WhatsApp Notifications
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Send messages via WhatsApp Business API
+                        </p>
+                      </div>
                     </div>
                     <Switch
-                      checked={settings.smsNotifications}
-                      onCheckedChange={(checked: boolean) =>
-                        updateSetting("smsNotifications", checked)
+                      checked={
+                        entity?.notificationSettings?.whatsappEnabled || false
                       }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Appointment Reminders</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Send reminders to clients before appointments
-                      </p>
-                    </div>
-                    <Switch
-                      checked={settings.appointmentReminders}
-                      onCheckedChange={(checked: boolean) =>
-                        updateSetting("appointmentReminders", checked)
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Marketing Emails</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive emails about new features and updates
-                      </p>
-                    </div>
-                    <Switch
-                      checked={settings.marketingEmails}
-                      onCheckedChange={(checked: boolean) =>
-                        updateSetting("marketingEmails", checked)
-                      }
+                      onCheckedChange={async (checked: boolean) => {
+                        try {
+                          await entitiesService.updateNotificationSettings({
+                            whatsappEnabled: checked,
+                          });
+                          toast.success(
+                            "WhatsApp notifications " +
+                              (checked ? "enabled" : "disabled")
+                          );
+                          // Reload entity
+                          if (user?.entityId) {
+                            const response = await entitiesService.getById(
+                              user.entityId
+                            );
+                            setEntity(response.data || null);
+                          }
+                        } catch (error) {
+                          toast.error("Failed to update WhatsApp settings");
+                        }
+                      }}
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-end">
-                  <Button>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </Button>
+                <Separator />
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Client Notifications</h4>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Booking Confirmations</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Notify clients when booking is confirmed
+                      </p>
+                    </div>
+                    <Switch
+                      checked={
+                        entity?.notificationSettings?.notifyClient
+                          ?.bookingConfirmation ?? true
+                      }
+                      onCheckedChange={async (checked: boolean) => {
+                        try {
+                          await entitiesService.updateNotificationSettings({
+                            notifyClient: {
+                              ...entity?.notificationSettings?.notifyClient,
+                              bookingConfirmation: checked,
+                            },
+                          });
+                          toast.success("Setting updated");
+                          if (user?.entityId) {
+                            const response = await entitiesService.getById(
+                              user.entityId
+                            );
+                            setEntity(response.data || null);
+                          }
+                        } catch (error) {
+                          toast.error("Failed to update setting");
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Booking Reminders</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Send reminders before appointments
+                      </p>
+                    </div>
+                    <Switch
+                      checked={
+                        entity?.notificationSettings?.notifyClient
+                          ?.bookingReminder ?? true
+                      }
+                      onCheckedChange={async (checked: boolean) => {
+                        try {
+                          await entitiesService.updateNotificationSettings({
+                            notifyClient: {
+                              ...entity?.notificationSettings?.notifyClient,
+                              bookingReminder: checked,
+                            },
+                          });
+                          toast.success("Setting updated");
+                          if (user?.entityId) {
+                            const response = await entitiesService.getById(
+                              user.entityId
+                            );
+                            setEntity(response.data || null);
+                          }
+                        } catch (error) {
+                          toast.error("Failed to update setting");
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Cancellation Notices</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Notify when booking is cancelled
+                      </p>
+                    </div>
+                    <Switch
+                      checked={
+                        entity?.notificationSettings?.notifyClient
+                          ?.bookingCancellation ?? true
+                      }
+                      onCheckedChange={async (checked: boolean) => {
+                        try {
+                          await entitiesService.updateNotificationSettings({
+                            notifyClient: {
+                              ...entity?.notificationSettings?.notifyClient,
+                              bookingCancellation: checked,
+                            },
+                          });
+                          toast.success("Setting updated");
+                          if (user?.entityId) {
+                            const response = await entitiesService.getById(
+                              user.entityId
+                            );
+                            setEntity(response.data || null);
+                          }
+                        } catch (error) {
+                          toast.error("Failed to update setting");
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

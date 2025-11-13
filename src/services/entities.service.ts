@@ -81,4 +81,33 @@ export const entitiesService = {
     updateAddress: async (address: CompleteOnboardingDto['address']) => {
         return apiClient.patch<EntityProfile>('/api/entities/profile/address', { address });
     },
+
+    updateNotificationSettings: async (notificationSettings: {
+        smsEnabled?: boolean;
+        whatsappEnabled?: boolean;
+        notifyOwner?: {
+            newBooking?: boolean;
+            cancelledBooking?: boolean;
+            newPayment?: boolean;
+            newReview?: boolean;
+        };
+        notifyClient?: {
+            bookingConfirmation?: boolean;
+            bookingReminder?: boolean;
+            bookingCancellation?: boolean;
+            paymentReceipt?: boolean;
+        };
+        notifyProfessional?: {
+            newAssignment?: boolean;
+            bookingCancellation?: boolean;
+            scheduleChange?: boolean;
+        };
+        reminderTimings?: {
+            enabled24h?: boolean;
+            enabled2h?: boolean;
+            enabled30min?: boolean;
+        };
+    }) => {
+        return apiClient.patch<Entity>('/api/entities/notification-settings', notificationSettings);
+    },
 };
