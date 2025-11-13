@@ -1,5 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/auth-context";
+import { toast } from "sonner";
+import {
+  notificationTemplatesService,
+  NotificationTemplate,
+  NotificationChannel,
+  NotificationEvent,
+  CreateNotificationTemplateDto,
+  UpdateNotificationTemplateDto,
+} from "../../services/notification-templates.service";
 import {
   Card,
   CardContent,
@@ -68,36 +78,131 @@ import {
   Globe,
 } from "lucide-react";
 
-type NotificationChannel = "email" | "sms" | "whatsapp" | "push" | "in-app";
-type NotificationEvent =
-  | "booking_confirmed"
-  | "booking_reminder"
-  | "booking_cancelled"
-  | "booking_rescheduled"
-  | "payment_received"
-  | "review_request"
-  | "birthday"
-  | "loyalty_reward"
-  | "promotion"
-  | "no_show_followup";
+export function NotificationCenterPage() {
+  const { t } = useTranslation();
+  const { entity } = useAuth();
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<NotificationTemplate | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notificationTemplates, setNotificationTemplates] = useState<
+    NotificationTemplate[]
+  >([]);
 
-interface NotificationTemplate {
-  id: string;
-  name: string;
-  event: NotificationEvent;
-  channels: NotificationChannel[];
-  subject: string;
-  message: string;
-  timing: string;
-  enabled: boolean;
-  variables: string[];
-  smartFeatures: {
-    aiOptimizedTiming: boolean;
-    sentimentAnalysis: boolean;
-    personalization: boolean;
-    autoTranslation: boolean;
+  // Fetch templates on component mount
+  useEffect(() => {
+    if (entity?.id) {
+      fetchTemplates();
+    }
+  }, [entity?.id]);
+
+  const fetchTemplates = async () => {
+    if (!entity?.id) return;
+    
+    try {
+      setLoading(true);
+      const templates = await notificationTemplatesService.getTemplatesByEntity(entity.id);
+      setNotificationTemplates(templates);
+    } catch (error: any) {
+      console.error('Error fetching templates:', error);
+      toast.error(error.response?.data?.message || 'Failed to load notification templates');
+    } finally {
+      setLoading(false);
+    }
   };
-}
+
+  const handleCreateTemplate = async (data: CreateNotificationTemplateDto) => {
+    try {
+      setLoading(true);
+      const newTemplate = await notificationTemplatesService.createTemplate(data);
+      setNotificationTemplates([...notificationTemplates, newTemplate]);
+      setIsCreateDialogOpen(false);
+      toast.success('Template created successfully');
+    } catch (error: any) {
+      console.error('Error creating template:', error);
+      toast.error(error.response?.data?.message || 'Failed to create template');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateTemplate = async (id: string, data: UpdateNotificationTemplateDto) => {
+    try {
+      setLoading(true);
+      const updatedTemplate = await notificationTemplatesService.updateTemplate(id, data);
+      setNotificationTemplates(
+        notificationTemplates.map((t) => (t._id === id ? updatedTemplate : t))
+      );
+      setIsEditDialogOpen(false);
+      toast.success('Template updated successfully');
+    } catch (error: any) {
+      console.error('Error updating template:', error);
+      toast.error(error.response?.data?.message || 'Failed to update template');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleTemplate = async (id: string) => {
+    try {
+      const updatedTemplate = await notificationTemplatesService.toggleTemplate(id);
+      setNotificationTemplates(
+        notificationTemplates.map((t) => (t._id === id ? updatedTemplate : t))
+      );
+      toast.success(`Template ${updatedTemplate.enabled ? 'enabled' : 'disabled'}`);
+    } catch (error: any) {
+      console.error('Error toggling template:', error);
+      toast.error(error.response?.data?.message || 'Failed to toggle template');
+    }
+  };
+
+  const handleDeleteTemplate = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this template?')) return;
+
+    try {
+      setLoading(true);
+      await notificationTemplatesService.deleteTemplate(id);
+      setNotificationTemplates(notificationTemplates.filter((t) => t._id !== id));
+      toast.success('Template deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting template:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete template');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDuplicateTemplate = async (id: string) => {
+    try {
+      setLoading(true);
+      const duplicated = await notificationTemplatesService.duplicateTemplate(id);
+      setNotificationTemplates([...notificationTemplates, duplicated]);
+      toast.success('Template duplicated successfully');
+    } catch (error: any) {
+      console.error('Error duplicating template:', error);
+      toast.error(error.response?.data?.message || 'Failed to duplicate template');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSeedDefaultTemplates = async () => {
+    if (!confirm('This will create default templates. Continue?')) return;
+
+    try {
+      setLoading(true);
+      const templates = await notificationTemplatesService.seedDefaultTemplates();
+      setNotificationTemplates([...notificationTemplates, ...templates]);
+      toast.success(`${templates.length} default templates created`);
+    } catch (error: any) {
+      console.error('Error seeding templates:', error);
+      toast.error(error.response?.data?.message || 'Failed to seed templates');
+    } finally {
+      setLoading(false);
+    }
+  };
 
 export function NotificationCenterPage() {
   const { t } = useTranslation();
@@ -335,11 +440,7 @@ export function NotificationCenterPage() {
   };
 
   const toggleTemplateStatus = (templateId: string) => {
-    setNotificationTemplates(
-      notificationTemplates.map((t) =>
-        t.id === templateId ? { ...t, enabled: !t.enabled } : t
-      )
-    );
+    handleToggleTemplate(templateId);
   };
 
   return (
@@ -365,11 +466,17 @@ export function NotificationCenterPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {notificationTemplates.length === 0 && (
+            <Button variant="outline" onClick={handleSeedDefaultTemplates} disabled={loading}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              {t("notifications.seedDefaults", "Seed Defaults")}
+            </Button>
+          )}
           <Button variant="outline">
             <Settings className="mr-2 h-4 w-4" />
             {t("notifications.settings", "Settings")}
           </Button>
-          <Button>
+          <Button onClick={() => setIsCreateDialogOpen(true)} disabled={loading}>
             <Plus className="mr-2 h-4 w-4" />
             {t("notifications.createTemplate", "New Template")}
           </Button>
@@ -453,9 +560,21 @@ export function NotificationCenterPage() {
         {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-4">
           <div className="grid gap-4">
+            {loading && <p>Loading templates...</p>}
+            {!loading && notificationTemplates.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground mb-4">No templates found</p>
+                  <Button onClick={handleSeedDefaultTemplates}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Default Templates
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             {notificationTemplates.map((template) => (
               <Card
-                key={template.id}
+                key={template._id}
                 className="overflow-hidden hover:shadow-md transition-shadow"
               >
                 <CardContent className="p-6">
@@ -545,9 +664,8 @@ export function NotificationCenterPage() {
                     <div className="flex flex-col items-end gap-3">
                       <Switch
                         checked={template.enabled}
-                        onCheckedChange={() =>
-                          toggleTemplateStatus(template.id)
-                        }
+                        onCheckedChange={() => handleToggleTemplate(template._id)}
+                        disabled={loading}
                       />
                       <div className="flex gap-2">
                         <Button
@@ -566,13 +684,20 @@ export function NotificationCenterPage() {
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDuplicateTemplate(template._id)}
+                          disabled={loading}
+                        >
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="text-destructive"
+                          onClick={() => handleDeleteTemplate(template._id)}
+                          disabled={loading}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
