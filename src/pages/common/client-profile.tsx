@@ -135,7 +135,26 @@ export function ClientProfilePage() {
   };
 
   const openEditClient = (client: any) => {
-    setEditingClientData({ ...client });
+    // Format date for input[type="date"] which expects "yyyy-MM-dd"
+    const formatDateForInput = (dateValue: any): string => {
+      if (!dateValue) return "";
+      try {
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return "";
+        // Get local date in yyyy-MM-dd format
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      } catch {
+        return "";
+      }
+    };
+
+    setEditingClientData({
+      ...client,
+      birthDate: formatDateForInput(client.dateOfBirth || client.birthDate),
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -204,7 +223,7 @@ export function ClientProfilePage() {
         email: editingClientData.email.toLowerCase().trim() || "",
         phone: editingClientData.phone?.trim() || "",
         notes: editingClientData.notes?.trim() || "",
-        dateOfBirth: editingClientData.birthDate || "",
+        dateOfBirth: editingClientData.birthDate || undefined,
       });
 
       setIsEditDialogOpen(false);
@@ -498,13 +517,6 @@ export function ClientProfilePage() {
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  };
-
-  const getLoyaltyTier = (points: number) => {
-    if (points >= 400) return { tier: "VIP", color: "text-purple-600" };
-    if (points >= 200) return { tier: "Gold", color: "text-yellow-600" };
-    if (points >= 100) return { tier: "Silver", color: "text-gray-600" };
-    return { tier: "Bronze", color: "text-amber-700" };
   };
 
   // Ensure client has name field constructed from firstName/lastName
@@ -858,7 +870,6 @@ export function ClientProfilePage() {
                     <TableHead>Client</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Activity</TableHead>
-                    <TableHead>Loyalty</TableHead>
                     <TableHead>Spending</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
@@ -893,7 +904,6 @@ export function ClientProfilePage() {
                       ))
                     : filteredClients.map((client) => {
                         const totalSpent = client.stats?.totalSpent || 0;
-                        const loyaltyInfo = getLoyaltyTier(totalSpent);
                         const totalBookings = client.stats?.totalBookings || 0;
                         const lastVisit =
                           client.stats?.lastBookingDate || client.createdAt;
@@ -953,18 +963,6 @@ export function ClientProfilePage() {
                                     {new Date(lastVisit).toLocaleDateString()}
                                   </div>
                                 )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="space-y-1">
-                                <div
-                                  className={`font-medium ${loyaltyInfo.color}`}
-                                >
-                                  {loyaltyInfo.tier}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  €{totalSpent.toFixed(2)} spent
-                                </div>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -1118,7 +1116,7 @@ export function ClientProfilePage() {
               <CardHeader>
                 <CardTitle>Top Clients</CardTitle>
                 <CardDescription>
-                  Clients with highest spending and loyalty
+                  Clients with highest spending
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1149,7 +1147,6 @@ export function ClientProfilePage() {
                       }`.toUpperCase();
                       const totalSpent = client.stats?.totalSpent || 0;
                       const totalBookings = client.stats?.totalBookings || 0;
-                      const loyaltyTier = getLoyaltyTier(totalSpent);
 
                       return (
                         <div
@@ -1180,7 +1177,7 @@ export function ClientProfilePage() {
                               €{totalSpent.toFixed(2)}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {loyaltyTier.tier}
+                              {totalBookings} bookings
                             </p>
                           </div>
                         </div>
@@ -1319,7 +1316,8 @@ export function ClientProfilePage() {
               </div>
             </DialogTitle>
             <DialogDescription>
-              View complete client information, booking history, and business insights
+              View complete client information, booking history, and business
+              insights
             </DialogDescription>
           </DialogHeader>
 
@@ -1342,20 +1340,29 @@ export function ClientProfilePage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 text-muted-foreground">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Member Since</span>
+                        <span className="text-xs font-medium">
+                          Member Since
+                        </span>
                       </div>
                       <p className="text-lg font-bold">
-                        {selectedClient.createdAt 
-                          ? new Date(selectedClient.createdAt).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              year: 'numeric' 
+                        {selectedClient.createdAt
+                          ? new Date(
+                              selectedClient.createdAt
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              year: "numeric",
                             })
-                          : 'N/A'}
+                          : "N/A"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {selectedClient.createdAt
-                          ? Math.floor((Date.now() - new Date(selectedClient.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 30))
-                          : 0} months ago
+                          ? Math.floor(
+                              (Date.now() -
+                                new Date(selectedClient.createdAt).getTime()) /
+                                (1000 * 60 * 60 * 24 * 30)
+                            )
+                          : 0}{" "}
+                        months ago
                       </p>
                     </div>
 
@@ -1363,16 +1370,17 @@ export function ClientProfilePage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 text-muted-foreground">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Total Bookings</span>
+                        <span className="text-xs font-medium">
+                          Total Bookings
+                        </span>
                       </div>
                       <p className="text-lg font-bold">
-                        {selectedClient.stats?.totalBookings || 
-                         selectedClient.totalBookings || 
-                         getClientBookings(selectedClient.id).length || 0}
+                        {selectedClient.stats?.totalBookings ||
+                          selectedClient.totalBookings ||
+                          getClientBookings(selectedClient.id).length ||
+                          0}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        All time
-                      </p>
+                      <p className="text-xs text-muted-foreground">All time</p>
                     </div>
 
                     {/* Last Visit */}
@@ -1384,26 +1392,45 @@ export function ClientProfilePage() {
                       <p className="text-lg font-bold">
                         {(() => {
                           const bookings = getClientBookings(selectedClient.id);
-                          const lastBooking = bookings.length > 0 
-                            ? bookings.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-                            : null;
-                          return lastBooking 
-                            ? new Date(lastBooking.date).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric' 
-                              })
-                            : 'Never';
+                          const lastBooking =
+                            bookings.length > 0
+                              ? bookings.sort(
+                                  (a, b) =>
+                                    new Date(b.date).getTime() -
+                                    new Date(a.date).getTime()
+                                )[0]
+                              : null;
+                          return lastBooking
+                            ? new Date(lastBooking.date).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )
+                            : "Never";
                         })()}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {(() => {
                           const bookings = getClientBookings(selectedClient.id);
-                          const lastBooking = bookings.length > 0 
-                            ? bookings.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-                            : null;
-                          if (!lastBooking) return 'No visits';
-                          const daysAgo = Math.floor((Date.now() - new Date(lastBooking.date).getTime()) / (1000 * 60 * 60 * 24));
-                          return daysAgo === 0 ? 'Today' : `${daysAgo} days ago`;
+                          const lastBooking =
+                            bookings.length > 0
+                              ? bookings.sort(
+                                  (a, b) =>
+                                    new Date(b.date).getTime() -
+                                    new Date(a.date).getTime()
+                                )[0]
+                              : null;
+                          if (!lastBooking) return "No visits";
+                          const daysAgo = Math.floor(
+                            (Date.now() -
+                              new Date(lastBooking.date).getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          );
+                          return daysAgo === 0
+                            ? "Today"
+                            : `${daysAgo} days ago`;
                         })()}
                       </p>
                     </div>
@@ -1415,7 +1442,12 @@ export function ClientProfilePage() {
                         <span className="text-xs font-medium">Total Spent</span>
                       </div>
                       <p className="text-lg font-bold text-green-600">
-                        €{(selectedClient.stats?.totalSpent || selectedClient.totalSpent || 0).toFixed(2)}
+                        €
+                        {(
+                          selectedClient.stats?.totalSpent ||
+                          selectedClient.totalSpent ||
+                          0
+                        ).toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Lifetime value
@@ -1426,35 +1458,27 @@ export function ClientProfilePage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 text-muted-foreground">
                         <TrendingUp className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Avg. Booking</span>
+                        <span className="text-xs font-medium">
+                          Avg. Booking
+                        </span>
                       </div>
                       <p className="text-lg font-bold">
-                        €{(() => {
-                          const totalSpent = selectedClient.stats?.totalSpent || selectedClient.totalSpent || 0;
-                          const totalBookings = selectedClient.stats?.totalBookings || 
-                                               selectedClient.totalBookings || 
-                                               getClientBookings(selectedClient.id).length || 1;
+                        €
+                        {(() => {
+                          const totalSpent =
+                            selectedClient.stats?.totalSpent ||
+                            selectedClient.totalSpent ||
+                            0;
+                          const totalBookings =
+                            selectedClient.stats?.totalBookings ||
+                            selectedClient.totalBookings ||
+                            getClientBookings(selectedClient.id).length ||
+                            1;
                           return (totalSpent / totalBookings).toFixed(2);
                         })()}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Per appointment
-                      </p>
-                    </div>
-
-                    {/* Loyalty Tier */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Heart className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Loyalty Tier</span>
-                      </div>
-                      <p className={`text-lg font-bold ${
-                        getLoyaltyTier(selectedClient.stats?.totalSpent || selectedClient.totalSpent || 0).color
-                      }`}>
-                        {getLoyaltyTier(selectedClient.stats?.totalSpent || selectedClient.totalSpent || 0).tier}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedClient.stats?.loyaltyPoints || selectedClient.loyaltyPoints || 0} points
                       </p>
                     </div>
 
@@ -1464,11 +1488,13 @@ export function ClientProfilePage() {
                         <Users className="h-3.5 w-3.5" />
                         <span className="text-xs font-medium">Status</span>
                       </div>
-                      <Badge 
+                      <Badge
                         variant="outline"
-                        className={`${getStatusColor(selectedClient.status)} mt-1`}
+                        className={`${getStatusColor(
+                          selectedClient.status
+                        )} mt-1`}
                       >
-                        {selectedClient.status || 'active'}
+                        {selectedClient.status || "active"}
                       </Badge>
                       <p className="text-xs text-muted-foreground">
                         Current state
@@ -1484,16 +1510,22 @@ export function ClientProfilePage() {
                       <p className="text-lg font-bold">
                         {(() => {
                           const bookings = getClientBookings(selectedClient.id);
-                          if (bookings.length < 2) return 'New';
-                          
-                          const memberSince = selectedClient.createdAt 
-                            ? new Date(selectedClient.createdAt) 
+                          if (bookings.length < 2) return "New";
+
+                          const memberSince = selectedClient.createdAt
+                            ? new Date(selectedClient.createdAt)
                             : new Date();
-                          const monthsSince = Math.max(1, Math.floor(
-                            (Date.now() - memberSince.getTime()) / (1000 * 60 * 60 * 24 * 30)
-                          ));
-                          const visitsPerMonth = (bookings.length / monthsSince).toFixed(1);
-                          
+                          const monthsSince = Math.max(
+                            1,
+                            Math.floor(
+                              (Date.now() - memberSince.getTime()) /
+                                (1000 * 60 * 60 * 24 * 30)
+                            )
+                          );
+                          const visitsPerMonth = (
+                            bookings.length / monthsSince
+                          ).toFixed(1);
+
                           return `${visitsPerMonth}x/mo`;
                         })()}
                       </p>
@@ -1506,283 +1538,269 @@ export function ClientProfilePage() {
               </Card>
 
               <Tabs defaultValue="profile" className="space-y-4">
-              <div className="border-b overflow-x-auto">
-                <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
-                  <TabsTrigger value="profile" className="whitespace-nowrap">
-                    Profile
-                  </TabsTrigger>
-                  <TabsTrigger value="bookings" className="whitespace-nowrap">
-                    Booking History
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="preferences"
-                    className="whitespace-nowrap"
-                  >
-                    Preferences
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-              {/* Profile Tab */}
-              <TabsContent value="profile" className="space-y-4">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Contact Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedClient.email}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedClient.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>
-                          Born:{" "}
-                          {new Date(
-                            selectedClient.birthDate
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="pt-2">
-                        <Label className="text-sm font-medium">Address</Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {selectedClient.address}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Client Statistics</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm">Total Bookings</Label>
-                          <p className="text-2xl font-bold">
-                            {selectedClient.totalBookings}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm">Total Spent</Label>
-                          <p className="text-2xl font-bold">
-                            €{selectedClient.totalSpent}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm">Average Spent</Label>
-                          <p className="text-xl font-semibold">
-                            €{selectedClient.averageSpent}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm">Loyalty Points</Label>
-                          <p className="text-xl font-semibold">
-                            {selectedClient.loyaltyPoints}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="pt-2">
-                        <Label className="text-sm">Loyalty Tier</Label>
-                        <div
-                          className={`text-lg font-semibold ${
-                            getLoyaltyTier(selectedClient.loyaltyPoints).color
-                          }`}
-                        >
-                          {getLoyaltyTier(selectedClient.loyaltyPoints).tier}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="border-b overflow-x-auto">
+                  <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
+                    <TabsTrigger value="profile" className="whitespace-nowrap">
+                      Profile
+                    </TabsTrigger>
+                    <TabsTrigger value="bookings" className="whitespace-nowrap">
+                      Booking History
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="preferences"
+                      className="whitespace-nowrap"
+                    >
+                      Preferences
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Notes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm">{selectedClient.notes}</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Booking History Tab */}
-              <TabsContent value="bookings" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Booking History</CardTitle>
-                    <CardDescription>
-                      Complete history of {selectedClient.name}'s appointments
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Service</TableHead>
-                          <TableHead>Professional</TableHead>
-                          <TableHead>Date & Time</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {getClientBookings(selectedClient.id).length > 0 ? (
-                          getClientBookings(selectedClient.id).map(
-                            (booking) => (
-                              <TableRow key={booking.id}>
-                                <TableCell className="font-medium">
-                                  {booking.service}
-                                </TableCell>
-                                <TableCell>{booking.professional}</TableCell>
-                                <TableCell>
-                                  <div className="space-y-1">
-                                    <div className="flex items-center">
-                                      <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                                      {new Date(
-                                        booking.date
-                                      ).toLocaleDateString()}
-                                    </div>
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {booking.time}
-                                    </div>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <span className="font-medium">
-                                    €{booking.amount}
-                                  </span>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant="outline"
-                                    className={
-                                      booking.status === "completed"
-                                        ? "bg-green-100 text-green-800 border-green-200"
-                                        : "bg-blue-100 text-blue-800 border-blue-200"
-                                    }
-                                  >
-                                    {booking.status}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            )
-                          )
-                        ) : (
-                          <TableRow>
-                            <TableCell
-                              colSpan={5}
-                              className="text-center py-8 text-muted-foreground"
-                            >
-                              No bookings found for this client
-                            </TableCell>
-                          </TableRow>
+                {/* Profile Tab */}
+                <TabsContent value="profile" className="space-y-4">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Contact Information</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span>{selectedClient.email}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span>{selectedClient.phone}</span>
+                        </div>
+                        {(selectedClient.dateOfBirth || selectedClient.birthDate) && (
+                          <div className="flex items-center gap-3">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                              Born:{" "}
+                              {new Date(
+                                selectedClient.dateOfBirth || selectedClient.birthDate
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
                         )}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Preferences Tab */}
-              <TabsContent value="preferences" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Service Preferences</CardTitle>
-                    <CardDescription>
-                      {selectedClient.name}'s preferred services and
-                      professionals
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Preferred Services
-                      </Label>
-                      <div className="flex gap-2 mt-2">
-                        {selectedClient.preferredServices &&
-                        selectedClient.preferredServices.length > 0 ? (
-                          selectedClient.preferredServices.map(
-                            (
-                              service:
-                                | string
-                                | number
-                                | boolean
-                                | ReactElement<
-                                    any,
-                                    string | JSXElementConstructor<any>
-                                  >
-                                | Iterable<ReactNode>
-                                | ReactPortal
-                                | Iterable<ReactNode>
-                                | null
-                                | undefined,
-                              index: Key | null | undefined
-                            ) => (
-                              <Badge key={index} variant="outline">
-                                {service}
-                              </Badge>
-                            )
-                          )
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            No preferred services
+                        <div className="pt-2">
+                          <Label className="text-sm font-medium">Address</Label>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {selectedClient.address}
                           </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Client Statistics</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm">Total Bookings</Label>
+                            <p className="text-2xl font-bold">
+                              {selectedClient.totalBookings}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm">Total Spent</Label>
+                            <p className="text-2xl font-bold">
+                              €{selectedClient.totalSpent}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm">Average Spent</Label>
+                            <p className="text-xl font-semibold">
+                              €{selectedClient.averageSpent}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Notes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm">{selectedClient.notes}</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Booking History Tab */}
+                <TabsContent value="bookings" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Booking History</CardTitle>
+                      <CardDescription>
+                        Complete history of {selectedClient.name}'s appointments
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Service</TableHead>
+                            <TableHead>Professional</TableHead>
+                            <TableHead>Date & Time</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {getClientBookings(selectedClient.id).length > 0 ? (
+                            getClientBookings(selectedClient.id).map(
+                              (booking) => (
+                                <TableRow key={booking.id}>
+                                  <TableCell className="font-medium">
+                                    {booking.service}
+                                  </TableCell>
+                                  <TableCell>{booking.professional}</TableCell>
+                                  <TableCell>
+                                    <div className="space-y-1">
+                                      <div className="flex items-center">
+                                        <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                                        {new Date(
+                                          booking.date
+                                        ).toLocaleDateString()}
+                                      </div>
+                                      <div className="flex items-center text-sm text-muted-foreground">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        {booking.time}
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <span className="font-medium">
+                                      €{booking.amount}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant="outline"
+                                      className={
+                                        booking.status === "completed"
+                                          ? "bg-green-100 text-green-800 border-green-200"
+                                          : "bg-blue-100 text-blue-800 border-blue-200"
+                                      }
+                                    >
+                                      {booking.status}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              )
+                            )
+                          ) : (
+                            <TableRow>
+                              <TableCell
+                                colSpan={5}
+                                className="text-center py-8 text-muted-foreground"
+                              >
+                                No bookings found for this client
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Preferences Tab */}
+                <TabsContent value="preferences" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Service Preferences</CardTitle>
+                      <CardDescription>
+                        {selectedClient.name}'s preferred services and
+                        professionals
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                       <div>
                         <Label className="text-sm font-medium">
-                          Client Since
+                          Preferred Services
                         </Label>
-                        <p className="text-sm mt-1">
-                          {new Date(
-                            selectedClient.joinDate
-                          ).toLocaleDateString()}
-                        </p>
+                        <div className="flex gap-2 mt-2">
+                          {selectedClient.preferredServices &&
+                          selectedClient.preferredServices.length > 0 ? (
+                            selectedClient.preferredServices.map(
+                              (
+                                service:
+                                  | string
+                                  | number
+                                  | boolean
+                                  | ReactElement<
+                                      any,
+                                      string | JSXElementConstructor<any>
+                                    >
+                                  | Iterable<ReactNode>
+                                  | ReactPortal
+                                  | Iterable<ReactNode>
+                                  | null
+                                  | undefined,
+                                index: Key | null | undefined
+                              ) => (
+                                <Badge key={index} variant="outline">
+                                  {service}
+                                </Badge>
+                              )
+                            )
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              No preferred services
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium">
-                          Last Visit
-                        </Label>
-                        <p className="text-sm mt-1">
-                          {new Date(
-                            selectedClient.lastVisit
-                          ).toLocaleDateString()}
-                        </p>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <Label className="text-sm font-medium">
+                            Client Since
+                          </Label>
+                          <p className="text-sm mt-1">
+                            {new Date(
+                              selectedClient.joinDate
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">
+                            Last Visit
+                          </Label>
+                          <p className="text-sm mt-1">
+                            {new Date(
+                              selectedClient.lastVisit
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">
+                            Referrals Made
+                          </Label>
+                          <p className="text-sm mt-1">
+                            {selectedClient.referrals} clients
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Status</Label>
+                          <Badge
+                            variant="outline"
+                            className={`mt-1 ${getStatusColor(
+                              selectedClient.status
+                            )}`}
+                          >
+                            {selectedClient.status}
+                          </Badge>
+                        </div>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium">
-                          Referrals Made
-                        </Label>
-                        <p className="text-sm mt-1">
-                          {selectedClient.referrals} clients
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Status</Label>
-                        <Badge
-                          variant="outline"
-                          className={`mt-1 ${getStatusColor(
-                            selectedClient.status
-                          )}`}
-                        >
-                          {selectedClient.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </>
           )}
         </DialogContent>
