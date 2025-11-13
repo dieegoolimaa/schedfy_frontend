@@ -18,6 +18,7 @@ export function useClients(options: UseClientsOptions = {}) {
     // Fetch clients
     const fetchClients = useCallback(async () => {
         if (!entityId) {
+            console.warn('[useClients] No entityId provided, skipping fetch');
             setClients([]);
             return;
         }
@@ -26,17 +27,24 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
+            console.log('[useClients] Fetching clients for entityId:', entityId);
             const response = await clientsService.getByEntity(entityId);
+            console.log('[useClients] Response:', response);
+            
             if (response.data) {
-                setClients(Array.isArray(response.data) ? response.data : []);
+                const clientsArray = Array.isArray(response.data) ? response.data : [];
+                console.log('[useClients] Fetched', clientsArray.length, 'clients');
+                setClients(clientsArray);
             } else {
+                console.warn('[useClients] No data in response');
                 setClients([]);
             }
         } catch (err: any) {
-            const errorMessage = err.message || 'Failed to load clients';
+            console.error('[useClients] Error fetching clients:', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Failed to load clients';
             setError(errorMessage);
             setClients([]); // Reset to empty array on error
-            toast.error(errorMessage);
+            toast.error(`Failed to load clients: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
@@ -105,18 +113,24 @@ export function useClients(options: UseClientsOptions = {}) {
             setLoading(true);
             setError(null);
 
+            console.log('[useClients] Creating client:', data);
             const response = await clientsService.create(data);
+            console.log('[useClients] Client created:', response.data);
+            
             if (response.data) {
                 setClients(prev => {
                     const currentClients = Array.isArray(prev) ? prev : [];
-                    return [...currentClients, response.data!];
+                    const updated = [...currentClients, response.data!];
+                    console.log('[useClients] Updated clients count:', updated.length);
+                    return updated;
                 });
             }
 
             toast.success('Client created successfully!');
             return response.data;
         } catch (err: any) {
-            const errorMessage = err.message || 'Failed to create client';
+            console.error('[useClients] Error creating client:', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Failed to create client';
             setError(errorMessage);
             toast.error(errorMessage);
             throw err;

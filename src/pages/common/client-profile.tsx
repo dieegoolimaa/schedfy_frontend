@@ -86,6 +86,13 @@ export function ClientProfilePage() {
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
+  console.log("[Client Profile] Rendered with:", { 
+    entityId, 
+    userId: user?.id, 
+    userEntityId: user?.entityId,
+    plan: user?.plan 
+  });
+
   const {
     clients,
     loading: clientsLoading,
@@ -95,6 +102,12 @@ export function ClientProfilePage() {
     updateClient,
     deleteClient,
   } = useClients({ entityId, autoFetch: true });
+
+  console.log("[Client Profile] Clients state:", {
+    clientsCount: Array.isArray(clients) ? clients.length : 0,
+    loading: clientsLoading,
+    clients: clients,
+  });
 
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
   const [newClient, setNewClient] = useState({
@@ -109,7 +122,7 @@ export function ClientProfilePage() {
   const handleViewClient = async (client: any) => {
     try {
       toast.loading("Loading client details...", { id: "view-client" });
-      
+
       const full = await getClientWithBookings(String(client.id));
       // Ensure full name is available
       if (full && !full.name) {
@@ -117,11 +130,14 @@ export function ClientProfilePage() {
       }
       setSelectedClient(full);
       setShowClientDetails(true);
-      
+
       toast.success("Client details loaded", { id: "view-client" });
     } catch (err: any) {
       console.error(err);
-      const errorMessage = err?.response?.data?.message || err?.message || "Failed to load client details";
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to load client details";
       toast.error(errorMessage, { id: "view-client" });
     }
   };
@@ -133,13 +149,16 @@ export function ClientProfilePage() {
 
   const handleEditClientSave = async () => {
     if (!editingClientData?.id) return;
-    
+
     // Validação de campos obrigatórios
-    if (!editingClientData.name?.trim() && !editingClientData.firstName?.trim()) {
+    if (
+      !editingClientData.name?.trim() &&
+      !editingClientData.firstName?.trim()
+    ) {
       toast.error("Client name is required");
       return;
     }
-    
+
     if (!editingClientData.email?.trim()) {
       toast.error("Email is required");
       return;
@@ -154,8 +173,8 @@ export function ClientProfilePage() {
 
     // Validação de duplicidade (exceto o cliente atual)
     const emailExists = clientsArray.some(
-      (c) => 
-        c.id !== editingClientData.id && 
+      (c) =>
+        c.id !== editingClientData.id &&
         c.email.toLowerCase() === editingClientData.email.toLowerCase()
     );
     if (emailExists) {
@@ -165,9 +184,8 @@ export function ClientProfilePage() {
 
     if (editingClientData.phone) {
       const phoneExists = clientsArray.some(
-        (c) => 
-          c.id !== editingClientData.id && 
-          c.phone === editingClientData.phone
+        (c) =>
+          c.id !== editingClientData.id && c.phone === editingClientData.phone
       );
       if (phoneExists) {
         toast.error("Another client with this phone number already exists");
@@ -177,7 +195,7 @@ export function ClientProfilePage() {
 
     try {
       toast.loading("Updating client...", { id: "update-client" });
-      
+
       // Split name into firstName and lastName if needed
       let firstName = editingClientData.firstName;
       let lastName = editingClientData.lastName;
@@ -196,22 +214,28 @@ export function ClientProfilePage() {
         notes: editingClientData.notes?.trim() || "",
         dateOfBirth: editingClientData.birthDate || "",
       });
-      
+
       setIsEditDialogOpen(false);
       await fetchClients();
-      
-      toast.success(
-        `Client ${firstName} ${lastName} updated successfully`,
-        { id: "update-client" }
-      );
+
+      toast.success(`Client ${firstName} ${lastName} updated successfully`, {
+        id: "update-client",
+      });
     } catch (err: any) {
       console.error(err);
-      const errorMessage = err?.response?.data?.message || err?.message || "Failed to update client";
-      
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to update client";
+
       if (errorMessage.includes("email already exists")) {
-        toast.error("Another client with this email already exists", { id: "update-client" });
+        toast.error("Another client with this email already exists", {
+          id: "update-client",
+        });
       } else if (errorMessage.includes("phone already exists")) {
-        toast.error("Another client with this phone number already exists", { id: "update-client" });
+        toast.error("Another client with this phone number already exists", {
+          id: "update-client",
+        });
       } else {
         toast.error(errorMessage, { id: "update-client" });
       }
@@ -225,22 +249,29 @@ export function ClientProfilePage() {
 
   const handleDeleteClient = async () => {
     if (!clientToDelete?.id) return;
-    
-    const clientName = clientToDelete.name || `${clientToDelete.firstName} ${clientToDelete.lastName}`;
-    
+
+    const clientName =
+      clientToDelete.name ||
+      `${clientToDelete.firstName} ${clientToDelete.lastName}`;
+
     try {
       toast.loading("Deleting client...", { id: "delete-client" });
-      
+
       await deleteClient(String(clientToDelete.id));
-      
+
       setIsDeleteDialogOpen(false);
       setClientToDelete(null);
       await fetchClients();
-      
-      toast.success(`Client ${clientName} deleted successfully`, { id: "delete-client" });
+
+      toast.success(`Client ${clientName} deleted successfully`, {
+        id: "delete-client",
+      });
     } catch (err: any) {
       console.error(err);
-      const errorMessage = err?.response?.data?.message || err?.message || "Failed to delete client";
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to delete client";
       toast.error(errorMessage, { id: "delete-client" });
     }
   };
@@ -319,22 +350,28 @@ export function ClientProfilePage() {
       (c) => c.email.toLowerCase() === newClient.email.toLowerCase()
     );
     if (emailExists) {
-      toast.error("A client with this email already exists");
+      toast.error("❌ This email is already registered", {
+        duration: 5000,
+        description: `A client with the email ${newClient.email} already exists in your system.`,
+      });
       return;
     }
 
     if (newClient.phone) {
-      const phoneExists = clientsArray.some(
-        (c) => c.phone === newClient.phone
-      );
+      const phoneExists = clientsArray.some((c) => c.phone === newClient.phone);
       if (phoneExists) {
-        toast.error("A client with this phone number already exists");
+        toast.error("❌ This phone number is already registered", {
+          duration: 5000,
+          description: `A client with the phone ${newClient.phone} already exists in your system.`,
+        });
         return;
       }
     }
 
     try {
       toast.loading("Creating client...", { id: "create-client" });
+
+      console.log("[Client Profile] Creating client with entityId:", entityId);
       
       await createClient({
         entityId,
@@ -347,7 +384,7 @@ export function ClientProfilePage() {
           newClient.birthDate?.toISOString().split("T")[0] || undefined,
         createdBy: user?.id || entityId,
       });
-      
+
       setNewClient({
         firstName: "",
         lastName: "",
@@ -356,25 +393,46 @@ export function ClientProfilePage() {
         birthDate: undefined,
         notes: "",
       });
-      
+
       // refresh list (createClient already appends but ensure consistency)
+      console.log("[Client Profile] Fetching updated client list...");
       await fetchClients();
-      
+
       toast.success(
-        `Client ${newClient.firstName} ${newClient.lastName} created successfully`,
-        { id: "create-client" }
+        `✅ Client ${newClient.firstName} ${newClient.lastName} created successfully!`,
+        { id: "create-client", duration: 3000 }
       );
     } catch (err: any) {
-      console.error(err);
-      const errorMessage = err?.response?.data?.message || err?.message || "Failed to create client";
-      
-      // Tratamento específico de erros do backend
-      if (errorMessage.includes("email already exists")) {
-        toast.error("A client with this email already exists", { id: "create-client" });
-      } else if (errorMessage.includes("phone already exists")) {
-        toast.error("A client with this phone number already exists", { id: "create-client" });
+      console.error("[Client Profile] Error creating client:", err);
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create client";
+
+      // Tratamento específico de erros do backend com mensagens claras
+      if (errorMessage.toLowerCase().includes("email") && errorMessage.toLowerCase().includes("already")) {
+        toast.error("❌ Client Already Exists", {
+          id: "create-client",
+          duration: 6000,
+          description: `A client with the email ${newClient.email} is already registered in your system. Please use a different email address.`,
+        });
+      } else if (errorMessage.toLowerCase().includes("phone") && errorMessage.toLowerCase().includes("already")) {
+        toast.error("❌ Phone Number Already Registered", {
+          id: "create-client",
+          duration: 6000,
+          description: `A client with the phone number ${newClient.phone} is already registered in your system. Please use a different phone number.`,
+        });
+      } else if (errorMessage.toLowerCase().includes("duplicate")) {
+        toast.error("❌ Duplicate Client Information", {
+          id: "create-client",
+          duration: 6000,
+          description: "This client information is already registered. Please check the email and phone number.",
+        });
       } else {
-        toast.error(errorMessage, { id: "create-client" });
+        toast.error(`Failed to create client: ${errorMessage}`, { 
+          id: "create-client",
+          duration: 5000,
+        });
       }
     }
   };
@@ -423,6 +481,13 @@ export function ClientProfilePage() {
 
       return matchesSearch && matchesStatus;
     });
+
+  console.log("[Client Profile] Filtering results:", {
+    totalClients: clientsArray.length,
+    filteredCount: filteredClients.length,
+    searchTerm,
+    statusFilter,
+  });
 
   const stats = {
     total: clientsArray.length,
