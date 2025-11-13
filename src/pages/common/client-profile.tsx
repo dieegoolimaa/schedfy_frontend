@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useClients } from "../../hooks/useClients";
+import { useBookings } from "../../hooks/useBookings";
 import { toast } from "sonner";
 import {
   Card,
@@ -65,7 +66,6 @@ import {
   Clock,
   Phone,
   Mail,
-  Edit,
   TrendingUp,
   Euro,
   Heart,
@@ -86,13 +86,6 @@ export function ClientProfilePage() {
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
-  console.log("[Client Profile] Rendered with:", { 
-    entityId, 
-    userId: user?.id, 
-    userEntityId: user?.entityId,
-    plan: user?.plan 
-  });
-
   const {
     clients,
     loading: clientsLoading,
@@ -103,11 +96,10 @@ export function ClientProfilePage() {
     deleteClient,
   } = useClients({ entityId, autoFetch: true });
 
-  console.log("[Client Profile] Clients state:", {
-    clientsCount: Array.isArray(clients) ? clients.length : 0,
-    loading: clientsLoading,
-    clients: clients,
-  });
+  const {
+    bookings,
+    loading: bookingsLoading,
+  } = useBookings({ entityId, autoFetch: true });
 
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
   const [newClient, setNewClient] = useState({
@@ -282,7 +274,54 @@ export function ClientProfilePage() {
 
   // Build a small recent bookings feed by fetching bookings for the first
   // few clients (kept lightweight). This populates the "Recent Activity" tab.
+  // Load recent bookings from useBookings hook
   useEffect(() => {
+    if (!bookings || bookings.length === 0) {
+      setRecentBookings([]);
+      return;
+    }
+
+    // Transform bookings with client names and sort by date
+    const transformedBookings = bookings
+      .map((booking: any) => {
+        const client = clients.find((c: any) => 
+          String(c.id) === String(booking.clientId) || 
+          String(c._id) === String(booking.clientId)
+        );
+        
+        return {
+          id: booking.id || booking._id,
+          clientName: client 
+            ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.name
+            : booking.client?.name || 'Unknown Client',
+          service: booking.service?.name || 'Unknown Service',
+          professional: booking.professional?.name || 
+            (booking.professional?.firstName && booking.professional?.lastName 
+              ? `${booking.professional.firstName} ${booking.professional.lastName}`.trim()
+              : 'Unknown Professional'),
+          date: booking.startDateTime || booking.date,
+          time: booking.startDateTime 
+            ? new Date(booking.startDateTime).toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })
+            : booking.time || 'N/A',
+          amount: booking.totalPrice || booking.price || 0,
+          status: booking.status || 'pending',
+        };
+      })
+      .sort((a: any, b: any) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      )
+      .slice(0, 20);
+
+    setRecentBookings(transformedBookings);
+  }, [bookings, clients]);
+
+  // Keep old implementation as fallback if bookings hook doesn't load
+  useEffect(() => {
+    if (bookings && bookings.length > 0) return; // Skip if we have bookings from hook
+    
     let cancelled = false;
     if (!clients || clients.length === 0) {
       setRecentBookings([]);
@@ -321,7 +360,7 @@ export function ClientProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [clients, getClientWithBookings]);
+  }, [clients, getClientWithBookings, bookings]);
 
   const handleAddClientSubmit = async () => {
     // Validação de campos obrigatórios
@@ -372,7 +411,7 @@ export function ClientProfilePage() {
       toast.loading("Creating client...", { id: "create-client" });
 
       console.log("[Client Profile] Creating client with entityId:", entityId);
-      
+
       await createClient({
         entityId,
         firstName: newClient.firstName.trim(),
@@ -410,13 +449,19 @@ export function ClientProfilePage() {
         "Failed to create client";
 
       // Tratamento específico de erros do backend com mensagens claras
-      if (errorMessage.toLowerCase().includes("email") && errorMessage.toLowerCase().includes("already")) {
+      if (
+        errorMessage.toLowerCase().includes("email") &&
+        errorMessage.toLowerCase().includes("already")
+      ) {
         toast.error("❌ Client Already Exists", {
           id: "create-client",
           duration: 6000,
           description: `A client with the email ${newClient.email} is already registered in your system. Please use a different email address.`,
         });
-      } else if (errorMessage.toLowerCase().includes("phone") && errorMessage.toLowerCase().includes("already")) {
+      } else if (
+        errorMessage.toLowerCase().includes("phone") &&
+        errorMessage.toLowerCase().includes("already")
+      ) {
         toast.error("❌ Phone Number Already Registered", {
           id: "create-client",
           duration: 6000,
@@ -426,10 +471,11 @@ export function ClientProfilePage() {
         toast.error("❌ Duplicate Client Information", {
           id: "create-client",
           duration: 6000,
-          description: "This client information is already registered. Please check the email and phone number.",
+          description:
+            "This client information is already registered. Please check the email and phone number.",
         });
       } else {
-        toast.error(`Failed to create client: ${errorMessage}`, { 
+        toast.error(`Failed to create client: ${errorMessage}`, {
           id: "create-client",
           duration: 5000,
         });
@@ -945,7 +991,7 @@ export function ClientProfilePage() {
                                   onClick={() => handleViewClient(client)}
                                   title="View Details"
                                 >
-                                  <Edit className="h-4 w-4" />
+                                  View
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -983,52 +1029,76 @@ export function ClientProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Professional</TableHead>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentBookings.map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell>
-                        <div className="font-medium">{booking.clientName}</div>
-                      </TableCell>
-                      <TableCell>{booking.service}</TableCell>
-                      <TableCell>{booking.professional}</TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                            {new Date(booking.date).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {booking.time}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">€{booking.amount}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className="bg-green-100 text-green-800 border-green-200"
-                        >
-                          {booking.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+              {bookingsLoading ? (
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              ) : recentBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No recent activity</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Bookings will appear here once clients make appointments
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Professional</TableHead>
+                      <TableHead>Date & Time</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentBookings.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell>
+                          <div className="font-medium">{booking.clientName}</div>
+                        </TableCell>
+                        <TableCell>{booking.service}</TableCell>
+                        <TableCell>{booking.professional}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center">
+                              <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                              {new Date(booking.date).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {booking.time}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">€{Number(booking.amount).toFixed(2)}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={
+                              booking.status === 'completed'
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : booking.status === 'confirmed'
+                                ? 'bg-blue-100 text-blue-800 border-blue-200'
+                                : booking.status === 'cancelled'
+                                ? 'bg-red-100 text-red-800 border-red-200'
+                                : 'bg-gray-100 text-gray-800 border-gray-200'
+                            }
+                          >
+                            {booking.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1044,56 +1114,69 @@ export function ClientProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[...clients]
-                  .map(ensureClientName)
-                  .sort(
-                    (a, b) =>
-                      (b.stats?.totalSpent || 0) - (a.stats?.totalSpent || 0)
-                  )
-                  .slice(0, 5)
-                  .map((client, index) => {
-                    const initials = `${client.firstName?.[0] || ""}${
-                      client.lastName?.[0] || ""
-                    }`.toUpperCase();
-                    const totalSpent = client.stats?.totalSpent || 0;
-                    const totalBookings = client.stats?.totalBookings || 0;
-                    const loyaltyTier = getLoyaltyTier(totalSpent);
+                {clientsLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : clients.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No clients yet</p>
+                  </div>
+                ) : (
+                  [...clients]
+                    .map(ensureClientName)
+                    .sort(
+                      (a, b) =>
+                        (b.stats?.totalSpent || 0) - (a.stats?.totalSpent || 0)
+                    )
+                    .slice(0, 5)
+                    .map((client, index) => {
+                      const initials = `${client.firstName?.[0] || ""}${
+                        client.lastName?.[0] || ""
+                      }`.toUpperCase();
+                      const totalSpent = client.stats?.totalSpent || 0;
+                      const totalBookings = client.stats?.totalBookings || 0;
+                      const loyaltyTier = getLoyaltyTier(totalSpent);
 
-                    return (
-                      <div
-                        key={client.id}
-                        className="flex items-center space-x-4"
-                      >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                          <span className="text-sm font-medium">
-                            #{index + 1}
-                          </span>
+                      return (
+                        <div
+                          key={client.id}
+                          className="flex items-center space-x-4"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                            <span className="text-sm font-medium">
+                              #{index + 1}
+                            </span>
+                          </div>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src="" />
+                            <AvatarFallback className="text-xs">
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium leading-none">
+                              {client.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {totalBookings} bookings
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium">
+                              €{totalSpent.toFixed(2)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {loyaltyTier.tier}
+                            </p>
+                          </div>
                         </div>
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src="" />
-                          <AvatarFallback className="text-xs">
-                            {initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {client.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {totalBookings} bookings
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">
-                            €{totalSpent.toFixed(2)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {loyaltyTier.tier}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                )}
               </CardContent>
             </Card>
 
@@ -1105,46 +1188,73 @@ export function ClientProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
-                      <span className="text-sm font-medium">
-                        Retention Rate
-                      </span>
-                    </div>
-                    <div className="text-2xl font-bold">85%</div>
-                    <p className="text-xs text-muted-foreground">
-                      Last 6 months
-                    </p>
+                {clientsLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(4)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <Euro className="h-4 w-4 mr-2 text-blue-500" />
-                      <span className="text-sm font-medium">
-                        Avg. Lifetime Value
-                      </span>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm font-medium">
+                          Active Clients
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold">
+                        {clients.filter((c: any) => c.status === 'active').length}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {((clients.filter((c: any) => c.status === 'active').length / (clients.length || 1)) * 100).toFixed(0)}% of total
+                      </p>
                     </div>
-                    <div className="text-2xl font-bold">€642</div>
-                    <p className="text-xs text-muted-foreground">Per client</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <Heart className="h-4 w-4 mr-2 text-red-500" />
-                      <span className="text-sm font-medium">Referrals</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <Euro className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="text-sm font-medium">
+                          Avg. Lifetime Value
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold">
+                        €{(
+                          clients.reduce((sum: number, c: any) => sum + (c.stats?.totalSpent || 0), 0) / 
+                          (clients.length || 1)
+                        ).toFixed(0)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Per client</p>
                     </div>
-                    <div className="text-2xl font-bold">9</div>
-                    <p className="text-xs text-muted-foreground">This month</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-2 text-purple-500" />
-                      <span className="text-sm font-medium">New Clients</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <Heart className="h-4 w-4 mr-2 text-red-500" />
+                        <span className="text-sm font-medium">Total Revenue</span>
+                      </div>
+                      <div className="text-2xl font-bold">
+                        €{clients.reduce((sum: number, c: any) => 
+                          sum + (c.stats?.totalSpent || 0), 0
+                        ).toFixed(2)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">All time</p>
                     </div>
-                    <div className="text-2xl font-bold">12</div>
-                    <p className="text-xs text-muted-foreground">This month</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-2 text-purple-500" />
+                        <span className="text-sm font-medium">Total Bookings</span>
+                      </div>
+                      <div className="text-2xl font-bold">
+                        {clients.reduce((sum: number, c: any) => 
+                          sum + (c.stats?.totalBookings || 0), 0
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {(clients.reduce((sum: number, c: any) => 
+                          sum + (c.stats?.totalBookings || 0), 0
+                        ) / (clients.length || 1)).toFixed(1)} avg per client
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -1372,27 +1482,31 @@ export function ClientProfilePage() {
                         Preferred Services
                       </Label>
                       <div className="flex gap-2 mt-2">
-                        {selectedClient.preferredServices.map(
-                          (
-                            service:
-                              | string
-                              | number
-                              | boolean
-                              | ReactElement<
-                                  any,
-                                  string | JSXElementConstructor<any>
-                                >
-                              | Iterable<ReactNode>
-                              | ReactPortal
-                              | Iterable<ReactNode>
-                              | null
-                              | undefined,
-                            index: Key | null | undefined
-                          ) => (
-                            <Badge key={index} variant="outline">
-                              {service}
-                            </Badge>
+                        {selectedClient.preferredServices && selectedClient.preferredServices.length > 0 ? (
+                          selectedClient.preferredServices.map(
+                            (
+                              service:
+                                | string
+                                | number
+                                | boolean
+                                | ReactElement<
+                                    any,
+                                    string | JSXElementConstructor<any>
+                                  >
+                                | Iterable<ReactNode>
+                                | ReactPortal
+                                | Iterable<ReactNode>
+                                | null
+                                | undefined,
+                              index: Key | null | undefined
+                            ) => (
+                              <Badge key={index} variant="outline">
+                                {service}
+                              </Badge>
+                            )
                           )
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No preferred services</p>
                         )}
                       </div>
                     </div>
