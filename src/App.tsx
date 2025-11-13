@@ -45,9 +45,14 @@ import { AIPremiumPage } from "./pages/business/ai-premium";
 import { LoyaltyManagementPage } from "./pages/business/loyalty-management";
 import { NotificationCenterPage } from "./pages/business/notification-center";
 import PackageManagementPage from "./pages/business/package-management";
+import ReviewsManagementPage from "./pages/reviews-management";
 
 // Professional pages
 import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
+import ProfessionalProfilePage from "./pages/professional/profile";
+import ProfessionalBookingsPage from "./pages/professional/bookings";
+import ProfessionalSchedulePage from "./pages/professional/schedule";
+import ProfessionalEarningsPage from "./pages/professional/earnings";
 
 // Public pages
 import { BusinessDiscoveryPage } from "./pages/public/business-discovery";
@@ -543,6 +548,16 @@ function App() {
                   }
                 />
                 <Route
+                  path="/entity/reviews"
+                  element={
+                    <EntityRoute>
+                      <Layout>
+                        <ReviewsManagementPage />
+                      </Layout>
+                    </EntityRoute>
+                  }
+                />
+                <Route
                   path="/entity/ai-premium"
                   element={
                     <EntityRoute>
@@ -560,6 +575,46 @@ function App() {
                     <ProfessionalRoute>
                       <Layout>
                         <ProfessionalDashboardPage />
+                      </Layout>
+                    </ProfessionalRoute>
+                  }
+                />
+                <Route
+                  path="/professional/profile"
+                  element={
+                    <ProfessionalRoute>
+                      <Layout>
+                        <ProfessionalProfilePage />
+                      </Layout>
+                    </ProfessionalRoute>
+                  }
+                />
+                <Route
+                  path="/professional/bookings"
+                  element={
+                    <ProfessionalRoute>
+                      <Layout>
+                        <ProfessionalBookingsPage />
+                      </Layout>
+                    </ProfessionalRoute>
+                  }
+                />
+                <Route
+                  path="/professional/schedule"
+                  element={
+                    <ProfessionalRoute>
+                      <Layout>
+                        <ProfessionalSchedulePage />
+                      </Layout>
+                    </ProfessionalRoute>
+                  }
+                />
+                <Route
+                  path="/professional/earnings"
+                  element={
+                    <ProfessionalRoute>
+                      <Layout>
+                        <ProfessionalEarningsPage />
                       </Layout>
                     </ProfessionalRoute>
                   }

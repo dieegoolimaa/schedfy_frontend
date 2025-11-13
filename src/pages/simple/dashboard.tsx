@@ -1,10 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import {
+  dashboardService,
+  EntityStats,
+} from "../../services/dashboard.service";
 import { BookingCreator } from "../../components/booking";
+import { QuickBookingWidget } from "../../components/bookings/quick-booking-widget";
 import {
   Card,
   CardContent,
@@ -14,10 +19,6 @@ import {
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
-import {
-  ResponsiveCardGrid,
-  MobileStatsCard,
-} from "../../components/ui/responsive-card";
 import {
   CalendarDays,
   DollarSign,
@@ -49,6 +50,22 @@ const SimpleDashboard = () => {
 
   // Dialog states
   const [quickBookingDialogOpen, setQuickBookingDialogOpen] = useState(false);
+  const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
+
+  // Fetch entity stats with period comparison
+  useEffect(() => {
+    const fetchEntityStats = async () => {
+      if (!entityId) return;
+      try {
+        const stats = await dashboardService.getEntityStats(entityId);
+        setEntityStats(stats);
+      } catch (error) {
+        console.error("Error fetching entity stats:", error);
+      }
+    };
+
+    fetchEntityStats();
+  }, [entityId]);
 
   // Calculate real stats from bookings data
   const totalBookings = bookings.length;
@@ -209,33 +226,113 @@ const SimpleDashboard = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {loading ? (
           <>
-            <StatCard
-              title={t("loading.title")}
-              value={t("loading.value")}
-              description={t("loading.subtitle")}
-              icon={Clock}
-              trend="neutral"
-            />
-            <StatCard
-              title={t("loading.title")}
-              value={t("loading.value")}
-              description={t("loading.subtitle")}
-              icon={Clock}
-              trend="neutral"
-            />
+            {[1, 2].map((i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {t("loading.title")}
+                  </CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{t("loading.value")}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("loading.subtitle")}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </>
         ) : (
           stats.map((stat) => (
-            <StatCard
-              key={stat.title}
-              title={stat.title}
-              value={stat.value}
-              description={`${stat.change} ${t("stats.thisMonth")}`}
-              icon={stat.icon}
-              trend={stat.trend as "up" | "down" | "neutral"}
-            />
+            <Card key={stat.title}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <span
+                    className={
+                      stat.trend === "up"
+                        ? "text-green-600"
+                        : stat.trend === "down"
+                        ? "text-red-600"
+                        : ""
+                    }
+                  >
+                    {stat.trend === "up"
+                      ? "↗"
+                      : stat.trend === "down"
+                      ? "↘"
+                      : "→"}{" "}
+                    {stat.change}
+                  </span>{" "}
+                  {t("stats.thisMonth")}
+                </p>
+              </CardContent>
+            </Card>
           ))
         )}
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+        <StatCard
+          title={t("stats.totalbookings")}
+          value={
+            entityStats?.bookings.thisMonth?.toString() ||
+            totalBookings.toString()
+          }
+          subtitle={
+            entityStats?.bookings.change !== undefined
+              ? `${
+                  entityStats.bookings.change > 0 ? "+" : ""
+                }${entityStats.bookings.change.toFixed(1)}% vs last month`
+              : undefined
+          }
+          icon={CalendarDays}
+          variant="info"
+          trend={
+            entityStats?.bookings.change !== undefined
+              ? {
+                  value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
+                  isPositive: entityStats.bookings.change > 0,
+                }
+              : undefined
+          }
+        />
+        <StatCard
+          title={t("stats.completedSessions")}
+          value={completedSessions.toString()}
+          subtitle={
+            completedChange > 0
+              ? `+${completedChange} vs last month`
+              : completedChange < 0
+              ? `${completedChange} vs last month`
+              : "This month"
+          }
+          icon={CheckCircle}
+          variant="success"
+          trend={
+            completedChange !== 0
+              ? {
+                  value: `${Math.abs(completedChange)}`,
+                  isPositive: completedChange > 0,
+                }
+              : undefined
+          }
+        />
+        <StatCard
+          title="Upcoming"
+          value={upcomingBookings.length}
+          subtitle="Next appointments"
+          icon={CalendarDays}
+          variant="default"
+        />
       </div>
 
       {/* Main Content */}
@@ -317,6 +414,9 @@ const SimpleDashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Quick Booking */}
+        <QuickBookingWidget entityId={entityId} />
+
         {/* Quick Actions */}
         <Card>
           <CardHeader>
@@ -324,49 +424,40 @@ const SimpleDashboard = () => {
             <CardDescription>{t("quickActions.description")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
-              <Button
-                className="w-full justify-start h-12"
-                onClick={handleNewBooking}
-              >
-                <CalendarDays className="mr-3 h-5 w-5" />
-                {t("quickActions.newBooking")}
-              </Button>
+            <div className="grid gap-3">
               <Button
                 variant="outline"
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10"
                 onClick={handleViewSchedule}
               >
-                <Clock className="mr-3 h-5 w-5" />
+                <Clock className="mr-2 h-4 w-4" />
                 {t("quickActions.viewSchedule")}
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10"
                 onClick={handleViewReports}
               >
-                <DollarSign className="mr-3 h-5 w-5" />
+                <DollarSign className="mr-2 h-4 w-4" />
                 {t("quickActions.viewReports")}
               </Button>
-
-              {/* Upgrade Banner */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-                <h3 className="font-semibold text-blue-900 mb-2">
-                  {t("upgradeBanner.title")}
-                </h3>
-                <p className="text-sm text-blue-700 mb-3">
-                  {t("upgradeBanner.description")}
-                </p>
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={handleUpgradePlan}
-                >
-                  {t("upgradeBanner.button")}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Upgrade Banner */}
+        <Card>
+          <CardContent className="p-4 bg-gradient-to-r from-blue-50 to-purple-50">
+            <h3 className="font-semibold text-blue-900 mb-2">
+              {t("upgradeBanner.title")}
+            </h3>
+            <p className="text-sm text-blue-700 mb-3">
+              {t("upgradeBanner.description")}
+            </p>
+            <Button size="sm" className="w-full" onClick={handleUpgradePlan}>
+              {t("upgradeBanner.button")}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -7,8 +7,8 @@ import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
-import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
 import { BookingCreator } from "../../components/booking";
+import { BookingsKanban } from "../../components/bookings/bookings-kanban";
 import {
   Card,
   CardContent,
@@ -76,6 +76,8 @@ import {
   Eye,
   DollarSign,
   Hourglass,
+  LayoutList,
+  LayoutGrid,
 } from "lucide-react";
 import PaymentForm from "../../components/payments/PaymentForm";
 
@@ -93,7 +95,7 @@ export function BookingManagementPage() {
     fetchBookings,
     completeBooking,
     cancelBooking,
-    createBooking,
+    createBooking: _createBooking,
     updateBooking,
   } = useBookings({
     entityId,
@@ -111,6 +113,17 @@ export function BookingManagementPage() {
   const [selectedBookingForPayment, setSelectedBookingForPayment] =
     useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
+
+  // View mode state (list or kanban)
+  const [viewMode, setViewMode] = useState<"list" | "kanban">(() => {
+    const saved = localStorage.getItem("bookingsViewMode");
+    return (saved as "list" | "kanban") || "list";
+  });
+
+  // Update localStorage when view mode changes
+  useEffect(() => {
+    localStorage.setItem("bookingsViewMode", viewMode);
+  }, [viewMode]);
 
   // Dialog state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -260,7 +273,7 @@ export function BookingManagementPage() {
   const services = servicesFromApi || [];
 
   // Load entity data to get working hours
-  const [entityData, setEntityData] = useState<any>(null);
+  const [_entityData, setEntityData] = useState<any>(null);
   useEffect(() => {
     if (!entityId) return;
 
@@ -280,7 +293,9 @@ export function BookingManagementPage() {
   }, [entityId]);
 
   // Generate time slots based on entity working hours
-  const generateTimeSlots = (
+  // Available for future use with calendar/scheduling features
+  // @ts-ignore - Function available for future use
+  const _generateTimeSlots = (
     workingHours: any,
     selectedDate?: string
   ): string[] => {
@@ -564,14 +579,41 @@ export function BookingManagementPage() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setIsCalendarViewOpen(true)}>
-            <CalendarIcon className="h-4 w-4 mr-2" />
-            Calendar View
+        <div className="flex flex-wrap items-center gap-2">
+          {/* View Mode Toggle - Hidden on mobile */}
+          <div className="hidden md:flex items-center border rounded-lg">
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="rounded-r-none"
+            >
+              <LayoutList className="h-4 w-4 mr-2" />
+              <span className="hidden lg:inline">List</span>
+            </Button>
+            <Button
+              variant={viewMode === "kanban" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("kanban")}
+              className="rounded-l-none"
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              <span className="hidden lg:inline">Kanban</span>
+            </Button>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCalendarViewOpen(true)}
+            className="hidden sm:flex"
+          >
+            <CalendarIcon className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Calendar</span>
           </Button>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Booking
+          <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">New Booking</span>
           </Button>
         </div>
       </div>
@@ -790,389 +832,458 @@ export function BookingManagementPage() {
         </div>
       </div>
 
-      {/* Bookings Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Bookings ({filteredBookings.length})</CardTitle>
-          <CardDescription>
-            Complete list of all bookings with detailed information
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Professional</TableHead>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Status</TableHead>
-                {canViewPaymentDetails && <TableHead>Payment</TableHead>}
-                {canViewPricing && <TableHead>Revenue</TableHead>}
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBookings.map((booking) => (
-                <TableRow key={booking.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={
-                            booking.client && "avatar" in booking.client
-                              ? (booking.client as { avatar?: string }).avatar
-                              : undefined
-                          }
-                        />
-                        <AvatarFallback className="text-xs">
-                          {booking.client?.name
-                            ? booking.client.name
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")
-                            : ""}
-                        </AvatarFallback>
-                      </Avatar>
+      {/* Bookings View - List or Kanban (Kanban only on desktop) */}
+      {viewMode === "list" ||
+      (typeof window !== "undefined" && window.innerWidth < 768) ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Bookings ({filteredBookings.length})</CardTitle>
+            <CardDescription>
+              Complete list of all bookings with detailed information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Professional</TableHead>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Status</TableHead>
+                  {canViewPaymentDetails && <TableHead>Payment</TableHead>}
+                  {canViewPricing && <TableHead>Revenue</TableHead>}
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBookings.map((booking) => (
+                  <TableRow key={booking.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={
+                              booking.client && "avatar" in booking.client
+                                ? (booking.client as { avatar?: string }).avatar
+                                : undefined
+                            }
+                          />
+                          <AvatarFallback className="text-xs">
+                            {booking.client?.name
+                              ? booking.client.name
+                                  .split(" ")
+                                  .map((n: string) => n[0])
+                                  .join("")
+                              : ""}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">
+                            {booking.client?.name}
+                          </div>
+                          <div className="text-sm text-muted-foreground flex items-center">
+                            <Phone className="h-3 w-3 mr-1" />
+                            {booking.client &&
+                            "phone" in booking.client &&
+                            booking.client.phone
+                              ? booking.client.phone
+                              : ""}
+                          </div>
+                          {booking.client?.isFirstTime && (
+                            <Badge variant="secondary" className="text-xs mt-1">
+                              First Time
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div>
                         <div className="font-medium">
-                          {booking.client?.name}
+                          {booking.service?.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {(booking.service as any)?.duration?.duration ||
+                            (booking.service as any)?.duration ||
+                            0}
+                          min • {(booking.service as any)?.category}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <User className="h-3 w-3 mr-1 text-muted-foreground" />
+                        {booking.professional?.name}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {booking.startTime
+                            ? new Date(booking.startTime).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )
+                            : "N/A"}
                         </div>
                         <div className="text-sm text-muted-foreground flex items-center">
-                          <Phone className="h-3 w-3 mr-1" />
-                          {booking.client &&
-                          "phone" in booking.client &&
-                          booking.client.phone
-                            ? booking.client.phone
-                            : ""}
+                          <Clock className="h-3 w-3 mr-1" />
+                          {booking.startTime
+                            ? new Date(booking.startTime).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )
+                            : "N/A"}
                         </div>
-                        {booking.client?.isFirstTime && (
-                          <Badge variant="secondary" className="text-xs mt-1">
-                            First Time
-                          </Badge>
-                        )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{booking.service?.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {(booking.service as any)?.duration?.duration ||
-                          (booking.service as any)?.duration ||
-                          0}
-                        min • {(booking.service as any)?.category}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <User className="h-3 w-3 mr-1 text-muted-foreground" />
-                      {booking.professional?.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {booking.startTime
-                          ? new Date(booking.startTime).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              }
-                            )
-                          : "N/A"}
-                      </div>
-                      <div className="text-sm text-muted-foreground flex items-center">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {booking.startTime
-                          ? new Date(booking.startTime).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )
-                          : "N/A"}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <Badge
-                        variant="outline"
-                        className={getStatusColor(booking.status)}
-                      >
-                        {getStatusIcon(booking.status)}
-                        <span className="ml-1 capitalize">
-                          {booking.status}
-                        </span>
-                      </Badge>
-                      {booking.status === "pending" &&
-                        (booking as any).service?.bookingSettings
-                          ?.requireManualConfirmation && (
-                          <Badge
-                            variant="outline"
-                            className="bg-orange-100 text-orange-800 border-orange-200 text-xs"
-                          >
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            Awaiting Confirmation
-                          </Badge>
-                        )}
-                    </div>
-                  </TableCell>
-                  {canViewPaymentDetails && (
+                    </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-1">
                         <Badge
                           variant="outline"
-                          className={getPaymentStatusColor(
-                            booking.paymentStatus || "pending"
-                          )}
+                          className={getStatusColor(booking.status)}
                         >
-                          {booking.paymentStatus || "pending"}
+                          {getStatusIcon(booking.status)}
+                          <span className="ml-1 capitalize">
+                            {booking.status}
+                          </span>
                         </Badge>
-                        {booking.paymentStatus === "pending" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePaymentClick(booking)}
-                          >
-                            Process
-                          </Button>
-                        )}
-                        {booking.paymentStatus === "paid" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePaymentClick(booking)}
-                          >
-                            Details
-                          </Button>
-                        )}
+                        {booking.status === "pending" &&
+                          (booking as any).service?.bookingSettings
+                            ?.requireManualConfirmation && (
+                            <Badge
+                              variant="outline"
+                              className="bg-orange-100 text-orange-800 border-orange-200 text-xs"
+                            >
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Awaiting Confirmation
+                            </Badge>
+                          )}
                       </div>
                     </TableCell>
-                  )}
-                  {canViewPricing && (
+                    {canViewPaymentDetails && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={getPaymentStatusColor(
+                              booking.paymentStatus || "pending"
+                            )}
+                          >
+                            {booking.paymentStatus || "pending"}
+                          </Badge>
+                          {booking.paymentStatus === "pending" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePaymentClick(booking)}
+                            >
+                              Process
+                            </Button>
+                          )}
+                          {booking.paymentStatus === "paid" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePaymentClick(booking)}
+                            >
+                              Details
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                    {canViewPricing && (
+                      <TableCell>
+                        <div className="font-medium">
+                          €
+                          {(booking.service as any)?.pricing?.basePrice ||
+                            (booking.service as any)?.price ||
+                            0}
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell>
-                      <div className="font-medium">
-                        €
-                        {(booking.service as any)?.pricing?.basePrice ||
-                          (booking.service as any)?.price ||
-                          0}
-                      </div>
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {/* View Details Button */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewDetails(booking)}
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-
-                      {/* Quick Confirm Button for Pending Bookings */}
-                      {booking.status === "pending" && (
+                      <div className="flex items-center gap-1">
+                        {/* View Details Button */}
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleConfirmBooking(booking.id)}
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="Confirm Booking"
+                          onClick={() => handleViewDetails(booking)}
+                          title="View Details"
                         >
-                          <CheckCircle className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
 
-                      {/* More Actions Dropdown */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
+                        {/* Quick Confirm Button for Pending Bookings */}
+                        {booking.status === "pending" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleConfirmBooking(booking.id)}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            title="Confirm Booking"
+                          >
+                            <CheckCircle className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              const editData = {
-                                id: booking.id.toString(),
-                                clientName: booking.client?.name || "",
-                                clientEmail: booking.client?.email || "",
-                                serviceName: booking.service?.name || "",
-                                professionalName:
-                                  booking.professional?.name || "",
-                                professionalId: booking.professionalId || "",
-                                date: booking.startTime
-                                  ? new Date(booking.startTime)
-                                      .toISOString()
-                                      .split("T")[0]
-                                  : "",
-                                time: booking.startTime
-                                  ? new Date(
-                                      booking.startTime
-                                    ).toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: false,
-                                    })
-                                  : "",
-                                duration:
-                                  (booking.service as any)?.duration
-                                    ?.duration ||
-                                  (booking.service as any)?.duration ||
-                                  60,
-                                price:
-                                  (booking.service as any)?.pricing
-                                    ?.basePrice ||
-                                  (booking.service as any)?.price ||
-                                  0,
-                                status: booking.status,
-                                notes: booking.notes || "",
-                              };
+                        )}
 
-                              console.log(
-                                "[BookingManagement] Opening edit dialog with",
-                                professionalsList.length,
-                                "professionals:",
-                                professionalsList
-                              );
-                              console.log(
-                                "[BookingManagement] Edit data:",
-                                editData
-                              );
-                              setEditingBooking(editData);
-                              setIsEditDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Booking
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedBookingDetails(booking);
-                              setIsDetailsDialogOpen(true);
-                            }}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                        {/* More Actions Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const editData = {
+                                  id: booking.id.toString(),
+                                  clientName: booking.client?.name || "",
+                                  clientEmail: booking.client?.email || "",
+                                  serviceName: booking.service?.name || "",
+                                  professionalName:
+                                    booking.professional?.name || "",
+                                  professionalId: booking.professionalId || "",
+                                  date: booking.startTime
+                                    ? new Date(booking.startTime)
+                                        .toISOString()
+                                        .split("T")[0]
+                                    : "",
+                                  time: booking.startTime
+                                    ? new Date(
+                                        booking.startTime
+                                      ).toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false,
+                                      })
+                                    : "",
+                                  duration:
+                                    (booking.service as any)?.duration
+                                      ?.duration ||
+                                    (booking.service as any)?.duration ||
+                                    60,
+                                  price:
+                                    (booking.service as any)?.pricing
+                                      ?.basePrice ||
+                                    (booking.service as any)?.price ||
+                                    0,
+                                  status: booking.status,
+                                  notes: booking.notes || "",
+                                };
 
-                          {/* Confirm/Reject actions for pending bookings */}
-                          {booking.status === "pending" &&
-                            (booking as any).service?.bookingSettings
-                              ?.requireManualConfirmation && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={async () => {
-                                    if (
-                                      confirm(
-                                        "Confirm this booking? The client will be notified."
-                                      )
-                                    ) {
-                                      await handleConfirmBooking(booking.id);
-                                    }
-                                  }}
-                                  className="text-green-600"
-                                >
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Confirm Booking
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={async () => {
-                                    const reason = prompt(
-                                      "Reason for rejection (optional):"
-                                    );
-                                    if (reason !== null) {
-                                      await handleRejectBooking(
-                                        booking.id,
-                                        reason
+                                console.log(
+                                  "[BookingManagement] Opening edit dialog with",
+                                  professionalsList.length,
+                                  "professionals:",
+                                  professionalsList
+                                );
+                                console.log(
+                                  "[BookingManagement] Edit data:",
+                                  editData
+                                );
+                                setEditingBooking(editData);
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Booking
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedBookingDetails(booking);
+                                setIsDetailsDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+
+                            {/* Confirm/Reject actions for pending bookings */}
+                            {booking.status === "pending" &&
+                              (booking as any).service?.bookingSettings
+                                ?.requireManualConfirmation && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      if (
+                                        confirm(
+                                          "Confirm this booking? The client will be notified."
+                                        )
+                                      ) {
+                                        await handleConfirmBooking(booking.id);
+                                      }
+                                    }}
+                                    className="text-green-600"
+                                  >
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Confirm Booking
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      const reason = prompt(
+                                        "Reason for rejection (optional):"
                                       );
-                                    }
-                                  }}
-                                  className="text-red-600"
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Reject Booking
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
+                                      if (reason !== null) {
+                                        await handleRejectBooking(
+                                          booking.id,
+                                          reason
+                                        );
+                                      }
+                                    }}
+                                    className="text-red-600"
+                                  >
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Reject Booking
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
 
-                          <DropdownMenuItem
-                            onClick={async () => {
-                              if (
-                                confirm(
-                                  "Are you sure you want to mark this booking as completed?"
-                                )
-                              ) {
-                                try {
-                                  await completeBooking(booking.id);
-                                  toast.success(
-                                    "Booking completed successfully"
-                                  );
-                                  fetchBookings();
-                                } catch (error) {
-                                  toast.error("Failed to complete booking");
-                                  console.error(error);
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to mark this booking as completed?"
+                                  )
+                                ) {
+                                  try {
+                                    await completeBooking(booking.id);
+                                    toast.success(
+                                      "Booking completed successfully"
+                                    );
+                                    fetchBookings();
+                                  } catch (error) {
+                                    toast.error("Failed to complete booking");
+                                    console.error(error);
+                                  }
                                 }
-                              }
-                            }}
-                            disabled={booking.status === "completed"}
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Mark as Completed
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={async () => {
-                              if (
-                                confirm(
-                                  "Are you sure you want to cancel this booking?"
-                                )
-                              ) {
-                                try {
-                                  await cancelBooking(booking.id);
-                                  toast.success(
-                                    "Booking cancelled successfully"
-                                  );
-                                  fetchBookings();
-                                } catch (error) {
-                                  toast.error("Failed to cancel booking");
-                                  console.error(error);
+                              }}
+                              disabled={booking.status === "completed"}
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Mark as Completed
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to cancel this booking?"
+                                  )
+                                ) {
+                                  try {
+                                    await cancelBooking(booking.id);
+                                    toast.success(
+                                      "Booking cancelled successfully"
+                                    );
+                                    fetchBookings();
+                                  } catch (error) {
+                                    toast.error("Failed to cancel booking");
+                                    console.error(error);
+                                  }
                                 }
+                              }}
+                              disabled={
+                                booking.status === "cancelled" ||
+                                booking.status === "completed"
                               }
-                            }}
-                            disabled={
-                              booking.status === "cancelled" ||
-                              booking.status === "completed"
-                            }
-                          >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Cancel Booking
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handlePaymentClick(booking)}
-                          >
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Process Payment
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                            >
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Cancel Booking
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handlePaymentClick(booking)}
+                            >
+                              <CreditCard className="mr-2 h-4 w-4" />
+                              Process Payment
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : (
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">
+                Kanban Board ({filteredBookings.length} bookings)
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Drag and drop bookings to update their status
+              </p>
+            </div>
+          </div>
+          <BookingsKanban
+            bookings={filteredBookings.map((booking) => ({
+              _id: booking.id,
+              clientId: {
+                _id: booking.client?.id || "",
+                firstName: booking.client?.name?.split(" ")[0] || "Unknown",
+                lastName:
+                  booking.client?.name?.split(" ").slice(1).join(" ") || "",
+                avatar:
+                  booking.client && "avatar" in booking.client
+                    ? (booking.client.avatar as string | undefined)
+                    : undefined,
+              },
+              serviceId: booking.service
+                ? {
+                    _id: booking.service.id || "",
+                    name: booking.service.name || "",
+                  }
+                : undefined,
+              professionalId: booking.professional
+                ? {
+                    _id: booking.professional.id || "",
+                    firstName: booking.professional.name?.split(" ")[0] || "",
+                    lastName:
+                      booking.professional.name
+                        ?.split(" ")
+                        .slice(1)
+                        .join(" ") || "",
+                  }
+                : undefined,
+              date: booking.date || "",
+              time: booking.time || "",
+              status: booking.status === "no-show" ? "no_show" : booking.status,
+              totalPrice:
+                "price" in booking && typeof booking.price === "number"
+                  ? booking.price
+                  : "totalPrice" in booking &&
+                    typeof booking.totalPrice === "number"
+                  ? booking.totalPrice
+                  : 0,
+              isRecurring:
+                "recurrenceParentId" in booking && booking.recurrenceParentId
+                  ? true
+                  : false,
+              recurrenceParentId:
+                "recurrenceParentId" in booking
+                  ? (booking.recurrenceParentId as string)
+                  : undefined,
+            }))}
+            onRefresh={fetchBookings}
+          />
+        </div>
+      )}
 
       {/* Edit Dialog */}
       <EditBookingDialog

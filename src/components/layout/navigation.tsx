@@ -6,6 +6,8 @@ import { Button } from "../ui/button";
 import { useTheme } from "../theme-provider";
 import { LanguageSwitcher } from "../language-switcher";
 import { RegionSelector } from "../region-selector";
+import { NotificationsDropdown } from "../notifications/notifications-dropdown";
+import { GlobalSearch } from "../search/global-search";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +107,7 @@ export function Navigation() {
             label: t("nav.bookings", "Bookings"),
           },
           { path: "/entity/services", label: t("nav.services", "Services") },
+          { path: "/entity/reviews", label: t("nav.reviews", "Reviews") },
           {
             path: "/entity/professionals",
             label: t("nav.professionals", "Professionals"),
@@ -192,6 +195,40 @@ export function Navigation() {
           {
             path: "/simple/settings",
             label: t("nav.settings", "Settings"),
+          },
+        ],
+      };
+    }
+
+    // Professional users (employee)
+    if (user?.role === "professional") {
+      return {
+        main: [
+          {
+            path: "/professional/dashboard",
+            label: t("nav.dashboard", "Dashboard"),
+          },
+        ],
+        operations: [
+          {
+            path: "/professional/bookings",
+            label: t("nav.bookings", "My Appointments"),
+          },
+          {
+            path: "/professional/schedule",
+            label: t("nav.schedule", "Schedule"),
+          },
+        ],
+        financial: [
+          {
+            path: "/professional/earnings",
+            label: t("nav.earnings", "Earnings"),
+          },
+        ],
+        settings: [
+          {
+            path: "/professional/profile",
+            label: t("nav.profile", "Profile"),
           },
         ],
       };
@@ -621,6 +658,12 @@ export function Navigation() {
             {/* Language & Region Switcher */}
             <RegionSelector />
             <LanguageSwitcher />
+
+            {/* Global Search */}
+            <GlobalSearch />
+
+            {/* Notifications */}
+            <NotificationsDropdown />
 
             <Button
               variant="ghost"

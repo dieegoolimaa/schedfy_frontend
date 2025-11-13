@@ -8,7 +8,6 @@ import {
   NotificationChannel,
   NotificationEvent,
   CreateNotificationTemplateDto,
-  UpdateNotificationTemplateDto,
 } from "../../services/notification-templates.service";
 import {
   Card,
@@ -43,40 +42,31 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "../../components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
 import {
   Bell,
   Mail,
   MessageSquare,
   Smartphone,
   Clock,
-  Zap,
-  Settings,
   Plus,
   Edit,
   Trash2,
   Copy,
   Eye,
   CheckCircle,
-  AlertCircle,
-  TrendingUp,
-  Users,
   Heart,
-  Star,
-  Gift,
   Target,
   Sparkles,
   Bot,
   Globe,
+  BarChart3,
+  Send,
+  Calendar,
 } from "lucide-react";
+import { Separator } from "../../components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function NotificationCenterPage() {
   const { t } = useTranslation();
@@ -91,6 +81,24 @@ export function NotificationCenterPage() {
     NotificationTemplate[]
   >([]);
 
+  // Form state for create/edit
+  const [formData, setFormData] = useState<CreateNotificationTemplateDto>({
+    name: "",
+    event: "booking_confirmed",
+    channels: ["email"],
+    subject: "",
+    message: "",
+    timing: "Immediate",
+    enabled: true,
+    variables: [],
+    smartFeatures: {
+      aiOptimizedTiming: false,
+      sentimentAnalysis: false,
+      personalization: true,
+      autoTranslation: false,
+    },
+  });
+
   // Fetch templates on component mount
   useEffect(() => {
     if (entity?.id) {
@@ -100,46 +108,86 @@ export function NotificationCenterPage() {
 
   const fetchTemplates = async () => {
     if (!entity?.id) return;
-    
+
     try {
       setLoading(true);
-      const templates = await notificationTemplatesService.getTemplatesByEntity(entity.id);
+      const templates = await notificationTemplatesService.getTemplatesByEntity(
+        entity.id
+      );
       setNotificationTemplates(templates);
     } catch (error: any) {
-      console.error('Error fetching templates:', error);
-      toast.error(error.response?.data?.message || 'Failed to load notification templates');
+      console.error("Error fetching templates:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to load notification templates"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateTemplate = async (data: CreateNotificationTemplateDto) => {
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      event: "booking_confirmed",
+      channels: ["email"],
+      subject: "",
+      message: "",
+      timing: "Immediate",
+      enabled: true,
+      variables: [],
+      smartFeatures: {
+        aiOptimizedTiming: false,
+        sentimentAnalysis: false,
+        personalization: true,
+        autoTranslation: false,
+      },
+    });
+  };
+
+  const handleCreateTemplate = async () => {
+    if (!formData.name || !formData.message) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     try {
       setLoading(true);
-      const newTemplate = await notificationTemplatesService.createTemplate(data);
+      const newTemplate = await notificationTemplatesService.createTemplate(
+        formData
+      );
       setNotificationTemplates([...notificationTemplates, newTemplate]);
       setIsCreateDialogOpen(false);
-      toast.success('Template created successfully');
+      resetForm();
+      toast.success("Template created successfully");
     } catch (error: any) {
-      console.error('Error creating template:', error);
-      toast.error(error.response?.data?.message || 'Failed to create template');
+      console.error("Error creating template:", error);
+      toast.error(error.response?.data?.message || "Failed to create template");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateTemplate = async (id: string, data: UpdateNotificationTemplateDto) => {
+  const handleUpdateTemplate = async () => {
+    if (!selectedTemplate) return;
+
     try {
       setLoading(true);
-      const updatedTemplate = await notificationTemplatesService.updateTemplate(id, data);
+      const updatedTemplate = await notificationTemplatesService.updateTemplate(
+        selectedTemplate._id,
+        formData
+      );
       setNotificationTemplates(
-        notificationTemplates.map((t) => (t._id === id ? updatedTemplate : t))
+        notificationTemplates.map((t) =>
+          t._id === selectedTemplate._id ? updatedTemplate : t
+        )
       );
       setIsEditDialogOpen(false);
-      toast.success('Template updated successfully');
+      setSelectedTemplate(null);
+      resetForm();
+      toast.success("Template updated successfully");
     } catch (error: any) {
-      console.error('Error updating template:', error);
-      toast.error(error.response?.data?.message || 'Failed to update template');
+      console.error("Error updating template:", error);
+      toast.error(error.response?.data?.message || "Failed to update template");
     } finally {
       setLoading(false);
     }
@@ -147,28 +195,34 @@ export function NotificationCenterPage() {
 
   const handleToggleTemplate = async (id: string) => {
     try {
-      const updatedTemplate = await notificationTemplatesService.toggleTemplate(id);
+      const updatedTemplate = await notificationTemplatesService.toggleTemplate(
+        id
+      );
       setNotificationTemplates(
         notificationTemplates.map((t) => (t._id === id ? updatedTemplate : t))
       );
-      toast.success(`Template ${updatedTemplate.enabled ? 'enabled' : 'disabled'}`);
+      toast.success(
+        `Template ${updatedTemplate.enabled ? "enabled" : "disabled"}`
+      );
     } catch (error: any) {
-      console.error('Error toggling template:', error);
-      toast.error(error.response?.data?.message || 'Failed to toggle template');
+      console.error("Error toggling template:", error);
+      toast.error(error.response?.data?.message || "Failed to toggle template");
     }
   };
 
   const handleDeleteTemplate = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this template?')) return;
+    if (!confirm("Are you sure you want to delete this template?")) return;
 
     try {
       setLoading(true);
       await notificationTemplatesService.deleteTemplate(id);
-      setNotificationTemplates(notificationTemplates.filter((t) => t._id !== id));
-      toast.success('Template deleted successfully');
+      setNotificationTemplates(
+        notificationTemplates.filter((t) => t._id !== id)
+      );
+      toast.success("Template deleted successfully");
     } catch (error: any) {
-      console.error('Error deleting template:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete template');
+      console.error("Error deleting template:", error);
+      toast.error(error.response?.data?.message || "Failed to delete template");
     } finally {
       setLoading(false);
     }
@@ -177,183 +231,37 @@ export function NotificationCenterPage() {
   const handleDuplicateTemplate = async (id: string) => {
     try {
       setLoading(true);
-      const duplicated = await notificationTemplatesService.duplicateTemplate(id);
+      const duplicated = await notificationTemplatesService.duplicateTemplate(
+        id
+      );
       setNotificationTemplates([...notificationTemplates, duplicated]);
-      toast.success('Template duplicated successfully');
+      toast.success("Template duplicated successfully");
     } catch (error: any) {
-      console.error('Error duplicating template:', error);
-      toast.error(error.response?.data?.message || 'Failed to duplicate template');
+      console.error("Error duplicating template:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to duplicate template"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleSeedDefaultTemplates = async () => {
-    if (!confirm('This will create default templates. Continue?')) return;
+    if (!confirm("This will create default templates. Continue?")) return;
 
     try {
       setLoading(true);
-      const templates = await notificationTemplatesService.seedDefaultTemplates();
+      const templates =
+        await notificationTemplatesService.seedDefaultTemplates();
       setNotificationTemplates([...notificationTemplates, ...templates]);
       toast.success(`${templates.length} default templates created`);
     } catch (error: any) {
-      console.error('Error seeding templates:', error);
-      toast.error(error.response?.data?.message || 'Failed to seed templates');
+      console.error("Error seeding templates:", error);
+      toast.error(error.response?.data?.message || "Failed to seed templates");
     } finally {
       setLoading(false);
     }
   };
-
-export function NotificationCenterPage() {
-  const { t } = useTranslation();
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<NotificationTemplate | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
-
-  // Mock notification templates
-  const [notificationTemplates, setNotificationTemplates] = useState<
-    NotificationTemplate[]
-  >([
-    {
-      id: "1",
-      name: "Booking Confirmation",
-      event: "booking_confirmed",
-      channels: ["email", "sms", "whatsapp"],
-      subject: "Your booking is confirmed! 🎉",
-      message:
-        "Hi {{client_name}}, your appointment for {{service_name}} with {{professional_name}} is confirmed for {{booking_date}} at {{booking_time}}. Looking forward to seeing you!",
-      timing: "Immediate",
-      enabled: true,
-      variables: [
-        "client_name",
-        "service_name",
-        "professional_name",
-        "booking_date",
-        "booking_time",
-        "location",
-      ],
-      smartFeatures: {
-        aiOptimizedTiming: false,
-        sentimentAnalysis: false,
-        personalization: true,
-        autoTranslation: true,
-      },
-    },
-    {
-      id: "2",
-      name: "Smart Reminder - 24h Before",
-      event: "booking_reminder",
-      channels: ["email", "sms", "push"],
-      subject: "Tomorrow's appointment with {{business_name}}",
-      message:
-        "Hi {{client_name}}! Just a friendly reminder about your appointment tomorrow at {{booking_time}} for {{service_name}}. We can't wait to see you! Reply YES to confirm or CANCEL to reschedule.",
-      timing: "24 hours before",
-      enabled: true,
-      variables: [
-        "client_name",
-        "business_name",
-        "booking_time",
-        "service_name",
-      ],
-      smartFeatures: {
-        aiOptimizedTiming: true,
-        sentimentAnalysis: true,
-        personalization: true,
-        autoTranslation: true,
-      },
-    },
-    {
-      id: "3",
-      name: "Last Minute Reminder",
-      event: "booking_reminder",
-      channels: ["sms", "push"],
-      subject: "",
-      message:
-        "{{client_name}}, your appointment starts in 2 hours! 📍 {{location}}. See you soon!",
-      timing: "2 hours before",
-      enabled: true,
-      variables: ["client_name", "location"],
-      smartFeatures: {
-        aiOptimizedTiming: false,
-        sentimentAnalysis: false,
-        personalization: false,
-        autoTranslation: true,
-      },
-    },
-    {
-      id: "4",
-      name: "Review Request with Incentive",
-      event: "review_request",
-      channels: ["email", "whatsapp"],
-      subject: "How was your experience? Get 10% off next visit! ⭐",
-      message:
-        "Hi {{client_name}}! Thank you for visiting us for {{service_name}}. We'd love to hear about your experience. Leave a review and get 10% off your next booking! {{review_link}}",
-      timing: "24 hours after",
-      enabled: true,
-      variables: ["client_name", "service_name", "review_link"],
-      smartFeatures: {
-        aiOptimizedTiming: true,
-        sentimentAnalysis: true,
-        personalization: true,
-        autoTranslation: true,
-      },
-    },
-    {
-      id: "5",
-      name: "Win-Back No-Show",
-      event: "no_show_followup",
-      channels: ["email", "sms"],
-      subject: "We missed you! Come back with 20% off 💙",
-      message:
-        "Hi {{client_name}}, we noticed you missed your appointment. Life gets busy! We'd love to see you again. Here's 20% off your next booking: {{voucher_code}}",
-      timing: "3 days after no-show",
-      enabled: true,
-      variables: ["client_name", "voucher_code"],
-      smartFeatures: {
-        aiOptimizedTiming: true,
-        sentimentAnalysis: true,
-        personalization: true,
-        autoTranslation: false,
-      },
-    },
-    {
-      id: "6",
-      name: "Birthday Celebration",
-      event: "birthday",
-      channels: ["email", "sms", "whatsapp"],
-      subject: "Happy Birthday {{client_name}}! 🎂 Special gift inside",
-      message:
-        "Happy Birthday {{client_name}}! 🎉 To celebrate your special day, enjoy a complimentary upgrade on your next visit. Valid for 30 days: {{birthday_code}}",
-      timing: "On birthday at 9 AM",
-      enabled: true,
-      variables: ["client_name", "birthday_code"],
-      smartFeatures: {
-        aiOptimizedTiming: false,
-        sentimentAnalysis: false,
-        personalization: true,
-        autoTranslation: true,
-      },
-    },
-    {
-      id: "7",
-      name: "Loyalty Milestone Reached",
-      event: "loyalty_reward",
-      channels: ["email", "push", "in-app"],
-      subject: "🏆 You've reached {{tier_name}} status!",
-      message:
-        "Congratulations {{client_name}}! You've unlocked {{tier_name}} tier with exclusive benefits: {{benefits_list}}. Thank you for your loyalty!",
-      timing: "Immediate",
-      enabled: true,
-      variables: ["client_name", "tier_name", "benefits_list"],
-      smartFeatures: {
-        aiOptimizedTiming: false,
-        sentimentAnalysis: false,
-        personalization: true,
-        autoTranslation: true,
-      },
-    },
-  ]);
 
   // Channel statistics
   const channelStats = {
@@ -368,21 +276,21 @@ export function NotificationCenterPage() {
       sent: 8950,
       delivered: 8890,
       opened: 7823,
-      clicked: 2156,
-      rate: 88.0,
+      clicked: 0,
+      rate: 88,
     },
     whatsapp: {
       sent: 5670,
-      delivered: 5620,
+      delivered: 5640,
       opened: 5245,
-      clicked: 3124,
+      clicked: 2890,
       rate: 93.3,
     },
     push: {
       sent: 3420,
       delivered: 3180,
       opened: 1890,
-      clicked: 945,
+      clicked: 890,
       rate: 59.4,
     },
   };
@@ -420,17 +328,64 @@ export function NotificationCenterPage() {
         return "bg-pink-500";
       case "loyalty_reward":
         return "bg-purple-500";
-      case "promotion":
-        return "bg-orange-500";
-      case "no_show_followup":
-        return "bg-amber-500";
       default:
         return "bg-gray-500";
     }
   };
 
+  const eventOptions: { value: NotificationEvent; label: string }[] = [
+    { value: "booking_confirmed", label: "Booking Confirmed" },
+    { value: "booking_reminder", label: "Booking Reminder" },
+    { value: "booking_cancelled", label: "Booking Cancelled" },
+    { value: "booking_rescheduled", label: "Booking Rescheduled" },
+    { value: "payment_received", label: "Payment Received" },
+    { value: "review_request", label: "Review Request" },
+    { value: "birthday", label: "Birthday" },
+    { value: "loyalty_reward", label: "Loyalty Reward" },
+    { value: "promotion", label: "Promotion" },
+    { value: "no_show_followup", label: "No-Show Follow-up" },
+  ];
+
+  const timingOptions = [
+    "Immediate",
+    "5 minutes before",
+    "30 minutes before",
+    "1 hour before",
+    "2 hours before",
+    "24 hours before",
+    "48 hours before",
+    "1 week before",
+    "1 hour after",
+    "24 hours after",
+    "3 days after",
+    "1 week after",
+  ];
+
+  const channelOptions: {
+    value: NotificationChannel;
+    label: string;
+    icon: any;
+  }[] = [
+    { value: "email", label: "Email", icon: Mail },
+    { value: "sms", label: "SMS", icon: MessageSquare },
+    { value: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+    { value: "push", label: "Push", icon: Smartphone },
+    { value: "in-app", label: "In-App", icon: Bell },
+  ];
+
   const handleEditTemplate = (template: NotificationTemplate) => {
     setSelectedTemplate(template);
+    setFormData({
+      name: template.name,
+      event: template.event,
+      channels: template.channels,
+      subject: template.subject,
+      message: template.message,
+      timing: template.timing,
+      enabled: template.enabled,
+      variables: template.variables,
+      smartFeatures: template.smartFeatures,
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -439,9 +394,33 @@ export function NotificationCenterPage() {
     setIsPreviewDialogOpen(true);
   };
 
-  const toggleTemplateStatus = (templateId: string) => {
-    handleToggleTemplate(templateId);
+  const handleOpenCreateDialog = () => {
+    resetForm();
+    setIsCreateDialogOpen(true);
   };
+
+  const toggleChannel = (channel: NotificationChannel) => {
+    setFormData((prev) => ({
+      ...prev,
+      channels: prev.channels.includes(channel)
+        ? prev.channels.filter((c) => c !== channel)
+        : [...prev.channels, channel],
+    }));
+  };
+
+  const availableVariables = [
+    "{{client_name}}",
+    "{{business_name}}",
+    "{{service_name}}",
+    "{{professional_name}}",
+    "{{booking_date}}",
+    "{{booking_time}}",
+    "{{location}}",
+    "{{price}}",
+    "{{duration}}",
+    "{{booking_link}}",
+    "{{cancel_link}}",
+  ];
 
   return (
     <div className="space-y-6">
@@ -467,16 +446,16 @@ export function NotificationCenterPage() {
         </div>
         <div className="flex gap-2">
           {notificationTemplates.length === 0 && (
-            <Button variant="outline" onClick={handleSeedDefaultTemplates} disabled={loading}>
+            <Button
+              variant="outline"
+              onClick={handleSeedDefaultTemplates}
+              disabled={loading}
+            >
               <Sparkles className="mr-2 h-4 w-4" />
               {t("notifications.seedDefaults", "Seed Defaults")}
             </Button>
           )}
-          <Button variant="outline">
-            <Settings className="mr-2 h-4 w-4" />
-            {t("notifications.settings", "Settings")}
-          </Button>
-          <Button onClick={() => setIsCreateDialogOpen(true)} disabled={loading}>
+          <Button onClick={handleOpenCreateDialog} disabled={loading}>
             <Plus className="mr-2 h-4 w-4" />
             {t("notifications.createTemplate", "New Template")}
           </Button>
@@ -534,17 +513,10 @@ export function NotificationCenterPage() {
               Templates
             </TabsTrigger>
             <TabsTrigger
-              value="automation"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3"
-            >
-              <Zap className="mr-2 h-4 w-4" />
-              Automation
-            </TabsTrigger>
-            <TabsTrigger
               value="analytics"
               className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3"
             >
-              <TrendingUp className="mr-2 h-4 w-4" />
+              <BarChart3 className="mr-2 h-4 w-4" />
               Analytics
             </TabsTrigger>
             <TabsTrigger
@@ -564,10 +536,16 @@ export function NotificationCenterPage() {
             {!loading && notificationTemplates.length === 0 && (
               <Card>
                 <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground mb-4">No templates found</p>
-                  <Button onClick={handleSeedDefaultTemplates}>
+                  <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-lg font-semibold mb-2">
+                    No templates found
+                  </p>
+                  <p className="text-muted-foreground mb-4">
+                    Create your first notification template to get started
+                  </p>
+                  <Button onClick={handleOpenCreateDialog}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Create Default Templates
+                    Create Template
                   </Button>
                 </CardContent>
               </Card>
@@ -592,6 +570,21 @@ export function NotificationCenterPage() {
                         >
                           {template.event.replace(/_/g, " ")}
                         </Badge>
+                        {!template.enabled && (
+                          <Badge variant="outline">Disabled</Badge>
+                        )}
+                      </div>
+
+                      {/* Subject/Message Preview */}
+                      <div className="space-y-1">
+                        {template.subject && (
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Subject: {template.subject}
+                          </p>
+                        )}
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {template.message}
+                        </p>
                       </div>
 
                       {/* Channels */}
@@ -664,28 +657,28 @@ export function NotificationCenterPage() {
                     <div className="flex flex-col items-end gap-3">
                       <Switch
                         checked={template.enabled}
-                        onCheckedChange={() => handleToggleTemplate(template._id)}
+                        onCheckedChange={() =>
+                          handleToggleTemplate(template._id)
+                        }
                         disabled={loading}
                       />
                       <div className="flex gap-2">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => handlePreviewTemplate(template)}
                         >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleEditTemplate(template)}
                         >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
+                          <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleDuplicateTemplate(template._id)}
                           disabled={loading}
@@ -695,11 +688,10 @@ export function NotificationCenterPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive"
                           onClick={() => handleDeleteTemplate(template._id)}
                           disabled={loading}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
                     </div>
@@ -710,499 +702,746 @@ export function NotificationCenterPage() {
           </div>
         </TabsContent>
 
-        {/* Automation Tab */}
-        <TabsContent value="automation" className="space-y-4">
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Smart Automation Rules</CardTitle>
+                <CardTitle>Delivery Performance</CardTitle>
                 <CardDescription>
-                  AI-powered automation to send the right message at the right
-                  time
+                  Overall notification delivery success rate
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start justify-between p-4 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Zap className="h-5 w-5 text-yellow-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Optimal Send Time</h4>
-                      <p className="text-sm text-muted-foreground">
-                        AI analyzes client behavior to send at their most active
-                        time
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Email</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">97.8%</p>
+                      <p className="text-xs text-muted-foreground">
+                        12,180 / 12,450
                       </p>
                     </div>
                   </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-start justify-between p-4 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Target className="h-5 w-5 text-blue-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Smart Segmentation</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically group clients by behavior and preferences
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-green-500" />
+                      <span className="font-medium">SMS</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">99.3%</p>
+                      <p className="text-xs text-muted-foreground">
+                        8,890 / 8,950
                       </p>
                     </div>
                   </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-start justify-between p-4 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Heart className="h-5 w-5 text-pink-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Sentiment Analysis</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Adjust tone based on client satisfaction and history
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-emerald-500" />
+                      <span className="font-medium">WhatsApp</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">99.5%</p>
+                      <p className="text-xs text-muted-foreground">
+                        5,640 / 5,670
                       </p>
                     </div>
                   </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-start justify-between p-4 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Globe className="h-5 w-5 text-green-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Auto-Translation</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically translate to client's preferred language
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4 text-orange-500" />
+                      <span className="font-medium">Push</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">93.0%</p>
+                      <p className="text-xs text-muted-foreground">
+                        3,180 / 3,420
                       </p>
                     </div>
                   </div>
-                  <Switch defaultChecked />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Engagement Boosters</CardTitle>
-                <CardDescription>
-                  Advanced features to increase client engagement
-                </CardDescription>
+                <CardTitle>Engagement Metrics</CardTitle>
+                <CardDescription>Click-through and open rates</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start justify-between p-4 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <MessageSquare className="h-5 w-5 text-blue-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Two-Way Messaging</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Allow clients to reply YES/NO to confirm or reschedule
-                      </p>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">
+                        Email Open Rate
+                      </span>
+                      <span className="text-sm font-semibold">73.2%</span>
+                    </div>
+                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-blue-500 h-full"
+                        style={{ width: "73.2%" }}
+                      />
                     </div>
                   </div>
-                  <Switch defaultChecked />
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">SMS Open Rate</span>
+                      <span className="text-sm font-semibold">88%</span>
+                    </div>
+                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-green-500 h-full"
+                        style={{ width: "88%" }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">
+                        WhatsApp Open Rate
+                      </span>
+                      <span className="text-sm font-semibold">93.3%</span>
+                    </div>
+                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-full"
+                        style={{ width: "93.3%" }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">
+                        Push Open Rate
+                      </span>
+                      <span className="text-sm font-semibold">59.4%</span>
+                    </div>
+                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-orange-500 h-full"
+                        style={{ width: "59.4%" }}
+                      />
+                    </div>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex items-start justify-between p-4 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Gift className="h-5 w-5 text-purple-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Dynamic Incentives</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Auto-generate vouchers for no-shows and win-backs
-                      </p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Most Used Templates</CardTitle>
+                <CardDescription>Top performing templates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {notificationTemplates.slice(0, 5).map((template, index) => (
+                    <div key={template._id} className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{template.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {template.event.replace(/_/g, " ")}
+                        </p>
+                      </div>
+                      <Badge variant="secondary">
+                        {Math.floor(Math.random() * 1000) + 100} sent
+                      </Badge>
                     </div>
-                  </div>
-                  <Switch defaultChecked />
+                  ))}
+                  {notificationTemplates.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No templates yet
+                    </p>
+                  )}
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex items-start justify-between p-4 border rounded-lg">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Latest notification events</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <Star className="h-5 w-5 text-yellow-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Review Incentives</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Reward clients who leave reviews with loyalty points
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                      <Send className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        Booking confirmation sent
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        2 minutes ago
                       </p>
                     </div>
                   </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-start justify-between p-4 border rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Users className="h-5 w-5 text-indigo-500 mt-1" />
-                    <div>
-                      <h4 className="font-medium">Referral Tracking</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Track and reward clients who refer new customers
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                      <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Reminder scheduled</p>
+                      <p className="text-xs text-muted-foreground">
+                        15 minutes ago
                       </p>
                     </div>
                   </div>
-                  <Switch />
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
+                      <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        AI optimization applied
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        1 hour ago
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Performance Analytics</CardTitle>
-              <CardDescription>
-                Track delivery, engagement, and conversion metrics across all
-                channels
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Email Stats */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-5 w-5 text-blue-500" />
-                      <span className="font-medium">Email</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {channelStats.email.sent.toLocaleString()} sent
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Delivered
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {(
-                          (channelStats.email.delivered /
-                            channelStats.email.sent) *
-                          100
-                        ).toFixed(1)}
-                        %
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Opened
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {channelStats.email.rate}%
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Clicked
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {(
-                          (channelStats.email.clicked /
-                            channelStats.email.opened) *
-                          100
-                        ).toFixed(1)}
-                        %
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Converted
-                      </div>
-                      <div className="text-2xl font-bold">18.5%</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SMS Stats */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-green-500" />
-                      <span className="font-medium">SMS</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {channelStats.sms.sent.toLocaleString()} sent
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Delivered
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {(
-                          (channelStats.sms.delivered / channelStats.sms.sent) *
-                          100
-                        ).toFixed(1)}
-                        %
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Opened
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {channelStats.sms.rate}%
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Replied
-                      </div>
-                      <div className="text-2xl font-bold">24.1%</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Converted
-                      </div>
-                      <div className="text-2xl font-bold">32.8%</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* WhatsApp Stats */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-emerald-500" />
-                      <span className="font-medium">WhatsApp</span>
-                      <Badge variant="secondary" className="text-xs">
-                        Highest Engagement
-                      </Badge>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {channelStats.whatsapp.sent.toLocaleString()} sent
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Delivered
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {(
-                          (channelStats.whatsapp.delivered /
-                            channelStats.whatsapp.sent) *
-                          100
-                        ).toFixed(1)}
-                        %
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Opened
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {channelStats.whatsapp.rate}%
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Replied
-                      </div>
-                      <div className="text-2xl font-bold">55.6%</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        Converted
-                      </div>
-                      <div className="text-2xl font-bold">41.2%</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Best Performing Templates */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Performing Templates</CardTitle>
-              <CardDescription>
-                Templates with highest engagement and conversion rates
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">Smart Reminder - 24h Before</h4>
-                    <p className="text-sm text-muted-foreground">
-                      88% open rate • 67% confirmation rate
-                    </p>
-                  </div>
-                  <Badge className="bg-green-500">
-                    <TrendingUp className="mr-1 h-3 w-3" />
-                    Top Performer
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">
-                      Review Request with Incentive
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      76% open rate • 42% review completion
-                    </p>
-                  </div>
-                  <Badge className="bg-blue-500">High Engagement</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">Win-Back No-Show</h4>
-                    <p className="text-sm text-muted-foreground">
-                      81% open rate • 28% rebooking rate
-                    </p>
-                  </div>
-                  <Badge className="bg-purple-500">Best ROI</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         {/* AI Features Tab */}
         <TabsContent value="ai-features" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Bot className="h-6 w-6 text-purple-500" />
-                <div>
-                  <CardTitle>AI-Powered Features</CardTitle>
-                  <CardDescription>
-                    Leverage artificial intelligence to optimize your
-                    notification strategy
-                  </CardDescription>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <CardTitle>AI-Optimized Send Time</CardTitle>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card className="border-purple-200 dark:border-purple-800">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-purple-500" />
-                      <CardTitle className="text-base">
-                        Optimal Send Time Prediction
-                      </CardTitle>
+                <CardDescription>
+                  Automatically determine the best time to send notifications
+                  based on user engagement patterns
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="rounded-lg border p-4 bg-muted/50">
+                    <h4 className="font-semibold mb-2">How it works:</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Analyzes historical engagement data</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Learns individual user preferences</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Optimizes delivery timing automatically</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Enable for all templates</p>
+                      <p className="text-xs text-muted-foreground">
+                        Increase engagement by up to 40%
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      AI analyzes each client's behavior to determine when
-                      they're most likely to engage with notifications.
-                    </p>
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-sm font-medium">
-                        +23% engagement improvement
-                      </span>
-                      <Switch defaultChecked />
-                    </div>
-                  </CardContent>
-                </Card>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                <Card className="border-blue-200 dark:border-blue-800">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Target className="h-5 w-5 text-blue-500" />
-                      <CardTitle className="text-base">
-                        Smart Content Personalization
-                      </CardTitle>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-primary" />
+                  <CardTitle>Sentiment Analysis</CardTitle>
+                </div>
+                <CardDescription>
+                  Analyze customer sentiment and adjust message tone accordingly
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="rounded-lg border p-4 bg-muted/50">
+                    <h4 className="font-semibold mb-2">Benefits:</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Detect customer mood from interactions</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Adapt message tone dynamically</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Improve customer satisfaction</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Enable sentiment analysis</p>
+                      <p className="text-xs text-muted-foreground">
+                        More personalized communications
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Automatically customize message tone, length, and content
-                      based on client preferences and history.
-                    </p>
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-sm font-medium">
-                        +18% conversion rate
-                      </span>
-                      <Switch defaultChecked />
-                    </div>
-                  </CardContent>
-                </Card>
+                    <Switch />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                <Card className="border-green-200 dark:border-green-800">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-green-500" />
-                      <CardTitle className="text-base">
-                        Sentiment Analysis
-                      </CardTitle>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  <CardTitle>Smart Personalization</CardTitle>
+                </div>
+                <CardDescription>
+                  Dynamically personalize content based on customer data
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="rounded-lg border p-4 bg-muted/50">
+                    <h4 className="font-semibold mb-2">Features:</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Auto-insert relevant customer data</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Suggest personalized offers</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Tailor content to preferences</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Enable personalization</p>
+                      <p className="text-xs text-muted-foreground">
+                        Boost conversion rates
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Analyze client satisfaction and adjust communication style
-                      accordingly (empathetic, celebratory, professional).
-                    </p>
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-sm font-medium">
-                        +31% satisfaction score
-                      </span>
-                      <Switch defaultChecked />
-                    </div>
-                  </CardContent>
-                </Card>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                <Card className="border-orange-200 dark:border-orange-800">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-orange-500" />
-                      <CardTitle className="text-base">
-                        Predictive No-Show Prevention
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Identify clients at risk of no-show and send proactive
-                      engagement messages with incentives.
-                    </p>
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-sm font-medium">
-                        -42% no-show rate
-                      </span>
-                      <Switch defaultChecked />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
-                <CardHeader>
-                  <CardTitle>AI Insights Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-purple-600">
-                        +34%
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Overall Engagement
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600">
-                        -28%
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        No-Show Rate
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600">
-                        €12.4K
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Revenue Impact
-                      </div>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-primary" />
+                  <CardTitle>Auto-Translation</CardTitle>
+                </div>
+                <CardDescription>
+                  Automatically translate messages to customer's preferred
+                  language
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="rounded-lg border p-4 bg-muted/50">
+                    <h4 className="font-semibold mb-2">Supported languages:</h4>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Badge variant="secondary">English</Badge>
+                      <Badge variant="secondary">Portuguese</Badge>
+                      <Badge variant="secondary">Spanish</Badge>
+                      <Badge variant="secondary">French</Badge>
+                      <Badge variant="secondary">German</Badge>
+                      <Badge variant="secondary">Italian</Badge>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Enable auto-translation</p>
+                      <p className="text-xs text-muted-foreground">
+                        Reach global customers
+                      </p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
+
+      {/* Create/Edit Dialog */}
+      <Dialog
+        open={isCreateDialogOpen || isEditDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsCreateDialogOpen(false);
+            setIsEditDialogOpen(false);
+            setSelectedTemplate(null);
+            resetForm();
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditDialogOpen ? "Edit Template" : "Create New Template"}
+            </DialogTitle>
+            <DialogDescription>
+              Configure your notification template with multi-channel support
+              and AI features
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Basic Information</h3>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">
+                      Template Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., Booking Confirmation"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="event">
+                      Event Type <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.event}
+                      onValueChange={(value: NotificationEvent) =>
+                        setFormData({ ...formData, event: value })
+                      }
+                    >
+                      <SelectTrigger id="event">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {eventOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timing">Timing</Label>
+                  <Select
+                    value={formData.timing}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, timing: value })
+                    }
+                  >
+                    <SelectTrigger id="timing">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timingOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Channels */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Notification Channels</h3>
+                <p className="text-sm text-muted-foreground">
+                  Select the channels where this notification will be sent
+                </p>
+
+                <div className="grid gap-3 md:grid-cols-3">
+                  {channelOptions.map((option) => {
+                    const Icon = option.icon;
+                    return (
+                      <div
+                        key={option.value}
+                        className={`relative rounded-lg border p-4 cursor-pointer transition-all ${
+                          formData.channels.includes(option.value)
+                            ? "border-primary bg-primary/5"
+                            : "hover:border-primary/50"
+                        }`}
+                        onClick={() => toggleChannel(option.value)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="h-5 w-5" />
+                          <span className="font-medium">{option.label}</span>
+                        </div>
+                        {formData.channels.includes(option.value) && (
+                          <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Content */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Message Content</h3>
+
+                {formData.channels.includes("email") && (
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">
+                      Email Subject <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="subject"
+                      placeholder="Enter email subject line..."
+                      value={formData.subject}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject: e.target.value })
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="message">
+                    Message <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Enter your message here... Use variables like {{client_name}}"
+                    rows={6}
+                    value={formData.message}
+                    onChange={(e) =>
+                      setFormData({ ...formData, message: e.target.value })
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Tip: Use variables to personalize your message
+                  </p>
+                </div>
+
+                {/* Available Variables */}
+                <div className="rounded-lg border p-4 bg-muted/50">
+                  <p className="text-sm font-medium mb-2">
+                    Available Variables:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableVariables.map((variable) => (
+                      <Badge
+                        key={variable}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-secondary/80"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            message: formData.message + " " + variable,
+                          });
+                        }}
+                      >
+                        {variable}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* AI Features */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">AI Features</h3>
+                <p className="text-sm text-muted-foreground">
+                  Enable smart features to optimize your notifications
+                </p>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <Label className="font-medium cursor-pointer">
+                          AI-Optimized Send Time
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Automatically determine the best time to send
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.smartFeatures?.aiOptimizedTiming}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          smartFeatures: {
+                            ...formData.smartFeatures,
+                            aiOptimizedTiming: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-primary" />
+                        <Label className="font-medium cursor-pointer">
+                          Sentiment Analysis
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Adapt tone based on customer sentiment
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.smartFeatures?.sentimentAnalysis}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          smartFeatures: {
+                            ...formData.smartFeatures,
+                            sentimentAnalysis: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Target className="h-4 w-4 text-primary" />
+                        <Label className="font-medium cursor-pointer">
+                          Smart Personalization
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Dynamic content based on customer data
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.smartFeatures?.personalization}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          smartFeatures: {
+                            ...formData.smartFeatures,
+                            personalization: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-primary" />
+                        <Label className="font-medium cursor-pointer">
+                          Auto-Translation
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Translate to customer's language
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.smartFeatures?.autoTranslation}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          smartFeatures: {
+                            ...formData.smartFeatures,
+                            autoTranslation: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Status */}
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <Label className="font-medium">Enable Template</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Active templates will be used automatically
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.enabled}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, enabled: checked })
+                  }
+                />
+              </div>
+            </div>
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateDialogOpen(false);
+                setIsEditDialogOpen(false);
+                setSelectedTemplate(null);
+                resetForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={
+                isEditDialogOpen ? handleUpdateTemplate : handleCreateTemplate
+              }
+              disabled={loading || !formData.name || !formData.message}
+            >
+              {loading ? (
+                "Saving..."
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  {isEditDialogOpen ? "Update Template" : "Create Template"}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Preview Dialog */}
       <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
@@ -1249,171 +1488,21 @@ export function NotificationCenterPage() {
                     </CardContent>
                   </Card>
                 )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Template: {selectedTemplate?.name}</DialogTitle>
-            <DialogDescription>
-              Customize your notification template with smart variables and
-              multi-channel support
-            </DialogDescription>
-          </DialogHeader>
-          {selectedTemplate && (
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Template Name</Label>
-                  <Input defaultValue={selectedTemplate.name} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Event Type</Label>
-                  <Select defaultValue={selectedTemplate.event}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="booking_confirmed">
-                        Booking Confirmed
-                      </SelectItem>
-                      <SelectItem value="booking_reminder">
-                        Booking Reminder
-                      </SelectItem>
-                      <SelectItem value="review_request">
-                        Review Request
-                      </SelectItem>
-                      <SelectItem value="birthday">Birthday</SelectItem>
-                      <SelectItem value="loyalty_reward">
-                        Loyalty Reward
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Channels</Label>
-                <div className="flex flex-wrap gap-2">
-                  {(["email", "sms", "whatsapp", "push"] as const).map(
-                    (channel) => (
-                      <Badge
-                        key={channel}
-                        variant={
-                          selectedTemplate.channels.includes(channel)
-                            ? "default"
-                            : "outline"
-                        }
-                        className="cursor-pointer"
-                      >
-                        {getChannelIcon(channel)}
-                        <span className="ml-1">{channel}</span>
-                      </Badge>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Subject Line (Email)</Label>
-                <Input
-                  defaultValue={selectedTemplate.subject}
-                  placeholder="Enter subject line..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Message</Label>
-                <Textarea
-                  defaultValue={selectedTemplate.message}
-                  rows={6}
-                  placeholder="Enter your message..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Available variables: {selectedTemplate.variables.join(", ")}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Timing</Label>
-                <Select defaultValue={selectedTemplate.timing}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Immediate">Immediate</SelectItem>
-                    <SelectItem value="2 hours before">
-                      2 hours before
-                    </SelectItem>
-                    <SelectItem value="24 hours before">
-                      24 hours before
-                    </SelectItem>
-                    <SelectItem value="48 hours before">
-                      48 hours before
-                    </SelectItem>
-                    <SelectItem value="24 hours after">
-                      24 hours after
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-3">
-                <Label>AI Features</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="font-normal">
-                      AI-Optimized Send Time
-                    </Label>
-                    <Switch
-                      defaultChecked={
-                        selectedTemplate.smartFeatures.aiOptimizedTiming
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="font-normal">Sentiment Analysis</Label>
-                    <Switch
-                      defaultChecked={
-                        selectedTemplate.smartFeatures.sentimentAnalysis
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="font-normal">Smart Personalization</Label>
-                    <Switch
-                      defaultChecked={
-                        selectedTemplate.smartFeatures.personalization
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="font-normal">Auto-Translation</Label>
-                    <Switch
-                      defaultChecked={
-                        selectedTemplate.smartFeatures.autoTranslation
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Save Template
-                </Button>
+                {selectedTemplate.channels.includes("whatsapp") && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="font-medium">WhatsApp Preview</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-green-500 text-white p-3 rounded-lg text-sm max-w-xs">
+                        {selectedTemplate.message}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           )}

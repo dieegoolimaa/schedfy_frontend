@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -6,6 +6,11 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatCard } from "../../components/ui/stat-card";
+import {
+  dashboardService,
+  EntityStats,
+} from "../../services/dashboard.service";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -45,6 +50,9 @@ import {
   Phone,
   Mail,
   Calendar,
+  DollarSign,
+  Users,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
@@ -90,6 +98,8 @@ export function ProfessionalDashboardPage() {
   const [timeRange, setTimeRange] = useState("7d");
   const [showCalendar, setShowCalendar] = useState(false);
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
+  const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
   const { user } = useAuth();
 
   // Fetch entity profile to get working hours
@@ -105,6 +115,24 @@ export function ProfessionalDashboardPage() {
     entityId: user?.entityId || "",
     autoFetch: true,
   });
+
+  // Fetch entity stats with period comparison
+  useEffect(() => {
+    const fetchEntityStats = async () => {
+      if (!user?.entityId) return;
+      try {
+        setStatsLoading(true);
+        const stats = await dashboardService.getEntityStats(user.entityId);
+        setEntityStats(stats);
+      } catch (error) {
+        console.error("Error fetching entity stats:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchEntityStats();
+  }, [user?.entityId]);
 
   // Filter bookings for this professional
   const myBookings = useMemo(() => {
@@ -321,33 +349,86 @@ export function ProfessionalDashboardPage() {
         }
       />
 
-      {/* Quick Stats - Mobile-First Responsive Layout */}
-      <ResponsiveCardGrid>
-        <MobileStatsCard
-          title="Today's Bookings"
-          value={stats.todayBookings}
-          subtitle="6 completed"
-          color="blue"
+      {/* Quick Stats */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+        <StatCard
+          title="Monthly Revenue"
+          value={
+            entityStats?.revenue.thisMonth
+              ? `€${entityStats.revenue.thisMonth.toFixed(2)}`
+              : `€${stats.monthlyRevenue.toFixed(2)}`
+          }
+          subtitle={
+            entityStats?.revenue.change !== undefined
+              ? `${
+                  entityStats.revenue.change > 0 ? "+" : ""
+                }${entityStats.revenue.change.toFixed(1)}% vs last month`
+              : undefined
+          }
+          icon={DollarSign}
+          variant="success"
+          trend={
+            entityStats?.revenue.change !== undefined
+              ? {
+                  value: `${Math.abs(entityStats.revenue.change).toFixed(1)}%`,
+                  isPositive: entityStats.revenue.change > 0,
+                }
+              : undefined
+          }
         />
-        <MobileStatsCard
-          title="Today's Revenue"
-          value={`€${stats.todayRevenue}`}
-          subtitle="+15.2% vs yesterday"
-          color="green"
+        <StatCard
+          title="Monthly Bookings"
+          value={
+            entityStats?.bookings.thisMonth?.toString() ||
+            stats.monthlyBookings.toString()
+          }
+          subtitle={
+            entityStats?.bookings.change !== undefined
+              ? `${
+                  entityStats.bookings.change > 0 ? "+" : ""
+                }${entityStats.bookings.change.toFixed(1)}% vs last month`
+              : undefined
+          }
+          icon={CalendarIcon}
+          variant="info"
+          trend={
+            entityStats?.bookings.change !== undefined
+              ? {
+                  value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
+                  isPositive: entityStats.bookings.change > 0,
+                }
+              : undefined
+          }
         />
-        <MobileStatsCard
-          title="Client Satisfaction"
-          value={stats.clientSatisfaction}
-          subtitle="Excellent rating"
-          color="yellow"
+        <StatCard
+          title="New Clients"
+          value={entityStats?.clients.thisMonth?.toString() || "0"}
+          subtitle={
+            entityStats?.clients.change !== undefined
+              ? `${
+                  entityStats.clients.change > 0 ? "+" : ""
+                }${entityStats.clients.change.toFixed(1)}% vs last month`
+              : undefined
+          }
+          icon={Users}
+          variant="default"
+          trend={
+            entityStats?.clients.change !== undefined
+              ? {
+                  value: `${Math.abs(entityStats.clients.change).toFixed(1)}%`,
+                  isPositive: entityStats.clients.change > 0,
+                }
+              : undefined
+          }
         />
-        <MobileStatsCard
+        <StatCard
           title="Completion Rate"
           value={`${stats.completionRate}%`}
           subtitle="This month"
-          color="purple"
+          icon={CheckCircle}
+          variant="success"
         />
-      </ResponsiveCardGrid>
+      </div>
 
       {/* Today's Schedule */}
       <Card>

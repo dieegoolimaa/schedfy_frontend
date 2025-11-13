@@ -5,9 +5,14 @@ import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
 import { useGoals } from "../../hooks/useGoals";
+import {
+  dashboardService,
+  EntityStats,
+} from "../../services/dashboard.service";
 import { AddClientDialog } from "../../components/dialogs/add-client-dialog";
 import { BookingCreator } from "../../components/booking";
 import { CalendarView } from "../../components/calendar/CalendarView";
+import { QuickBookingWidget } from "../../components/bookings/quick-booking-widget";
 import {
   Card,
   CardContent,
@@ -60,6 +65,8 @@ const IndividualDashboard = () => {
   const [addClientDialogOpen, setAddClientDialogOpen] = useState(false);
   const [quickBookingDialogOpen, setQuickBookingDialogOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // Fetch monthly goals
   const { fetchCurrentMonthGoals, createDefaultMonthlyGoals } = useGoals({
@@ -76,6 +83,24 @@ const IndividualDashboard = () => {
       });
     }
   }, [entityId, fetchCurrentMonthGoals, createDefaultMonthlyGoals]);
+
+  // Fetch entity stats with period comparison
+  useEffect(() => {
+    const fetchEntityStats = async () => {
+      if (!entityId) return;
+      try {
+        setStatsLoading(true);
+        const stats = await dashboardService.getEntityStats(entityId);
+        setEntityStats(stats);
+      } catch (error) {
+        console.error("Error fetching entity stats:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchEntityStats();
+  }, [entityId]);
 
   // Calculate real stats from bookings data
   const totalBookings = bookings.length;
@@ -252,18 +277,88 @@ const IndividualDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Grid - Mobile-First Responsive Layout */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <StatCard
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            description={`${stat.change} from last month`}
-            icon={stat.icon}
-            trend={stat.trend as "up" | "down" | "neutral"}
-          />
-        ))}
+      {/* Stats Grid */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+        <StatCard
+          title={t("stats.thismonthrevenue")}
+          value={
+            entityStats?.revenue.thisMonth
+              ? `€${entityStats.revenue.thisMonth.toFixed(2)}`
+              : `€${totalRevenue.toFixed(2)}`
+          }
+          subtitle={
+            entityStats?.revenue.change !== undefined
+              ? `${
+                  entityStats.revenue.change > 0 ? "+" : ""
+                }${entityStats.revenue.change.toFixed(1)}% vs last month`
+              : undefined
+          }
+          icon={DollarSign}
+          variant="success"
+          trend={
+            entityStats?.revenue.change !== undefined
+              ? {
+                  value: `${Math.abs(entityStats.revenue.change).toFixed(1)}%`,
+                  isPositive: entityStats.revenue.change > 0,
+                }
+              : undefined
+          }
+        />
+        <StatCard
+          title={t("stats.totalbookings")}
+          value={
+            entityStats?.bookings.thisMonth?.toString() ||
+            totalBookings.toString()
+          }
+          subtitle={
+            entityStats?.bookings.change !== undefined
+              ? `${
+                  entityStats.bookings.change > 0 ? "+" : ""
+                }${entityStats.bookings.change.toFixed(1)}% vs last month`
+              : undefined
+          }
+          icon={CalendarDays}
+          variant="info"
+          trend={
+            entityStats?.bookings.change !== undefined
+              ? {
+                  value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
+                  isPositive: entityStats.bookings.change > 0,
+                }
+              : undefined
+          }
+        />
+        <StatCard
+          title={t("stats.activeclients")}
+          value={
+            entityStats?.clients.thisMonth?.toString() ||
+            uniqueClients.toString()
+          }
+          subtitle={
+            entityStats?.clients.change !== undefined
+              ? `${
+                  entityStats.clients.change > 0 ? "+" : ""
+                }${entityStats.clients.change.toFixed(1)}% vs last month`
+              : undefined
+          }
+          icon={Users}
+          variant="default"
+          trend={
+            entityStats?.clients.change !== undefined
+              ? {
+                  value: `${Math.abs(entityStats.clients.change).toFixed(1)}%`,
+                  isPositive: entityStats.clients.change > 0,
+                }
+              : undefined
+          }
+        />
+        <StatCard
+          title={t("stats.completedSessions")}
+          value={completedBookings.toString()}
+          subtitle="This month"
+          icon={CheckCircle}
+          variant="success"
+        />
       </div>
 
       {/* Main Content */}
@@ -333,6 +428,9 @@ const IndividualDashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Quick Booking */}
+        <QuickBookingWidget entityId={entityId} />
+
         {/* Quick Actions */}
         <Card>
           <CardHeader>
@@ -340,36 +438,29 @@ const IndividualDashboard = () => {
             <CardDescription>Common tasks and shortcuts</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
-              <Button
-                className="w-full justify-start h-12"
-                onClick={handleNewBooking}
-              >
-                <CalendarDays className="mr-3 h-5 w-5" />
-                New Booking
-              </Button>
+            <div className="grid gap-3">
               <Button
                 variant="outline"
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10"
                 onClick={handleAddClient}
               >
-                <Users className="mr-3 h-5 w-5" />
+                <Users className="mr-2 h-4 w-4" />
                 Add New Client
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10"
                 onClick={handleViewSchedule}
               >
-                <Clock className="mr-3 h-5 w-5" />
+                <Clock className="mr-2 h-4 w-4" />
                 View Schedule
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start h-12"
+                className="w-full justify-start h-10"
                 onClick={handleGenerateReport}
               >
-                <DollarSign className="mr-3 h-5 w-5" />
+                <DollarSign className="mr-2 h-4 w-4" />
                 Generate Report
               </Button>
             </div>

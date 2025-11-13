@@ -4,12 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
-import { useEntity } from "../../hooks/useEntity";
 import { useGoals } from "../../hooks/useGoals";
 import { BookingCreator } from "../../components/booking";
 import { CalendarView } from "../../components/calendar/CalendarView";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
+import {
+  dashboardService,
+  EntityStats,
+} from "../../services/dashboard.service";
+import { StatCard } from "../../components/ui/stat-card";
+import { QuickBookingWidget } from "../../components/bookings/quick-booking-widget";
 import {
   AreaChart,
   Area,
@@ -32,12 +37,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { StatCard } from "../../components/ui/stat-card";
 import { Button } from "../../components/ui/button";
-import {
-  ResponsiveCardGrid,
-  MobileStatsCard,
-} from "../../components/ui/responsive-card";
 import {
   Avatar,
   AvatarFallback,
@@ -85,6 +85,8 @@ const Dashboard = () => {
   const [selectedBookingDetails, setSelectedBookingDetails] =
     useState<any>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // Use hooks to fetch data
   const { bookings, fetchBookings, createBooking } = useBookings({
@@ -103,8 +105,21 @@ const Dashboard = () => {
   useEffect(() => {
     if (entityId) {
       fetchCurrentMonthGoals();
+      fetchEntityStats();
     }
   }, [entityId, fetchCurrentMonthGoals]);
+
+  const fetchEntityStats = async () => {
+    try {
+      setStatsLoading(true);
+      const stats = await dashboardService.getEntityStats(entityId);
+      setEntityStats(stats);
+    } catch (error) {
+      console.error("Failed to fetch entity stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   // Calculate real stats from bookings data
   const totalBookings = bookings.length;
@@ -329,20 +344,134 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Stats with Period Comparison */}
+      {entityStats && !statsLoading && (
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+          <StatCard
+            title="Revenue This Month"
+            value={`€${entityStats.revenue.thisMonth.toFixed(0)}`}
+            subtitle={
+              entityStats.revenue.change !== undefined
+                ? `${
+                    entityStats.revenue.change > 0 ? "+" : ""
+                  }${entityStats.revenue.change.toFixed(1)}% vs last month`
+                : undefined
+            }
+            icon={DollarSign}
+            variant="success"
+            trend={
+              entityStats.revenue.change !== undefined
+                ? {
+                    value: `${Math.abs(entityStats.revenue.change).toFixed(
+                      1
+                    )}%`,
+                    isPositive: entityStats.revenue.change > 0,
+                  }
+                : undefined
+            }
+          />
+          <StatCard
+            title="Bookings This Month"
+            value={entityStats.bookings.thisMonth}
+            subtitle={
+              entityStats.bookings.change !== undefined
+                ? `${
+                    entityStats.bookings.change > 0 ? "+" : ""
+                  }${entityStats.bookings.change.toFixed(1)}% vs last month`
+                : undefined
+            }
+            icon={CalendarDays}
+            variant="info"
+            trend={
+              entityStats.bookings.change !== undefined
+                ? {
+                    value: `${Math.abs(entityStats.bookings.change).toFixed(
+                      1
+                    )}%`,
+                    isPositive: entityStats.bookings.change > 0,
+                  }
+                : undefined
+            }
+          />
+          <StatCard
+            title="New Clients"
+            value={entityStats.clients.newThisMonth}
+            subtitle={
+              entityStats.clients.change !== undefined
+                ? `${
+                    entityStats.clients.change > 0 ? "+" : ""
+                  }${entityStats.clients.change.toFixed(1)}% vs last month`
+                : undefined
+            }
+            icon={Users}
+            variant="default"
+            trend={
+              entityStats.clients.change !== undefined
+                ? {
+                    value: `${Math.abs(entityStats.clients.change).toFixed(
+                      1
+                    )}%`,
+                    isPositive: entityStats.clients.change > 0,
+                  }
+                : undefined
+            }
+          />
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Clients
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {entityStats.users.total}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {entityStats.users.active} active users
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Stats Grid - Mobile-First Responsive Layout */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <StatCard
-            key={stat.title}
-            title={t(
-              `dashboard.stats.${stat.title.toLowerCase().replace(" ", "")}`,
-              stat.title
-            )}
-            value={stat.value}
-            description={`${stat.change} from last month`}
-            icon={stat.icon}
-            trend={stat.trend as "up" | "down" | "neutral"}
-          />
+          <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t(
+                  `dashboard.stats.${stat.title
+                    .toLowerCase()
+                    .replace(" ", "")}`,
+                  stat.title
+                )}
+              </CardTitle>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <span
+                  className={
+                    stat.trend === "up"
+                      ? "text-green-600"
+                      : stat.trend === "down"
+                      ? "text-red-600"
+                      : ""
+                  }
+                >
+                  {stat.trend === "up"
+                    ? "↗"
+                    : stat.trend === "down"
+                    ? "↘"
+                    : "→"}{" "}
+                  {stat.change}
+                </span>
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
@@ -449,6 +578,9 @@ const Dashboard = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Quick Booking Widget */}
+          <QuickBookingWidget entityId={entityId} />
+
           {/* Upcoming Appointments */}
           <Card>
             <CardHeader>

@@ -24,42 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { X, Plus, Info, Package, Clock, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
-
-interface Alert {
-  variant?: "default" | "destructive";
-  children: React.ReactNode;
-}
-
-interface AlertTitle {
-  children: React.ReactNode;
-}
-
-interface AlertDescription {
-  children: React.ReactNode;
-}
-
-const Alert = ({ children, variant }: Alert) => (
-  <div
-    className={`rounded-lg border p-4 ${
-      variant === "destructive"
-        ? "border-destructive bg-destructive/10"
-        : "border-primary/20 bg-primary/5"
-    }`}
-  >
-    {children}
-  </div>
-);
-
-const AlertTitle = ({ children }: AlertTitle) => (
-  <h5 className="mb-1 font-medium leading-none tracking-tight">{children}</h5>
-);
-
-const AlertDescription = ({ children }: AlertDescription) => (
-  <div className="text-sm text-muted-foreground [&_p]:leading-relaxed">
-    {children}
-  </div>
-);
 
 interface Service {
   id: string;
@@ -118,7 +84,7 @@ export function CreateBookingDialog({
   onSubmit,
   allowMultiple = true,
   clientId,
-  packages = [],
+  packages: _packages = [],
   clientSubscriptions = [],
 }: CreateBookingDialogProps) {
   const [clientName, setClientName] = useState("");
@@ -133,6 +99,21 @@ export function CreateBookingDialog({
   const [bookingMode, setBookingMode] = useState<"time" | "professional">(
     "time"
   );
+
+  // Recurring booking state
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<
+    "daily" | "weekly" | "monthly"
+  >("weekly");
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [recurrenceDaysOfWeek, setRecurrenceDaysOfWeek] = useState<number[]>(
+    []
+  );
+  const [recurrenceEndType, setRecurrenceEndType] = useState<
+    "date" | "occurrences"
+  >("occurrences");
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState("");
+  const [recurrenceOccurrences, setRecurrenceOccurrences] = useState(10);
 
   // Professionals list
   const [professionals, setProfessionals] = useState<any[]>([]);
@@ -316,6 +297,13 @@ export function CreateBookingDialog({
     setUsePackage(false);
     setSelectedSubscription("");
     setBookingMode("time");
+    setIsRecurring(false);
+    setRecurrenceFrequency("weekly");
+    setRecurrenceInterval(1);
+    setRecurrenceDaysOfWeek([]);
+    setRecurrenceEndType("occurrences");
+    setRecurrenceEndDate("");
+    setRecurrenceOccurrences(10);
     setBookingSlots([
       {
         id: "1",
@@ -325,6 +313,12 @@ export function CreateBookingDialog({
         slot: null,
       },
     ]);
+  };
+
+  const toggleDayOfWeek = (day: number) => {
+    setRecurrenceDaysOfWeek((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
   };
 
   const handleSubmit = async () => {
@@ -384,37 +378,107 @@ export function CreateBookingDialog({
 
     setSubmitting(true);
     try {
-      // Create multiple bookings
-      for (const bookingSlot of validSlots) {
-        await onSubmit({
-          clientName,
-          clientPhone,
-          clientEmail,
-          serviceId: bookingSlot.serviceId,
-          professionalId: bookingSlot.slot!.professionalId,
-          startDateTime: bookingSlot.slot!.startDateTime,
-          endDateTime: bookingSlot.slot!.endDateTime,
-          notes,
-          // Package-related fields
-          ...(usePackage &&
-            selectedSubscription && {
-              isPackageBooking: true,
-              packageSubscriptionId: selectedSubscription,
+      // Check if recurring booking is enabled
+      if (isRecurring && validSlots.length > 0) {
+        // For recurring bookings, use only the first slot as base
+        const baseSlot = validSlots[0];
+
+        // Validate recurrence settings
+        if (
+          recurrenceFrequency === "weekly" &&
+          recurrenceDaysOfWeek.length === 0
+        ) {
+          toast.error(
+            "Please select at least one day of the week for weekly recurrence"
+          );
+          setSubmitting(false);
+          return;
+        }
+
+        if (recurrenceEndType === "date" && !recurrenceEndDate) {
+          toast.error("Please select an end date for recurrence");
+          setSubmitting(false);
+          return;
+        }
+
+        // Create recurring booking via API
+        const recurringBookingData = {
+          booking: {
+            clientName,
+            clientPhone,
+            clientEmail,
+            serviceId: baseSlot.serviceId,
+            professionalId: baseSlot.slot!.professionalId,
+            startDateTime: baseSlot.slot!.startDateTime,
+            endDateTime: baseSlot.slot!.endDateTime,
+            notes,
+          },
+          recurrence: {
+            frequency: recurrenceFrequency,
+            interval: recurrenceInterval,
+            ...(recurrenceFrequency === "weekly" && {
+              daysOfWeek: recurrenceDaysOfWeek,
             }),
-        });
+            endType: recurrenceEndType,
+            ...(recurrenceEndType === "date" && { endDate: recurrenceEndDate }),
+            ...(recurrenceEndType === "occurrences" && {
+              occurrences: recurrenceOccurrences,
+            }),
+          },
+          userId: entityId, // This will be replaced by actual user ID in backend
+        };
+
+        // Call recurring booking endpoint
+        const response = await apiClient.post(
+          "/api/bookings/recurring",
+          recurringBookingData
+        );
+
+        const { totalCreated, errors } = (response.data as any).data;
+
+        if (errors && errors.length > 0) {
+          toast.warning(
+            `Created ${totalCreated} bookings with ${errors.length} conflicts`
+          );
+        } else {
+          toast.success(
+            `Created ${totalCreated} recurring bookings successfully!`
+          );
+        }
+      } else {
+        // Regular booking creation (non-recurring)
+        for (const bookingSlot of validSlots) {
+          await onSubmit({
+            clientName,
+            clientPhone,
+            clientEmail,
+            serviceId: bookingSlot.serviceId,
+            professionalId: bookingSlot.slot!.professionalId,
+            startDateTime: bookingSlot.slot!.startDateTime,
+            endDateTime: bookingSlot.slot!.endDateTime,
+            notes,
+            // Package-related fields
+            ...(usePackage &&
+              selectedSubscription && {
+                isPackageBooking: true,
+                packageSubscriptionId: selectedSubscription,
+              }),
+          });
+        }
+
+        toast.success(
+          `${validSlots.length} booking${
+            validSlots.length > 1 ? "s" : ""
+          } created successfully!${
+            usePackage
+              ? ` ${requiredSessions} session${
+                  requiredSessions > 1 ? "s" : ""
+                } deducted from package.`
+              : ""
+          }`
+        );
       }
 
-      toast.success(
-        `${validSlots.length} booking${
-          validSlots.length > 1 ? "s" : ""
-        } created successfully!${
-          usePackage
-            ? ` ${requiredSessions} session${
-                requiredSessions > 1 ? "s" : ""
-              } deducted from package.`
-            : ""
-        }`
-      );
       resetForm();
       onOpenChange(false);
     } catch (error: any) {
@@ -637,7 +701,8 @@ export function CreateBookingDialog({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">
-                Booking Slots {allowMultiple && "(You can add multiple)"}
+                Booking Slots{" "}
+                {allowMultiple && !isRecurring && "(You can add multiple)"}
               </h3>
               {allowMultiple && (
                 <Button
@@ -645,12 +710,23 @@ export function CreateBookingDialog({
                   variant="outline"
                   size="sm"
                   onClick={addBookingSlot}
+                  disabled={isRecurring}
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Slot
                 </Button>
               )}
             </div>
+
+            {isRecurring && bookingSlots.length > 0 && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  Recurring booking will use the time and date from the first
+                  slot as template
+                </AlertDescription>
+              </Alert>
+            )}
 
             {bookingSlots.map((bookingSlot, index) => (
               <Card key={bookingSlot.id} className="p-4">
@@ -878,6 +954,215 @@ export function CreateBookingDialog({
               rows={3}
             />
           </div>
+
+          {/* Recurring Booking Section */}
+          {allowMultiple && !usePackage && bookingSlots.length === 1 && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <div>
+                    <Label
+                      htmlFor="recurring"
+                      className="text-base font-semibold"
+                    >
+                      Recurring Booking
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Create multiple bookings automatically
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="recurring"
+                  checked={isRecurring}
+                  onCheckedChange={setIsRecurring}
+                />
+              </div>
+
+              {isRecurring && (
+                <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Frequency */}
+                    <div className="space-y-2">
+                      <Label>Repeat</Label>
+                      <Select
+                        value={recurrenceFrequency}
+                        onValueChange={(
+                          value: "daily" | "weekly" | "monthly"
+                        ) => setRecurrenceFrequency(value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Interval */}
+                    <div className="space-y-2">
+                      <Label>Every</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="1"
+                          max="12"
+                          value={recurrenceInterval}
+                          onChange={(e) =>
+                            setRecurrenceInterval(Number(e.target.value))
+                          }
+                          className="w-20"
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          {recurrenceFrequency === "daily" &&
+                            `day${recurrenceInterval > 1 ? "s" : ""}`}
+                          {recurrenceFrequency === "weekly" &&
+                            `week${recurrenceInterval > 1 ? "s" : ""}`}
+                          {recurrenceFrequency === "monthly" &&
+                            `month${recurrenceInterval > 1 ? "s" : ""}`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Days of Week (for weekly) */}
+                  {recurrenceFrequency === "weekly" && (
+                    <div className="space-y-2">
+                      <Label>Repeat on</Label>
+                      <div className="flex gap-2">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                          (day, index) => (
+                            <Button
+                              key={index}
+                              type="button"
+                              variant={
+                                recurrenceDaysOfWeek.includes(index)
+                                  ? "default"
+                                  : "outline"
+                              }
+                              size="sm"
+                              className="w-12 h-12"
+                              onClick={() => toggleDayOfWeek(index)}
+                            >
+                              {day}
+                            </Button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* End Options */}
+                  <div className="space-y-3">
+                    <Label>Ends</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="end-occurrences"
+                          checked={recurrenceEndType === "occurrences"}
+                          onChange={() => setRecurrenceEndType("occurrences")}
+                          className="cursor-pointer"
+                        />
+                        <Label
+                          htmlFor="end-occurrences"
+                          className="cursor-pointer flex items-center gap-2"
+                        >
+                          After
+                          <Input
+                            type="number"
+                            min="2"
+                            max="100"
+                            value={recurrenceOccurrences}
+                            onChange={(e) =>
+                              setRecurrenceOccurrences(Number(e.target.value))
+                            }
+                            disabled={recurrenceEndType !== "occurrences"}
+                            className="w-20 h-8"
+                          />
+                          occurrences
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="end-date"
+                          checked={recurrenceEndType === "date"}
+                          onChange={() => setRecurrenceEndType("date")}
+                          className="cursor-pointer"
+                        />
+                        <Label
+                          htmlFor="end-date"
+                          className="cursor-pointer flex items-center gap-2"
+                        >
+                          On date
+                          <Input
+                            type="date"
+                            value={recurrenceEndDate}
+                            onChange={(e) =>
+                              setRecurrenceEndDate(e.target.value)
+                            }
+                            disabled={recurrenceEndType !== "date"}
+                            min={today}
+                            className="w-40 h-8"
+                          />
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Preview</AlertTitle>
+                    <AlertDescription>
+                      {recurrenceFrequency === "daily" &&
+                        `Repeats every ${recurrenceInterval} day${
+                          recurrenceInterval > 1 ? "s" : ""
+                        }`}
+                      {recurrenceFrequency === "weekly" &&
+                        `Repeats every ${recurrenceInterval} week${
+                          recurrenceInterval > 1 ? "s" : ""
+                        }${
+                          recurrenceDaysOfWeek.length > 0
+                            ? ` on ${recurrenceDaysOfWeek
+                                .map(
+                                  (d) =>
+                                    [
+                                      "Sun",
+                                      "Mon",
+                                      "Tue",
+                                      "Wed",
+                                      "Thu",
+                                      "Fri",
+                                      "Sat",
+                                    ][d]
+                                )
+                                .join(", ")}`
+                            : ""
+                        }`}
+                      {recurrenceFrequency === "monthly" &&
+                        `Repeats every ${recurrenceInterval} month${
+                          recurrenceInterval > 1 ? "s" : ""
+                        }`}
+                      {recurrenceEndType === "occurrences" &&
+                        `, ${recurrenceOccurrences} times`}
+                      {recurrenceEndType === "date" &&
+                        recurrenceEndDate &&
+                        `, until ${new Date(
+                          recurrenceEndDate
+                        ).toLocaleDateString()}`}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
