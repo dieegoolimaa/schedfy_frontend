@@ -61,7 +61,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.get(`/goals/entity/${entityId}`);
+            const response = await apiClient.get(`/api/goals/entity/${entityId}`);
             const data = response.data;
             const goalsArray = Array.isArray(data) ? data : [];
             setGoals(goalsArray);
@@ -82,7 +82,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.get(`/goals/entity/${entityId}/active`);
+            const response = await apiClient.get(`/api/goals/entity/${entityId}/active`);
             const data = response.data;
             const goalsArray = Array.isArray(data) ? data : [];
             setGoals(goalsArray);
@@ -103,7 +103,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.get(`/goals/entity/${entityId}/current-month`);
+            const response = await apiClient.get(`/api/goals/entity/${entityId}/current-month`);
             const data = response.data;
             // Ensure we always set an array
             const goalsArray = Array.isArray(data) ? data : [];
@@ -123,7 +123,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.post('/goals', goalData);
+            const response = await apiClient.post('/api/goals', goalData);
             await fetchGoals();
             return response.data as Goal;
         } catch (err: any) {
@@ -139,7 +139,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.patch(`/goals/${id}`, goalData);
+            const response = await apiClient.patch(`/api/goals/${id}`, goalData);
             await fetchGoals();
             return response.data as Goal;
         } catch (err: any) {
@@ -155,7 +155,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         setLoading(true);
         setError(null);
         try {
-            await apiClient.delete(`/goals/${id}`);
+            await apiClient.delete(`/api/goals/${id}`);
             await fetchGoals();
             return true;
         } catch (err: any) {
@@ -173,7 +173,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.post(`/goals/entity/${entityId}/default-monthly`);
+            const response = await apiClient.post(`/api/goals/entity/${entityId}/default-monthly`);
             await fetchGoals();
             return response.data as Goal[];
         } catch (err: any) {
@@ -189,7 +189,7 @@ export const useGoals = (options: UseGoalsOptions = {}) => {
         if (!entityId) return;
 
         try {
-            await apiClient.post(`/goals/entity/${entityId}/recalculate`);
+            await apiClient.post(`/api/goals/entity/${entityId}/recalculate`);
             await fetchGoals();
         } catch (err: any) {
             console.error('Error recalculating progress:', err);
