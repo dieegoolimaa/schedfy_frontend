@@ -379,21 +379,6 @@ export function ProfessionalsPage() {
     );
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-500">Active</Badge>;
-      case "inactive":
-        return <Badge variant="secondary">Inactive</Badge>;
-      case "suspended":
-        return <Badge variant="destructive">Suspended</Badge>;
-      case "pending":
-        return <Badge variant="outline">Pending</Badge>;
-      default:
-        return <Badge variant="secondary">Unknown</Badge>;
-    }
-  };
-
   const getInitials = (firstName: string, lastName: string) => {
     const first = firstName?.[0] || "";
     const last = lastName?.[0] || "";
@@ -859,11 +844,11 @@ export function ProfessionalsPage() {
           variant="success"
         />
         <StatCard
-          title="Inactive"
-          value={professionals.filter((p) => p.status !== "active").length}
-          subtitle="Not available"
+          title="Pending"
+          value={professionals.filter((p) => p.status === "pending").length}
+          subtitle="Invitations"
           icon={Users}
-          variant="danger"
+          variant="warning"
         />
       </div>
 
@@ -898,7 +883,6 @@ export function ProfessionalsPage() {
                   <TableHead>Professional</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -953,9 +937,6 @@ export function ProfessionalsPage() {
                       <Badge variant="outline">
                         {professional.role || "professional"}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(professional.status || "inactive")}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

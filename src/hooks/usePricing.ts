@@ -1,44 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../lib/api-client';
-
-export interface PricingEntry {
-    _id: string;
-    planType: 'simple' | 'individual' | 'business';
-    region: 'PT' | 'BR' | 'US';
-    billingPeriod: 'monthly' | 'yearly';
-    currency: 'EUR' | 'BRL' | 'USD';
-    price: number; // in cents
-    displayPrice: string; // formatted like "€9.99"
-    isActive: boolean;
-    isFeatured?: boolean;
-    discountPercentage?: number;
-    originalPrice?: number;
-    features?: string[];
-    maxBookings?: number;
-    maxProfessionals?: number;
-    maxClients?: number;
-    maxStorage?: number;
-    createdAt?: string;
-    updatedAt?: string;
-}
-
-export interface PricingMatrix {
-    PT: {
-        simple?: { monthly?: PricingEntry; yearly?: PricingEntry };
-        individual?: { monthly?: PricingEntry; yearly?: PricingEntry };
-        business?: { monthly?: PricingEntry; yearly?: PricingEntry };
-    };
-    BR: {
-        simple?: { monthly?: PricingEntry; yearly?: PricingEntry };
-        individual?: { monthly?: PricingEntry; yearly?: PricingEntry };
-        business?: { monthly?: PricingEntry; yearly?: PricingEntry };
-    };
-    US: {
-        simple?: { monthly?: PricingEntry; yearly?: PricingEntry };
-        individual?: { monthly?: PricingEntry; yearly?: PricingEntry };
-        business?: { monthly?: PricingEntry; yearly?: PricingEntry };
-    };
-}
+import type { PricingEntry, PricingMatrix } from '../types/models/pricing.interface';
 
 interface UsePricingReturn {
     pricing: PricingEntry[];

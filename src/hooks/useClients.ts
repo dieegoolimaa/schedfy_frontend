@@ -30,7 +30,7 @@ export function useClients(options: UseClientsOptions = {}) {
             console.log('[useClients] Fetching clients for entityId:', entityId);
             const response = await clientsService.getByEntity(entityId);
             console.log('[useClients] Response:', response);
-            
+
             if (response.data) {
                 const clientsArray = Array.isArray(response.data) ? response.data : [];
                 console.log('[useClients] Fetched', clientsArray.length, 'clients');
@@ -116,7 +116,7 @@ export function useClients(options: UseClientsOptions = {}) {
             console.log('[useClients] Creating client:', data);
             const response = await clientsService.create(data);
             console.log('[useClients] Client created:', response.data);
-            
+
             if (response.data) {
                 setClients(prev => {
                     const currentClients = Array.isArray(prev) ? prev : [];

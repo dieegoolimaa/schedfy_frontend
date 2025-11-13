@@ -1,215 +1,26 @@
 import { useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
-
-// Enums
-export enum CommissionType {
-    PERCENTAGE = 'percentage',
-    FIXED = 'fixed',
-}
-
-export enum CommissionAppliesTo {
-    SERVICE = 'service',
-    PROFESSIONAL = 'professional',
-    CATEGORY = 'category',
-}
-
-export enum DiscountType {
-    PERCENTAGE = 'percentage',
-    FIXED = 'fixed',
-}
-
-export enum DiscountAppliesTo {
-    ALL_SERVICES = 'all_services',
-    SPECIFIC_SERVICES = 'specific_services',
-    FIRST_TIME_CLIENTS = 'first_time_clients',
-}
-
-export enum VoucherStatus {
-    ACTIVE = 'active',
-    INACTIVE = 'inactive',
-    EXPIRED = 'expired',
-    DEPLETED = 'depleted',
-}
-
-// Types
-export interface Commission {
-    _id: string;
-    entityId: string;
-    name: string;
-    description?: string;
-    type: CommissionType;
-    value: number;
-    appliesTo: CommissionAppliesTo;
-    serviceIds?: string[];
-    professionalIds?: string[];
-    categoryIds?: string[];
-    isActive: boolean;
-    validFrom?: Date;
-    validUntil?: Date;
-    createdBy: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-export interface Voucher {
-    _id: string;
-    entityId: string;
-    code: string;
-    description?: string;
-    discountType: DiscountType;
-    value: number;
-    status: VoucherStatus;
-    validFrom: Date;
-    validUntil: Date;
-    maxUsageCount: number;
-    currentUsageCount: number;
-    maxUsagePerClient?: number;
-    minimumPurchase?: number;
-    maximumDiscount?: number;
-    applicableServiceIds?: string[];
-    applicableDays?: number[];
-    usedByClients: Array<{
-        clientId: string;
-        usedAt: Date;
-    }>;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-export interface Discount {
-    _id: string;
-    entityId: string;
-    name: string;
-    description?: string;
-    discountType: DiscountType;
-    value: number;
-    appliesTo: DiscountAppliesTo;
-    serviceIds?: string[];
-    autoApply: boolean;
-    priority: number;
-    status: 'active' | 'inactive';
-    validFrom: Date;
-    validUntil: Date;
-    maxUsageCount?: number;
-    currentUsageCount: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-// DTOs
-export interface CreateCommissionDto {
-    entityId: string;
-    name: string;
-    description?: string;
-    type: CommissionType;
-    value: number;
-    appliesTo: CommissionAppliesTo;
-    serviceIds?: string[];
-    professionalIds?: string[];
-    categoryIds?: string[];
-    isActive?: boolean;
-    validFrom?: string;
-    validUntil?: string;
-    createdBy: string;
-}
-
-export interface UpdateCommissionDto {
-    name?: string;
-    description?: string;
-    type?: CommissionType;
-    value?: number;
-    appliesTo?: CommissionAppliesTo;
-    serviceIds?: string[];
-    professionalIds?: string[];
-    categoryIds?: string[];
-    isActive?: boolean;
-    validFrom?: string;
-    validUntil?: string;
-}
-
-export interface CreateVoucherDto {
-    entityId: string;
-    code: string;
-    name?: string;
-    description?: string;
-    discountType: DiscountType;
-    value: number;
-    validFrom: string;
-    validUntil: string;
-    maxUsageCount?: number;
-    maxUsagePerClient?: number;
-    minimumPurchase?: number;
-    maximumDiscount?: number;
-    applicableServiceIds?: string[];
-    applicableDays?: number[];
-    createdBy: string;
-}
-
-export interface UpdateVoucherDto {
-    code?: string;
-    name?: string;
-    description?: string;
-    discountType?: DiscountType;
-    value?: number;
-    status?: VoucherStatus;
-    validFrom?: string;
-    validUntil?: string;
-    maxUsageCount?: number;
-    maxUsagePerClient?: number;
-    minimumPurchase?: number;
-    maximumDiscount?: number;
-    applicableServiceIds?: string[];
-    applicableDays?: number[];
-}
-
-export interface ValidateVoucherDto {
-    entityId: string;
-    code: string;
-    clientId?: string;
-    serviceId?: string;
-    bookingValue: number;
-    bookingDate?: Date;
-}
-
-export interface ValidateVoucherResponse {
-    valid: boolean;
-    voucher?: Voucher;
-    discountAmount?: number;
-    reason?: string;
-}
-
-export interface CreateDiscountDto {
-    entityId: string;
-    name: string;
-    description?: string;
-    discountType: DiscountType;
-    value: number;
-    appliesTo: DiscountAppliesTo;
-    serviceIds?: string[];
-    autoApply?: boolean;
-    priority?: number;
-    validFrom: string;
-    validUntil: string;
-    maxUsageCount?: number;
-    minimumPurchase?: number;
-    createdBy: string;
-}
-
-export interface UpdateDiscountDto {
-    name?: string;
-    description?: string;
-    discountType?: DiscountType;
-    value?: number;
-    appliesTo?: DiscountAppliesTo;
-    serviceIds?: string[];
-    autoApply?: boolean;
-    priority?: number;
-    status?: 'active' | 'inactive';
-    validFrom?: string;
-    validUntil?: string;
-    maxUsageCount?: number;
-}
+import type {
+    Commission,
+    Voucher,
+    Discount,
+    CommissionType,
+    CommissionAppliesTo,
+    DiscountType,
+    DiscountAppliesTo,
+    VoucherStatus
+} from '../types/models/promotions.interface';
+import type {
+    CreateCommissionDto,
+    UpdateCommissionDto,
+    CreateVoucherDto,
+    UpdateVoucherDto,
+    ValidateVoucherDto,
+    ValidateVoucherResponse,
+    CreateDiscountDto,
+    UpdateDiscountDto
+} from '../types/dto/promotions.dto';
 
 export function usePromotions() {
     const [loading, setLoading] = useState(false);

@@ -49,15 +49,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import {
-  Calendar,
-  Download,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Users,
-  Star,
-} from "lucide-react";
+import { Calendar, Download, DollarSign, Users, Star } from "lucide-react";
 
 export function ReportsPage() {
   const { t } = useTranslation();
@@ -110,7 +102,7 @@ export function ReportsPage() {
         (b) => b.status === "completed"
       );
       const revenue = completedBookings.reduce(
-        (sum, b) => sum + (b.service?.pricing?.basePrice || 0),
+        (sum, b) => sum + (b.pricing?.totalPrice || 0),
         0
       );
 
@@ -143,7 +135,7 @@ export function ReportsPage() {
 
       serviceStats.set(serviceName, {
         bookings: current.bookings + 1,
-        revenue: current.revenue + (booking.service?.pricing?.basePrice || 0),
+        revenue: current.revenue + (booking.pricing?.totalPrice || 0),
         ratings: current.ratings, // TODO: Add ratings when available
       });
     });

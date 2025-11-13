@@ -1,48 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient } from '../lib/api-client';
-
-export interface Goal {
-    _id: string;
-    entityId: string;
-    name: string;
-    type: 'revenue' | 'bookings' | 'new_clients' | 'custom';
-    targetValue: number;
-    currentValue: number;
-    period: 'monthly' | 'quarterly' | 'yearly';
-    startDate: string;
-    endDate: string;
-    isActive: boolean;
-    description?: string;
-    metadata?: {
-        unit?: string;
-        currency?: string;
-        icon?: string;
-        color?: string;
-    };
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface CreateGoalDto {
-    entityId: string;
-    name: string;
-    type: 'revenue' | 'bookings' | 'new_clients' | 'custom';
-    targetValue: number;
-    period?: 'monthly' | 'quarterly' | 'yearly';
-    startDate: Date;
-    endDate: Date;
-    description?: string;
-    metadata?: {
-        unit?: string;
-        currency?: string;
-        icon?: string;
-        color?: string;
-    };
-}
-
-export interface UpdateGoalDto extends Partial<CreateGoalDto> {
-    currentValue?: number;
-}
+import type { Goal } from '../types/models/goals.interface';
+import type { CreateGoalDto, UpdateGoalDto } from '../types/dto/goals.dto';
 
 interface UseGoalsOptions {
     entityId?: string;

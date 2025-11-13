@@ -510,10 +510,6 @@ export function ClientProfilePage() {
     switch (status) {
       case "active":
         return "bg-green-100 text-green-800 border-green-200";
-      case "inactive":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "vip":
-        return "bg-purple-100 text-purple-800 border-purple-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -554,10 +550,6 @@ export function ClientProfilePage() {
   const stats = {
     total: clientsArray.length,
     active: clientsArray.filter((c) => c.status === "active").length,
-    inactive: clientsArray.filter(
-      (c) => c.status === "inactive" || c.status === "blocked"
-    ).length,
-    vip: clientsArray.filter((c) => (c.stats?.totalSpent || 0) >= 1000).length, // VIP based on spending
     totalRevenue: clientsArray.reduce(
       (sum, c) => sum + (c.stats?.totalSpent || 0),
       0
@@ -567,6 +559,10 @@ export function ClientProfilePage() {
         ? clientsArray.reduce((sum, c) => sum + (c.stats?.totalSpent || 0), 0) /
           clientsArray.length
         : 0,
+    totalBookings: clientsArray.reduce(
+      (sum, c) => sum + (c.stats?.totalBookings || 0),
+      0
+    ),
   };
 
   return (
@@ -761,7 +757,7 @@ export function ClientProfilePage() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           <StatCard
             title="Total"
             value={stats.total}
@@ -776,17 +772,10 @@ export function ClientProfilePage() {
             variant="success"
           />
           <StatCard
-            title="Inactive"
-            value={stats.inactive}
-            subtitle="Dormant"
-            icon={Clock}
-            variant="danger"
-          />
-          <StatCard
-            title="VIP"
-            value={stats.vip}
-            subtitle="Premium"
-            icon={Heart}
+            title="Bookings"
+            value={stats.totalBookings}
+            subtitle="Total"
+            icon={Calendar}
             variant="info"
           />
           <StatCard
@@ -827,8 +816,6 @@ export function ClientProfilePage() {
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="vip">VIP</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="sm">
@@ -1115,9 +1102,7 @@ export function ClientProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Top Clients</CardTitle>
-                <CardDescription>
-                  Clients with highest spending
-                </CardDescription>
+                <CardDescription>Clients with highest spending</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {clientsLoading ? (
@@ -1571,13 +1556,15 @@ export function ClientProfilePage() {
                           <Phone className="h-4 w-4 text-muted-foreground" />
                           <span>{selectedClient.phone}</span>
                         </div>
-                        {(selectedClient.dateOfBirth || selectedClient.birthDate) && (
+                        {(selectedClient.dateOfBirth ||
+                          selectedClient.birthDate) && (
                           <div className="flex items-center gap-3">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span>
                               Born:{" "}
                               {new Date(
-                                selectedClient.dateOfBirth || selectedClient.birthDate
+                                selectedClient.dateOfBirth ||
+                                  selectedClient.birthDate
                               ).toLocaleDateString()}
                             </span>
                           </div>

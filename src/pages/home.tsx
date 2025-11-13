@@ -33,16 +33,7 @@ export function HomePage() {
   const { getPriceDisplay } = useRegion();
   const navigate = useNavigate();
 
-  // Redirect authenticated users to their appropriate dashboard
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
-      const dashboardRoute = getDashboardRoute(user);
-      console.log(
-        `[HomePage] Redirecting authenticated user ${user.email} (${user.role}, ${user.plan}) to ${dashboardRoute}`
-      );
-      navigate(dashboardRoute, { replace: true });
-    }
-  }, [isAuthenticated, isLoading, user, navigate]);
+  // No automatic redirect - users can view the home page even when authenticated
 
   const features = [
     {

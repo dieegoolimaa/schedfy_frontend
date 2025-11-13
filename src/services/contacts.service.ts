@@ -1,16 +1,9 @@
 import { apiClient } from "../lib/api-client";
 
-export interface CreateContactData {
-    name: string;
-    email: string;
-    subject: string;
-    category: string;
-    message: string;
-    entityId?: string;
-    entityName?: string;
-    language?: string;
-    region?: string;
-}
+import { apiClient } from '../lib/api-client';
+import type { CreateContactData } from '../types/dto/contacts.dto';
+
+/**
 
 export const contactsService = {
     async createContact(data: CreateContactData) {

@@ -4,35 +4,14 @@
  * Provides country/region-specific configuration
  */
 
-export enum SupportedRegion {
-    PORTUGAL = 'PT',
-    BRAZIL = 'BR',
-    UNITED_STATES = 'US',
-    SPAIN = 'ES',
-    FRANCE = 'FR',
-    UNITED_KINGDOM = 'GB',
-}
+import {
+    SupportedRegion,
+    SupportedLanguage,
+    type RegionalConfig
+} from '../types/models/regional.interface';
 
-export enum SupportedLanguage {
-    PORTUGUESE_PT = 'pt-PT',
-    PORTUGUESE_BR = 'pt-BR',
-    ENGLISH_US = 'en-US',
-    ENGLISH_GB = 'en-GB',
-    SPANISH = 'es-ES',
-    FRENCH = 'fr-FR',
-}
-
-export interface RegionalConfig {
-    code: SupportedRegion;
-    name: string;
-    language: SupportedLanguage;
-    currency: string;
-    dateFormat: string;
-    timeFormat: '12h' | '24h';
-    phonePrefix: string;
-    supportEmail: string;
-    supportPhone: string;
-}
+export { SupportedRegion, SupportedLanguage };
+export type { RegionalConfig };
 
 export const REGIONAL_CONFIGS: Record<SupportedRegion, RegionalConfig> = {
     [SupportedRegion.PORTUGAL]: {

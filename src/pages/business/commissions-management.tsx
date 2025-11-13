@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { usePermissions } from "@/hooks/usePermissions";
 import { usePromotions } from "@/hooks/usePromotions";
 import { useServices } from "@/hooks/useServices";
+import { useBookings } from "@/hooks/useBookings";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -123,7 +124,13 @@ export function CommissionsManagementPage() {
   } = usePromotions();
 
   // Get services using the hook
-  const { services: servicesData, fetchServices } = useServices({
+  const { services: servicesData } = useServices({
+    entityId,
+    autoFetch: true,
+  });
+
+  // Get bookings to calculate savings
+  const { bookings } = useBookings({
     entityId,
     autoFetch: true,
   });
@@ -787,7 +794,29 @@ export function CommissionsManagementPage() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€2,450</div>
+                <div className="text-2xl font-bold">
+                  €
+                  {(() => {
+                    const now = new Date();
+                    const startOfMonth = new Date(
+                      now.getFullYear(),
+                      now.getMonth(),
+                      1
+                    );
+                    const monthlyBookings = Array.isArray(bookings)
+                      ? bookings.filter(
+                          (b) => new Date(b.createdAt) >= startOfMonth
+                        )
+                      : [];
+                    const totalSavings = monthlyBookings.reduce(
+                      (sum, booking) => {
+                        return sum + (booking.pricing?.discountAmount || 0);
+                      },
+                      0
+                    );
+                    return totalSavings.toFixed(2);
+                  })()}
+                </div>
                 <p className="text-xs text-muted-foreground">This month</p>
               </CardContent>
             </Card>

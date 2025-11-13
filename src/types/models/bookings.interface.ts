@@ -17,6 +17,30 @@ export interface Booking {
     notes?: string;
     createdAt: string;
     updatedAt: string;
+    // Pricing information (from backend)
+    pricing?: {
+        basePrice: number;
+        discountAmount?: number;
+        discountReason?: string;
+        additionalCharges?: Array<{
+            name: string;
+            amount: number;
+            description?: string;
+        }>;
+        totalPrice: number;
+        currency: string;
+    };
+    // Payment information (from backend)
+    payment?: {
+        status: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
+        method?: string;
+        depositRequired?: boolean;
+        depositAmount?: number;
+        depositPaid?: boolean;
+        paidAmount?: number;
+        stripePaymentIntentId?: string;
+        transactionIds?: string[];
+    };
     // Additional computed/display properties
     date?: string;
     time?: string;

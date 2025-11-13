@@ -12,3 +12,8 @@ export * from './entities.interface';
 export * from './professionals.interface';
 export * from './payments.interface';
 export * from './public.interface';
+export * from './goals.interface';
+export * from './promotions.interface';
+export * from './packages.interface';
+export * from './pricing.interface';
+export * from './regional.interface';

@@ -3,26 +3,14 @@
  * Handles country/region detection, currency, language, and localization
  */
 
-export type RegionCode = 'PT' | 'BR' | 'US';
-export type CurrencyCode = 'EUR' | 'BRL' | 'USD';
-export type LocaleCode = 'en' | 'pt-BR';
+import type {
+    RegionCode,
+    CurrencyCode,
+    LocaleCode,
+    RegionConfig
+} from '../types/models/regional.interface';
 
-export interface RegionConfig {
-    code: RegionCode;
-    country: string;
-    currency: CurrencyCode;
-    currencySymbol: string;
-    locale: LocaleCode;
-    timezone: string;
-    flag: string;
-    phonePrefix: string;
-    dateFormat: string;
-    priceFormat: {
-        simple: string;
-        individual: string;
-        business: string;
-    };
-}
+export type { RegionCode, CurrencyCode, LocaleCode, RegionConfig };
 
 export const REGIONS: Record<RegionCode, RegionConfig> = {
     PT: {

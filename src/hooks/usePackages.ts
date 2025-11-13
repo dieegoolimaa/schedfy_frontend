@@ -1,91 +1,16 @@
 import { useState, useCallback } from "react";
 import { apiClient } from "../lib/api";
 import { toast } from "sonner";
-
-// Types
-export interface Service {
-    _id: string;
-    name: string;
-    pricing: {
-        basePrice: number;
-        currency: string;
-    };
-}
-
-export interface ServicePackage {
-    _id: string;
-    entityId: string;
-    name: string;
-    description?: string;
-    services: Service[];
-    pricing: {
-        originalPrice: number;
-        packagePrice: number;
-        discount: number;
-        currency: string;
-    };
-    recurrence: "monthly" | "one_time";
-    validity: number;
-    sessionsIncluded: number;
-    status: "active" | "inactive" | "draft";
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface PackageSubscription {
-    _id: string;
-    clientId: {
-        _id: string;
-        name: string;
-        email: string;
-    };
-    entityId: string;
-    packageId: ServicePackage;
-    status: "active" | "expired" | "cancelled" | "paused";
-    startDate: string;
-    expiryDate: string;
-    sessionsUsed: number;
-    sessionsTotal: number;
-    autoRenew: boolean;
-    lastPaymentDate?: string;
-    nextPaymentDate?: string;
-    cancelledAt?: string;
-    cancellationReason?: string;
-    createdAt: string;
-}
-
-export interface CreatePackageDto {
-    entityId: string;
-    name: string;
-    description?: string;
-    services: string[];
-    packagePrice: number;
-    currency: string;
-    recurrence: "monthly" | "one_time";
-    validity: number;
-    sessionsIncluded: number;
-    status: "active" | "inactive" | "draft";
-}
-
-export interface UpdatePackageDto {
-    name?: string;
-    description?: string;
-    packagePrice?: number;
-    status?: "active" | "inactive" | "draft";
-}
-
-export interface CreateSubscriptionDto {
-    clientId: string;
-    entityId: string;
-    packageId: string;
-    startDate?: Date;
-    autoRenew?: boolean;
-}
-
-export interface PackageFilters {
-    status?: string;
-    recurrence?: string;
-}
+import type {
+    ServicePackage,
+    PackageSubscription,
+    PackageFilters
+} from "../types/models/packages.interface";
+import type {
+    CreatePackageDto,
+    UpdatePackageDto,
+    CreateSubscriptionDto
+} from "../types/dto/packages.dto";
 
 /**
  * Custom hook for managing service packages and subscriptions
