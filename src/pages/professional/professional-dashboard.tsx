@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   dashboardService,
   EntityStats,
@@ -355,8 +356,8 @@ export function ProfessionalDashboardPage() {
           title="Monthly Revenue"
           value={
             entityStats?.revenue.thisMonth
-              ? `€${entityStats.revenue.thisMonth.toFixed(2)}`
-              : `€${stats.monthlyRevenue.toFixed(2)}`
+              ? formatCurrency(entityStats.revenue.thisMonth)
+              : formatCurrency(stats.monthlyRevenue)
           }
           subtitle={
             entityStats?.revenue.change !== undefined

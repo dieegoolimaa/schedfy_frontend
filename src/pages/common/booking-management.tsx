@@ -3,6 +3,7 @@ import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { apiClient } from "../../lib/api-client";
@@ -85,6 +86,7 @@ export function BookingManagementPage() {
   const { t } = useTranslation();
   const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const entityId = user?.entityId || user?.id || "";
   console.log("[BookingManagementPage] entityId from user context:", entityId);
 
@@ -668,7 +670,7 @@ export function BookingManagementPage() {
         {canViewPricing && (
           <StatCard
             title="Revenue"
-            value={`€${stats.revenue}`}
+            value={formatCurrency(stats.revenue)}
             icon={DollarSign}
             variant="success"
           />
@@ -1004,10 +1006,11 @@ export function BookingManagementPage() {
                     {canViewPricing && (
                       <TableCell>
                         <div className="font-medium">
-                          €
-                          {(booking.service as any)?.pricing?.basePrice ||
-                            (booking.service as any)?.price ||
-                            0}
+                          {formatCurrency(
+                            (booking.service as any)?.pricing?.basePrice ||
+                              (booking.service as any)?.price ||
+                              0
+                          )}
                         </div>
                       </TableCell>
                     )}

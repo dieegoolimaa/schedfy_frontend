@@ -5,6 +5,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
 import { useGoals } from "../../hooks/useGoals";
+import { useCurrency } from "../../hooks/useCurrency";
 import { BookingCreator } from "../../components/booking";
 import { CalendarView } from "../../components/calendar/CalendarView";
 import { apiClient } from "../../lib/api-client";
@@ -78,6 +79,7 @@ const Dashboard = () => {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const entityId = user?.entityId || user?.id || "";
 
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -349,7 +351,7 @@ const Dashboard = () => {
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           <StatCard
             title="Revenue This Month"
-            value={`€${entityStats.revenue.thisMonth.toFixed(0)}`}
+            value={formatCurrency(entityStats.revenue.thisMonth)}
             subtitle={
               entityStats.revenue.change !== undefined
                 ? `${

@@ -45,6 +45,7 @@ const IndividualDashboard = () => {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const entityId = user?.entityId || user?.id || "";
 
   const {
@@ -283,8 +284,8 @@ const IndividualDashboard = () => {
           title={t("stats.thismonthrevenue")}
           value={
             entityStats?.revenue.thisMonth
-              ? `€${entityStats.revenue.thisMonth.toFixed(2)}`
-              : `€${totalRevenue.toFixed(2)}`
+              ? formatCurrency(entityStats.revenue.thisMonth)
+              : formatCurrency(totalRevenue)
           }
           subtitle={
             entityStats?.revenue.change !== undefined
