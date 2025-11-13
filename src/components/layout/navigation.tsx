@@ -5,7 +5,6 @@ import { useFeatureFlags } from "../../contexts/feature-flags-context";
 import { Button } from "../ui/button";
 import { useTheme } from "../theme-provider";
 import { LanguageSwitcher } from "../language-switcher";
-import { RegionSelector } from "../region-selector";
 import { NotificationsDropdown } from "../notifications/notifications-dropdown";
 import { GlobalSearch } from "../search/global-search";
 import {
@@ -655,8 +654,7 @@ export function Navigation() {
               <Menu className="h-5 w-5" />
             </Button>
 
-            {/* Language & Region Switcher */}
-            <RegionSelector />
+            {/* Language Switcher */}
             <LanguageSwitcher />
 
             {/* Global Search */}
