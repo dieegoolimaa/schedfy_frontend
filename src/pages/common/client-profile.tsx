@@ -1318,6 +1318,9 @@ export function ClientProfilePage() {
                 </div>
               </div>
             </DialogTitle>
+            <DialogDescription>
+              View complete client information, booking history, and business insights
+            </DialogDescription>
           </DialogHeader>
 
           {selectedClient && (
