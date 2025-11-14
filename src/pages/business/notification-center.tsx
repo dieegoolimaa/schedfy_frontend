@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -463,7 +464,7 @@ export function NotificationCenterPage() {
       </div>
 
       {/* Channel Performance Overview */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <StatsGrid columns={4}>
         <StatCard
           title="Email"
           value={`${channelStats.email.rate}%`}
@@ -499,7 +500,7 @@ export function NotificationCenterPage() {
           trend={{ value: "-2.1%", isPositive: false }}
           variant="warning"
         />
-      </div>
+      </StatsGrid>
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="templates" className="space-y-6">

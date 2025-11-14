@@ -15,6 +15,7 @@ import {
   EntityStats,
 } from "../../services/dashboard.service";
 import { StatCard } from "../../components/ui/stat-card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { QuickBookingWidget } from "../../components/bookings/quick-booking-widget";
 import {
   AreaChart,
@@ -348,7 +349,7 @@ const Dashboard = () => {
 
       {/* Stats with Period Comparison */}
       {entityStats && !statsLoading && (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+        <StatsGrid columns={4}>
           <StatCard
             title={t("stats.revenueThisMonth", "Revenue This Month")}
             value={formatCurrency(entityStats.revenue.thisMonth)}
@@ -440,11 +441,11 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
-        </div>
+        </StatsGrid>
       )}
 
       {/* Stats Grid - Mobile-First Responsive Layout */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+      <StatsGrid columns={4}>
         {stats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -481,7 +482,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         ))}
-      </div>
+      </StatsGrid>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">

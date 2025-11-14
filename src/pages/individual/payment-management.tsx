@@ -397,7 +397,7 @@ export default function IndividualPaymentManagement() {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+        <StatsGrid columns={4}>
           <Card className="p-3 sm:p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
               <CardTitle className="text-sm font-medium">
@@ -445,7 +445,7 @@ export default function IndividualPaymentManagement() {
                 </CardContent>
               </Card>
             ))}
-        </div>
+        </StatsGrid>
       )}
 
       {/* Filters */}

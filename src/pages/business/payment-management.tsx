@@ -186,7 +186,7 @@ export function PaymentManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+      <StatsGrid columns={4}>
         <Card className="p-3 sm:p-4">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
             <CardTitle className="text-sm font-medium">
@@ -257,7 +257,7 @@ export function PaymentManagementPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </StatsGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
