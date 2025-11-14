@@ -1,50 +1,97 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "@/hooks/useCurrency";
+import { publicService } from "@/services/public.service";
 import { toast } from "sonner";
-import { cn } from "../../lib/utils";
-import { useCurrency } from "../../hooks/useCurrency";
 import {
-  publicService,
-  PublicEntity,
-  PublicService,
-  PublicProfessional,
-} from "../../services/public.service";
-import { TimeSlotPicker } from "../../components/time-slot-picker";
-import { TimeSlot } from "../../services/bookings.service";
+  MapPin,
+  Star,
+  Phone,
+  Mail,
+  Instagram,
+  Share2,
+  ArrowLeft,
+  Clock,
+  Calendar,
+  CheckCircle2,
+  Sparkles,
+  Package,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Badge } from "../../components/ui/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "../../components/ui/avatar";
-import { Separator } from "../../components/ui/separator";
-import { Calendar } from "../../components/ui/calendar";
-import {
-  Clock,
-  MapPin,
-  Phone,
-  Mail,
-  Star,
-  Users,
-  CheckCircle,
-  ArrowLeft,
-  Loader2,
-  CalendarDays,
-  Instagram,
-  Share2,
-} from "lucide-react";
+  CardDescription,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { TimeSlotPicker } from "@/components/time-slot-picker";
+import type { TimeSlot } from "@/components/time-slot-picker";
+
+interface PublicEntity {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+  coverImage?: string;
+  description?: string;
+  phone?: string;
+  email?: string;
+  instagram?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  rating: number;
+  totalReviews: number;
+  workingHours: any;
+}
+
+interface PublicService {
+  id: string;
+  name: string;
+  description?: string;
+  duration: number;
+  price: number;
+  category?: string;
+  isActive: boolean;
+  professionalIds?: string[];
+}
+
+interface PublicProfessional {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  specialties?: string[];
+}
+
+interface ServicePackage {
+  _id: string;
+  name: string;
+  description?: string;
+  services: PublicService[];
+  pricing: {
+    packagePrice: number;
+    originalPrice: number;
+    discount: number;
+  };
+  validity: number;
+  sessionsIncluded: number;
+  status: string;
+}
 
 export function PublicEntityProfilePage() {
   const { t } = useTranslation();
@@ -57,18 +104,17 @@ export function PublicEntityProfilePage() {
   const [entity, setEntity] = useState<PublicEntity | null>(null);
   const [services, setServices] = useState<PublicService[]>([]);
   const [professionals, setProfessionals] = useState<PublicProfessional[]>([]);
-  const [packages, setPackages] = useState<any[]>([]);
+  const [packages, setPackages] = useState<ServicePackage[]>([]);
+
+  // Booking state
+  const [activeTab, setActiveTab] = useState<"services" | "packages">(
+    "services"
+  );
   const [selectedService, setSelectedService] = useState<string>("");
+  const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [selectedProfessional, setSelectedProfessional] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-
-  // Booking preference: 'time' (any professional) or 'professional' (specific professional)
-  const [bookingMode, setBookingMode] = useState<"time" | "professional">(
-    "time"
-  );
-
-  // Client information for booking
   const [clientData, setClientData] = useState({
     name: "",
     email: "",
@@ -76,63 +122,41 @@ export function PublicEntityProfilePage() {
     notes: "",
   });
 
-  const daysOfWeek = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
-
-  // Fetch entity data by slug
+  // Fetch entity data
   useEffect(() => {
     const fetchEntityData = async () => {
       if (!slug) return;
 
       setLoading(true);
       try {
-        // Fetch entity by slug
         const entityResponse = await publicService.getEntityBySlug(slug);
-        console.log("Entity response:", entityResponse.data);
-        setEntity(entityResponse.data);
+        const entityData = entityResponse.data;
+        setEntity(entityData);
 
-        const entityId =
-          entityResponse.data.id || (entityResponse.data as any)._id;
-        console.log("Entity ID:", entityId);
+        const entityId = entityData.id || (entityData as any)._id;
 
-        // Fetch services and professionals for this entity
         const [servicesResponse, professionalsResponse, packagesResponse] =
           await Promise.all([
             publicService.getEntityServices(entityId),
             publicService.getEntityProfessionals(entityId),
             publicService
               .getEntityPackages(entityId)
-              .catch(() => ({ data: [] })), // Gracefully handle if packages don't exist
+              .catch(() => ({ data: [] })),
           ]);
 
-        console.log("Services response:", servicesResponse.data);
-        console.log("Professionals response:", professionalsResponse.data);
-        console.log("Packages response:", packagesResponse.data);
-
-        // Map services to ensure consistent id field (handle both id and _id)
-        // Also normalize duration and price from nested objects
+        // Map services
         const mappedServices = servicesResponse.data
           .map((service: any) => ({
             ...service,
             id: service.id || service._id,
-            // Extract duration from nested duration object
             duration:
               typeof service.duration === "object"
                 ? service.duration.duration
                 : service.duration,
-            // Extract price from nested pricing object
             price:
               typeof service.pricing === "object"
                 ? service.pricing.basePrice
                 : service.price,
-            // Map assignedProfessionals to professionalIds for consistency
             professionalIds:
               service.assignedProfessionalIds ||
               service.assignedProfessionals ||
@@ -144,17 +168,13 @@ export function PublicEntityProfilePage() {
               service.isActive !== false && service.status !== "inactive"
           );
 
-        // Map professionals to ensure consistent id field
+        // Map professionals
         const mappedProfessionals = professionalsResponse.data.map(
           (prof: any) => ({
             ...prof,
             id: prof.id || prof._id,
           })
         );
-
-        console.log("Mapped services:", mappedServices);
-        console.log("Mapped professionals (raw):", professionalsResponse.data);
-        console.log("Mapped professionals (final):", mappedProfessionals);
 
         setServices(mappedServices);
         setProfessionals(mappedProfessionals);
@@ -177,66 +197,21 @@ export function PublicEntityProfilePage() {
   }, [slug]);
 
   // Filter professionals by selected service
-  const availableProfessionalsForService = useMemo(() => {
-    if (!selectedService) {
-      return professionals; // No service selected, show all
-    }
+  const availableProfessionals = useMemo(() => {
+    if (!selectedService) return professionals;
 
-    // Find selected service
     const service = services.find((s) => s.id === selectedService);
-    if (!service) {
-      console.log("[PublicEntityProfile] Service not found:", selectedService);
-      return professionals;
-    }
+    if (!service) return professionals;
 
-    // Check if service has assigned professionals (professionalIds or assignedProfessionals)
-    const assignedProfessionalIds =
-      (service as any).professionalIds ||
-      (service as any).assignedProfessionals ||
-      [];
+    const assignedIds = (service as any).professionalIds || [];
+    if (assignedIds.length === 0) return professionals;
 
-    console.log("[PublicEntityProfile] Filtering professionals:", {
-      service: service.name,
-      assignedProfessionalIds,
-      assignedProfessionalIdsType: assignedProfessionalIds.map(
-        (id: any) => typeof id
-      ),
-      allProfessionals: professionals.length,
-      professionalsIds: professionals.map((p) => ({
-        id: p.id || (p as any)._id,
-        type: typeof (p.id || (p as any)._id),
-      })),
-    });
-
-    // If no professionals assigned to service, show all (fallback)
-    if (assignedProfessionalIds.length === 0) {
-      console.log(
-        "[PublicEntityProfile] No professionals assigned to service, showing all"
-      );
-      return professionals;
-    }
-
-    // Convert assigned IDs to strings for comparison (handles both ObjectId and string formats)
-    const assignedIdsAsStrings = assignedProfessionalIds.map((id: any) =>
-      String(id)
-    );
-
-    // Filter professionals by service assignment
-    const filtered = professionals.filter((prof) => {
+    const assignedIdsAsStrings = assignedIds.map((id: any) => String(id));
+    return professionals.filter((prof) => {
       const profId = String(prof.id || (prof as any)._id);
       return assignedIdsAsStrings.includes(profId);
     });
-
-    console.log("[PublicEntityProfile] Filtered professionals:", {
-      filtered: filtered.length,
-      professionalNames: filtered.map((p) => `${p.firstName} ${p.lastName}`),
-    });
-
-    return filtered;
   }, [selectedService, services, professionals]);
-
-  // Generate available time slots when service, professional, and date are selected
-  // Now handled by TimeSlotPicker component
 
   const handleBooking = async () => {
     if (!selectedService || !selectedDate || !selectedSlot) {
@@ -251,7 +226,6 @@ export function PublicEntityProfilePage() {
 
     setBooking(true);
     try {
-      // Get service details for duration and pricing
       const service = services.find((s) => s.id === selectedService);
       if (!service) {
         toast.error("Service not found");
@@ -261,18 +235,13 @@ export function PublicEntityProfilePage() {
       const duration = service?.duration || 60;
       const basePrice = service?.price || 0;
 
-      // Parse time slot
       const [hours, minutes] = selectedSlot.time.split(":").map(Number);
-
-      // Create start datetime
       const startDateTime = new Date(selectedDate);
       startDateTime.setHours(hours, minutes, 0, 0);
 
-      // Create end datetime based on duration
       const endDateTime = new Date(startDateTime);
       endDateTime.setMinutes(endDateTime.getMinutes() + duration);
 
-      // Prepare booking data matching backend DTO
       const bookingData = {
         entityId: entity!.id,
         serviceId: selectedService,
@@ -293,17 +262,10 @@ export function PublicEntityProfilePage() {
         },
         status: "pending",
         notes: clientData.notes || undefined,
-        createdBy: entity!.id, // Use entity ID as creator for public bookings
+        createdBy: entity!.id,
       };
 
-      console.log("Creating booking with data:", bookingData);
-
-      const response = await publicService.createBooking(
-        entity!.id,
-        bookingData as any
-      );
-
-      console.log("Booking created successfully:", response.data);
+      await publicService.createBooking(entity!.id, bookingData as any);
 
       toast.success(
         "Booking confirmed! You will receive a confirmation email shortly."
@@ -317,34 +279,15 @@ export function PublicEntityProfilePage() {
       setClientData({ name: "", email: "", phone: "", notes: "" });
     } catch (error: any) {
       console.error("Booking failed:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||
         error.message ||
         "Failed to create booking. Please try again.";
-
       toast.error(errorMessage);
     } finally {
       setBooking(false);
     }
-  };
-
-  const formatWorkingHours = (day: string) => {
-    if (!entity?.workingHours[day.toLowerCase()]?.enabled) {
-      return "Closed";
-    }
-
-    const hours = entity.workingHours[day.toLowerCase()];
-    let schedule = `${hours.start} - ${hours.end}`;
-
-    if (hours.breakStart && hours.breakEnd) {
-      schedule += ` (Break: ${hours.breakStart} - ${hours.breakEnd})`;
-    }
-
-    return schedule;
   };
 
   const getInitials = (name: string) => {
@@ -357,10 +300,10 @@ export function PublicEntityProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading business profile...</p>
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading profile...</p>
         </div>
       </div>
     );
@@ -368,981 +311,537 @@ export function PublicEntityProfilePage() {
 
   if (!entity) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Business Not Found</h1>
-          <p className="text-muted-foreground mb-6">
-            The business you're looking for doesn't exist or is not available.
-          </p>
-          <Button onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Go Home
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Business Not Found</CardTitle>
+            <CardDescription>
+              The business you're looking for doesn't exist or is not available.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={() => navigate("/")} className="mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Go Home
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Modern Header with Glassmorphism */}
-      <div className="relative h-48 sm:h-64 md:h-80 overflow-hidden">
-        {entity.coverImage ? (
-          <img
-            src={entity.coverImage}
-            alt={entity.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Hero Section with Cover */}
+      <div className="relative">
+        <div className="h-64 md:h-80 lg:h-96 overflow-hidden relative">
+          {entity.coverImage ? (
+            <img
+              src={entity.coverImage}
+              alt={entity.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-background" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-background" />
+        </div>
 
-        {/* Floating Action Buttons */}
-        <div className="absolute top-4 left-0 right-0 px-4 flex items-center justify-between">
+        {/* Floating Actions */}
+        <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
-            className="bg-white/90 backdrop-blur-md hover:bg-white text-gray-900 border-0 shadow-lg"
+            className="bg-white/90 backdrop-blur-md hover:bg-white shadow-lg"
             onClick={() => navigate("/")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Back</span>
+            Back
           </Button>
 
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
-            className="bg-white/90 backdrop-blur-md hover:bg-white text-gray-900 border-0 shadow-lg"
+            className="bg-white/90 backdrop-blur-md hover:bg-white shadow-lg"
             onClick={() => {
               navigator.clipboard.writeText(globalThis.location.href);
               toast.success("Link copied!");
             }}
           >
-            <Share2 className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Share</span>
+            <Share2 className="h-4 w-4" />
           </Button>
+        </div>
+
+        {/* Business Info Card - Overlapping Hero */}
+        <div className="container mx-auto px-4 -mt-32 relative z-20">
+          <Card className="shadow-2xl border-0">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Avatar */}
+                <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-background shadow-xl shrink-0">
+                  <AvatarImage src={entity.logo} />
+                  <AvatarFallback className="text-2xl md:text-3xl font-bold bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
+                    {getInitials(entity.name)}
+                  </AvatarFallback>
+                </Avatar>
+
+                {/* Info */}
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                      {entity.name}
+                    </h1>
+                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                      {entity.address && (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4" />
+                          <span>
+                            {entity.address.city}, {entity.address.country}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-medium">{entity.rating}</span>
+                        <span>({entity.totalReviews} reviews)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {entity.description && (
+                    <p className="text-muted-foreground leading-relaxed">
+                      {entity.description}
+                    </p>
+                  )}
+
+                  {/* Quick Actions */}
+                  <div className="flex flex-wrap gap-2">
+                    {entity.phone && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={`tel:${entity.phone}`}>
+                          <Phone className="h-4 w-4 mr-2" />
+                          Call
+                        </a>
+                      </Button>
+                    )}
+                    {entity.email && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={`mailto:${entity.email}`}>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Email
+                        </a>
+                      </Button>
+                    )}
+                    {entity.instagram && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a
+                          href={`https://instagram.com/${entity.instagram.replace(
+                            "@",
+                            ""
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Instagram className="h-4 w-4 mr-2" />
+                          Instagram
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Main Content Container */}
-      <div className="container mx-auto px-4 -mt-20 sm:-mt-24 pb-12 relative z-10">
-        {/* Profile Card with Modern Design */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 mb-6">
-          <div className="flex flex-col sm:flex-row gap-6 items-start">
-            {/* Avatar with Badge */}
-            <div className="relative shrink-0">
-              <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white dark:border-gray-700 shadow-xl">
-                <AvatarImage src={entity.logo} />
-                <AvatarFallback className="text-2xl sm:text-3xl bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                  {getInitials(entity.name)}
-                </AvatarFallback>
-              </Avatar>
-              {/* Online Badge */}
-              <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
-            </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left Column - Services & Booking */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Services & Packages Tabs */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Book an Appointment</CardTitle>
+                <CardDescription>
+                  Choose a service or package and select your preferred time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(v: any) => setActiveTab(v)}
+                >
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsTrigger value="services" className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Services ({services.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="packages" className="gap-2">
+                      <Package className="h-4 w-4" />
+                      Packages ({packages.length})
+                    </TabsTrigger>
+                  </TabsList>
 
-            {/* Business Info */}
-            <div className="flex-1 min-w-0 w-full">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                {entity.name}
-              </h1>
+                  {/* Services Tab */}
+                  <TabsContent value="services" className="space-y-6">
+                    {services.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No services available at the moment</p>
+                      </div>
+                    ) : (
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {services.map((service) => (
+                          <Card
+                            key={service.id}
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedService === service.id
+                                ? "ring-2 ring-primary"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedService(service.id);
+                              setSelectedPackage("");
+                            }}
+                          >
+                            <CardHeader>
+                              <CardTitle className="text-lg">
+                                {service.name}
+                              </CardTitle>
+                              {service.description && (
+                                <CardDescription className="line-clamp-2">
+                                  {service.description}
+                                </CardDescription>
+                              )}
+                            </CardHeader>
+                            <CardContent>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span>{service.duration} min</span>
+                                  </div>
+                                </div>
+                                <div className="text-lg font-bold">
+                                  {formatCurrency(service.price)}
+                                </div>
+                              </div>
+                              {selectedService === service.id && (
+                                <Badge className="mt-3 w-full justify-center">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Selected
+                                </Badge>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
 
-              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 text-blue-500" />
-                  <span>{entity.address}</span>
-                </div>
+                  {/* Packages Tab */}
+                  <TabsContent value="packages" className="space-y-6">
+                    {packages.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No packages available at the moment</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4">
+                        {packages.map((pkg) => (
+                          <Card
+                            key={pkg._id}
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedPackage === pkg._id
+                                ? "ring-2 ring-primary"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedPackage(pkg._id);
+                              setSelectedService("");
+                            }}
+                          >
+                            <CardHeader>
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <CardTitle className="text-xl">
+                                    {pkg.name}
+                                  </CardTitle>
+                                  {pkg.description && (
+                                    <CardDescription className="mt-1">
+                                      {pkg.description}
+                                    </CardDescription>
+                                  )}
+                                </div>
+                                {pkg.pricing.discount > 0 && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="text-sm"
+                                  >
+                                    -{pkg.pricing.discount.toFixed(0)}% OFF
+                                  </Badge>
+                                )}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="flex flex-wrap gap-2">
+                                {pkg.services.map((service) => (
+                                  <Badge key={service.id} variant="outline">
+                                    {service.name}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="flex items-center justify-between pt-4 border-t">
+                                <div>
+                                  <div className="text-sm text-muted-foreground line-through">
+                                    {formatCurrency(pkg.pricing.originalPrice)}
+                                  </div>
+                                  <div className="text-2xl font-bold text-primary">
+                                    {formatCurrency(pkg.pricing.packagePrice)}
+                                  </div>
+                                </div>
+                                <div className="text-right text-sm text-muted-foreground">
+                                  <div>{pkg.sessionsIncluded} sessions</div>
+                                  <div>{pkg.validity} days validity</div>
+                                </div>
+                              </div>
+                              {selectedPackage === pkg._id && (
+                                <Badge className="w-full justify-center">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Selected
+                                </Badge>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
 
-                <div className="flex items-center gap-1.5">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {entity.rating}
-                  </span>
-                  <span>({entity.totalReviews} reviews)</span>
-                </div>
-              </div>
+                {/* Booking Form */}
+                {selectedService && (
+                  <div className="mt-8 space-y-6 pt-8 border-t">
+                    <h3 className="text-xl font-semibold">Booking Details</h3>
 
-              {entity.description && (
-                <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-6 line-clamp-2">
-                  {entity.description}
-                </p>
-              )}
+                    {/* Professional Selection (optional) */}
+                    {availableProfessionals.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>Choose Professional (Optional)</Label>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {availableProfessionals.map((prof) => (
+                            <Card
+                              key={prof.id}
+                              className={`cursor-pointer transition-all hover:shadow-sm ${
+                                selectedProfessional === prof.id
+                                  ? "ring-2 ring-primary"
+                                  : ""
+                              }`}
+                              onClick={() => setSelectedProfessional(prof.id)}
+                            >
+                              <CardContent className="p-4 flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={prof.avatar} />
+                                  <AvatarFallback>
+                                    {getInitials(
+                                      `${prof.firstName} ${prof.lastName}`
+                                    )}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">
+                                    {prof.firstName} {prof.lastName}
+                                  </p>
+                                  {prof.specialties &&
+                                    prof.specialties.length > 0 && (
+                                      <p className="text-xs text-muted-foreground truncate">
+                                        {prof.specialties.join(", ")}
+                                      </p>
+                                    )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-              {/* Quick Contact Buttons */}
-              <div className="flex flex-wrap gap-2 mb-4">
+                    {/* Date & Time Selection */}
+                    <div className="space-y-2">
+                      <Label>Select Date & Time</Label>
+                      <TimeSlotPicker
+                        entityId={entity.id}
+                        serviceId={selectedService}
+                        professionalId={selectedProfessional}
+                        selectedDate={selectedDate}
+                        onDateChange={setSelectedDate}
+                        selectedSlot={selectedSlot}
+                        onSlotSelect={setSelectedSlot}
+                      />
+                    </div>
+
+                    {/* Client Information */}
+                    <div className="space-y-4 pt-6 border-t">
+                      <h4 className="font-semibold">Your Information</h4>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Full Name *</Label>
+                          <Input
+                            id="name"
+                            placeholder="John Doe"
+                            value={clientData.name}
+                            onChange={(e) =>
+                              setClientData({
+                                ...clientData,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="john@example.com"
+                            value={clientData.email}
+                            onChange={(e) =>
+                              setClientData({
+                                ...clientData,
+                                email: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone *</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="+1 (555) 000-0000"
+                          value={clientData.phone}
+                          onChange={(e) =>
+                            setClientData({
+                              ...clientData,
+                              phone: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="notes">Additional Notes</Label>
+                        <Textarea
+                          id="notes"
+                          placeholder="Any special requests or information..."
+                          rows={3}
+                          value={clientData.notes}
+                          onChange={(e) =>
+                            setClientData({
+                              ...clientData,
+                              notes: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* Book Button */}
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      onClick={handleBooking}
+                      disabled={
+                        booking ||
+                        !selectedService ||
+                        !selectedDate ||
+                        !selectedSlot ||
+                        !clientData.name ||
+                        !clientData.email ||
+                        !clientData.phone
+                      }
+                    >
+                      {booking ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Confirming...
+                        </>
+                      ) : (
+                        <>
+                          <Calendar className="h-5 w-5 mr-2" />
+                          Confirm Booking
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Sidebar - Team & Info */}
+          <div className="space-y-6">
+            {/* Team */}
+            {professionals.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Our Team</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {professionals.map((prof) => (
+                    <div key={prof.id} className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={prof.avatar} />
+                        <AvatarFallback>
+                          {getInitials(`${prof.firstName} ${prof.lastName}`)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium">
+                          {prof.firstName} {prof.lastName}
+                        </p>
+                        {prof.specialties && prof.specialties.length > 0 && (
+                          <p className="text-sm text-muted-foreground truncate">
+                            {prof.specialties.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Contact Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {entity.phone && (
                   <a
                     href={`tel:${entity.phone}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                   >
-                    <Phone className="h-4 w-4" />
-                    <span className="hidden sm:inline">Call</span>
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Phone className="h-5 w-5 text-primary" />
+                    </div>
+                    <span>{entity.phone}</span>
                   </a>
                 )}
                 {entity.email && (
                   <a
                     href={`mailto:${entity.email}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                   >
-                    <Mail className="h-4 w-4" />
-                    <span className="hidden sm:inline">Email</span>
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-primary" />
+                    </div>
+                    <span>{entity.email}</span>
                   </a>
                 )}
-                {entity.instagram && (
-                  <a
-                    href={`https://instagram.com/${entity.instagram.replace(
-                      "@",
-                      ""
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-md"
-                  >
-                    <Instagram className="h-4 w-4" />
-                    <span className="hidden sm:inline">Instagram</span>
-                  </a>
-                )}
-              </div>
-
-              {/* Main CTA Button */}
-              <Button
-                size="lg"
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
-                disabled={services.length === 0}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (services.length === 0) {
-                    toast.error("No services available to book");
-                    return;
-                  }
-                  const bookingSection =
-                    document.getElementById("booking-form");
-                  if (bookingSection) {
-                    setTimeout(() => {
-                      bookingSection.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                      });
-                    }, 100);
-                  }
-                }}
-              >
-                <CalendarDays className="h-5 w-5 mr-2" />
-                {services.length === 0
-                  ? "No Services Available"
-                  : "Book Appointment"}
-              </Button>
-            </div>
-          </div>
-
-          {/* Stats Bar */}
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{services.length}</div>
-              <div className="text-sm text-muted-foreground">Services</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{professionals.length}</div>
-              <div className="text-sm text-muted-foreground">Professionals</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{entity.totalReviews}</div>
-              <div className="text-sm text-muted-foreground">Reviews</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{entity.rating}</div>
-              <div className="text-sm text-muted-foreground">Rating</div>
-            </div>
-          </div>
-        </div>
-
-        {/* About Section */}
-        <div className="mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4">About</h2>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                {entity.description}
-              </p>
-
-              {/* Contact Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                <a
-                  href={`tel:${entity.phone}`}
-                  className="flex items-center gap-3 text-sm hover:text-primary transition-colors group"
-                >
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                    <Phone className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="truncate">{entity.phone}</span>
-                </a>
-                <a
-                  href={`mailto:${entity.email}`}
-                  className="flex items-center gap-3 text-sm hover:text-primary transition-colors group"
-                >
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                    <Mail className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="truncate">{entity.email}</span>
-                </a>
-              </div>
-
-              {/* Social Media */}
-              {entity.instagram && entity.instagram.trim() !== "" && (
-                <div className="pt-4 border-t">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Follow us:
-                    </span>
-                    <a
-                      href={`https://instagram.com/${entity.instagram.replace(
-                        "@",
-                        ""
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-full text-sm font-medium transition-all shadow-md hover:shadow-lg"
-                      title="Instagram"
-                    >
-                      <Instagram className="h-4 w-4" />
-                      <span>{entity.instagram}</span>
-                    </a>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid gap-8 lg:grid-cols-3 mb-8">
-          {/* Left Column - Services & Booking */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Services Grid */}
-            <div>
-              <h2 className="text-2xl font-bold mb-6">Our Services</h2>
-              {services.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <CalendarDays className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="font-semibold text-lg mb-2">
-                      No Services Available
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      This business hasn't added any services yet.
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {services.map((service) => (
-                    <Card
-                      key={service.id}
-                      className={cn(
-                        "cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/50",
-                        selectedService === service.id &&
-                          "border-primary shadow-lg ring-2 ring-primary/20"
-                      )}
-                      onClick={() => {
-                        setSelectedService(service.id);
-                        setSelectedProfessional("");
-                        setSelectedDate(undefined);
-                        setSelectedSlot(null);
-                        setTimeout(() => {
-                          document
-                            .getElementById("booking-form")
-                            ?.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start",
-                            });
-                        }, 100);
-                      }}
-                    >
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                          <h3 className="font-semibold text-lg leading-tight break-words flex-1">
-                            {service.name}
-                          </h3>
-                          {selectedService === service.id && (
-                            <CheckCircle className="h-6 w-6 text-primary shrink-0" />
-                          )}
-                        </div>
-                        {service.description && (
-                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                            {service.description}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between gap-4 pt-3 border-t">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="h-4 w-4 shrink-0" />
-                            <span className="text-sm font-medium">
-                              {service.duration} min
-                            </span>
-                          </div>
-                          <Badge
-                            variant="secondary"
-                            className="font-semibold text-base px-3 py-1"
-                          >
-                            {formatCurrency(service.price)}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Packages Section */}
-            {packages.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Our Packages</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {packages.map((pkg) => (
-                    <Card
-                      key={pkg.id || pkg._id}
-                      className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/50"
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <CardTitle className="text-xl mb-2">
-                              {pkg.name}
-                            </CardTitle>
-                            {pkg.description && (
-                              <CardDescription className="text-sm line-clamp-2">
-                                {pkg.description}
-                              </CardDescription>
-                            )}
-                          </div>
-                          <Badge
-                            variant={
-                              pkg.recurrence === "one-time"
-                                ? "secondary"
-                                : "default"
-                            }
-                            className="shrink-0"
-                          >
-                            {pkg.recurrence === "one-time"
-                              ? "One-time"
-                              : pkg.recurrence === "monthly"
-                              ? "Monthly"
-                              : pkg.recurrence === "quarterly"
-                              ? "Quarterly"
-                              : "Annual"}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {/* Package Details */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">
-                              Sessions Included:
-                            </span>
-                            <span className="font-semibold">
-                              {pkg.sessionsIncluded}
-                            </span>
-                          </div>
-                          {pkg.validity && (
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">
-                                Valid for:
-                              </span>
-                              <span className="font-semibold">
-                                {pkg.validity.count}{" "}
-                                {pkg.validity.unit === "days"
-                                  ? "Days"
-                                  : pkg.validity.unit === "months"
-                                  ? "Months"
-                                  : "Years"}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <Separator />
-
-                        {/* Pricing */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">
-                              Original Price:
-                            </span>
-                            <span className="text-sm line-through text-muted-foreground">
-                              €
-                              {pkg.pricing?.originalPrice?.toFixed(2) || "0.00"}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold">
-                              Package Price:
-                            </span>
-                            <span className="text-2xl font-bold text-primary">
-                              {formatCurrency(pkg.pricing?.packagePrice || 0)}
-                            </span>
-                          </div>
-                          {pkg.pricing?.discount > 0 && (
-                            <div className="text-center">
-                              <Badge variant="destructive" className="text-sm">
-                                Save {pkg.pricing.discount}%
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Included Services */}
-                        {pkg.services && pkg.services.length > 0 && (
-                          <div className="pt-2">
-                            <p className="text-sm font-medium mb-2">
-                              Included Services:
-                            </p>
-                            <ul className="space-y-1">
-                              {pkg.services.slice(0, 3).map((service: any) => (
-                                <li
-                                  key={service.id || service._id}
-                                  className="text-sm text-muted-foreground flex items-center gap-2"
-                                >
-                                  <CheckCircle className="h-3 w-3 text-primary shrink-0" />
-                                  <span className="line-clamp-1">
-                                    {service.name}
-                                  </span>
-                                </li>
-                              ))}
-                              {pkg.services.length > 3 && (
-                                <li className="text-sm text-muted-foreground italic">
-                                  +{pkg.services.length - 3} more services
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* CTA Button */}
-                        <Button
-                          className="w-full mt-4"
-                          onClick={() => {
-                            toast.info(
-                              "Please contact us directly to purchase this package"
-                            );
-                          }}
-                        >
-                          Get Package
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Booking Form - Modern Glassmorphism Style */}
-            {services.length > 0 && (
-              <div
-                id="booking-form"
-                className="scroll-mt-24 bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
-              >
-                {/* Header with Gradient */}
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 sm:p-8">
-                  <div className="flex items-center gap-3 text-white">
-                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                      <CalendarDays className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold">Book Appointment</h2>
-                      <p className="text-blue-100 text-sm">
-                        Simple, fast & secure
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6 sm:p-8 space-y-6">
-                  {!selectedService && (
-                    <div className="text-center py-16">
-                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 mb-4">
-                        <CalendarDays className="h-10 w-10 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <h3 className="font-bold text-xl mb-2">
-                        Select a Service
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm max-w-sm mx-auto">
-                        Choose from our services above to check availability
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedService && (
-                    <div className="space-y-6">
-                      {/* Selected Service Chip */}
-                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                          <div>
-                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                              Selected
-                            </p>
-                            <p className="font-semibold text-gray-900 dark:text-white">
-                              {
-                                services.find((s) => s.id === selectedService)
-                                  ?.name
-                              }
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
-                          onClick={() => {
-                            setSelectedService("");
-                            setSelectedProfessional("");
-                            setSelectedDate(undefined);
-                            setSelectedSlot(null);
-                          }}
-                        >
-                          Change
-                        </Button>
-                      </div>
-
-                      {/* Booking Mode - Simplified */}
-                      {availableProfessionalsForService.length > 0 && (
-                        <div className="space-y-3">
-                          <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Booking Preference
-                          </Label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              type="button"
-                              className={`p-4 rounded-xl border-2 transition-all ${
-                                bookingMode === "time"
-                                  ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                              }`}
-                              onClick={() => {
-                                setBookingMode("time");
-                                setSelectedProfessional("");
-                                setSelectedSlot(null);
-                              }}
-                            >
-                              <Clock
-                                className={`h-6 w-6 mx-auto mb-2 ${
-                                  bookingMode === "time"
-                                    ? "text-blue-600"
-                                    : "text-gray-400"
-                                }`}
-                              />
-                              <p
-                                className={`text-sm font-medium ${
-                                  bookingMode === "time"
-                                    ? "text-blue-600"
-                                    : "text-gray-700 dark:text-gray-300"
-                                }`}
-                              >
-                                By Time
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Any professional
-                              </p>
-                            </button>
-
-                            <button
-                              type="button"
-                              className={`p-4 rounded-xl border-2 transition-all ${
-                                bookingMode === "professional"
-                                  ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                              }`}
-                              onClick={() => {
-                                setBookingMode("professional");
-                                setSelectedSlot(null);
-                              }}
-                            >
-                              <Users
-                                className={`h-6 w-6 mx-auto mb-2 ${
-                                  bookingMode === "professional"
-                                    ? "text-blue-600"
-                                    : "text-gray-400"
-                                }`}
-                              />
-                              <p
-                                className={`text-sm font-medium ${
-                                  bookingMode === "professional"
-                                    ? "text-blue-600"
-                                    : "text-gray-700 dark:text-gray-300"
-                                }`}
-                              >
-                                By Professional
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Choose specific
-                              </p>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Professional Selection - Only show if mode is 'professional' */}
-                      {bookingMode === "professional" &&
-                        availableProfessionalsForService.length > 0 && (
-                          <div className="space-y-3">
-                            <Label className="text-base font-semibold flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              Select Professional
-                            </Label>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                              {availableProfessionalsForService
-                                .filter((prof) => prof.isAvailable !== false)
-                                .map((professional) => (
-                                  <Card
-                                    key={professional.id}
-                                    className={`cursor-pointer transition-all ${
-                                      selectedProfessional === professional.id
-                                        ? "ring-2 ring-primary shadow-md scale-[1.02]"
-                                        : "hover:shadow-md hover:scale-[1.01]"
-                                    }`}
-                                    onClick={() => {
-                                      setSelectedProfessional(professional.id);
-                                      setSelectedSlot(null);
-                                    }}
-                                  >
-                                    <CardContent className="p-4">
-                                      <div className="flex items-center gap-3">
-                                        <Avatar className="h-12 w-12 shrink-0">
-                                          <AvatarImage
-                                            src={professional.avatar}
-                                          />
-                                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                                            {getInitials(
-                                              `${professional.firstName} ${professional.lastName}`
-                                            )}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1 min-w-0">
-                                          <h3 className="font-medium truncate">
-                                            {professional.firstName}{" "}
-                                            {professional.lastName}
-                                          </h3>
-                                          <div className="flex items-center gap-2 text-sm">
-                                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 shrink-0" />
-                                            <span className="text-muted-foreground">
-                                              {professional.rating}
-                                            </span>
-                                          </div>
-                                        </div>
-                                        {selectedProfessional ===
-                                          professional.id && (
-                                          <CheckCircle className="h-5 w-5 text-primary shrink-0" />
-                                        )}
-                                      </div>
-                                      {professional.specialties &&
-                                        professional.specialties.length > 0 && (
-                                          <div className="flex flex-wrap gap-1 mt-3">
-                                            {professional.specialties
-                                              .slice(0, 2)
-                                              .map((specialty) => (
-                                                <Badge
-                                                  key={specialty}
-                                                  variant="secondary"
-                                                  className="text-xs"
-                                                >
-                                                  {specialty}
-                                                </Badge>
-                                              ))}
-                                          </div>
-                                        )}
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-
-                      {/* Warning when "By Professional" mode but no professionals available */}
-                      {bookingMode === "professional" &&
-                        availableProfessionalsForService.length === 0 && (
-                          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-sm text-amber-800 flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              <span>
-                                No professionals available for this service.
-                                Please use "By Time" mode.
-                              </span>
-                            </p>
-                          </div>
-                        )}
-
-                      {/* Date Selection */}
-                      <div className="space-y-3">
-                        <Label className="text-base font-semibold flex items-center gap-2">
-                          <CalendarDays className="h-4 w-4" />
-                          Select Date
-                        </Label>
-                        <Calendar
-                          selected={selectedDate}
-                          onSelect={(date) => {
-                            setSelectedDate(date);
-                            setSelectedSlot(null); // Reset slot when date changes
-                          }}
-                          minDate={new Date()}
-                          className="w-full"
-                        />
-                      </div>
-
-                      {/* Time Slot Selection using TimeSlotPicker */}
-                      {selectedDate && entity && (
-                        <div className="space-y-3">
-                          <TimeSlotPicker
-                            entityId={entity.id}
-                            serviceId={selectedService}
-                            date={selectedDate.toISOString().split("T")[0]}
-                            professionalId={
-                              bookingMode === "professional" &&
-                              selectedProfessional
-                                ? selectedProfessional
-                                : undefined
-                            }
-                            selectedSlot={selectedSlot}
-                            onSelectSlot={setSelectedSlot}
-                          />
-                        </div>
-                      )}
-
-                      {/* Client Information */}
-                      {selectedSlot && (
-                        <div className="space-y-4">
-                          <Separator />
-                          <div className="space-y-4">
-                            <h3 className="text-base font-semibold">
-                              Your Information
-                            </h3>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                              <div className="space-y-2">
-                                <Label htmlFor="name">Full Name *</Label>
-                                <Input
-                                  id="name"
-                                  value={clientData.name}
-                                  onChange={(e) =>
-                                    setClientData({
-                                      ...clientData,
-                                      name: e.target.value,
-                                    })
-                                  }
-                                  placeholder="Your full name"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="phone">Phone Number *</Label>
-                                <Input
-                                  id="phone"
-                                  value={clientData.phone}
-                                  onChange={(e) =>
-                                    setClientData({
-                                      ...clientData,
-                                      phone: e.target.value,
-                                    })
-                                  }
-                                  placeholder="+351 123 456 789"
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="email">Email Address *</Label>
-                              <Input
-                                id="email"
-                                type="email"
-                                value={clientData.email}
-                                onChange={(e) =>
-                                  setClientData({
-                                    ...clientData,
-                                    email: e.target.value,
-                                  })
-                                }
-                                placeholder="your.email@example.com"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="notes">
-                                Additional Notes (Optional)
-                              </Label>
-                              <Textarea
-                                id="notes"
-                                value={clientData.notes}
-                                onChange={(e) =>
-                                  setClientData({
-                                    ...clientData,
-                                    notes: e.target.value,
-                                  })
-                                }
-                                placeholder="Any special requests or notes..."
-                                rows={3}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex justify-end pt-4">
-                            <Button
-                              onClick={handleBooking}
-                              disabled={booking}
-                              size="lg"
-                              className="w-full sm:w-auto shadow-lg"
-                            >
-                              {booking && (
-                                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                              )}
-                              {!booking && (
-                                <CheckCircle className="h-5 w-5 mr-2" />
-                              )}
-                              Confirm Booking
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Sidebar */}
-          <div className="space-y-6">
-            {/* Team Section */}
-            {professionals.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Our Team
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {professionals.slice(0, 5).map((professional) => (
-                    <div
-                      key={professional.id}
-                      className="flex items-center gap-3"
-                    >
-                      <Avatar className="h-12 w-12 shrink-0">
-                        <AvatarImage src={professional.avatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm">
-                          {getInitials(
-                            `${professional.firstName} ${professional.lastName}`
-                          )}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
-                          {professional.firstName} {professional.lastName}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 shrink-0" />
-                          <span className="text-muted-foreground">
-                            {professional.rating}
-                          </span>
-                        </div>
-                      </div>
-                      <Badge
-                        variant={
-                          professional.isAvailable ? "default" : "secondary"
-                        }
-                        className="shrink-0"
-                      >
-                        {professional.isAvailable ? "Available" : "Busy"}
-                      </Badge>
-                    </div>
-                  ))}
-                  {professionals.length > 5 && (
-                    <p className="text-sm text-center text-muted-foreground pt-2">
-                      +{professionals.length - 5} more professionals
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Business Hours */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Business Hours
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {daysOfWeek.map((day) => {
-                  const isOpen =
-                    entity?.workingHours[day.toLowerCase()]?.enabled;
-                  return (
-                    <div key={day} className="flex justify-between text-sm">
-                      <span className="font-medium">{day}</span>
-                      <span
-                        className={
-                          isOpen ? "text-foreground" : "text-muted-foreground"
-                        }
-                      >
-                        {formatWorkingHours(day)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-
-            {/* Contact Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="h-5 w-5" />
-                  Get in Touch
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <a
-                  href={`tel:${entity.phone}`}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
-                >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
-                    <Phone className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-0.5">
-                      Call us
-                    </div>
-                    <div className="text-sm font-medium truncate">
-                      {entity.phone}
-                    </div>
-                  </div>
-                </a>
-                <a
-                  href={`mailto:${entity.email}`}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
-                >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
-                    <Mail className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-0.5">
-                      Email us
-                    </div>
-                    <div className="text-sm font-medium truncate">
-                      {entity.email}
-                    </div>
-                  </div>
-                </a>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
-                    <MapPin className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-0.5">
-                      Visit us
-                    </div>
-                    <div className="text-sm font-medium leading-tight">
-                      {entity.address}
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
