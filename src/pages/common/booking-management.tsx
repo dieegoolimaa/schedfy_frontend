@@ -743,7 +743,7 @@ export function BookingManagementPage() {
                 More Filters
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Advanced Filters</DialogTitle>
                 <DialogDescription>
@@ -874,8 +874,11 @@ export function BookingManagementPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <div className="overflow-hidden">
+                  <Table>
+                    <TableHeader>
                 <TableRow>
                   <TableHead>Client</TableHead>
                   <TableHead>Service</TableHead>
@@ -1274,6 +1277,9 @@ export function BookingManagementPage() {
                 ))}
               </TableBody>
             </Table>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -1404,7 +1410,7 @@ export function BookingManagementPage() {
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Payment Management</DialogTitle>
             <DialogDescription>
@@ -1598,7 +1604,7 @@ export function BookingManagementPage() {
 
       {/* Booking Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("details.title", "Booking Details")}</DialogTitle>
           </DialogHeader>

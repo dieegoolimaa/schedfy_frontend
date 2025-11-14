@@ -677,7 +677,7 @@ export default function ReviewsManagement() {
 
       {/* Respond Dialog */}
       <Dialog open={respondDialog} onOpenChange={setRespondDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Respond to Review</DialogTitle>
             <DialogDescription>

@@ -491,7 +491,7 @@ export function ServicesPage() {
                   Add Service
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add New Service</DialogTitle>
                   <DialogDescription>
@@ -765,7 +765,7 @@ export function ServicesPage() {
                   Filter
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Filter Services</DialogTitle>
                   <DialogDescription>
@@ -1063,7 +1063,7 @@ export function ServicesPage() {
 
       {/* Edit Service Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Service</DialogTitle>
             <DialogDescription>
@@ -1325,7 +1325,7 @@ export function ServicesPage() {
 
       {/* Delete Service Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Delete Service</DialogTitle>
             <DialogDescription>

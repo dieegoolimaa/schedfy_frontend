@@ -682,7 +682,7 @@ export function LoyaltyManagementPage() {
                         Add Reward
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Create New Reward</DialogTitle>
                         <DialogDescription>
@@ -898,7 +898,7 @@ export function LoyaltyManagementPage() {
 
         {/* Edit Tier Dialog */}
         <Dialog open={isEditingTier} onOpenChange={setIsEditingTier}>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Loyalty Tier</DialogTitle>
               <DialogDescription>

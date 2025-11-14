@@ -386,7 +386,7 @@ export default function ProfessionalSchedulePage() {
                       Block Date
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Block a Date</DialogTitle>
                       <DialogDescription>

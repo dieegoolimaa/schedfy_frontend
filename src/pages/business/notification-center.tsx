@@ -1445,7 +1445,7 @@ export function NotificationCenterPage() {
 
       {/* Preview Dialog */}
       <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Preview: {selectedTemplate?.name}</DialogTitle>
             <DialogDescription>

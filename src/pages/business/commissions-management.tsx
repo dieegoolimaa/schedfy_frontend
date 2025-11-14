@@ -865,7 +865,7 @@ export function CommissionsManagementPage() {
                           Add Commission
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-lg">
+                      <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>Create Commission Rule</DialogTitle>
                           <DialogDescription>
@@ -1775,7 +1775,7 @@ export function CommissionsManagementPage() {
                           Add Discount
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                      <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>Create Discount Rule</DialogTitle>
                           <DialogDescription>
@@ -2158,7 +2158,7 @@ export function CommissionsManagementPage() {
             open={editCommissionDialog}
             onOpenChange={setEditCommissionDialog}
           >
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Commission</DialogTitle>
                 <DialogDescription>
@@ -2429,7 +2429,7 @@ export function CommissionsManagementPage() {
 
           {/* Edit Voucher Dialog */}
           <Dialog open={editVoucherDialog} onOpenChange={setEditVoucherDialog}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Voucher</DialogTitle>
                 <DialogDescription>Update voucher settings</DialogDescription>
@@ -2647,7 +2647,7 @@ export function CommissionsManagementPage() {
             open={editDiscountDialog}
             onOpenChange={setEditDiscountDialog}
           >
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Discount</DialogTitle>
                 <DialogDescription>Update discount settings</DialogDescription>
