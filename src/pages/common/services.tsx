@@ -998,7 +998,8 @@ export function ServicesPage() {
                         <div className="flex items-center justify-between">
                           <span className="font-medium">{category.name}</span>
                           <span className="text-sm text-muted-foreground">
-                            {category.count} services • {formatCurrency(categoryRevenue)}
+                            {category.count} services •{" "}
+                            {formatCurrency(categoryRevenue)}
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">

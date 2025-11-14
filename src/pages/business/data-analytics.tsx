@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
   CardContent,
@@ -47,6 +48,7 @@ import {
 } from "lucide-react";
 
 export function DataAnalyticsPage() {
+  const { formatCurrency } = useCurrency();
   const [timeRange, setTimeRange] = useState("30d");
 
   // Mock analytics data
@@ -309,7 +311,7 @@ export function DataAnalyticsPage() {
       <ResponsiveCardGrid>
         <MobileStatsCard
           title="Revenue"
-          value={`€${overviewStats.totalRevenue.toLocaleString()}`}
+          value={formatCurrency(overviewStats.totalRevenue)}
           subtitle={`${overviewStats.revenueGrowth > 0 ? "+" : ""}${
             overviewStats.revenueGrowth
           }% growth`}
@@ -333,7 +335,7 @@ export function DataAnalyticsPage() {
         />
         <MobileStatsCard
           title="Avg. Value"
-          value={`€${overviewStats.avgBookingValue}`}
+          value={formatCurrency(overviewStats.avgBookingValue)}
           subtitle={`${overviewStats.avgValueGrowth > 0 ? "+" : ""}${
             overviewStats.avgValueGrowth
           }% growth`}
@@ -385,7 +387,7 @@ export function DataAnalyticsPage() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">{service.service}</span>
                         <span className="text-muted-foreground">
-                          €{service.revenue.toLocaleString()} (
+                          {formatCurrency(service.revenue)} (
                           {service.percentage}%)
                         </span>
                       </div>
@@ -434,11 +436,11 @@ export function DataAnalyticsPage() {
                           {service.service}
                         </TableCell>
                         <TableCell>
-                          €{service.revenue.toLocaleString()}
+                          {formatCurrency(service.revenue)}
                         </TableCell>
                         <TableCell>{service.bookings}</TableCell>
                         <TableCell>
-                          €{(service.revenue / service.bookings).toFixed(2)}
+                          {formatCurrency(service.revenue / service.bookings)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
@@ -505,7 +507,7 @@ export function DataAnalyticsPage() {
                       </div>
                       <div className="text-right text-sm">
                         <div className="font-semibold">
-                          €{professional.revenue.toLocaleString()}
+                          {formatCurrency(professional.revenue)}
                         </div>
                         <div className="text-muted-foreground">
                           {professional.bookings} bookings
@@ -570,7 +572,7 @@ export function DataAnalyticsPage() {
                           {professional.name}
                         </TableCell>
                         <TableCell>
-                          €{professional.revenue.toLocaleString()}
+                          {formatCurrency(professional.revenue)}
                         </TableCell>
                         <TableCell>{professional.bookings}</TableCell>
                         <TableCell>
@@ -637,7 +639,7 @@ export function DataAnalyticsPage() {
                             <span className="font-medium">{hour.hour}</span>
                           </div>
                           <span className="text-muted-foreground">
-                            {hour.bookings} bookings (€{hour.revenue})
+                            {hour.bookings} bookings ({formatCurrency(hour.revenue)})
                           </span>
                         </div>
                         <div className="relative">
@@ -725,9 +727,9 @@ export function DataAnalyticsPage() {
                             </div>
                           </TableCell>
                           <TableCell>{hour.bookings}</TableCell>
-                          <TableCell>€{hour.revenue}</TableCell>
+                          <TableCell>{formatCurrency(hour.revenue)}</TableCell>
                           <TableCell>
-                            €{(hour.revenue / hour.bookings).toFixed(2)}
+                            {formatCurrency(hour.revenue / hour.bookings)}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
@@ -780,7 +782,7 @@ export function DataAnalyticsPage() {
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div className="text-center p-2 bg-muted rounded">
                           <div className="font-semibold">
-                            €{segment.avgSpent}
+                            {formatCurrency(segment.avgSpent)}
                           </div>
                           <div className="text-muted-foreground">
                             Avg. Spent
@@ -857,9 +859,9 @@ export function DataAnalyticsPage() {
                         </TableCell>
                         <TableCell>{segment.count}</TableCell>
                         <TableCell>
-                          €{segment.revenue.toLocaleString()}
+                          {formatCurrency(segment.revenue)}
                         </TableCell>
-                        <TableCell>€{segment.avgSpent}</TableCell>
+                        <TableCell>{formatCurrency(segment.avgSpent)}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Progress

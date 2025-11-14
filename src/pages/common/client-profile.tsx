@@ -7,6 +7,7 @@ import {
   useState,
   useEffect,
 } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useAuth } from "../../contexts/auth-context";
 import { useClients } from "../../hooks/useClients";
 import { useBookings } from "../../hooks/useBookings";
@@ -83,6 +84,7 @@ export function ClientProfilePage() {
   const [editingClientData, setEditingClientData] = useState<any>(null);
   const [clientToDelete, setClientToDelete] = useState<any>(null);
 
+  const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
@@ -780,14 +782,14 @@ export function ClientProfilePage() {
           />
           <StatCard
             title="Revenue"
-            value={`€${stats.totalRevenue.toLocaleString()}`}
+            value={formatCurrency(stats.totalRevenue)}
             subtitle="Total"
             icon={Euro}
             variant="success"
           />
           <StatCard
             title="Avg. Spent"
-            value={`€${stats.averageSpent.toFixed(0)}`}
+            value={formatCurrency(stats.averageSpent)}
             subtitle="Per Client"
             icon={Euro}
             variant="warning"
@@ -955,10 +957,10 @@ export function ClientProfilePage() {
                             <TableCell>
                               <div className="space-y-1">
                                 <div className="font-medium">
-                                  €{totalSpent.toFixed(2)}
+                                  {formatCurrency(totalSpent)}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Avg: €{averageSpent.toFixed(2)}
+                                  Avg: {formatCurrency(averageSpent)}
                                 </div>
                               </div>
                             </TableCell>
@@ -1068,7 +1070,7 @@ export function ClientProfilePage() {
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">
-                            €{Number(booking.amount).toFixed(2)}
+                            {formatCurrency(Number(booking.amount))}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -1159,7 +1161,7 @@ export function ClientProfilePage() {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">
-                              €{totalSpent.toFixed(2)}
+                              {formatCurrency(totalSpent)}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {totalBookings} bookings
@@ -1593,13 +1595,13 @@ export function ClientProfilePage() {
                           <div>
                             <Label className="text-sm">Total Spent</Label>
                             <p className="text-2xl font-bold">
-                              €{selectedClient.totalSpent}
+                              {formatCurrency(selectedClient.totalSpent)}
                             </p>
                           </div>
                           <div>
                             <Label className="text-sm">Average Spent</Label>
                             <p className="text-xl font-semibold">
-                              €{selectedClient.averageSpent}
+                              {formatCurrency(selectedClient.averageSpent)}
                             </p>
                           </div>
                         </div>
@@ -1662,7 +1664,7 @@ export function ClientProfilePage() {
                                   </TableCell>
                                   <TableCell>
                                     <span className="font-medium">
-                                      €{booking.amount}
+                                      {formatCurrency(booking.amount)}
                                     </span>
                                   </TableCell>
                                   <TableCell>
