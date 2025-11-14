@@ -435,9 +435,7 @@ export function DataAnalyticsPage() {
                         <TableCell className="font-medium">
                           {service.service}
                         </TableCell>
-                        <TableCell>
-                          {formatCurrency(service.revenue)}
-                        </TableCell>
+                        <TableCell>{formatCurrency(service.revenue)}</TableCell>
                         <TableCell>{service.bookings}</TableCell>
                         <TableCell>
                           {formatCurrency(service.revenue / service.bookings)}
@@ -639,7 +637,8 @@ export function DataAnalyticsPage() {
                             <span className="font-medium">{hour.hour}</span>
                           </div>
                           <span className="text-muted-foreground">
-                            {hour.bookings} bookings ({formatCurrency(hour.revenue)})
+                            {hour.bookings} bookings (
+                            {formatCurrency(hour.revenue)})
                           </span>
                         </div>
                         <div className="relative">
@@ -858,10 +857,10 @@ export function DataAnalyticsPage() {
                           {segment.segment}
                         </TableCell>
                         <TableCell>{segment.count}</TableCell>
+                        <TableCell>{formatCurrency(segment.revenue)}</TableCell>
                         <TableCell>
-                          {formatCurrency(segment.revenue)}
+                          {formatCurrency(segment.avgSpent)}
                         </TableCell>
-                        <TableCell>{formatCurrency(segment.avgSpent)}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Progress

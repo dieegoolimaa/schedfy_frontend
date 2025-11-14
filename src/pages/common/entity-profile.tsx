@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
@@ -57,6 +58,7 @@ import {
 
 export function EntityProfilePage() {
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -834,7 +836,7 @@ export function EntityProfilePage() {
                             <span>{duration || 0} min</span>
                           </div>
                           <div className="font-semibold">
-                            €{price?.toFixed(2) || "0.00"}
+                            {formatCurrency(price || 0)}
                           </div>
                         </div>
                       </div>

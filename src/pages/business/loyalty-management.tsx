@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { FeatureGate } from "../../contexts/feature-flags-context";
 import {
   Card,
@@ -63,6 +64,7 @@ import {
 } from "lucide-react";
 
 export function LoyaltyManagementPage() {
+  const { formatCurrency } = useCurrency();
   const [isLoyaltyEnabled, setIsLoyaltyEnabled] = useState(true);
   const [selectedTier, setSelectedTier] = useState("bronze");
   const [isEditingTier, setIsEditingTier] = useState(false);
@@ -462,7 +464,7 @@ export function LoyaltyManagementPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    €{loyaltyStats.programRevenue.toLocaleString()}
+                    {formatCurrency(loyaltyStats.programRevenue)}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     From loyalty members
