@@ -23,16 +23,31 @@ class InAppNotificationsService {
         isRead?: boolean;
         category?: string;
     } = {}) {
-        const response = await apiClient.get('/api/notifications', { params });
-        return {
-            notifications: (response.data as any).notifications,
-            pagination: (response.data as any).pagination,
-        };
+        try {
+            const response = await apiClient.get('/api/notifications', { params });
+            return {
+                notifications: (response.data as any).notifications,
+                pagination: (response.data as any).pagination,
+            };
+        } catch (error) {
+            // Return empty array if endpoint not available yet
+            console.warn('Notifications API not available yet');
+            return {
+                notifications: [],
+                pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+            };
+        }
     }
 
     async getUnreadCount(): Promise<number> {
-        const response = await apiClient.get('/api/notifications/unread-count');
-        return (response.data as any).count;
+        try {
+            const response = await apiClient.get('/api/notifications/unread-count');
+            return (response.data as any).count;
+        } catch (error) {
+            // Return 0 if endpoint not available yet
+            console.warn('Notifications API not available yet');
+            return 0;
+        }
     }
 
     async markAsRead(id: string): Promise<InAppNotification> {
