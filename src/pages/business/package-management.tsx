@@ -431,7 +431,8 @@ const PackageManagement: React.FC = () => {
                   {activeSubscriptions}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t("packages:stats.of")} {totalSubscriptions} {t("packages:stats.total")}
+                  {t("packages:stats.of")} {totalSubscriptions}{" "}
+                  {t("packages:stats.total")}
                 </p>
               </CardContent>
             </Card>

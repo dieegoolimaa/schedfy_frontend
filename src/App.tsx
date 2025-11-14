@@ -55,7 +55,8 @@ import ProfessionalSchedulePage from "./pages/professional/schedule";
 import ProfessionalEarningsPage from "./pages/professional/earnings";
 
 // Public pages
-import { PublicEntityProfilePage } from "./pages/public/entity-profile";
+// import { PublicEntityProfilePage } from "./pages/public/entity-profile";
+import { NewEntityProfilePage } from "./pages/public/entity-profile-new";
 
 // Legal and informational pages
 import { TermsPage } from "./pages/terms";
@@ -116,7 +117,7 @@ function App() {
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route
                   path="/book/:slug"
-                  element={<PublicEntityProfilePage />}
+                  element={<NewEntityProfilePage />}
                 />
 
                 {/* Onboarding route - protected but without OnboardingGuard */}
