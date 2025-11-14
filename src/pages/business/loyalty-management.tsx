@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { FeatureGate } from "../../contexts/feature-flags-context";
 import {
@@ -64,6 +65,7 @@ import {
 } from "lucide-react";
 
 export function LoyaltyManagementPage() {
+  const { t } = useTranslation();
   const { formatCurrency } = useCurrency();
   const [isLoyaltyEnabled, setIsLoyaltyEnabled] = useState(true);
   const [selectedTier, setSelectedTier] = useState("bronze");

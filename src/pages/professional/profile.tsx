@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import {
   Card,
@@ -36,6 +37,7 @@ import { useToast } from "../../hooks/use-toast";
 import { apiClient } from "../../lib/api-client";
 
 export default function ProfessionalProfilePage() {
+  const { t } = useTranslation("professional");
   const { user } = useAuth();
   const { toast } = useToast();
 

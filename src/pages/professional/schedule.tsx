@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import {
   Card,
@@ -92,6 +93,7 @@ const DEFAULT_DAY_SCHEDULE: DaySchedule = {
 };
 
 export default function ProfessionalSchedulePage() {
+  const { t } = useTranslation("professional");
   const { user } = useAuth();
   const professionalId = user?.id || "";
 

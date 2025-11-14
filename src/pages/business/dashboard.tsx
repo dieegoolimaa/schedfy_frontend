@@ -356,7 +356,10 @@ const Dashboard = () => {
               entityStats.revenue.change !== undefined
                 ? `${
                     entityStats.revenue.change > 0 ? "+" : ""
-                  }${entityStats.revenue.change.toFixed(1)}% ${t("stats.vsLastMonth", "vs last month")}`
+                  }${entityStats.revenue.change.toFixed(1)}% ${t(
+                    "stats.vsLastMonth",
+                    "vs last month"
+                  )}`
                 : undefined
             }
             icon={DollarSign}
@@ -379,7 +382,10 @@ const Dashboard = () => {
               entityStats.bookings.change !== undefined
                 ? `${
                     entityStats.bookings.change > 0 ? "+" : ""
-                  }${entityStats.bookings.change.toFixed(1)}% ${t("stats.vsLastMonth", "vs last month")}`
+                  }${entityStats.bookings.change.toFixed(1)}% ${t(
+                    "stats.vsLastMonth",
+                    "vs last month"
+                  )}`
                 : undefined
             }
             icon={CalendarDays}
@@ -989,7 +995,10 @@ const Dashboard = () => {
         onOpenChange={setCalendarOpen}
         bookings={bookings}
         title={t("calendar.title", "Business Calendar")}
-        description={t("calendar.description", "View and manage all appointments")}
+        description={t(
+          "calendar.description",
+          "View and manage all appointments"
+        )}
       />
       <BookingCreator
         open={quickBookingDialogOpen}

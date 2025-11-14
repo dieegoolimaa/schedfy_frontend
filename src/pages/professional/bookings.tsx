@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import {
@@ -41,6 +42,7 @@ import {
 import { format } from "date-fns";
 
 export default function ProfessionalBookingsPage() {
+  const { t } = useTranslation("professional");
   const { user } = useAuth();
   const entityId = user?.entityId || "";
   const professionalId = user?.id || "";
