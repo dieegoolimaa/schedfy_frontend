@@ -5,6 +5,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { usePermissions } from "../../hooks/usePermissions";
 import { usePackages } from "../../hooks/usePackages";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatsGrid } from "@/components/ui/stats-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -413,7 +414,7 @@ const PackageManagement: React.FC = () => {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <StatsGrid columns={5}>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -506,7 +507,7 @@ const PackageManagement: React.FC = () => {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </StatsGrid>
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>

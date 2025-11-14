@@ -55,7 +55,6 @@ import ProfessionalSchedulePage from "./pages/professional/schedule";
 import ProfessionalEarningsPage from "./pages/professional/earnings";
 
 // Public pages
-import { BusinessDiscoveryPage } from "./pages/public/business-discovery";
 import { PublicEntityProfilePage } from "./pages/public/entity-profile";
 
 // Legal and informational pages
@@ -115,7 +114,6 @@ function App() {
                   element={<AcceptInvitationPage />}
                 />
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
-                <Route path="/discover" element={<BusinessDiscoveryPage />} />
                 <Route
                   path="/book/:slug"
                   element={<PublicEntityProfilePage />}

@@ -290,26 +290,26 @@ export function SimpleSettingsPage() {
               <Store className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
               <span className="sm:hidden">Info</span>
-          </TabsTrigger>
-          <TabsTrigger value="hours" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span className="hidden sm:inline">Hours</span>
-            <span className="sm:hidden">Time</span>
-          </TabsTrigger>
-          <TabsTrigger value="booking" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">Booking</span>
-            <span className="sm:hidden">Book</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="notifications"
-            className="flex items-center gap-2"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Notifications</span>
-            <span className="sm:hidden">Alerts</span>
-          </TabsTrigger>
-        </TabsList>
+            </TabsTrigger>
+            <TabsTrigger value="hours" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span className="hidden sm:inline">Hours</span>
+              <span className="sm:hidden">Time</span>
+            </TabsTrigger>
+            <TabsTrigger value="booking" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Booking</span>
+              <span className="sm:hidden">Book</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="flex items-center gap-2"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">Notifications</span>
+              <span className="sm:hidden">Alerts</span>
+            </TabsTrigger>
+          </TabsList>
         </div>
 
         {/* Business Profile Settings */}
