@@ -428,19 +428,19 @@ export function FinancialReportsPage() {
           <div className="border-b">
             <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-0 bg-transparent">
               <TabsTrigger value="overview" className="whitespace-nowrap">
-                Overview
+                {t("tabs.overview", "Overview")}
               </TabsTrigger>
               <TabsTrigger value="goals" className="whitespace-nowrap">
-                Goals & Targets
+                {t("tabs.goals", "Goals & Targets")}
               </TabsTrigger>
               <TabsTrigger value="commissions" className="whitespace-nowrap">
-                Commissions
+                {t("tabs.commissions", "Commissions")}
               </TabsTrigger>
               <TabsTrigger value="vouchers" className="whitespace-nowrap">
-                Vouchers
+                {t("tabs.vouchers", "Vouchers")}
               </TabsTrigger>
               <TabsTrigger value="transactions" className="whitespace-nowrap">
-                Transactions
+                {t("tabs.transactions", "Transactions")}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -449,9 +449,9 @@ export function FinancialReportsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Revenue by Service</CardTitle>
+                  <CardTitle>{t("breakdown.revenueByService", "Revenue by Service")}</CardTitle>
                   <CardDescription>
-                    Breakdown of revenue by service category
+                    {t("breakdown.revenueByServiceDesc", "Breakdown of revenue by service category")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -481,7 +481,7 @@ export function FinancialReportsPage() {
                               {formatCurrency(item.amount)}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {item.transactions} transactions
+                              {item.transactions} {t("breakdown.transactions", "transactions")}
                             </span>
                           </div>
                         </div>
@@ -493,9 +493,9 @@ export function FinancialReportsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Transaction Summary</CardTitle>
+                  <CardTitle>{t("breakdown.transactionSummary", "Transaction Summary")}</CardTitle>
                   <CardDescription>
-                    Key transaction metrics for the selected period
+                    {t("breakdown.transactionSummaryDesc", "Key transaction metrics for the selected period")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -535,7 +535,7 @@ export function FinancialReportsPage() {
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <Target className="h-5 w-5 text-blue-600" />
-                    <CardTitle>Set Monthly Goals</CardTitle>
+                    <CardTitle>{t("goals.setMonthlyGoals", "Set Monthly Goals")}</CardTitle>
                   </div>
                   <CardDescription>
                     Define your business targets for revenue, bookings, and new
@@ -690,7 +690,7 @@ export function FinancialReportsPage() {
               {/* Current Goals Progress */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Goals Progress</CardTitle>
+                  <CardTitle>{t("goals.goalsProgress", "Goals Progress")}</CardTitle>
                   <CardDescription>
                     Track your current performance vs. targets
                   </CardDescription>
@@ -847,7 +847,7 @@ export function FinancialReportsPage() {
           <TabsContent value="commissions" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Commission Breakdown</CardTitle>
+                <CardTitle>{t("commissions.breakdown", "Commission Breakdown")}</CardTitle>
                 <CardDescription>
                   Detailed breakdown of all commission charges
                 </CardDescription>
@@ -891,7 +891,7 @@ export function FinancialReportsPage() {
           <TabsContent value="vouchers" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Voucher Usage</CardTitle>
+                <CardTitle>{t("vouchers.usage", "Voucher Usage")}</CardTitle>
                 <CardDescription>
                   Detailed breakdown of vouchers and discounts applied
                 </CardDescription>
@@ -983,7 +983,7 @@ export function FinancialReportsPage() {
             {/* Transactions Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
+                <CardTitle>{t("transactions.history", "Transaction History")}</CardTitle>
                 <CardDescription>
                   Detailed list of all financial transactions
                 </CardDescription>
