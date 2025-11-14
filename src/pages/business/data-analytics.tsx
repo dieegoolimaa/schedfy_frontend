@@ -279,7 +279,10 @@ export function DataAnalyticsPage() {
             </CardTitle>
           </div>
           <CardDescription className="text-purple-700">
-            {t("aiInsights.description", "Automated analysis reveals key opportunities and trends")}
+            {t(
+              "aiInsights.description",
+              "Automated analysis reveals key opportunities and trends"
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -377,7 +380,9 @@ export function DataAnalyticsPage() {
             {/* Revenue Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("services.revenueByService", "Revenue by Service")}</CardTitle>
+                <CardTitle>
+                  {t("services.revenueByService", "Revenue by Service")}
+                </CardTitle>
                 <CardDescription>
                   Visual breakdown of service contribution to total revenue
                 </CardDescription>
@@ -414,7 +419,9 @@ export function DataAnalyticsPage() {
             {/* Service Performance Table */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("services.metrics", "Service Metrics")}</CardTitle>
+                <CardTitle>
+                  {t("services.metrics", "Service Metrics")}
+                </CardTitle>
                 <CardDescription>
                   Detailed performance metrics for each service
                 </CardDescription>
@@ -480,7 +487,12 @@ export function DataAnalyticsPage() {
             {/* Performance Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("professionals.performanceRanking", "Professional Performance Ranking")}</CardTitle>
+                <CardTitle>
+                  {t(
+                    "professionals.performanceRanking",
+                    "Professional Performance Ranking"
+                  )}
+                </CardTitle>
                 <CardDescription>
                   Revenue and satisfaction rankings
                 </CardDescription>
@@ -548,7 +560,9 @@ export function DataAnalyticsPage() {
             {/* Detailed Metrics Table */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("professionals.detailedMetrics", "Detailed Metrics")}</CardTitle>
+                <CardTitle>
+                  {t("professionals.detailedMetrics", "Detailed Metrics")}
+                </CardTitle>
                 <CardDescription>
                   Complete performance breakdown
                 </CardDescription>
@@ -618,7 +632,9 @@ export function DataAnalyticsPage() {
             {/* Peak Hours Visualization */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("trends.peakHoursChart", "Peak Hours Chart")}</CardTitle>
+                <CardTitle>
+                  {t("trends.peakHoursChart", "Peak Hours Chart")}
+                </CardTitle>
                 <CardDescription>
                   Visual representation of booking patterns throughout the day
                 </CardDescription>
@@ -682,7 +698,9 @@ export function DataAnalyticsPage() {
             {/* Detailed Time Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("trends.hourlyBreakdown", "Hourly Breakdown")}</CardTitle>
+                <CardTitle>
+                  {t("trends.hourlyBreakdown", "Hourly Breakdown")}
+                </CardTitle>
                 <CardDescription>
                   Detailed metrics for each time slot
                 </CardDescription>
@@ -764,7 +782,9 @@ export function DataAnalyticsPage() {
             {/* Client Segments Visualization */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("clients.valueDistribution", "Client Value Distribution")}</CardTitle>
+                <CardTitle>
+                  {t("clients.valueDistribution", "Client Value Distribution")}
+                </CardTitle>
                 <CardDescription>
                   Lifetime value and spending patterns across client segments
                 </CardDescription>
@@ -835,7 +855,9 @@ export function DataAnalyticsPage() {
             {/* Detailed Segment Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("clients.segmentDetails", "Segment Details")}</CardTitle>
+                <CardTitle>
+                  {t("clients.segmentDetails", "Segment Details")}
+                </CardTitle>
                 <CardDescription>
                   Complete breakdown of client segment performance
                 </CardDescription>

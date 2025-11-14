@@ -449,9 +449,14 @@ export function FinancialReportsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("breakdown.revenueByService", "Revenue by Service")}</CardTitle>
+                  <CardTitle>
+                    {t("breakdown.revenueByService", "Revenue by Service")}
+                  </CardTitle>
                   <CardDescription>
-                    {t("breakdown.revenueByServiceDesc", "Breakdown of revenue by service category")}
+                    {t(
+                      "breakdown.revenueByServiceDesc",
+                      "Breakdown of revenue by service category"
+                    )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -481,7 +486,8 @@ export function FinancialReportsPage() {
                               {formatCurrency(item.amount)}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {item.transactions} {t("breakdown.transactions", "transactions")}
+                              {item.transactions}{" "}
+                              {t("breakdown.transactions", "transactions")}
                             </span>
                           </div>
                         </div>
@@ -493,9 +499,14 @@ export function FinancialReportsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("breakdown.transactionSummary", "Transaction Summary")}</CardTitle>
+                  <CardTitle>
+                    {t("breakdown.transactionSummary", "Transaction Summary")}
+                  </CardTitle>
                   <CardDescription>
-                    {t("breakdown.transactionSummaryDesc", "Key transaction metrics for the selected period")}
+                    {t(
+                      "breakdown.transactionSummaryDesc",
+                      "Key transaction metrics for the selected period"
+                    )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -535,7 +546,9 @@ export function FinancialReportsPage() {
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <Target className="h-5 w-5 text-blue-600" />
-                    <CardTitle>{t("goals.setMonthlyGoals", "Set Monthly Goals")}</CardTitle>
+                    <CardTitle>
+                      {t("goals.setMonthlyGoals", "Set Monthly Goals")}
+                    </CardTitle>
                   </div>
                   <CardDescription>
                     Define your business targets for revenue, bookings, and new
@@ -690,7 +703,9 @@ export function FinancialReportsPage() {
               {/* Current Goals Progress */}
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("goals.goalsProgress", "Goals Progress")}</CardTitle>
+                  <CardTitle>
+                    {t("goals.goalsProgress", "Goals Progress")}
+                  </CardTitle>
                   <CardDescription>
                     Track your current performance vs. targets
                   </CardDescription>
@@ -847,7 +862,9 @@ export function FinancialReportsPage() {
           <TabsContent value="commissions" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>{t("commissions.breakdown", "Commission Breakdown")}</CardTitle>
+                <CardTitle>
+                  {t("commissions.breakdown", "Commission Breakdown")}
+                </CardTitle>
                 <CardDescription>
                   Detailed breakdown of all commission charges
                 </CardDescription>
@@ -983,7 +1000,9 @@ export function FinancialReportsPage() {
             {/* Transactions Table */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("transactions.history", "Transaction History")}</CardTitle>
+                <CardTitle>
+                  {t("transactions.history", "Transaction History")}
+                </CardTitle>
                 <CardDescription>
                   Detailed list of all financial transactions
                 </CardDescription>

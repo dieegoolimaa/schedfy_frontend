@@ -257,9 +257,9 @@ export function SubscriptionManagementPage() {
                       <div className="flex items-center space-x-3">
                         <Brain className="h-8 w-8 text-purple-500" />
                         <div>
-                          <div className="font-medium">{addOn.name}</div>
+                          <div className="font-medium">{t("addOns.aiInsights.name", addOn.name)}</div>
                           <div className="text-sm text-muted-foreground">
-                            {addOn.description}
+                            {t("addOns.aiInsights.description", addOn.description)}
                           </div>
                         </div>
                       </div>
@@ -268,7 +268,7 @@ export function SubscriptionManagementPage() {
                           {formatCurrency(addOn.price)}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {billingPeriod === "monthly" ? "/month" : "/year"}
+                          {billingPeriod === "monthly" ? t("billing.perMonth", "per month") : t("billing.perYear", "per year")}
                         </div>
                       </div>
                     </div>
@@ -290,7 +290,7 @@ export function SubscriptionManagementPage() {
             <div className="space-y-3">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Bookings</span>
+                  <span>{t("usage.bookings", "Bookings")}</span>
                   <span>
                     {subscriptionData.usage.bookings.current}
                     {subscriptionData.usage.bookings.limit &&
@@ -314,7 +314,7 @@ export function SubscriptionManagementPage() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Professionals</span>
+                  <span>{t("usage.professionals", "Professionals")}</span>
                   <span>
                     {subscriptionData.usage.professionals.current}
                     {subscriptionData.usage.professionals.limit &&
@@ -338,7 +338,7 @@ export function SubscriptionManagementPage() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Storage</span>
+                  <span>{t("usage.storage", "Storage")}</span>
                   <span>
                     {subscriptionData.usage.storage.current}GB /{" "}
                     {subscriptionData.usage.storage.limit}GB
@@ -358,7 +358,7 @@ export function SubscriptionManagementPage() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>AI Insights</span>
+                  <span>{t("usage.aiInsights", "AI Insights")}</span>
                   <span>
                     {subscriptionData.usage.aiInsights.current} /{" "}
                     {subscriptionData.usage.aiInsights.limit}
@@ -435,20 +435,20 @@ export function SubscriptionManagementPage() {
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-primary">
                       <Star className="h-3 w-3 mr-1" />
-                      Most Popular
+                      {t("plans.mostPopular", "Most Popular")}
                     </Badge>
                   </div>
                 )}
                 <CardHeader>
                   <div className="text-center">
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    <CardDescription>{plan.description}</CardDescription>
+                    <CardTitle className="text-xl">{t(`plans.${plan.id}.name`, plan.name)}</CardTitle>
+                    <CardDescription>{t(`plans.${plan.id}.description`, plan.description)}</CardDescription>
                     <div className="mt-4">
                       <div className="text-3xl font-bold">
                         {formatCurrency(plan.price)}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {billingPeriod === "monthly" ? "per month" : "per year"}
+                        {billingPeriod === "monthly" ? t("billing.perMonth", "per month") : t("billing.perYear", "per year")}
                       </div>
                     </div>
                   </div>
@@ -474,8 +474,8 @@ export function SubscriptionManagementPage() {
                     }
                   >
                     {subscriptionData.current.plan.toLowerCase() === plan.id
-                      ? "Current Plan"
-                      : "Upgrade"}
+                      ? t("plans.currentPlan", "Current Plan")
+                      : t("plans.upgrade", "Upgrade")}
                   </Button>
                 </CardContent>
               </Card>
@@ -486,16 +486,16 @@ export function SubscriptionManagementPage() {
         {/* Add-ons Tab */}
         <TabsContent value="addons">
           <div className="space-y-6">
-            <h3 className="text-lg font-medium">Available Add-ons</h3>
+            <h3 className="text-lg font-medium">{t("addOns.title", "Available Add-ons")}</h3>
             <div className="grid gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <div className="flex items-center space-x-3">
                     <Brain className="h-8 w-8 text-purple-500" />
                     <div>
-                      <CardTitle>AI Business Insights</CardTitle>
+                      <CardTitle>{t("addOns.aiInsights.name", "AI Business Insights")}</CardTitle>
                       <CardDescription>
-                        Advanced AI-powered analytics and recommendations
+                        {t("addOns.aiInsights.description", "Advanced AI-powered analytics and recommendations")}
                       </CardDescription>
                     </div>
                   </div>
@@ -506,28 +506,29 @@ export function SubscriptionManagementPage() {
                       billingPeriod === "monthly" ? 19.99 : 199.9
                     )}
                     <span className="text-sm font-normal text-muted-foreground ml-1">
-                      {billingPeriod === "monthly" ? "/month" : "/year"}
+                      {billingPeriod === "monthly" ? t("billing.perMonth", "/month") : t("billing.perYear", "/year")}
                     </span>
                   </div>
                   <ul className="space-y-2">
                     <li className="flex items-center space-x-2">
                       <TrendingUp className="h-3 w-3 text-green-500" />
-                      <span className="text-sm">Predictive analytics</span>
+                      <span className="text-sm">{t("addOns.aiInsights.features.predictive", "Predictive analytics")}</span>
                     </li>
                     <li className="flex items-center space-x-2">
                       <Users className="h-3 w-3 text-green-500" />
-                      <span className="text-sm">Client behavior insights</span>
+                      <span className="text-sm">{t("addOns.aiInsights.features.clientBehavior", "Client behavior insights")}</span>
                     </li>
                     <li className="flex items-center space-x-2">
                       <Building className="h-3 w-3 text-green-500" />
                       <span className="text-sm">
-                        Business optimization tips
+                        {t("addOns.aiInsights.features.optimization", "Business optimization tips")}
                       </span>
                     </li>
                   </ul>
                   <Button className="w-full" disabled>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Active
+                    {t("addOns.active", "Active")}
+                  </Button>
                   </Button>
                 </CardContent>
               </Card>
@@ -540,9 +541,9 @@ export function SubscriptionManagementPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Payment Method</CardTitle>
+                <CardTitle>{t("billing.paymentMethod.title", "Payment Method")}</CardTitle>
                 <CardDescription>
-                  Manage your payment information
+                  {t("billing.paymentMethod.description", "Manage your payment information")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -550,41 +551,41 @@ export function SubscriptionManagementPage() {
                   <div className="flex items-center space-x-3">
                     <CreditCard className="h-8 w-8 text-muted-foreground" />
                     <div>
-                      <div className="font-medium">Visa ending in 4242</div>
+                      <div className="font-medium">{t("billing.paymentMethod.cardEnding", "Visa ending in 4242")}</div>
                       <div className="text-sm text-muted-foreground">
-                        Expires 12/26
+                        {t("billing.paymentMethod.expires", "Expires")} 12/26
                       </div>
                     </div>
                   </div>
-                  <Button variant="outline">Update</Button>
+                  <Button variant="outline">{t("actions.update", "Update")}</Button>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Billing Information</CardTitle>
-                <CardDescription>Update your billing details</CardDescription>
+                <CardTitle>{t("billing.information.title", "Billing Information")}</CardTitle>
+                <CardDescription>{t("billing.information.description", "Update your billing details")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="company">Company Name</Label>
+                    <Label htmlFor="company">{t("billing.information.companyName", "Company Name")}</Label>
                     <Input id="company" defaultValue="Bella Vita Salon & Spa" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="vat">VAT Number</Label>
+                    <Label htmlFor="vat">{t("billing.information.vatNumber", "VAT Number")}</Label>
                     <Input id="vat" defaultValue="PT123456789" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">{t("billing.information.address", "Address")}</Label>
                   <Input
                     id="address"
                     defaultValue="Rua das Flores, 123, Lisboa, Portugal"
                   />
                 </div>
-                <Button>Update Billing Information</Button>
+                <Button>{t("billing.information.update", "Update Billing Information")}</Button>
               </CardContent>
             </Card>
           </div>
@@ -594,9 +595,9 @@ export function SubscriptionManagementPage() {
         <TabsContent value="invoices">
           <Card>
             <CardHeader>
-              <CardTitle>Invoice History</CardTitle>
+              <CardTitle>{t("invoices.title", "Invoice History")}</CardTitle>
               <CardDescription>
-                Download and manage your invoices
+                {t("invoices.description", "Download and manage your invoices")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -609,7 +610,7 @@ export function SubscriptionManagementPage() {
                     <div className="flex items-center space-x-3">
                       <Calendar className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <div className="font-medium">Invoice {invoice.id}</div>
+                        <div className="font-medium">{t("invoices.invoice", "Invoice")} {invoice.id}</div>
                         <div className="text-sm text-muted-foreground">
                           {new Date(invoice.date).toLocaleDateString()}
                         </div>
@@ -624,12 +625,13 @@ export function SubscriptionManagementPage() {
                           variant="outline"
                           className="bg-green-100 text-green-800 border-green-200"
                         >
-                          {invoice.status}
+                          {t(`invoices.status.${invoice.status}`, invoice.status)}
                         </Badge>
                       </div>
                       <Button variant="outline" size="sm">
                         <Download className="h-4 w-4 mr-2" />
-                        Download
+                        {t("actions.download", "Download")}
+                      </Button>
                       </Button>
                     </div>
                   </div>
