@@ -384,30 +384,15 @@ export function BookingManagementPage() {
 
   useEffect(() => {
     if (professionalsList && professionalsList.length > 0) {
-      console.log(
-        "[BookingManagement] ✅ REAL PROFESSIONALS LOADED FROM API:",
-        professionalsList
-      );
     }
   }, [professionalsList]);
 
   useEffect(() => {
     if (clients && clients.length > 0) {
-      console.log(
-        "[BookingManagement] ✅ REAL CLIENTS LOADED FROM API:",
-        clients
-      );
     }
   }, [clients]);
 
-  useEffect(() => {
-    console.log("[BookingManagement] BOOKINGS DATA:", {
-      count: bookings.length,
-      loading,
-      bookings,
-      entityId,
-    });
-  }, [bookings, loading, entityId]);
+  useEffect(() => {}, [bookings, loading, entityId]);
 
   // Derive bookings with populated client/service/professional objects when available
   const displayBookings = useMemo(() => {

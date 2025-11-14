@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import {
   Tabs,
   TabsContent,
