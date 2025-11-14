@@ -292,6 +292,7 @@ export function Navigation() {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
               <Button variant="ghost" onClick={toggleTheme}>
                 {theme === "light" ? "🌙" : "☀️"}
               </Button>
