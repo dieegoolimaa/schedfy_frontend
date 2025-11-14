@@ -260,11 +260,11 @@ export function DataAnalyticsPage() {
           </Button>
           <Button variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {t("actions.refresh", "Refresh")}
           </Button>
           <Button size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {t("actions.export", "Export")}
           </Button>
         </div>
       </div>
@@ -275,11 +275,11 @@ export function DataAnalyticsPage() {
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-purple-600" />
             <CardTitle className="text-purple-900">
-              AI-Powered Insights
+              {t("aiInsights.title", "AI-Powered Insights")}
             </CardTitle>
           </div>
           <CardDescription className="text-purple-700">
-            Automated analysis reveals key opportunities and trends
+            {t("aiInsights.description", "Automated analysis reveals key opportunities and trends")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -377,7 +377,7 @@ export function DataAnalyticsPage() {
             {/* Revenue Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Revenue by Service</CardTitle>
+                <CardTitle>{t("services.revenueByService", "Revenue by Service")}</CardTitle>
                 <CardDescription>
                   Visual breakdown of service contribution to total revenue
                 </CardDescription>
@@ -414,7 +414,7 @@ export function DataAnalyticsPage() {
             {/* Service Performance Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Service Metrics</CardTitle>
+                <CardTitle>{t("services.metrics", "Service Metrics")}</CardTitle>
                 <CardDescription>
                   Detailed performance metrics for each service
                 </CardDescription>
@@ -480,7 +480,7 @@ export function DataAnalyticsPage() {
             {/* Performance Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Professional Performance Ranking</CardTitle>
+                <CardTitle>{t("professionals.performanceRanking", "Professional Performance Ranking")}</CardTitle>
                 <CardDescription>
                   Revenue and satisfaction rankings
                 </CardDescription>
@@ -548,7 +548,7 @@ export function DataAnalyticsPage() {
             {/* Detailed Metrics Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Detailed Metrics</CardTitle>
+                <CardTitle>{t("professionals.detailedMetrics", "Detailed Metrics")}</CardTitle>
                 <CardDescription>
                   Complete performance breakdown
                 </CardDescription>
@@ -618,7 +618,7 @@ export function DataAnalyticsPage() {
             {/* Peak Hours Visualization */}
             <Card>
               <CardHeader>
-                <CardTitle>Peak Hours Chart</CardTitle>
+                <CardTitle>{t("trends.peakHoursChart", "Peak Hours Chart")}</CardTitle>
                 <CardDescription>
                   Visual representation of booking patterns throughout the day
                 </CardDescription>
@@ -682,7 +682,7 @@ export function DataAnalyticsPage() {
             {/* Detailed Time Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>Hourly Breakdown</CardTitle>
+                <CardTitle>{t("trends.hourlyBreakdown", "Hourly Breakdown")}</CardTitle>
                 <CardDescription>
                   Detailed metrics for each time slot
                 </CardDescription>
@@ -764,7 +764,7 @@ export function DataAnalyticsPage() {
             {/* Client Segments Visualization */}
             <Card>
               <CardHeader>
-                <CardTitle>Client Value Distribution</CardTitle>
+                <CardTitle>{t("clients.valueDistribution", "Client Value Distribution")}</CardTitle>
                 <CardDescription>
                   Lifetime value and spending patterns across client segments
                 </CardDescription>
@@ -835,7 +835,7 @@ export function DataAnalyticsPage() {
             {/* Detailed Segment Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>Segment Details</CardTitle>
+                <CardTitle>{t("clients.segmentDetails", "Segment Details")}</CardTitle>
                 <CardDescription>
                   Complete breakdown of client segment performance
                 </CardDescription>
