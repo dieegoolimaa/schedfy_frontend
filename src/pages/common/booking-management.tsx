@@ -83,7 +83,7 @@ import {
 import PaymentForm from "../../components/payments/PaymentForm";
 
 export function BookingManagementPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("bookings");
   const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
@@ -591,7 +591,7 @@ export function BookingManagementPage() {
               className="rounded-r-none"
             >
               <LayoutList className="h-4 w-4 mr-2" />
-              <span className="hidden lg:inline">List</span>
+              <span className="hidden lg:inline">{t("views.list", "List")}</span>
             </Button>
             <Button
               variant={viewMode === "kanban" ? "default" : "ghost"}
@@ -600,7 +600,7 @@ export function BookingManagementPage() {
               className="rounded-l-none"
             >
               <LayoutGrid className="h-4 w-4 mr-2" />
-              <span className="hidden lg:inline">Kanban</span>
+              <span className="hidden lg:inline">{t("views.kanban", "Kanban")}</span>
             </Button>
           </div>
 
@@ -611,11 +611,11 @@ export function BookingManagementPage() {
             className="hidden sm:flex"
           >
             <CalendarIcon className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Calendar</span>
+            <span className="hidden sm:inline">{t("actions.calendar", "Calendar")}</span>
           </Button>
           <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">New Booking</span>
+            <span className="hidden sm:inline">{t("actions.newBooking", "New Booking")}</span>
           </Button>
         </div>
       </div>
@@ -623,7 +623,7 @@ export function BookingManagementPage() {
       {/* Stats Cards */}
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard
-          title="Total Bookings"
+          title={t("stats.totalBookings", "Total Bookings")}
           value={stats.total}
           icon={CalendarIcon}
         />
@@ -631,7 +631,7 @@ export function BookingManagementPage() {
         {/* Highlight Pending Confirmation if there are any */}
         {stats.pendingConfirmation > 0 && (
           <StatCard
-            title="Awaiting Confirmation"
+            title={t("stats.awaitingConfirmation", "Awaiting Confirmation")}
             value={stats.pendingConfirmation}
             icon={AlertCircle}
             variant="warning"
@@ -640,28 +640,28 @@ export function BookingManagementPage() {
         )}
 
         <StatCard
-          title="Confirmed"
+          title={t("stats.confirmed", "Confirmed")}
           value={stats.confirmed}
           icon={CheckCircle}
           variant="success"
         />
 
         <StatCard
-          title="Pending"
+          title={t("stats.pending", "Pending")}
           value={stats.pending}
           icon={Hourglass}
           variant="warning"
         />
 
         <StatCard
-          title="Completed"
+          title={t("stats.completed", "Completed")}
           value={stats.completed}
           icon={Clock}
           variant="info"
         />
 
         <StatCard
-          title="Cancelled"
+          title={t("stats.cancelled", "Cancelled")}
           value={stats.cancelled}
           icon={XCircle}
           variant="danger"
@@ -669,7 +669,7 @@ export function BookingManagementPage() {
 
         {canViewPricing && (
           <StatCard
-            title="Revenue"
+            title={t("stats.revenue", "Revenue")}
             value={formatCurrency(stats.revenue)}
             icon={DollarSign}
             variant="success"
@@ -682,7 +682,7 @@ export function BookingManagementPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search bookings..."
+            placeholder={t("search.bookingsPlaceholder", "Search bookings...")}
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setSearchTerm(e.target.value)
@@ -693,7 +693,7 @@ export function BookingManagementPage() {
         <div className="relative flex-1 md:flex-initial md:w-64">
           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search clients..."
+            placeholder={t("search.clientsPlaceholder", "Search clients...")}
             value={clientSearchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setClientSearchTerm(e.target.value)

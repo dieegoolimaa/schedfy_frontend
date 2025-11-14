@@ -197,7 +197,10 @@ export function SubscriptionManagementPage() {
                 className="bg-green-100 text-green-800 border-green-200"
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
-                {t("plan.status." + subscriptionData.current.status, subscriptionData.current.status)}
+                {t(
+                  "plan.status." + subscriptionData.current.status,
+                  subscriptionData.current.status
+                )}
               </Badge>
             </div>
           </CardHeader>
@@ -208,7 +211,9 @@ export function SubscriptionManagementPage() {
                   {formatCurrency(subscriptionData.billing.totalAmount)}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {billingPeriod === "monthly" ? t("billing.perMonth", "per month") : t("billing.perYear", "per year")}
+                  {billingPeriod === "monthly"
+                    ? t("billing.perMonth", "per month")
+                    : t("billing.perYear", "per year")}
                 </div>
               </div>
               <div className="text-right">
@@ -224,7 +229,9 @@ export function SubscriptionManagementPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-medium">{t("plan.includedFeatures", "Included Features")}</h4>
+              <h4 className="font-medium">
+                {t("plan.includedFeatures", "Included Features")}
+              </h4>
               <div className="grid grid-cols-2 gap-2">
                 {subscriptionData.current.features.map((feature) => (
                   <div key={feature} className="flex items-center space-x-2">
@@ -239,7 +246,9 @@ export function SubscriptionManagementPage() {
               <>
                 <Separator />
                 <div className="space-y-4">
-                  <h4 className="font-medium">{t("plan.activeAddOns", "Active Add-ons")}</h4>
+                  <h4 className="font-medium">
+                    {t("plan.activeAddOns", "Active Add-ons")}
+                  </h4>
                   {subscriptionData.current.addOns.map((addOn) => (
                     <div
                       key={addOn.id}
@@ -273,7 +282,9 @@ export function SubscriptionManagementPage() {
         <Card>
           <CardHeader>
             <CardTitle>{t("usage.title", "Usage Overview")}</CardTitle>
-            <CardDescription>{t("usage.description", "Current month usage statistics")}</CardDescription>
+            <CardDescription>
+              {t("usage.description", "Current month usage statistics")}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
@@ -372,16 +383,26 @@ export function SubscriptionManagementPage() {
       {/* Tabs for different sections */}
       <Tabs defaultValue="plans" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="plans">{t("tabs.changePlan", "Change Plan")}</TabsTrigger>
-          <TabsTrigger value="addons">{t("tabs.addOns", "Add-ons")}</TabsTrigger>
-          <TabsTrigger value="billing">{t("tabs.billing", "Billing")}</TabsTrigger>
-          <TabsTrigger value="invoices">{t("tabs.invoices", "Invoices")}</TabsTrigger>
+          <TabsTrigger value="plans">
+            {t("tabs.changePlan", "Change Plan")}
+          </TabsTrigger>
+          <TabsTrigger value="addons">
+            {t("tabs.addOns", "Add-ons")}
+          </TabsTrigger>
+          <TabsTrigger value="billing">
+            {t("tabs.billing", "Billing")}
+          </TabsTrigger>
+          <TabsTrigger value="invoices">
+            {t("tabs.invoices", "Invoices")}
+          </TabsTrigger>
         </TabsList>
 
         {/* Plans Tab */}
         <TabsContent value="plans" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">{t("plans.title", "Available Plans")}</h3>
+            <h3 className="text-lg font-medium">
+              {t("plans.title", "Available Plans")}
+            </h3>
             <div className="flex items-center space-x-2">
               <Label htmlFor="billing-toggle" className="text-sm">
                 {t("billing.monthly", "Monthly")}
