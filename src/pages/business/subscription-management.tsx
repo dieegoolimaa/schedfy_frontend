@@ -631,7 +631,6 @@ export function SubscriptionManagementPage() {
                         <Download className="h-4 w-4 mr-2" />
                         {t("actions.download", "Download")}
                       </Button>
-                      </Button>
                     </div>
                   </div>
                 ))}
