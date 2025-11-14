@@ -691,41 +691,92 @@ export function LoyaltyManagementPage() {
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label>{t("loyalty.rewards.form.name", "Reward Name")}</Label>
-                          <Input placeholder={t("loyalty.rewards.form.namePlaceholder", "e.g., 15€ Service Credit")} />
+                          <Label>
+                            {t("loyalty.rewards.form.name", "Reward Name")}
+                          </Label>
+                          <Input
+                            placeholder={t(
+                              "loyalty.rewards.form.namePlaceholder",
+                              "e.g., 15€ Service Credit"
+                            )}
+                          />
                         </div>
                         <div>
-                          <Label>{t("loyalty.rewards.form.description", "Description")}</Label>
-                          <Textarea placeholder={t("loyalty.rewards.form.descriptionPlaceholder", "Brief description of the reward")} />
+                          <Label>
+                            {t(
+                              "loyalty.rewards.form.description",
+                              "Description"
+                            )}
+                          </Label>
+                          <Textarea
+                            placeholder={t(
+                              "loyalty.rewards.form.descriptionPlaceholder",
+                              "Brief description of the reward"
+                            )}
+                          />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label>{t("loyalty.rewards.form.pointsCost", "Points Cost")}</Label>
-                            <Input type="number" placeholder={t("loyalty.rewards.form.pointsPlaceholder", "250")} />
+                            <Label>
+                              {t(
+                                "loyalty.rewards.form.pointsCost",
+                                "Points Cost"
+                              )}
+                            </Label>
+                            <Input
+                              type="number"
+                              placeholder={t(
+                                "loyalty.rewards.form.pointsPlaceholder",
+                                "250"
+                              )}
+                            />
                           </div>
                           <div>
-                            <Label>{t("loyalty.rewards.form.category", "Category")}</Label>
+                            <Label>
+                              {t("loyalty.rewards.form.category", "Category")}
+                            </Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t("loyalty.rewards.form.selectCategory", "Select category")} />
+                                <SelectValue
+                                  placeholder={t(
+                                    "loyalty.rewards.form.selectCategory",
+                                    "Select category"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="credit">
-                                  {t("loyalty.rewards.categories.serviceCredit", "Service Credit")}
+                                  {t(
+                                    "loyalty.rewards.categories.serviceCredit",
+                                    "Service Credit"
+                                  )}
                                 </SelectItem>
                                 <SelectItem value="service">
-                                  {t("loyalty.rewards.categories.freeService", "Free Service")}
+                                  {t(
+                                    "loyalty.rewards.categories.freeService",
+                                    "Free Service"
+                                  )}
                                 </SelectItem>
-                                <SelectItem value="product">{t("loyalty.rewards.categories.product", "Product")}</SelectItem>
+                                <SelectItem value="product">
+                                  {t(
+                                    "loyalty.rewards.categories.product",
+                                    "Product"
+                                  )}
+                                </SelectItem>
                                 <SelectItem value="experience">
-                                  {t("loyalty.rewards.categories.experience", "Experience")}
+                                  {t(
+                                    "loyalty.rewards.categories.experience",
+                                    "Experience"
+                                  )}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                         </div>
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline">{t("actions.cancel", "Cancel")}</Button>
+                          <Button variant="outline">
+                            {t("actions.cancel", "Cancel")}
+                          </Button>
                           <Button onClick={handleCreateReward}>
                             {t("loyalty.rewards.createReward", "Create Reward")}
                           </Button>
@@ -887,7 +938,10 @@ export function LoyaltyManagementPage() {
                 <div>
                   <Label>{t("loyalty.tiers.form.benefits", "Benefits")}</Label>
                   <Textarea
-                    placeholder={t("loyalty.tiers.form.benefitsPlaceholder", "Enter benefits, one per line")}
+                    placeholder={t(
+                      "loyalty.tiers.form.benefitsPlaceholder",
+                      "Enter benefits, one per line"
+                    )}
                     defaultValue={loyaltyTiers
                       .find((t) => t.id === selectedTier)
                       ?.benefits.join("\n")}

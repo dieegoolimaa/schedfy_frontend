@@ -463,7 +463,10 @@ export function ProfessionalsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, firstName: e.target.value })
                       }
-                      placeholder={t("professionals.form.firstNamePlaceholder", "John")}
+                      placeholder={t(
+                        "professionals.form.firstNamePlaceholder",
+                        "John"
+                      )}
                     />
                   </div>
                   <div className="space-y-2">
@@ -474,7 +477,10 @@ export function ProfessionalsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, lastName: e.target.value })
                       }
-                      placeholder={t("professionals.form.lastNamePlaceholder", "Doe")}
+                      placeholder={t(
+                        "professionals.form.lastNamePlaceholder",
+                        "Doe"
+                      )}
                     />
                   </div>
                 </div>
@@ -487,12 +493,18 @@ export function ProfessionalsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder={t("professionals.form.emailPlaceholder", "john.doe@example.com")}
+                    placeholder={t(
+                      "professionals.form.emailPlaceholder",
+                      "john.doe@example.com"
+                    )}
                     disabled={!!editingProfessional}
                   />
                   {!editingProfessional && (
                     <p className="text-xs text-muted-foreground">
-                      {t("professionals.form.invitationNote", "An invitation will be sent to this email")}
+                      {t(
+                        "professionals.form.invitationNote",
+                        "An invitation will be sent to this email"
+                      )}
                     </p>
                   )}
                 </div>
@@ -504,7 +516,10 @@ export function ProfessionalsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder={t("professionals.form.phonePlaceholder", "+351 123 456 789")}
+                    placeholder={t(
+                      "professionals.form.phonePlaceholder",
+                      "+351 123 456 789"
+                    )}
                   />
                 </div>
               </TabsContent>
@@ -516,13 +531,16 @@ export function ProfessionalsPage() {
                     <Briefcase className="inline h-4 w-4 mr-2" />
                     Job Function / Title
                   </Label>
-                    <Input
+                  <Input
                     id="jobFunction"
                     value={formData.jobFunction}
                     onChange={(e) =>
                       setFormData({ ...formData, jobFunction: e.target.value })
                     }
-                    placeholder={t("professionals.form.jobFunctionPlaceholder", "e.g., Barber, Hair Stylist, Massage Therapist")}
+                    placeholder={t(
+                      "professionals.form.jobFunctionPlaceholder",
+                      "e.g., Barber, Hair Stylist, Massage Therapist"
+                    )}
                   />
                 </div>
 
@@ -534,7 +552,10 @@ export function ProfessionalsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, bio: e.target.value })
                     }
-                    placeholder={t("professionals.form.bioPlaceholder", "Tell us about your professional background...")}
+                    placeholder={t(
+                      "professionals.form.bioPlaceholder",
+                      "Tell us about your professional background..."
+                    )}
                     rows={4}
                   />
                 </div>
@@ -549,7 +570,10 @@ export function ProfessionalsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, experience: e.target.value })
                     }
-                    placeholder={t("professionals.form.experiencePlaceholder", "5")}
+                    placeholder={t(
+                      "professionals.form.experiencePlaceholder",
+                      "5"
+                    )}
                   />
                 </div>
 
