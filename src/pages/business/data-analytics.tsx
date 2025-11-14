@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 
 export function DataAnalyticsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("analytics");
   const { formatCurrency } = useCurrency();
   const [timeRange, setTimeRange] = useState("30d");
 

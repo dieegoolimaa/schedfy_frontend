@@ -358,16 +358,16 @@ export function FinancialReportsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7days">Last 7 days</SelectItem>
-                <SelectItem value="30days">Last 30 days</SelectItem>
-                <SelectItem value="90days">Last 90 days</SelectItem>
-                <SelectItem value="1year">Last year</SelectItem>
-                <SelectItem value="custom">Custom range</SelectItem>
+                <SelectItem value="7days">{t("common:time.last7Days", "Last 7 days")}</SelectItem>
+                <SelectItem value="30days">{t("common:time.last30Days", "Last 30 days")}</SelectItem>
+                <SelectItem value="90days">{t("common:time.last90Days", "Last 90 days")}</SelectItem>
+                <SelectItem value="1year">{t("common:time.lastYear", "Last year")}</SelectItem>
+                <SelectItem value="custom">{t("common:time.customRange", "Custom range")}</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline">
               <Download className="h-4 w-4 mr-2" />
-              Export
+              {t("export.button", "Export")}
             </Button>
           </div>
         </div>
@@ -375,39 +375,39 @@ export function FinancialReportsPage() {
         {/* Summary Cards */}
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="Total Revenue"
+            title={t("summary.totalRevenue", "Total Revenue")}
             value={formatCurrency(financialSummary.totalRevenue)}
             icon={Euro}
             trend={{
               value: `+${financialSummary.growth.revenue}%`,
               isPositive: true,
             }}
-            subtitle="vs last period"
+            subtitle={t("summary.vsLastPeriod", "vs last period")}
           />
 
           <StatCard
-            title="Total Commissions"
+            title={t("summary.totalCommissions", "Total Commissions")}
             value={formatCurrency(financialSummary.totalCommissions)}
-            subtitle="10% of revenue"
+            subtitle={t("summary.ofRevenue", "10% of revenue")}
             icon={ArrowDownRight}
             variant="danger"
           />
 
           <StatCard
-            title="Vouchers Used"
+            title={t("summary.vouchersUsed", "Vouchers Used")}
             value={formatCurrency(financialSummary.totalVouchers)}
             subtitle={`${(
               (financialSummary.totalVouchers / financialSummary.totalRevenue) *
               100
-            ).toFixed(1)}% of revenue`}
+            ).toFixed(1)}% ${t("summary.ofRevenue", "of revenue")}`}
             icon={Gift}
             variant="warning"
           />
 
           <StatCard
-            title="Net Revenue"
+            title={t("summary.netRevenue", "Net Revenue")}
             value={formatCurrency(financialSummary.netRevenue)}
-            subtitle="After all deductions"
+            subtitle={t("summary.afterDeductions", "After all deductions")}
             icon={TrendingUp}
             variant="success"
           />

@@ -76,7 +76,7 @@ import {
 import { Skeleton } from "../../components/ui/skeleton";
 
 export function ClientProfilePage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("clients");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -574,9 +574,9 @@ export function ClientProfilePage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Client Profiles</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title", "Client Profiles")}</h1>
           <p className="text-muted-foreground">
-            Manage client profiles and link to bookings
+            {t("subtitle", "Manage client profiles and link to bookings")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -584,16 +584,16 @@ export function ClientProfilePage() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Client
+                {t("actions.addClient", "Add Client")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold">
-                  Add New Client
+                  {t("form.addTitle", "Add New Client")}
                 </DialogTitle>
                 <DialogDescription>
-                  Create a client profile with essential information.
+                  {t("form.addDescription", "Create a client profile with essential information.")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -604,7 +604,7 @@ export function ClientProfilePage() {
                       htmlFor="client-firstName"
                       className="text-sm font-medium"
                     >
-                      First Name *
+                      {t("form.firstName", "First Name")} *
                     </Label>
                     <Input
                       id="client-firstName"
@@ -624,7 +624,7 @@ export function ClientProfilePage() {
                       htmlFor="client-lastName"
                       className="text-sm font-medium"
                     >
-                      Last Name *
+                      {t("form.lastName", "Last Name")} *
                     </Label>
                     <Input
                       id="client-lastName"
@@ -641,7 +641,7 @@ export function ClientProfilePage() {
                 {/* Contact Fields */}
                 <div className="space-y-1.5">
                   <Label htmlFor="client-email" className="text-sm font-medium">
-                    Email *
+                    {t("form.email", "Email")} *
                   </Label>
                   <Input
                     id="client-email"
@@ -657,7 +657,7 @@ export function ClientProfilePage() {
 
                 <div className="space-y-1.5">
                   <Label htmlFor="client-phone" className="text-sm font-medium">
-                    Phone (Optional)
+                    {t("form.phone", "Phone")} ({t("form.optional", "Optional")})
                   </Label>
                   <Input
                     id="client-phone"
@@ -674,7 +674,7 @@ export function ClientProfilePage() {
                 <div className="pt-2 border-t">
                   <details className="group">
                     <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                      <span>Additional Information (Optional)</span>
+                      <span>{t("form.additionalInfo", "Additional Information")} ({t("form.optional", "Optional")})</span>
                       <span className="transition-transform group-open:rotate-180">
                         ▼
                       </span>
@@ -686,7 +686,7 @@ export function ClientProfilePage() {
                           htmlFor="birth-date"
                           className="text-sm font-medium"
                         >
-                          Birth Date
+                          {t("form.birthDate", "Birth Date")}
                         </Label>
                         <Input
                           id="birth-date"
@@ -716,11 +716,11 @@ export function ClientProfilePage() {
                       {/* Notes */}
                       <div className="space-y-1.5">
                         <Label htmlFor="notes" className="text-sm font-medium">
-                          Notes
+                          {t("form.notes", "Notes")}
                         </Label>
                         <Textarea
                           id="notes"
-                          placeholder="Allergies, preferences, special requests..."
+                          placeholder={t("form.notesPlaceholder", "Allergies, preferences, special requests...")}
                           rows={3}
                           value={newClient.notes}
                           onChange={(
@@ -742,10 +742,10 @@ export function ClientProfilePage() {
                 <div className="flex justify-end gap-2 pt-4">
                   <DialogTrigger asChild>
                     <Button variant="outline" type="button">
-                      Cancel
+                      {t("common:actions.cancel", "Cancel")}
                     </Button>
                   </DialogTrigger>
-                  <Button onClick={handleAddClientSubmit}>Add Client</Button>
+                  <Button onClick={handleAddClientSubmit}>{t("form.addClientButton", "Add Client")}</Button>
                 </div>
               </div>
             </DialogContent>
@@ -763,36 +763,36 @@ export function ClientProfilePage() {
       ) : (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           <StatCard
-            title="Total"
+            title={t("stats.total", "Total")}
             value={stats.total}
-            subtitle="Clients"
+            subtitle={t("stats.clients", "Clients")}
             icon={Users}
           />
           <StatCard
-            title="Active"
+            title={t("stats.active", "Active")}
             value={stats.active}
-            subtitle="Engaged"
+            subtitle={t("stats.engaged", "Engaged")}
             icon={TrendingUp}
             variant="success"
           />
           <StatCard
-            title="Bookings"
+            title={t("stats.bookings", "Bookings")}
             value={stats.totalBookings}
-            subtitle="Total"
+            subtitle={t("stats.totalSub", "Total")}
             icon={Calendar}
             variant="info"
           />
           <StatCard
-            title="Revenue"
+            title={t("stats.revenue", "Revenue")}
             value={formatCurrency(stats.totalRevenue)}
-            subtitle="Total"
+            subtitle={t("stats.totalSub", "Total")}
             icon={Euro}
             variant="success"
           />
           <StatCard
-            title="Avg. Spent"
+            title={t("stats.avgSpent", "Avg. Spent")}
             value={formatCurrency(stats.averageSpent)}
-            subtitle="Per Client"
+            subtitle={t("stats.perClient", "Per Client")}
             icon={Euro}
             variant="warning"
           />
@@ -804,7 +804,7 @@ export function ClientProfilePage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search clients..."
+            placeholder={t("search.placeholder", "Search clients...")}
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setSearchTerm(e.target.value)
@@ -818,13 +818,13 @@ export function ClientProfilePage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="all">{t("filters.allStatus", "All Status")}</SelectItem>
+              <SelectItem value="active">{t("filters.active", "Active")}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-2" />
-            More Filters
+            {t("filters.more", "More Filters")}
           </Button>
         </div>
       </div>
@@ -834,13 +834,13 @@ export function ClientProfilePage() {
         <div className="border-b overflow-x-auto">
           <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
             <TabsTrigger value="clients" className="whitespace-nowrap">
-              All Clients
+              {t("tabs.allClients", "All Clients")}
             </TabsTrigger>
             <TabsTrigger value="recent" className="whitespace-nowrap">
-              Recent Activity
+              {t("tabs.recentActivity", "Recent Activity")}
             </TabsTrigger>
             <TabsTrigger value="analytics" className="whitespace-nowrap">
-              Analytics
+              {t("tabs.analytics", "Analytics")}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -849,21 +849,21 @@ export function ClientProfilePage() {
         <TabsContent value="clients">
           <Card>
             <CardHeader>
-              <CardTitle>Client Directory</CardTitle>
+              <CardTitle>{t("directory.title", "Client Directory")}</CardTitle>
               <CardDescription>
-                Complete list of all clients with their details
+                {t("directory.description", "Complete list of all clients with their details")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Activity</TableHead>
-                    <TableHead>Spending</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
+                    <TableHead>{t("table.client", "Client")}</TableHead>
+                    <TableHead>{t("table.contact", "Contact")}</TableHead>
+                    <TableHead>{t("table.activity", "Activity")}</TableHead>
+                    <TableHead>{t("table.spending", "Spending")}</TableHead>
+                    <TableHead>{t("table.status", "Status")}</TableHead>
+                    <TableHead className="w-[100px]">{t("table.actions", "Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1016,9 +1016,9 @@ export function ClientProfilePage() {
         <TabsContent value="recent">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Client Activity</CardTitle>
+              <CardTitle>{t("activity.title", "Recent Client Activity")}</CardTitle>
               <CardDescription>
-                Latest bookings and client interactions
+                {t("activity.description", "Latest bookings and client interactions")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1031,21 +1031,21 @@ export function ClientProfilePage() {
               ) : recentBookings.length === 0 ? (
                 <div className="text-center py-12">
                   <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No recent activity</p>
+                  <p className="text-muted-foreground">{t("activity.noActivity", "No recent activity")}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Bookings will appear here once clients make appointments
+                    {t("activity.noActivityDescription", "Bookings will appear here once clients make appointments")}
                   </p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Service</TableHead>
-                      <TableHead>Professional</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t("activity.tableClient", "Client")}</TableHead>
+                      <TableHead>{t("activity.tableService", "Service")}</TableHead>
+                      <TableHead>{t("activity.tableProfessional", "Professional")}</TableHead>
+                      <TableHead>{t("activity.tableDateTime", "Date & Time")}</TableHead>
+                      <TableHead>{t("activity.tableAmount", "Amount")}</TableHead>
+                      <TableHead>{t("activity.tableStatus", "Status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1105,8 +1105,8 @@ export function ClientProfilePage() {
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Top Clients</CardTitle>
-                <CardDescription>Clients with highest spending</CardDescription>
+                <CardTitle>{t("analytics.topClients", "Top Clients")}</CardTitle>
+                <CardDescription>{t("analytics.topClientsDescription", "Clients with highest spending")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {clientsLoading ? (
@@ -1119,7 +1119,7 @@ export function ClientProfilePage() {
                   <div className="text-center py-8">
                     <Users className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground">
-                      No clients yet
+                      {t("analytics.noClients", "No clients yet")}
                     </p>
                   </div>
                 ) : (
@@ -1158,7 +1158,7 @@ export function ClientProfilePage() {
                               {client.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {totalBookings} bookings
+                              {totalBookings} {t("analytics.bookings", "bookings")}
                             </p>
                           </div>
                           <div className="text-right">
@@ -1166,7 +1166,7 @@ export function ClientProfilePage() {
                               {formatCurrency(totalSpent)}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {totalBookings} bookings
+                              {totalBookings} {t("analytics.bookings", "bookings")}
                             </p>
                           </div>
                         </div>
@@ -1178,9 +1178,9 @@ export function ClientProfilePage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Client Statistics</CardTitle>
+                <CardTitle>{t("analytics.statistics", "Client Statistics")}</CardTitle>
                 <CardDescription>
-                  Key metrics about your client base
+                  {t("analytics.statisticsDescription", "Key metrics about your client base")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
