@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 
 export function SubscriptionManagementPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("subscription");
   const [billingPeriod, setBillingPeriod] = useState("monthly");
   const { formatCurrency } = useCurrency();
 
@@ -157,20 +157,20 @@ export function SubscriptionManagementPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Subscription Management
+            {t("title", "Subscription Management")}
           </h1>
           <p className="text-muted-foreground">
-            Manage your subscription and AI insights add-on
+            {t("subtitle", "Manage your subscription and AI insights add-on")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Download Invoice
+            {t("actions.downloadInvoice", "Download Invoice")}
           </Button>
           <Button>
             <CreditCard className="h-4 w-4 mr-2" />
-            Update Payment
+            {t("actions.updatePayment", "Update Payment")}
           </Button>
         </div>
       </div>
@@ -183,10 +183,10 @@ export function SubscriptionManagementPage() {
               <div>
                 <CardTitle className="flex items-center">
                   <Crown className="h-5 w-5 mr-2 text-yellow-500" />
-                  {subscriptionData.current.plan} Plan
+                  {subscriptionData.current.plan} {t("plan.plan", "Plan")}
                 </CardTitle>
                 <CardDescription>
-                  Active since{" "}
+                  {t("plan.activeSince", "Active since")}{" "}
                   {new Date(
                     subscriptionData.current.startDate
                   ).toLocaleDateString()}
@@ -197,7 +197,7 @@ export function SubscriptionManagementPage() {
                 className="bg-green-100 text-green-800 border-green-200"
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
-                {subscriptionData.current.status}
+                {t("plan.status." + subscriptionData.current.status, subscriptionData.current.status)}
               </Badge>
             </div>
           </CardHeader>
@@ -208,12 +208,12 @@ export function SubscriptionManagementPage() {
                   {formatCurrency(subscriptionData.billing.totalAmount)}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {billingPeriod === "monthly" ? "per month" : "per year"}
+                  {billingPeriod === "monthly" ? t("billing.perMonth", "per month") : t("billing.perYear", "per year")}
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  Next billing
+                  {t("billing.nextBilling", "Next billing")}
                 </div>
                 <div className="font-medium">
                   {new Date(
@@ -224,7 +224,7 @@ export function SubscriptionManagementPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-medium">Included Features</h4>
+              <h4 className="font-medium">{t("plan.includedFeatures", "Included Features")}</h4>
               <div className="grid grid-cols-2 gap-2">
                 {subscriptionData.current.features.map((feature) => (
                   <div key={feature} className="flex items-center space-x-2">
@@ -239,7 +239,7 @@ export function SubscriptionManagementPage() {
               <>
                 <Separator />
                 <div className="space-y-4">
-                  <h4 className="font-medium">Active Add-ons</h4>
+                  <h4 className="font-medium">{t("plan.activeAddOns", "Active Add-ons")}</h4>
                   {subscriptionData.current.addOns.map((addOn) => (
                     <div
                       key={addOn.id}
@@ -272,8 +272,8 @@ export function SubscriptionManagementPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Usage Overview</CardTitle>
-            <CardDescription>Current month usage statistics</CardDescription>
+            <CardTitle>{t("usage.title", "Usage Overview")}</CardTitle>
+            <CardDescription>{t("usage.description", "Current month usage statistics")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
@@ -372,19 +372,19 @@ export function SubscriptionManagementPage() {
       {/* Tabs for different sections */}
       <Tabs defaultValue="plans" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="plans">Change Plan</TabsTrigger>
-          <TabsTrigger value="addons">Add-ons</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="plans">{t("tabs.changePlan", "Change Plan")}</TabsTrigger>
+          <TabsTrigger value="addons">{t("tabs.addOns", "Add-ons")}</TabsTrigger>
+          <TabsTrigger value="billing">{t("tabs.billing", "Billing")}</TabsTrigger>
+          <TabsTrigger value="invoices">{t("tabs.invoices", "Invoices")}</TabsTrigger>
         </TabsList>
 
         {/* Plans Tab */}
         <TabsContent value="plans" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Available Plans</h3>
+            <h3 className="text-lg font-medium">{t("plans.title", "Available Plans")}</h3>
             <div className="flex items-center space-x-2">
               <Label htmlFor="billing-toggle" className="text-sm">
-                Monthly
+                {t("billing.monthly", "Monthly")}
               </Label>
               <Switch
                 id="billing-toggle"
@@ -394,9 +394,9 @@ export function SubscriptionManagementPage() {
                 }
               />
               <Label htmlFor="billing-toggle" className="text-sm">
-                Yearly{" "}
+                {t("billing.yearly", "Yearly")}{" "}
                 <Badge variant="secondary" className="ml-1 text-xs">
-                  Save 20%
+                  {t("billing.save20", "Save 20%")}
                 </Badge>
               </Label>
             </div>

@@ -358,11 +358,21 @@ export function FinancialReportsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7days">{t("common:time.last7Days", "Last 7 days")}</SelectItem>
-                <SelectItem value="30days">{t("common:time.last30Days", "Last 30 days")}</SelectItem>
-                <SelectItem value="90days">{t("common:time.last90Days", "Last 90 days")}</SelectItem>
-                <SelectItem value="1year">{t("common:time.lastYear", "Last year")}</SelectItem>
-                <SelectItem value="custom">{t("common:time.customRange", "Custom range")}</SelectItem>
+                <SelectItem value="7days">
+                  {t("common:time.last7Days", "Last 7 days")}
+                </SelectItem>
+                <SelectItem value="30days">
+                  {t("common:time.last30Days", "Last 30 days")}
+                </SelectItem>
+                <SelectItem value="90days">
+                  {t("common:time.last90Days", "Last 90 days")}
+                </SelectItem>
+                <SelectItem value="1year">
+                  {t("common:time.lastYear", "Last year")}
+                </SelectItem>
+                <SelectItem value="custom">
+                  {t("common:time.customRange", "Custom range")}
+                </SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline">
