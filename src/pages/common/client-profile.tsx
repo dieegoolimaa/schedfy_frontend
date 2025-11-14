@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -769,13 +770,13 @@ export function ClientProfilePage() {
 
       {/* Stats Cards */}
       {clientsLoading ? (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <StatsGrid columns={5}>
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-24" />
           ))}
-        </div>
+        </StatsGrid>
       ) : (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        <StatsGrid columns={5}>
           <StatCard
             title={t("stats.total", "Total")}
             value={stats.total}
@@ -810,7 +811,7 @@ export function ClientProfilePage() {
             icon={Euro}
             variant="warning"
           />
-        </div>
+        </StatsGrid>
       )}
 
       {/* Filters */}

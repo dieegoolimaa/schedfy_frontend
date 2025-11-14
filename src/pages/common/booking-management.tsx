@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -629,7 +630,7 @@ export function BookingManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+      <StatsGrid columns={5}>
         <StatCard
           title={t("stats.totalBookings", "Total Bookings")}
           value={stats.total}
@@ -683,7 +684,7 @@ export function BookingManagementPage() {
             variant="success"
           />
         )}
-      </div>
+      </StatsGrid>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">

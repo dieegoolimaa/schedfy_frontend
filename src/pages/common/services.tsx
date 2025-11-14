@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -703,7 +704,7 @@ export function ServicesPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+        <StatsGrid columns={4}>
           <StatCard
             title="Total"
             value={activeServices.length}
@@ -739,7 +740,7 @@ export function ServicesPage() {
             icon={Clock}
             variant="info"
           />
-        </div>
+        </StatsGrid>
 
         {/* Search and Filters */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center">

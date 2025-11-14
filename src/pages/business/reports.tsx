@@ -278,7 +278,7 @@ export function ReportsPage() {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <StatsGrid columns={4}>
           <StatCard
             title="Total Revenue"
             value={formatCurrency(totalRevenue)}
@@ -313,7 +313,7 @@ export function ReportsPage() {
             subtitle="from last period"
             variant="warning"
           />
-        </div>
+        </StatsGrid>
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">

@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -853,7 +854,7 @@ export function ProfessionalsPage() {
         />
       </div>
 
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+      <StatsGrid columns={3}>
         <StatCard
           title="Total"
           value={professionals.length}
@@ -874,7 +875,7 @@ export function ProfessionalsPage() {
           icon={Users}
           variant="warning"
         />
-      </div>
+      </StatsGrid>
 
       <Card>
         <CardHeader>

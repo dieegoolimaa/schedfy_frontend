@@ -383,7 +383,7 @@ export function FinancialReportsPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <StatsGrid columns={4}>
           <StatCard
             title={t("summary.totalRevenue", "Total Revenue")}
             value={formatCurrency(financialSummary.totalRevenue)}
@@ -421,7 +421,7 @@ export function FinancialReportsPage() {
             icon={TrendingUp}
             variant="success"
           />
-        </div>
+        </StatsGrid>
 
         {/* Financial Breakdown */}
         <Tabs defaultValue="overview" className="space-y-4">
