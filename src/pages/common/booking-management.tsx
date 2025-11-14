@@ -758,10 +758,14 @@ export function BookingManagementPage() {
                     onValueChange={setServiceFilter}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={t("filters.allServices", "All Services")} />
+                      <SelectValue
+                        placeholder={t("filters.allServices", "All Services")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">{t("filters.allServices", "All Services")}</SelectItem>
+                      <SelectItem value="all">
+                        {t("filters.allServices", "All Services")}
+                      </SelectItem>
                       <SelectItem value="Haircut & Styling">
                         Haircut & Styling
                       </SelectItem>
@@ -787,10 +791,17 @@ export function BookingManagementPage() {
                     onValueChange={setProfessionalFilter}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={t("filters.allProfessionals", "All Professionals")} />
+                      <SelectValue
+                        placeholder={t(
+                          "filters.allProfessionals",
+                          "All Professionals"
+                        )}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">{t("filters.allProfessionals", "All Professionals")}</SelectItem>
+                      <SelectItem value="all">
+                        {t("filters.allProfessionals", "All Professionals")}
+                      </SelectItem>
                       <SelectItem value="João Santos">João Santos</SelectItem>
                       <SelectItem value="Sofia Oliveira">
                         Sofia Oliveira
@@ -810,13 +821,23 @@ export function BookingManagementPage() {
                       onValueChange={setPaymentFilter}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={t("filters.allPayments", "All Payments")} />
+                        <SelectValue
+                          placeholder={t("filters.allPayments", "All Payments")}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t("filters.all", "All")}</SelectItem>
-                        <SelectItem value="paid">{t("filters.paid", "Paid")}</SelectItem>
-                        <SelectItem value="pending">{t("filters.pending", "Pending")}</SelectItem>
-                        <SelectItem value="partial">{t("filters.partial", "Partial")}</SelectItem>
+                        <SelectItem value="all">
+                          {t("filters.all", "All")}
+                        </SelectItem>
+                        <SelectItem value="paid">
+                          {t("filters.paid", "Paid")}
+                        </SelectItem>
+                        <SelectItem value="pending">
+                          {t("filters.pending", "Pending")}
+                        </SelectItem>
+                        <SelectItem value="partial">
+                          {t("filters.partial", "Partial")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1041,7 +1062,10 @@ export function BookingManagementPage() {
                             size="sm"
                             onClick={() => handleConfirmBooking(booking.id)}
                             className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            title={t("actions.confirmBooking", "Confirm Booking")}
+                            title={t(
+                              "actions.confirmBooking",
+                              "Confirm Booking"
+                            )}
                           >
                             <CheckCircle className="h-4 w-4" />
                           </Button>
@@ -1166,17 +1190,28 @@ export function BookingManagementPage() {
                               onClick={async () => {
                                 if (
                                   confirm(
-                                    t("confirmations.markCompleted", "Are you sure you want to mark this booking as completed?")
+                                    t(
+                                      "confirmations.markCompleted",
+                                      "Are you sure you want to mark this booking as completed?"
+                                    )
                                   )
                                 ) {
                                   try {
                                     await completeBooking(booking.id);
                                     toast.success(
-                                      t("messages.bookingCompleted", "Booking completed successfully")
+                                      t(
+                                        "messages.bookingCompleted",
+                                        "Booking completed successfully"
+                                      )
                                     );
                                     fetchBookings();
                                   } catch (error) {
-                                    toast.error(t("messages.failedComplete", "Failed to complete booking"));
+                                    toast.error(
+                                      t(
+                                        "messages.failedComplete",
+                                        "Failed to complete booking"
+                                      )
+                                    );
                                     console.error(error);
                                   }
                                 }
@@ -1190,17 +1225,28 @@ export function BookingManagementPage() {
                               onClick={async () => {
                                 if (
                                   confirm(
-                                    t("confirmations.cancelBooking", "Are you sure you want to cancel this booking?")
+                                    t(
+                                      "confirmations.cancelBooking",
+                                      "Are you sure you want to cancel this booking?"
+                                    )
                                   )
                                 ) {
                                   try {
                                     await cancelBooking(booking.id);
                                     toast.success(
-                                      t("messages.bookingCancelled", "Booking cancelled successfully")
+                                      t(
+                                        "messages.bookingCancelled",
+                                        "Booking cancelled successfully"
+                                      )
                                     );
                                     fetchBookings();
                                   } catch (error) {
-                                    toast.error(t("messages.failedCancel", "Failed to cancel booking"));
+                                    toast.error(
+                                      t(
+                                        "messages.failedCancel",
+                                        "Failed to cancel booking"
+                                      )
+                                    );
                                     console.error(error);
                                   }
                                 }
@@ -1235,10 +1281,14 @@ export function BookingManagementPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold">
-                {t("kanban.title", "Kanban Board")} ({filteredBookings.length} {t("kanban.bookings", "bookings")})
+                {t("kanban.title", "Kanban Board")} ({filteredBookings.length}{" "}
+                {t("kanban.bookings", "bookings")})
               </h2>
               <p className="text-sm text-muted-foreground">
-                {t("kanban.description", "Drag and drop bookings to update their status")}
+                {t(
+                  "kanban.description",
+                  "Drag and drop bookings to update their status"
+                )}
               </p>
             </div>
           </div>
@@ -1434,19 +1484,34 @@ export function BookingManagementPage() {
 
               {selectedBookingForPayment.paymentStatus === "pending" && (
                 <div className="space-y-4">
-                  <Label htmlFor="payment-method">{t("payment.paymentMethod", "Payment Method")}</Label>
+                  <Label htmlFor="payment-method">
+                    {t("payment.paymentMethod", "Payment Method")}
+                  </Label>
                   <Select
                     value={paymentMethod}
                     onValueChange={(v) => setPaymentMethod(v)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={t("payment.selectMethod", "Select payment method")} />
+                      <SelectValue
+                        placeholder={t(
+                          "payment.selectMethod",
+                          "Select payment method"
+                        )}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cash">{t("payment.methods.cash", "Cash")}</SelectItem>
-                      <SelectItem value="card">{t("payment.methods.card", "Credit/Debit Card")}</SelectItem>
-                      <SelectItem value="transfer">{t("payment.methods.transfer", "Bank Transfer")}</SelectItem>
-                      <SelectItem value="mbway">{t("payment.methods.mbway", "MB Way")}</SelectItem>
+                      <SelectItem value="cash">
+                        {t("payment.methods.cash", "Cash")}
+                      </SelectItem>
+                      <SelectItem value="card">
+                        {t("payment.methods.card", "Credit/Debit Card")}
+                      </SelectItem>
+                      <SelectItem value="transfer">
+                        {t("payment.methods.transfer", "Bank Transfer")}
+                      </SelectItem>
+                      <SelectItem value="mbway">
+                        {t("payment.methods.mbway", "MB Way")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -1472,10 +1537,15 @@ export function BookingManagementPage() {
                   ) : (
                     <div>
                       <div className="space-y-2">
-                        <Label htmlFor="payment-notes">{t("payment.notes", "Payment Notes")}</Label>
+                        <Label htmlFor="payment-notes">
+                          {t("payment.notes", "Payment Notes")}
+                        </Label>
                         <Textarea
                           id="payment-notes"
-                          placeholder={t("payment.notesPlaceholder", "Add any payment-related notes...")}
+                          placeholder={t(
+                            "payment.notesPlaceholder",
+                            "Add any payment-related notes..."
+                          )}
                           rows={3}
                         />
                       </div>
@@ -1490,11 +1560,19 @@ export function BookingManagementPage() {
                               );
                               await fetchBookings();
                               toast.success(
-                                t("messages.paymentRecorded", "Booking completed and payment recorded")
+                                t(
+                                  "messages.paymentRecorded",
+                                  "Booking completed and payment recorded"
+                                )
                               );
                             } catch (err) {
                               console.error(err);
-                              toast.error(t("messages.failedComplete", "Failed to complete booking"));
+                              toast.error(
+                                t(
+                                  "messages.failedComplete",
+                                  "Failed to complete booking"
+                                )
+                              );
                             } finally {
                               setPaymentDialogOpen(false);
                             }
@@ -1680,7 +1758,10 @@ export function BookingManagementPage() {
         onOpenChange={setIsCalendarViewOpen}
         bookings={bookings}
         title={t("calendar.title", "Booking Calendar")}
-        description={t("calendar.description", "View all bookings in calendar format")}
+        description={t(
+          "calendar.description",
+          "View all bookings in calendar format"
+        )}
       />
     </div>
   );

@@ -529,7 +529,6 @@ export function SubscriptionManagementPage() {
                     <CheckCircle className="h-4 w-4 mr-2" />
                     {t("addOns.active", "Active")}
                   </Button>
-                  </Button>
                 </CardContent>
               </Card>
             </div>

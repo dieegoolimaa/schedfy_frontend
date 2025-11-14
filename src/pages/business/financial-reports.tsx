@@ -959,7 +959,7 @@ export function FinancialReportsPage() {
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search transactions..."
+                      placeholder={t("filters.searchTransactions", "Search transactions...")}
                       className="pl-9"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -970,12 +970,12 @@ export function FinancialReportsPage() {
                     onValueChange={setPaymentFilter}
                   >
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Payment method" />
+                      <SelectValue placeholder={t("filters.paymentMethod", "Payment method")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Methods</SelectItem>
-                      <SelectItem value="card">Card</SelectItem>
-                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="all">{t("filters.allMethods", "All Methods")}</SelectItem>
+                      <SelectItem value="card">{t("filters.card", "Card")}</SelectItem>
+                      <SelectItem value="cash">{t("filters.cash", "Cash")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select
@@ -983,14 +983,14 @@ export function FinancialReportsPage() {
                     onValueChange={setServiceFilter}
                   >
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Service type" />
+                      <SelectValue placeholder={t("filters.serviceType", "Service type")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Services</SelectItem>
-                      <SelectItem value="hair">Hair Services</SelectItem>
-                      <SelectItem value="nail">Nail Care</SelectItem>
-                      <SelectItem value="massage">Massage</SelectItem>
-                      <SelectItem value="facial">Facial</SelectItem>
+                      <SelectItem value="all">{t("filters.allServices", "All Services")}</SelectItem>
+                      <SelectItem value="hair">{t("filters.hairServices", "Hair Services")}</SelectItem>
+                      <SelectItem value="nail">{t("filters.nailCare", "Nail Care")}</SelectItem>
+                      <SelectItem value="massage">{t("filters.massage", "Massage")}</SelectItem>
+                      <SelectItem value="facial">{t("filters.facial", "Facial")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

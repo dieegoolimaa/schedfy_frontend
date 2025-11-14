@@ -252,7 +252,9 @@ export function PaymentManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.failedCount}</div>
-            <p className="text-xs text-muted-foreground">{t("stats.requireAttention", "Require attention")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("stats.requireAttention", "Require attention")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -274,11 +276,21 @@ export function PaymentManagementPage() {
               <SelectValue placeholder={t("filters.status", "Status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("filters.allStatus", "All Status")}</SelectItem>
-              <SelectItem value="completed">{t("filters.completed", "Completed")}</SelectItem>
-              <SelectItem value="pending">{t("filters.pending", "Pending")}</SelectItem>
-              <SelectItem value="failed">{t("filters.failed", "Failed")}</SelectItem>
-              <SelectItem value="refunded">{t("filters.refunded", "Refunded")}</SelectItem>
+              <SelectItem value="all">
+                {t("filters.allStatus", "All Status")}
+              </SelectItem>
+              <SelectItem value="completed">
+                {t("filters.completed", "Completed")}
+              </SelectItem>
+              <SelectItem value="pending">
+                {t("filters.pending", "Pending")}
+              </SelectItem>
+              <SelectItem value="failed">
+                {t("filters.failed", "Failed")}
+              </SelectItem>
+              <SelectItem value="refunded">
+                {t("filters.refunded", "Refunded")}
+              </SelectItem>
             </SelectContent>
           </Select>
           <Select value={methodFilter} onValueChange={setMethodFilter}>
@@ -286,11 +298,21 @@ export function PaymentManagementPage() {
               <SelectValue placeholder={t("filters.method", "Method")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("filters.allMethods", "All Methods")}</SelectItem>
-              <SelectItem value="card">{t("filters.methods.card", "Card")}</SelectItem>
-              <SelectItem value="cash">{t("filters.methods.cash", "Cash")}</SelectItem>
-              <SelectItem value="transfer">{t("filters.methods.transfer", "Transfer")}</SelectItem>
-              <SelectItem value="mbway">{t("filters.methods.mbway", "MB Way")}</SelectItem>
+              <SelectItem value="all">
+                {t("filters.allMethods", "All Methods")}
+              </SelectItem>
+              <SelectItem value="card">
+                {t("filters.methods.card", "Card")}
+              </SelectItem>
+              <SelectItem value="cash">
+                {t("filters.methods.cash", "Cash")}
+              </SelectItem>
+              <SelectItem value="transfer">
+                {t("filters.methods.transfer", "Transfer")}
+              </SelectItem>
+              <SelectItem value="mbway">
+                {t("filters.methods.mbway", "MB Way")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -301,7 +323,10 @@ export function PaymentManagementPage() {
         <CardHeader>
           <CardTitle>{t("table.title", "Payment Transactions")}</CardTitle>
           <CardDescription>
-            {t("table.description", "Complete list of all payment transactions")}
+            {t(
+              "table.description",
+              "Complete list of all payment transactions"
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -350,7 +375,8 @@ export function PaymentManagementPage() {
                       </div>
                       {payment.fees > 0 && (
                         <div className="text-sm text-muted-foreground">
-                          {t("table.fee", "Fee")}: {formatCurrency(payment.fees)}
+                          {t("table.fee", "Fee")}:{" "}
+                          {formatCurrency(payment.fees)}
                         </div>
                       )}
                     </div>
