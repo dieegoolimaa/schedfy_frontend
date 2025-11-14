@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 
 export function PaymentManagementPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("payments");
   const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -167,20 +167,20 @@ export function PaymentManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Payment Management
+            {t("title", "Payment Management")}
           </h1>
           <p className="text-muted-foreground">
-            Track and manage all payment transactions
+            {t("subtitle", "Track and manage all payment transactions")}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t("actions.export", "Export")}
           </Button>
           <Button variant="outline">
             <RefreshCw className="mr-2 h-4 w-4" />
-            Sync Payments
+            {t("actions.syncPayments", "Sync Payments")}
           </Button>
         </div>
       </div>
@@ -189,7 +189,7 @@ export function PaymentManagementPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("stats.totalRevenue", "Total Revenue")}</CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -197,7 +197,7 @@ export function PaymentManagementPage() {
               {formatCurrency(stats.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              From {stats.completedCount} completed payments
+              {t("stats.fromCompleted", "From {{count}} completed payments", { count: stats.completedCount })}
             </p>
           </CardContent>
         </Card>
@@ -205,7 +205,7 @@ export function PaymentManagementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Pending Amount
+              {t("stats.pendingAmount", "Pending Amount")}
             </CardTitle>
             <Calendar className="h-4 w-4 text-orange-600" />
           </CardHeader>
@@ -214,7 +214,7 @@ export function PaymentManagementPage() {
               {formatCurrency(stats.pendingAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.pendingCount} pending payments
+              {t("stats.pendingPayments", "{{count}} pending payments", { count: stats.pendingCount })}
             </p>
           </CardContent>
         </Card>
@@ -222,7 +222,7 @@ export function PaymentManagementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Processing Fees
+              {t("stats.processingFees", "Processing Fees")}
             </CardTitle>
             <CreditCard className="h-4 w-4 text-blue-600" />
           </CardHeader>
