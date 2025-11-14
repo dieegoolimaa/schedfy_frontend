@@ -1,33 +1,86 @@
 {
-  "title": "Gestão de Pacotes",
-  "description": "Crie e gerencie pacotes de serviços",
+  "title": "Gerenciamento de Pacotes",
+  "description": "Crie e gerencie pacotes de serviços com preços especiais",
   "tabs": {
     "packages": "Pacotes",
     "subscriptions": "Assinaturas"
   },
   "stats": {
     "totalPackages": "Total de Pacotes",
-    "activePackages": "Pacotes Ativos",
-    "totalRevenue": "Receita de Pacotes",
-    "activeSubscriptions": "Assinaturas Ativas"
+    "active": "ativos",
+    "activeSubscriptions": "Assinaturas Ativas",
+    "of": "de",
+    "total": "totais",
+    "totalRevenue": "Receita Total",
+    "fromSoldPackages": "de pacotes vendidos",
+    "conversionRate": "Taxa de Conversão",
+    "packagesConverted": "pacotes convertidos",
+    "avgDiscount": "Desconto Médio",
+    "offeredInPackages": "oferecido nos pacotes"
   },
   "create": "Criar Pacote",
   "edit": "Editar Pacote",
   "form": {
     "name": "Nome do Pacote",
+    "namePlaceholder": "Ex: Pacote Bronze",
     "description": "Descrição",
-    "services": "Serviços Incluídos",
+    "descriptionPlaceholder": "Descreva o que está incluso neste pacote...",
+    "services": "Serviços Inclusos",
     "selectServices": "Selecionar serviços",
+    "noServices": "No services available. Please create services first.",
     "pricing": "Preços",
-    "originalPrice": "Preço Original",
+    "originalPrice": "Preço original",
     "packagePrice": "Preço do Pacote",
     "discount": "Desconto",
     "recurrence": "Recorrência",
-    "oneTime": "Único",
+    "oneTime": "Pagamento Único",
     "monthly": "Mensal",
     "validity": "Validade (dias)",
     "sessionsIncluded": "Sessões Incluídas",
-    "status": "Status"
+    "status": "Status",
+    "currency": "Moeda",
+    "required": "*"
+  },
+  "modal": {
+    "createTitle": "Criar Novo Pacote",
+    "createDescription": "Configure um pacote com múltiplos serviços e preço especial",
+    "editTitle": "Editar Pacote",
+    "editDescription": "Atualize as informações do pacote",
+    "cancel": "Cancelar",
+    "save": "Salvar Alterações",
+    "create": "Criar Pacote"
+  },
+  "filters": {
+    "all": "Todos",
+    "allRecurrence": "Todas",
+    "active": "Ativos",
+    "inactive": "Inativos",
+    "draft": "Rascunhos",
+    "status": "Status",
+    "recurrence": "Recorrência",
+    "monthly": "Mensais",
+    "oneTime": "Pagamento Único"
+  },
+  "status": {
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "draft": "Rascunho",
+    "expired": "Expirado",
+    "cancelled": "Cancelado",
+    "paused": "Pausado"
+  },
+  "empty": {
+    "packages": "Nenhum pacote encontrado",
+    "subscriptions": "Nenhuma assinatura encontrada"
+  },
+  "restrictions": {
+    "title": "Recurso de Pacotes Não Disponível",
+    "description": "O gerenciamento de pacotes está disponível apenas para planos Individual e Business. Pacotes permitem criar ofertas combinadas de serviços com preços especiais e assinaturas.",
+    "upgrade": "Fazer Upgrade para Individual ou Business"
+  },
+  "messages": {
+    "fillRequired": "Preencha todos os campos obrigatórios",
+    "deleteConfirm": "Tem certeza que deseja excluir este pacote?"
   },
   "table": {
     "name": "Nome do Pacote",

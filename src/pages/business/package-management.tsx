@@ -141,6 +141,7 @@ const PackageManagement: React.FC = () => {
     description: "",
     services: [] as string[],
     packagePrice: "",
+    currency: "BRL",
     recurrence: "one_time" as "monthly" | "one_time",
     validity: "",
     sessionsIncluded: "",
@@ -184,7 +185,7 @@ const PackageManagement: React.FC = () => {
   const handleCreatePackage = async () => {
     try {
       if (!formData.name || formData.services.length === 0) {
-        toast.error("Preencha todos os campos obrigatórios");
+        toast.error(t("packages:messages.fillRequired"));
         return;
       }
 
@@ -243,7 +244,7 @@ const PackageManagement: React.FC = () => {
 
   const handleDeletePackage = async (packageId: string) => {
     try {
-      if (!confirm("Tem certeza que deseja excluir este pacote?")) return;
+      if (!confirm(t("packages:messages.deleteConfirm"))) return;
 
       const success = await deletePackage(packageId);
       if (success) {
@@ -313,18 +314,9 @@ const PackageManagement: React.FC = () => {
       paused: "secondary",
     };
 
-    const labels: any = {
-      active: "Ativo",
-      inactive: "Inativo",
-      draft: "Rascunho",
-      expired: "Expirado",
-      cancelled: "Cancelado",
-      paused: "Pausado",
-    };
-
     return (
       <Badge variant={variants[status] || "default"}>
-        {labels[status] || status}
+        {t(`packages:status.${status}`, status)}
       </Badge>
     );
   };
@@ -333,12 +325,12 @@ const PackageManagement: React.FC = () => {
     return recurrence === "monthly" ? (
       <Badge variant="default">
         <Calendar className="w-3 h-3 mr-1" />
-        Mensal
+        {t("packages:form.monthly")}
       </Badge>
     ) : (
       <Badge variant="outline">
         <CheckCircle2 className="w-3 h-3 mr-1" />
-        Pagamento Único
+        {t("packages:form.oneTime")}
       </Badge>
     );
   };
@@ -375,12 +367,10 @@ const PackageManagement: React.FC = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                  Recurso de Pacotes Não Disponível
+                  {t("packages:restrictions.title")}
                 </h3>
                 <p className="text-sm text-orange-800 dark:text-orange-200 mb-4">
-                  O gerenciamento de pacotes está disponível apenas para planos
-                  Individual e Business. Pacotes permitem criar ofertas
-                  combinadas de serviços com preços especiais e assinaturas.
+                  {t("packages:restrictions.description")}
                 </p>
                 <Button
                   onClick={() => {
@@ -389,7 +379,7 @@ const PackageManagement: React.FC = () => {
                   }}
                   className="bg-orange-600 hover:bg-orange-700 text-white"
                 >
-                  Fazer Upgrade para Individual ou Business
+                  {t("packages:restrictions.upgrade")}
                 </Button>
               </div>
             </div>
@@ -405,10 +395,10 @@ const PackageManagement: React.FC = () => {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Package className="w-8 h-8" />
-                Gerenciamento de Pacotes
+                {t("packages:title")}
               </h1>
               <p className="text-muted-foreground mt-1">
-                Crie e gerencie pacotes de serviços com preços especiais
+                {t("packages:description")}
               </p>
             </div>
           </div>
@@ -418,13 +408,13 @@ const PackageManagement: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total de Pacotes
+                  {t("packages:stats.totalPackages")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalPackages}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {activePackages} ativos
+                  {activePackages} {t("packages:stats.active")}
                 </p>
               </CardContent>
             </Card>
@@ -432,7 +422,7 @@ const PackageManagement: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Assinaturas Ativas
+                  {t("packages:stats.activeSubscriptions")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -441,7 +431,7 @@ const PackageManagement: React.FC = () => {
                   {activeSubscriptions}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  de {totalSubscriptions} totais
+                  {t("packages:stats.of")} {totalSubscriptions} {t("packages:stats.total")}
                 </p>
               </CardContent>
             </Card>
@@ -449,7 +439,7 @@ const PackageManagement: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Receita Total
+                  {t("packages:stats.totalRevenue")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -458,7 +448,7 @@ const PackageManagement: React.FC = () => {
                   {formatCurrency(totalRevenue)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  de pacotes vendidos
+                  {t("packages:stats.fromSoldPackages")}
                 </p>
               </CardContent>
             </Card>
@@ -466,7 +456,7 @@ const PackageManagement: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Taxa de Conversão
+                  {t("packages:stats.conversionRate")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -478,7 +468,7 @@ const PackageManagement: React.FC = () => {
                   %
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  pacotes convertidos
+                  {t("packages:stats.packagesConverted")}
                 </p>
               </CardContent>
             </Card>
@@ -486,7 +476,7 @@ const PackageManagement: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Desconto Médio
+                  {t("packages:stats.avgDiscount")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -503,7 +493,7 @@ const PackageManagement: React.FC = () => {
                   %
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  oferecido nos pacotes
+                  {t("packages:stats.offeredInPackages")}
                 </p>
               </CardContent>
             </Card>

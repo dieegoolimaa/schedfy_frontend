@@ -1,33 +1,86 @@
 {
   "title": "Package Management",
-  "description": "Create and manage service packages",
+  "description": "Create and manage service packages with special prices",
   "tabs": {
     "packages": "Packages",
     "subscriptions": "Subscriptions"
   },
   "stats": {
     "totalPackages": "Total Packages",
-    "activePackages": "Active Packages",
-    "totalRevenue": "Revenue from Packages",
-    "activeSubscriptions": "Active Subscriptions"
+    "active": "active",
+    "activeSubscriptions": "Active Subscriptions",
+    "of": "of",
+    "total": "total",
+    "totalRevenue": "Total Revenue",
+    "fromSoldPackages": "from sold packages",
+    "conversionRate": "Conversion Rate",
+    "packagesConverted": "packages converted",
+    "avgDiscount": "Average Discount",
+    "offeredInPackages": "offered in packages"
   },
   "create": "Create Package",
   "edit": "Edit Package",
   "form": {
     "name": "Package Name",
+    "namePlaceholder": "Ex: Bronze Package",
     "description": "Description",
+    "descriptionPlaceholder": "Describe what's included in this package...",
     "services": "Services Included",
     "selectServices": "Select services",
+    "noServices": "No services available. Please create services first.",
     "pricing": "Pricing",
-    "originalPrice": "Original Price",
+    "originalPrice": "Original price",
     "packagePrice": "Package Price",
     "discount": "Discount",
     "recurrence": "Recurrence",
-    "oneTime": "One-time",
+    "oneTime": "One-time Payment",
     "monthly": "Monthly",
     "validity": "Validity (days)",
     "sessionsIncluded": "Sessions Included",
-    "status": "Status"
+    "status": "Status",
+    "currency": "Currency",
+    "required": "*"
+  },
+  "modal": {
+    "createTitle": "Create New Package",
+    "createDescription": "Configure a package with multiple services and special price",
+    "editTitle": "Edit Package",
+    "editDescription": "Update package information",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "create": "Create Package"
+  },
+  "filters": {
+    "all": "All",
+    "allRecurrence": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "draft": "Drafts",
+    "status": "Status",
+    "recurrence": "Recurrence",
+    "monthly": "Monthly",
+    "oneTime": "One-time Payment"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "draft": "Draft",
+    "expired": "Expired",
+    "cancelled": "Cancelled",
+    "paused": "Paused"
+  },
+  "empty": {
+    "packages": "No packages found",
+    "subscriptions": "No subscriptions found"
+  },
+  "restrictions": {
+    "title": "Package Feature Not Available",
+    "description": "Package management is only available for Individual and Business plans. Packages allow you to create combined service offerings with special prices and subscriptions.",
+    "upgrade": "Upgrade to Individual or Business"
+  },
+  "messages": {
+    "fillRequired": "Please fill in all required fields",
+    "deleteConfirm": "Are you sure you want to delete this package?"
   },
   "table": {
     "name": "Package Name",
