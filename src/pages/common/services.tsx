@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useTranslation } from "react-i18next";
 import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useAuth } from "../../contexts/auth-context";
@@ -66,6 +67,7 @@ import { AssignProfessionalsDialog } from "../../components/dialogs/assign-profe
 
 export function ServicesPage() {
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
   const { canViewPricing } = usePlanRestrictions();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
@@ -712,7 +714,7 @@ export function ServicesPage() {
           />
           <StatCard
             title="Revenue"
-            value={`€${totalRevenue.toLocaleString()}`}
+            value={formatCurrency(totalRevenue)}
             subtitle={`From ${activeServices.reduce(
               (sum, s) => sum + (s.bookings || 0),
               0
@@ -896,7 +898,7 @@ export function ServicesPage() {
                         </TableCell>
                         <TableCell>{service.category}</TableCell>
                         <TableCell>{service.duration} min</TableCell>
-                        <TableCell>€{service.price}</TableCell>
+                        <TableCell>{formatCurrency(service.price)}</TableCell>
                         <TableCell>
                           <Button
                             variant="outline"
@@ -996,7 +998,7 @@ export function ServicesPage() {
                         <div className="flex items-center justify-between">
                           <span className="font-medium">{category.name}</span>
                           <span className="text-sm text-muted-foreground">
-                            {category.count} services • €{categoryRevenue}
+                            {category.count} services • {formatCurrency(categoryRevenue)}
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">

@@ -526,7 +526,8 @@ const PackageManagement: React.FC = () => {
                             htmlFor={`service-${service._id}`}
                             className="flex-1 cursor-pointer"
                           >
-                            {service.name} - {formatCurrency(service.pricing.basePrice)}
+                            {service.name} -{" "}
+                            {formatCurrency(service.pricing.basePrice)}
                           </label>
                         </div>
                       ))}
