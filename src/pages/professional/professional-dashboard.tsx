@@ -98,6 +98,7 @@ const getLatestWorkingHour = (workingHours?: WorkingHours): string => {
 
 export function ProfessionalDashboardPage() {
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
   const [timeRange, setTimeRange] = useState("7d");
   const [showCalendar, setShowCalendar] = useState(false);
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
