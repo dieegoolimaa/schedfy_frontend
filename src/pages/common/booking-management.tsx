@@ -758,10 +758,10 @@ export function BookingManagementPage() {
                     onValueChange={setServiceFilter}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All Services" />
+                      <SelectValue placeholder={t("filters.allServices", "All Services")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Services</SelectItem>
+                      <SelectItem value="all">{t("filters.allServices", "All Services")}</SelectItem>
                       <SelectItem value="Haircut & Styling">
                         Haircut & Styling
                       </SelectItem>
@@ -787,10 +787,10 @@ export function BookingManagementPage() {
                     onValueChange={setProfessionalFilter}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All Professionals" />
+                      <SelectValue placeholder={t("filters.allProfessionals", "All Professionals")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Professionals</SelectItem>
+                      <SelectItem value="all">{t("filters.allProfessionals", "All Professionals")}</SelectItem>
                       <SelectItem value="João Santos">João Santos</SelectItem>
                       <SelectItem value="Sofia Oliveira">
                         Sofia Oliveira
@@ -810,13 +810,13 @@ export function BookingManagementPage() {
                       onValueChange={setPaymentFilter}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="All Payments" />
+                        <SelectValue placeholder={t("filters.allPayments", "All Payments")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="partial">Partial</SelectItem>
+                        <SelectItem value="all">{t("filters.all", "All")}</SelectItem>
+                        <SelectItem value="paid">{t("filters.paid", "Paid")}</SelectItem>
+                        <SelectItem value="pending">{t("filters.pending", "Pending")}</SelectItem>
+                        <SelectItem value="partial">{t("filters.partial", "Partial")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -830,10 +830,10 @@ export function BookingManagementPage() {
                       setPaymentFilter("all");
                     }}
                   >
-                    Clear Filters
+                    {t("actions.clearFilters", "Clear Filters")}
                   </Button>
                   <Button onClick={() => setIsFilterDialogOpen(false)}>
-                    Apply Filters
+                    {t("actions.applyFilters", "Apply Filters")}
                   </Button>
                 </div>
               </div>
@@ -1029,7 +1029,7 @@ export function BookingManagementPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewDetails(booking)}
-                          title="View Details"
+                          title={t("actions.viewDetails", "View Details")}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -1041,7 +1041,7 @@ export function BookingManagementPage() {
                             size="sm"
                             onClick={() => handleConfirmBooking(booking.id)}
                             className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            title="Confirm Booking"
+                            title={t("actions.confirmBooking", "Confirm Booking")}
                           >
                             <CheckCircle className="h-4 w-4" />
                           </Button>
@@ -1166,17 +1166,17 @@ export function BookingManagementPage() {
                               onClick={async () => {
                                 if (
                                   confirm(
-                                    "Are you sure you want to mark this booking as completed?"
+                                    t("confirmations.markCompleted", "Are you sure you want to mark this booking as completed?")
                                   )
                                 ) {
                                   try {
                                     await completeBooking(booking.id);
                                     toast.success(
-                                      "Booking completed successfully"
+                                      t("messages.bookingCompleted", "Booking completed successfully")
                                     );
                                     fetchBookings();
                                   } catch (error) {
-                                    toast.error("Failed to complete booking");
+                                    toast.error(t("messages.failedComplete", "Failed to complete booking"));
                                     console.error(error);
                                   }
                                 }
@@ -1184,23 +1184,23 @@ export function BookingManagementPage() {
                               disabled={booking.status === "completed"}
                             >
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Mark as Completed
+                              {t("actions.markCompleted", "Mark as Completed")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={async () => {
                                 if (
                                   confirm(
-                                    "Are you sure you want to cancel this booking?"
+                                    t("confirmations.cancelBooking", "Are you sure you want to cancel this booking?")
                                   )
                                 ) {
                                   try {
                                     await cancelBooking(booking.id);
                                     toast.success(
-                                      "Booking cancelled successfully"
+                                      t("messages.bookingCancelled", "Booking cancelled successfully")
                                     );
                                     fetchBookings();
                                   } catch (error) {
-                                    toast.error("Failed to cancel booking");
+                                    toast.error(t("messages.failedCancel", "Failed to cancel booking"));
                                     console.error(error);
                                   }
                                 }
@@ -1211,14 +1211,14 @@ export function BookingManagementPage() {
                               }
                             >
                               <XCircle className="mr-2 h-4 w-4" />
-                              Cancel Booking
+                              {t("actions.cancelBooking", "Cancel Booking")}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={() => handlePaymentClick(booking)}
                             >
                               <CreditCard className="mr-2 h-4 w-4" />
-                              Process Payment
+                              {t("actions.processPayment", "Process Payment")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1235,10 +1235,10 @@ export function BookingManagementPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold">
-                Kanban Board ({filteredBookings.length} bookings)
+                {t("kanban.title", "Kanban Board")} ({filteredBookings.length} {t("kanban.bookings", "bookings")})
               </h2>
               <p className="text-sm text-muted-foreground">
-                Drag and drop bookings to update their status
+                {t("kanban.description", "Drag and drop bookings to update their status")}
               </p>
             </div>
           </div>
@@ -1434,19 +1434,19 @@ export function BookingManagementPage() {
 
               {selectedBookingForPayment.paymentStatus === "pending" && (
                 <div className="space-y-4">
-                  <Label htmlFor="payment-method">Payment Method</Label>
+                  <Label htmlFor="payment-method">{t("payment.paymentMethod", "Payment Method")}</Label>
                   <Select
                     value={paymentMethod}
                     onValueChange={(v) => setPaymentMethod(v)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select payment method" />
+                      <SelectValue placeholder={t("payment.selectMethod", "Select payment method")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="card">Credit/Debit Card</SelectItem>
-                      <SelectItem value="transfer">Bank Transfer</SelectItem>
-                      <SelectItem value="mbway">MB Way</SelectItem>
+                      <SelectItem value="cash">{t("payment.methods.cash", "Cash")}</SelectItem>
+                      <SelectItem value="card">{t("payment.methods.card", "Credit/Debit Card")}</SelectItem>
+                      <SelectItem value="transfer">{t("payment.methods.transfer", "Bank Transfer")}</SelectItem>
+                      <SelectItem value="mbway">{t("payment.methods.mbway", "MB Way")}</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -1472,10 +1472,10 @@ export function BookingManagementPage() {
                   ) : (
                     <div>
                       <div className="space-y-2">
-                        <Label htmlFor="payment-notes">Payment Notes</Label>
+                        <Label htmlFor="payment-notes">{t("payment.notes", "Payment Notes")}</Label>
                         <Textarea
                           id="payment-notes"
-                          placeholder="Add any payment-related notes..."
+                          placeholder={t("payment.notesPlaceholder", "Add any payment-related notes...")}
                           rows={3}
                         />
                       </div>
@@ -1490,23 +1490,23 @@ export function BookingManagementPage() {
                               );
                               await fetchBookings();
                               toast.success(
-                                "Booking completed and payment recorded"
+                                t("messages.paymentRecorded", "Booking completed and payment recorded")
                               );
                             } catch (err) {
                               console.error(err);
-                              toast.error("Failed to complete booking");
+                              toast.error(t("messages.failedComplete", "Failed to complete booking"));
                             } finally {
                               setPaymentDialogOpen(false);
                             }
                           }}
                         >
-                          Mark as Paid
+                          {t("actions.markPaid", "Mark as Paid")}
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => setPaymentDialogOpen(false)}
                         >
-                          Close
+                          {t("actions.close", "Close")}
                         </Button>
                       </div>
                     </div>
@@ -1522,7 +1522,7 @@ export function BookingManagementPage() {
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
+            <DialogTitle>{t("details.title", "Booking Details")}</DialogTitle>
           </DialogHeader>
           {selectedBookingDetails && (
             <div className="space-y-4">
@@ -1679,8 +1679,8 @@ export function BookingManagementPage() {
         open={isCalendarViewOpen}
         onOpenChange={setIsCalendarViewOpen}
         bookings={bookings}
-        title="Booking Calendar"
-        description="View all bookings in calendar format"
+        title={t("calendar.title", "Booking Calendar")}
+        description={t("calendar.description", "View all bookings in calendar format")}
       />
     </div>
   );
