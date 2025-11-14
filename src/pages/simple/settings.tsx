@@ -271,31 +271,35 @@ export function SimpleSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Settings className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold truncate">
             {t("settings.title", "Settings")}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage your business settings and preferences
           </p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <Store className="h-4 w-4" />
-            <span className="hidden sm:inline">Profile</span>
+        <div className="overflow-x-auto -mx-3 sm:mx-0 pb-2">
+          <TabsList className="grid w-full min-w-max grid-cols-4 px-3 sm:px-0">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <Store className="h-4 w-4" />
+              <span className="hidden sm:inline">Profile</span>
+              <span className="sm:hidden">Info</span>
           </TabsTrigger>
           <TabsTrigger value="hours" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span className="hidden sm:inline">Hours</span>
+            <span className="sm:hidden">Time</span>
           </TabsTrigger>
           <TabsTrigger value="booking" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span className="hidden sm:inline">Booking</span>
+            <span className="sm:hidden">Book</span>
           </TabsTrigger>
           <TabsTrigger
             value="notifications"
@@ -303,8 +307,10 @@ export function SimpleSettingsPage() {
           >
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
+            <span className="sm:hidden">Alerts</span>
           </TabsTrigger>
         </TabsList>
+        </div>
 
         {/* Business Profile Settings */}
         <TabsContent value="profile" className="space-y-6">
