@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
   CardContent,
@@ -36,6 +37,7 @@ import {
 } from "lucide-react";
 
 export function PaymentManagementPage() {
+  const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
@@ -190,7 +192,7 @@ export function PaymentManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{stats.totalRevenue.toFixed(2)}
+              {formatCurrency(stats.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
               From {stats.completedCount} completed payments
@@ -207,7 +209,7 @@ export function PaymentManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{stats.pendingAmount.toFixed(2)}
+              {formatCurrency(stats.pendingAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
               {stats.pendingCount} pending payments
@@ -224,7 +226,7 @@ export function PaymentManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{stats.totalFees.toFixed(2)}
+              {formatCurrency(stats.totalFees)}
             </div>
             <p className="text-xs text-muted-foreground">
               {((stats.totalFees / stats.totalRevenue) * 100).toFixed(1)}% of
@@ -336,11 +338,11 @@ export function PaymentManagementPage() {
                   <TableCell>
                     <div>
                       <div className="font-medium">
-                        €{payment.amount.toFixed(2)}
+                        {formatCurrency(payment.amount)}
                       </div>
                       {payment.fees > 0 && (
                         <div className="text-sm text-muted-foreground">
-                          Fee: €{payment.fees.toFixed(2)}
+                          Fee: {formatCurrency(payment.fees)}
                         </div>
                       )}
                     </div>

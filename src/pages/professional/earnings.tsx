@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/auth-context";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
   CardContent,
@@ -76,6 +77,7 @@ interface MonthlyData {
 
 export default function ProfessionalEarningsPage() {
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const professionalId = user?.id || "";
 
   const [earningsData, setEarningsData] = useState<EarningsData>({
@@ -228,7 +230,7 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{earningsData.thisMonth.toFixed(2)}
+              {formatCurrency(earningsData.thisMonth)}
             </div>
             <div className="flex items-center gap-1 text-xs mt-1">
               {earningsData.change > 0 ? (
@@ -260,7 +262,7 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{earningsData.lastMonth.toFixed(2)}
+              {formatCurrency(earningsData.lastMonth)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {format(subMonths(new Date(), 1), "MMMM yyyy")}
@@ -277,7 +279,7 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{earningsData.pending.toFixed(2)}
+              {formatCurrency(earningsData.pending)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Awaiting payment
@@ -296,7 +298,7 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{earningsData.total.toFixed(2)}
+              {formatCurrency(earningsData.total)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">All time</p>
           </CardContent>
@@ -341,7 +343,7 @@ export default function ProfessionalEarningsPage() {
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip
-                    formatter={(value: number) => `€${value.toFixed(2)}`}
+                    formatter={(value: number) => formatCurrency(value)}
                   />
                   <Bar
                     dataKey="earnings"
@@ -374,7 +376,7 @@ export default function ProfessionalEarningsPage() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">
-                          €{payment.commission.toFixed(2)}
+                          {formatCurrency(payment.commission)}
                         </p>
                         {getStatusBadge(payment.status)}
                       </div>
@@ -417,7 +419,7 @@ export default function ProfessionalEarningsPage() {
                 <div className="flex items-center justify-between pt-4 border-t">
                   <span className="font-medium">Total Earnings</span>
                   <span className="text-xl font-bold">
-                    €{earningsData.thisMonth.toFixed(2)}
+                    {formatCurrency(earningsData.thisMonth)}
                   </span>
                 </div>
               </CardContent>
@@ -452,9 +454,9 @@ export default function ProfessionalEarningsPage() {
                       </TableCell>
                       <TableCell>{payment.clientName}</TableCell>
                       <TableCell>{payment.service}</TableCell>
-                      <TableCell>€{payment.amount.toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(payment.amount)}</TableCell>
                       <TableCell className="font-semibold">
-                        €{payment.commission.toFixed(2)}
+                        {formatCurrency(payment.commission)}
                       </TableCell>
                       <TableCell>{getStatusBadge(payment.status)}</TableCell>
                     </TableRow>
@@ -477,7 +479,7 @@ export default function ProfessionalEarningsPage() {
                 <div className="p-4 border rounded-lg">
                   <p className="text-sm text-muted-foreground">Total Income</p>
                   <p className="text-2xl font-bold mt-1">
-                    €{earningsData.total.toFixed(2)}
+                    {formatCurrency(earningsData.total)}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
@@ -485,13 +487,13 @@ export default function ProfessionalEarningsPage() {
                     Estimated Tax (23%)
                   </p>
                   <p className="text-2xl font-bold mt-1">
-                    €{(earningsData.total * 0.23).toFixed(2)}
+                    {formatCurrency(earningsData.total * 0.23)}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
                   <p className="text-sm text-muted-foreground">Net Income</p>
                   <p className="text-2xl font-bold mt-1">
-                    €{(earningsData.total * 0.77).toFixed(2)}
+                    {formatCurrency(earningsData.total * 0.77)}
                   </p>
                 </div>
               </div>

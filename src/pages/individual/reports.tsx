@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
   CardContent,
@@ -47,6 +48,7 @@ import {
 } from "lucide-react";
 
 export function IndividualReportsPage() {
+  const { formatCurrency } = useCurrency();
   const [timeRange, setTimeRange] = useState("30d");
 
   // Mock data for Individual plan with AI insights
@@ -293,7 +295,7 @@ export function IndividualReportsPage() {
       <ResponsiveCardGrid>
         <MobileStatsCard
           title="Revenue"
-          value={`€${stats.totalRevenue.toLocaleString()}`}
+          value={formatCurrency(stats.totalRevenue)}
           subtitle={`${stats.revenueGrowth > 0 ? "+" : ""}${
             stats.revenueGrowth
           }% growth`}
@@ -317,7 +319,7 @@ export function IndividualReportsPage() {
         />
         <MobileStatsCard
           title="Avg. Value"
-          value={`€${stats.avgBookingValue}`}
+          value={formatCurrency(stats.avgBookingValue)}
           subtitle={`${stats.avgValueGrowth > 0 ? "+" : ""}${
             stats.avgValueGrowth
           }% growth`}
@@ -376,8 +378,8 @@ export function IndividualReportsPage() {
                         {service.service}
                       </TableCell>
                       <TableCell>{service.bookings}</TableCell>
-                      <TableCell>€{service.revenue}</TableCell>
-                      <TableCell>€{service.avgPrice}</TableCell>
+                      <TableCell>{formatCurrency(service.revenue)}</TableCell>
+                      <TableCell>{formatCurrency(service.avgPrice)}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           {getGrowthIcon(service.growth)}
@@ -448,9 +450,9 @@ export function IndividualReportsPage() {
                     return (
                       <TableRow key={day.day}>
                         <TableCell className="font-medium">{day.day}</TableCell>
-                        <TableCell>€{day.revenue}</TableCell>
+                        <TableCell>{formatCurrency(day.revenue)}</TableCell>
                         <TableCell>{day.bookings}</TableCell>
-                        <TableCell>€{avgPerBooking.toFixed(2)}</TableCell>
+                        <TableCell>{formatCurrency(avgPerBooking)}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Progress value={performance} className="w-20" />
@@ -496,9 +498,9 @@ export function IndividualReportsPage() {
                         {client.name}
                       </TableCell>
                       <TableCell>{client.visits}</TableCell>
-                      <TableCell>€{client.revenue}</TableCell>
+                      <TableCell>{formatCurrency(client.revenue)}</TableCell>
                       <TableCell>
-                        €{(client.revenue / client.visits).toFixed(2)}
+                        {formatCurrency(client.revenue / client.visits)}
                       </TableCell>
                       <TableCell>
                         {new Date(client.lastVisit).toLocaleDateString()}
