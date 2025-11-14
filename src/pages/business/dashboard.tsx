@@ -292,7 +292,7 @@ const Dashboard = () => {
   const stats = [
     {
       title: t("stats.totalrevenue"),
-      value: `€${totalRevenue.toFixed(0)}`,
+      value: formatCurrency(totalRevenue),
       change: "+12.5%",
       trend: "up",
       icon: DollarSign,
@@ -725,9 +725,9 @@ const Dashboard = () => {
                       : 0;
                   const displayValue =
                     goal.type === "revenue"
-                      ? `€${goal.currentValue.toFixed(
-                          0
-                        )} / €${goal.targetValue.toFixed(0)}`
+                      ? `${formatCurrency(
+                          goal.currentValue
+                        )} / ${formatCurrency(goal.targetValue)}`
                       : `${goal.currentValue} / ${goal.targetValue}`;
 
                   return (

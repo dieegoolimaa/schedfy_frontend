@@ -234,7 +234,7 @@ const IndividualDashboard = () => {
     },
     {
       title: t("stats.thismonthrevenue"),
-      value: `€${totalRevenue.toFixed(0)}`,
+      value: formatCurrency(totalRevenue),
       change: "+8.7%",
       trend: "up",
       icon: DollarSign,

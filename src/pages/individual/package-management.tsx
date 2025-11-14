@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useAuth } from "../../contexts/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
@@ -103,6 +104,7 @@ interface PackageSubscription {
 
 const PackageManagement: React.FC = () => {
   const { user } = useAuth();
+  const { formatCurrency, getCurrencyCode } = useCurrency();
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [subscriptions, setSubscriptions] = useState<PackageSubscription[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -120,7 +122,6 @@ const PackageManagement: React.FC = () => {
     description: "",
     services: [] as string[],
     packagePrice: 0,
-    currency: "BRL",
     recurrence: "one_time" as "monthly" | "one_time",
     validity: 30,
     sessionsIncluded: 1,
@@ -525,16 +526,15 @@ const PackageManagement: React.FC = () => {
                             htmlFor={`service-${service._id}`}
                             className="flex-1 cursor-pointer"
                           >
-                            {service.name} - R${" "}
-                            {service.pricing.basePrice.toFixed(2)}
+                            {service.name} - {formatCurrency(service.pricing.basePrice)}
                           </label>
                         </div>
                       ))}
                     </div>
                     {formData.services.length > 0 && (
                       <p className="text-sm text-muted-foreground mt-2">
-                        <strong>Preço original:</strong> R${" "}
-                        {calculateOriginalPrice().toFixed(2)}
+                        <strong>Preço original:</strong>{" "}
+                        {formatCurrency(calculateOriginalPrice())}
                       </p>
                     )}
                   </div>
@@ -725,10 +725,10 @@ const PackageManagement: React.FC = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              R$ {pkg.pricing.packagePrice.toFixed(2)}
+                              {formatCurrency(pkg.pricing.packagePrice)}
                             </div>
                             <div className="text-xs text-muted-foreground line-through">
-                              R$ {pkg.pricing.originalPrice.toFixed(2)}
+                              {formatCurrency(pkg.pricing.originalPrice)}
                             </div>
                           </div>
                         </TableCell>
