@@ -246,13 +246,13 @@ export function PaymentManagementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Failed Payments
+              {t("stats.failedPayments", "Failed Payments")}
             </CardTitle>
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.failedCount}</div>
-            <p className="text-xs text-muted-foreground">Require attention</p>
+            <p className="text-xs text-muted-foreground">{t("stats.requireAttention", "Require attention")}</p>
           </CardContent>
         </Card>
       </div>
@@ -262,7 +262,7 @@ export function PaymentManagementPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search payments..."
+            placeholder={t("filters.searchPayments", "Search payments...")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -271,26 +271,26 @@ export function PaymentManagementPage() {
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t("filters.status", "Status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="refunded">Refunded</SelectItem>
+              <SelectItem value="all">{t("filters.allStatus", "All Status")}</SelectItem>
+              <SelectItem value="completed">{t("filters.completed", "Completed")}</SelectItem>
+              <SelectItem value="pending">{t("filters.pending", "Pending")}</SelectItem>
+              <SelectItem value="failed">{t("filters.failed", "Failed")}</SelectItem>
+              <SelectItem value="refunded">{t("filters.refunded", "Refunded")}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={methodFilter} onValueChange={setMethodFilter}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Method" />
+              <SelectValue placeholder={t("filters.method", "Method")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Methods</SelectItem>
-              <SelectItem value="card">Card</SelectItem>
-              <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="transfer">Transfer</SelectItem>
-              <SelectItem value="mbway">MB Way</SelectItem>
+              <SelectItem value="all">{t("filters.allMethods", "All Methods")}</SelectItem>
+              <SelectItem value="card">{t("filters.methods.card", "Card")}</SelectItem>
+              <SelectItem value="cash">{t("filters.methods.cash", "Cash")}</SelectItem>
+              <SelectItem value="transfer">{t("filters.methods.transfer", "Transfer")}</SelectItem>
+              <SelectItem value="mbway">{t("filters.methods.mbway", "MB Way")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -299,23 +299,23 @@ export function PaymentManagementPage() {
       {/* Payments Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Payment Transactions</CardTitle>
+          <CardTitle>{t("table.title", "Payment Transactions")}</CardTitle>
           <CardDescription>
-            Complete list of all payment transactions
+            {t("table.description", "Complete list of all payment transactions")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Payment ID</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("table.paymentId", "Payment ID")}</TableHead>
+                <TableHead>{t("table.client", "Client")}</TableHead>
+                <TableHead>{t("table.service", "Service")}</TableHead>
+                <TableHead>{t("table.amount", "Amount")}</TableHead>
+                <TableHead>{t("table.method", "Method")}</TableHead>
+                <TableHead>{t("table.status", "Status")}</TableHead>
+                <TableHead>{t("table.date", "Date")}</TableHead>
+                <TableHead>{t("table.actions", "Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -324,7 +324,7 @@ export function PaymentManagementPage() {
                   <TableCell>
                     <div className="font-medium">{payment.id}</div>
                     <div className="text-sm text-muted-foreground">
-                      Booking: {payment.bookingId}
+                      {t("table.booking", "Booking")}: {payment.bookingId}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -339,7 +339,7 @@ export function PaymentManagementPage() {
                     <div>
                       <div className="font-medium">{payment.service}</div>
                       <div className="text-sm text-muted-foreground">
-                        by {payment.professional}
+                        {t("table.by", "by")} {payment.professional}
                       </div>
                     </div>
                   </TableCell>
@@ -350,7 +350,7 @@ export function PaymentManagementPage() {
                       </div>
                       {payment.fees > 0 && (
                         <div className="text-sm text-muted-foreground">
-                          Fee: {formatCurrency(payment.fees)}
+                          {t("table.fee", "Fee")}: {formatCurrency(payment.fees)}
                         </div>
                       )}
                     </div>
@@ -372,7 +372,7 @@ export function PaymentManagementPage() {
                       </Button>
                       {payment.status === "failed" && (
                         <Button variant="outline" size="sm">
-                          Retry
+                          {t("actions.retry", "Retry")}
                         </Button>
                       )}
                     </div>
