@@ -1,0 +1,44 @@
+{
+  "title": "Payment Management",
+  "description": "Track and manage payments",
+  "search": "Search payments...",
+  "filter": {
+    "all": "All Payments",
+    "status": "Status",
+    "method": "Payment Method"
+  },
+  "stats": {
+    "totalRevenue": "Total Revenue",
+    "pendingPayments": "Pending Payments",
+    "completedPayments": "Completed Payments",
+    "failedPayments": "Failed Payments"
+  },
+  "table": {
+    "id": "Payment ID",
+    "booking": "Booking",
+    "client": "Client",
+    "amount": "Amount",
+    "method": "Method",
+    "status": "Status",
+    "date": "Date",
+    "actions": "Actions"
+  },
+  "methods": {
+    "creditCard": "Credit Card",
+    "debitCard": "Debit Card",
+    "cash": "Cash",
+    "pix": "PIX",
+    "bankTransfer": "Bank Transfer"
+  },
+  "status": {
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "refunded": "Refunded"
+  },
+  "actions": {
+    "viewDetails": "View Details",
+    "refund": "Refund",
+    "resend": "Resend Receipt"
+  }
+}

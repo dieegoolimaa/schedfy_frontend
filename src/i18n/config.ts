@@ -33,6 +33,18 @@ import enPricing from './locales/en/pricing.json'
 import ptPricing from './locales/pt/pricing.json'
 import enOnboarding from './locales/en/onboarding.json'
 import ptOnboarding from './locales/pt/onboarding.json'
+import enFinancial from './locales/en/financial.json'
+import ptFinancial from './locales/pt/financial.json'
+import enSubscription from './locales/en/subscription.json'
+import ptSubscription from './locales/pt/subscription.json'
+import enAnalytics from './locales/en/analytics.json'
+import ptAnalytics from './locales/pt/analytics.json'
+import enClients from './locales/en/clients.json'
+import ptClients from './locales/pt/clients.json'
+import enPayments from './locales/en/payments.json'
+import ptPayments from './locales/pt/payments.json'
+import enPackages from './locales/en/packages.json'
+import ptPackages from './locales/pt/packages.json'
 
 const resources = {
     en: {
@@ -51,6 +63,12 @@ const resources = {
         features: enFeatures,
         pricing: enPricing,
         onboarding: enOnboarding,
+        financial: enFinancial,
+        subscription: enSubscription,
+        analytics: enAnalytics,
+        clients: enClients,
+        payments: enPayments,
+        packages: enPackages,
     },
     pt: {
         common: ptCommon,
@@ -68,6 +86,12 @@ const resources = {
         features: ptFeatures,
         pricing: ptPricing,
         onboarding: ptOnboarding,
+        financial: ptFinancial,
+        subscription: ptSubscription,
+        analytics: ptAnalytics,
+        clients: ptClients,
+        payments: ptPayments,
+        packages: ptPackages,
     },
 }
 

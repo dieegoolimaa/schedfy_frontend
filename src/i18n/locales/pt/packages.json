@@ -1,0 +1,57 @@
+{
+  "title": "Gestão de Pacotes",
+  "description": "Crie e gerencie pacotes de serviços",
+  "tabs": {
+    "packages": "Pacotes",
+    "subscriptions": "Assinaturas"
+  },
+  "stats": {
+    "totalPackages": "Total de Pacotes",
+    "activePackages": "Pacotes Ativos",
+    "totalRevenue": "Receita de Pacotes",
+    "activeSubscriptions": "Assinaturas Ativas"
+  },
+  "create": "Criar Pacote",
+  "edit": "Editar Pacote",
+  "form": {
+    "name": "Nome do Pacote",
+    "description": "Descrição",
+    "services": "Serviços Incluídos",
+    "selectServices": "Selecionar serviços",
+    "pricing": "Preços",
+    "originalPrice": "Preço Original",
+    "packagePrice": "Preço do Pacote",
+    "discount": "Desconto",
+    "recurrence": "Recorrência",
+    "oneTime": "Único",
+    "monthly": "Mensal",
+    "validity": "Validade (dias)",
+    "sessionsIncluded": "Sessões Incluídas",
+    "status": "Status"
+  },
+  "table": {
+    "name": "Nome do Pacote",
+    "services": "Serviços",
+    "price": "Preço",
+    "discount": "Desconto",
+    "recurrence": "Recorrência",
+    "subscriptions": "Assinaturas",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "subscriptions": {
+    "client": "Cliente",
+    "package": "Pacote",
+    "status": "Status",
+    "startDate": "Data de Início",
+    "expiryDate": "Data de Expiração",
+    "sessionsUsed": "Sessões Usadas",
+    "autoRenew": "Renovação Automática"
+  },
+  "actions": {
+    "activate": "Ativar",
+    "deactivate": "Desativar",
+    "delete": "Excluir",
+    "viewSubscriptions": "Ver Assinaturas"
+  }
+}

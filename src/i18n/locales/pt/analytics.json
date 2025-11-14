@@ -1,0 +1,39 @@
+{
+  "title": "Análise de Dados",
+  "description": "Insights abrangentes sobre seu negócio",
+  "overview": {
+    "title": "Visão Geral",
+    "totalRevenue": "Receita Total",
+    "totalBookings": "Total de Agendamentos",
+    "activeClients": "Clientes Ativos",
+    "avgBookingValue": "Valor Médio por Agendamento"
+  },
+  "timeRange": {
+    "7days": "Últimos 7 dias",
+    "30days": "Últimos 30 dias",
+    "90days": "Últimos 90 dias",
+    "year": "Este ano"
+  },
+  "services": {
+    "title": "Desempenho de Serviços",
+    "topServices": "Principais Serviços",
+    "revenue": "Receita",
+    "bookings": "Agendamentos"
+  },
+  "professionals": {
+    "title": "Desempenho de Profissionais",
+    "topProfessionals": "Principais Profissionais"
+  },
+  "clients": {
+    "title": "Análise de Clientes",
+    "segments": "Segmentos de Clientes",
+    "newClients": "Novos Clientes",
+    "returningClients": "Clientes Recorrentes"
+  },
+  "trends": {
+    "title": "Tendências",
+    "hourly": "Análise por Hora",
+    "daily": "Análise Diária",
+    "monthly": "Análise Mensal"
+  }
+}

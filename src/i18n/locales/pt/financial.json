@@ -1,0 +1,62 @@
+{
+  "title": "Relatórios Financeiros",
+  "description": "Acompanhe suas receitas e despesas",
+  "summary": {
+    "totalRevenue": "Receita Total",
+    "totalCommissions": "Comissões Totais",
+    "vouchersUsed": "Vouchers Usados",
+    "netRevenue": "Receita Líquida",
+    "afterDeductions": "Após todas as deduções",
+    "ofRevenue": "da receita",
+    "vsLastPeriod": "vs período anterior"
+  },
+  "tabs": {
+    "overview": "Visão Geral",
+    "commissions": "Comissões",
+    "vouchers": "Vouchers",
+    "transactions": "Transações"
+  },
+  "breakdown": {
+    "title": "Detalhamento Financeiro",
+    "revenueBySource": "Receita por Origem",
+    "transactions": "transações"
+  },
+  "metrics": {
+    "totalTransactions": "Total de Transações",
+    "averageTransaction": "Transação Média",
+    "transactionGrowth": "Crescimento de Transações"
+  },
+  "commissions": {
+    "title": "Detalhamento de Comissões",
+    "description": "Visão detalhada de todas as comissões",
+    "total": "Total de Comissões"
+  },
+  "vouchers": {
+    "title": "Uso de Vouchers",
+    "description": "Acompanhe vouchers de desconto e promoções",
+    "used": "usados",
+    "total": "Total de Vouchers"
+  },
+  "transactions": {
+    "title": "Todas as Transações",
+    "id": "ID",
+    "date": "Data",
+    "client": "Cliente",
+    "service": "Serviço",
+    "paymentMethod": "Método de Pagamento",
+    "gross": "Bruto",
+    "commission": "Comissão",
+    "voucher": "Voucher",
+    "net": "Líquido",
+    "status": "Status",
+    "viewDetails": "Ver Detalhes",
+    "grossAmount": "Valor Bruto",
+    "voucherDiscount": "Desconto de Voucher",
+    "netAmount": "Valor Líquido"
+  },
+  "export": {
+    "button": "Exportar",
+    "csv": "Exportar CSV",
+    "pdf": "Exportar PDF"
+  }
+}

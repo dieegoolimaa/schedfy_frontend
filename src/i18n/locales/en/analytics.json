@@ -1,0 +1,39 @@
+{
+  "title": "Data Analytics",
+  "description": "Comprehensive insights into your business",
+  "overview": {
+    "title": "Overview",
+    "totalRevenue": "Total Revenue",
+    "totalBookings": "Total Bookings",
+    "activeClients": "Active Clients",
+    "avgBookingValue": "Avg. Booking Value"
+  },
+  "timeRange": {
+    "7days": "Last 7 days",
+    "30days": "Last 30 days",
+    "90days": "Last 90 days",
+    "year": "This year"
+  },
+  "services": {
+    "title": "Service Performance",
+    "topServices": "Top Services",
+    "revenue": "Revenue",
+    "bookings": "Bookings"
+  },
+  "professionals": {
+    "title": "Professional Performance",
+    "topProfessionals": "Top Professionals"
+  },
+  "clients": {
+    "title": "Client Analysis",
+    "segments": "Client Segments",
+    "newClients": "New Clients",
+    "returningClients": "Returning Clients"
+  },
+  "trends": {
+    "title": "Trends",
+    "hourly": "Hourly Analysis",
+    "daily": "Daily Analysis",
+    "monthly": "Monthly Analysis"
+  }
+}

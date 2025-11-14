@@ -1,0 +1,43 @@
+{
+  "title": "Gestão de Assinatura",
+  "description": "Gerencie sua assinatura e cobrança",
+  "current": {
+    "title": "Plano Atual",
+    "status": "Status",
+    "perMonth": "por mês",
+    "perYear": "por ano",
+    "nextBilling": "Próxima cobrança",
+    "billingDate": "Data de cobrança"
+  },
+  "billing": {
+    "title": "Informações de Cobrança",
+    "period": "Período de Cobrança",
+    "monthly": "Mensal",
+    "yearly": "Anual",
+    "saveWithYearly": "Economize 20% com cobrança anual"
+  },
+  "addons": {
+    "title": "Complementos",
+    "description": "Aprimore sua assinatura com recursos adicionais"
+  },
+  "plans": {
+    "title": "Planos Disponíveis",
+    "upgrade": "Fazer Upgrade",
+    "mostPopular": "Mais Popular",
+    "features": "Recursos"
+  },
+  "ai": {
+    "title": "Insights de IA para Negócios",
+    "description": "Análises e recomendações avançadas com IA"
+  },
+  "invoices": {
+    "title": "Histórico de Cobrança",
+    "invoice": "Fatura",
+    "download": "Baixar"
+  },
+  "actions": {
+    "changePlan": "Alterar Plano",
+    "cancelSubscription": "Cancelar Assinatura",
+    "updatePayment": "Atualizar Método de Pagamento"
+  }
+}

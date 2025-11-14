@@ -1,0 +1,57 @@
+{
+  "title": "Package Management",
+  "description": "Create and manage service packages",
+  "tabs": {
+    "packages": "Packages",
+    "subscriptions": "Subscriptions"
+  },
+  "stats": {
+    "totalPackages": "Total Packages",
+    "activePackages": "Active Packages",
+    "totalRevenue": "Revenue from Packages",
+    "activeSubscriptions": "Active Subscriptions"
+  },
+  "create": "Create Package",
+  "edit": "Edit Package",
+  "form": {
+    "name": "Package Name",
+    "description": "Description",
+    "services": "Services Included",
+    "selectServices": "Select services",
+    "pricing": "Pricing",
+    "originalPrice": "Original Price",
+    "packagePrice": "Package Price",
+    "discount": "Discount",
+    "recurrence": "Recurrence",
+    "oneTime": "One-time",
+    "monthly": "Monthly",
+    "validity": "Validity (days)",
+    "sessionsIncluded": "Sessions Included",
+    "status": "Status"
+  },
+  "table": {
+    "name": "Package Name",
+    "services": "Services",
+    "price": "Price",
+    "discount": "Discount",
+    "recurrence": "Recurrence",
+    "subscriptions": "Subscriptions",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "subscriptions": {
+    "client": "Client",
+    "package": "Package",
+    "status": "Status",
+    "startDate": "Start Date",
+    "expiryDate": "Expiry Date",
+    "sessionsUsed": "Sessions Used",
+    "autoRenew": "Auto Renew"
+  },
+  "actions": {
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "delete": "Delete",
+    "viewSubscriptions": "View Subscriptions"
+  }
+}

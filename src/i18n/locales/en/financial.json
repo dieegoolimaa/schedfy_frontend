@@ -1,0 +1,62 @@
+{
+  "title": "Financial Reports",
+  "description": "Track your revenue and expenses",
+  "summary": {
+    "totalRevenue": "Total Revenue",
+    "totalCommissions": "Total Commissions",
+    "vouchersUsed": "Vouchers Used",
+    "netRevenue": "Net Revenue",
+    "afterDeductions": "After all deductions",
+    "ofRevenue": "of revenue",
+    "vsLastPeriod": "vs last period"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "commissions": "Commissions",
+    "vouchers": "Vouchers",
+    "transactions": "Transactions"
+  },
+  "breakdown": {
+    "title": "Financial Breakdown",
+    "revenueBySource": "Revenue by Source",
+    "transactions": "transactions"
+  },
+  "metrics": {
+    "totalTransactions": "Total Transactions",
+    "averageTransaction": "Average Transaction",
+    "transactionGrowth": "Transaction Growth"
+  },
+  "commissions": {
+    "title": "Commission Breakdown",
+    "description": "Detailed view of all commissions",
+    "total": "Total Commissions"
+  },
+  "vouchers": {
+    "title": "Voucher Usage",
+    "description": "Track discount vouchers and promotions",
+    "used": "used",
+    "total": "Total Vouchers"
+  },
+  "transactions": {
+    "title": "All Transactions",
+    "id": "ID",
+    "date": "Date",
+    "client": "Client",
+    "service": "Service",
+    "paymentMethod": "Payment Method",
+    "gross": "Gross",
+    "commission": "Commission",
+    "voucher": "Voucher",
+    "net": "Net",
+    "status": "Status",
+    "viewDetails": "View Details",
+    "grossAmount": "Gross Amount",
+    "voucherDiscount": "Voucher Discount",
+    "netAmount": "Net Amount"
+  },
+  "export": {
+    "button": "Export",
+    "csv": "Export CSV",
+    "pdf": "Export PDF"
+  }
+}

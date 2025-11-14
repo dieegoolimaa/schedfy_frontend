@@ -1,0 +1,44 @@
+{
+  "title": "Gestão de Pagamentos",
+  "description": "Acompanhe e gerencie pagamentos",
+  "search": "Pesquisar pagamentos...",
+  "filter": {
+    "all": "Todos os Pagamentos",
+    "status": "Status",
+    "method": "Método de Pagamento"
+  },
+  "stats": {
+    "totalRevenue": "Receita Total",
+    "pendingPayments": "Pagamentos Pendentes",
+    "completedPayments": "Pagamentos Concluídos",
+    "failedPayments": "Pagamentos Falhados"
+  },
+  "table": {
+    "id": "ID do Pagamento",
+    "booking": "Agendamento",
+    "client": "Cliente",
+    "amount": "Valor",
+    "method": "Método",
+    "status": "Status",
+    "date": "Data",
+    "actions": "Ações"
+  },
+  "methods": {
+    "creditCard": "Cartão de Crédito",
+    "debitCard": "Cartão de Débito",
+    "cash": "Dinheiro",
+    "pix": "PIX",
+    "bankTransfer": "Transferência Bancária"
+  },
+  "status": {
+    "pending": "Pendente",
+    "completed": "Concluído",
+    "failed": "Falhado",
+    "refunded": "Reembolsado"
+  },
+  "actions": {
+    "viewDetails": "Ver Detalhes",
+    "refund": "Reembolsar",
+    "resend": "Reenviar Recibo"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "title": "Gestão de Clientes",
+  "description": "Gerencie seus relacionamentos com clientes",
+  "search": "Pesquisar clientes...",
+  "addClient": "Adicionar Cliente",
+  "filter": {
+    "all": "Todos os Clientes",
+    "active": "Ativos",
+    "inactive": "Inativos",
+    "vip": "VIP"
+  },
+  "stats": {
+    "totalClients": "Total de Clientes",
+    "activeClients": "Clientes Ativos",
+    "totalRevenue": "Receita Total",
+    "avgSpent": "Gasto Médio"
+  },
+  "table": {
+    "name": "Nome",
+    "email": "Email",
+    "phone": "Telefone",
+    "totalBookings": "Agendamentos",
+    "totalSpent": "Total Gasto",
+    "avgSpent": "Gasto Médio",
+    "lastBooking": "Último Agendamento",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "details": {
+    "title": "Detalhes do Cliente",
+    "info": "Informações do Cliente",
+    "bookingHistory": "Histórico de Agendamentos",
+    "notes": "Observações"
+  },
+  "form": {
+    "name": "Nome Completo",
+    "email": "Endereço de Email",
+    "phone": "Número de Telefone",
+    "notes": "Observações Adicionais"
+  },
+  "actions": {
+    "edit": "Editar Cliente",
+    "delete": "Excluir Cliente",
+    "viewDetails": "Ver Detalhes"
+  }
+}

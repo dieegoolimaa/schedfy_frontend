@@ -1,0 +1,46 @@
+{
+  "title": "Client Management",
+  "description": "Manage your client relationships",
+  "search": "Search clients...",
+  "addClient": "Add Client",
+  "filter": {
+    "all": "All Clients",
+    "active": "Active",
+    "inactive": "Inactive",
+    "vip": "VIP"
+  },
+  "stats": {
+    "totalClients": "Total Clients",
+    "activeClients": "Active Clients",
+    "totalRevenue": "Total Revenue",
+    "avgSpent": "Avg. Spent"
+  },
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "totalBookings": "Bookings",
+    "totalSpent": "Total Spent",
+    "avgSpent": "Avg. Spent",
+    "lastBooking": "Last Booking",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "details": {
+    "title": "Client Details",
+    "info": "Client Information",
+    "bookingHistory": "Booking History",
+    "notes": "Notes"
+  },
+  "form": {
+    "name": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "notes": "Additional Notes"
+  },
+  "actions": {
+    "edit": "Edit Client",
+    "delete": "Delete Client",
+    "viewDetails": "View Details"
+  }
+}

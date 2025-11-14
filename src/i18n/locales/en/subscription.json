@@ -1,0 +1,43 @@
+{
+  "title": "Subscription Management",
+  "description": "Manage your subscription and billing",
+  "current": {
+    "title": "Current Plan",
+    "status": "Status",
+    "perMonth": "per month",
+    "perYear": "per year",
+    "nextBilling": "Next billing",
+    "billingDate": "Billing date"
+  },
+  "billing": {
+    "title": "Billing Information",
+    "period": "Billing Period",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "saveWithYearly": "Save 20% with yearly billing"
+  },
+  "addons": {
+    "title": "Add-ons",
+    "description": "Enhance your subscription with additional features"
+  },
+  "plans": {
+    "title": "Available Plans",
+    "upgrade": "Upgrade Plan",
+    "mostPopular": "Most Popular",
+    "features": "Features"
+  },
+  "ai": {
+    "title": "AI Business Insights",
+    "description": "Advanced AI-powered analytics and recommendations"
+  },
+  "invoices": {
+    "title": "Billing History",
+    "invoice": "Invoice",
+    "download": "Download"
+  },
+  "actions": {
+    "changePlan": "Change Plan",
+    "cancelSubscription": "Cancel Subscription",
+    "updatePayment": "Update Payment Method"
+  }
+}

@@ -66,7 +66,7 @@ import {
 } from "lucide-react";
 
 export function FinancialReportsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("financial");
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
