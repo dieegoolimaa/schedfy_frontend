@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { StatCard } from "../../components/ui/stat-card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
 import {
   CalendarDays,
@@ -223,7 +224,7 @@ const SimpleDashboard = () => {
       </div>
 
       {/* Stats Grid - Mobile-First Responsive Layout */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+      <StatsGrid columns={4}>
         {loading ? (
           <>
             {[1, 2].map((i) => (
@@ -277,10 +278,10 @@ const SimpleDashboard = () => {
             </Card>
           ))
         )}
-      </div>
+      </StatsGrid>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+      <StatsGrid columns={3}>
         <StatCard
           title={t("stats.totalbookings")}
           value={
@@ -333,7 +334,7 @@ const SimpleDashboard = () => {
           icon={CalendarDays}
           variant="default"
         />
-      </div>
+      </StatsGrid>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">

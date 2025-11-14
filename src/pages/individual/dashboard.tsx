@@ -279,7 +279,7 @@ const IndividualDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+      <StatsGrid columns={4}>
         <StatCard
           title={t("stats.thismonthrevenue")}
           value={
@@ -360,7 +360,7 @@ const IndividualDashboard = () => {
           icon={CheckCircle}
           variant="success"
         />
-      </div>
+      </StatsGrid>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">

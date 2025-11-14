@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Badge } from "../../components/ui/badge";
 import {
   Avatar,
@@ -232,7 +233,7 @@ export default function ProfessionalBookingsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3">
+      <StatsGrid columns={3}>
         <Card className="p-3 sm:p-4">
           <CardHeader className="pb-3 p-0">
             <CardTitle className="text-sm font-medium">Today</CardTitle>
@@ -262,7 +263,7 @@ export default function ProfessionalBookingsPage() {
             <p className="text-xs text-muted-foreground">all bookings</p>
           </CardContent>
         </Card>
-      </div>
+      </StatsGrid>
 
       {/* Filters */}
       <Card>

@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -222,7 +223,7 @@ export default function ProfessionalEarningsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+      <StatsGrid columns={4}>
         <Card className="p-3 sm:p-4">
           <CardHeader className="pb-3 p-0">
             <div className="flex items-center justify-between">
@@ -305,7 +306,7 @@ export default function ProfessionalEarningsPage() {
             <p className="text-xs text-muted-foreground mt-1">All time</p>
           </CardContent>
         </Card>
-      </div>
+      </StatsGrid>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
