@@ -289,7 +289,7 @@ export default function ReviewsManagement() {
   const respondedCount = reviews.filter((r) => r.response).length;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>

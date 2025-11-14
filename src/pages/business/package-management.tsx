@@ -363,7 +363,7 @@ const PackageManagement: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Access Restriction for Simple Plan */}
       {!hasPackageAccess && (
         <Card className="border-2 border-orange-200 bg-orange-50 dark:bg-orange-950/20">
