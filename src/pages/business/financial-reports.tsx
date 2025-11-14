@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useGoals } from "../../hooks/useGoals";
@@ -64,6 +65,7 @@ import {
 } from "lucide-react";
 
 export function FinancialReportsPage() {
+  const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
@@ -372,7 +374,7 @@ export function FinancialReportsPage() {
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Revenue"
-            value={`€${financialSummary.totalRevenue.toFixed(2)}`}
+            value={formatCurrency(financialSummary.totalRevenue)}
             icon={Euro}
             trend={{
               value: `+${financialSummary.growth.revenue}%`,
@@ -383,7 +385,7 @@ export function FinancialReportsPage() {
 
           <StatCard
             title="Total Commissions"
-            value={`€${financialSummary.totalCommissions.toFixed(2)}`}
+            value={formatCurrency(financialSummary.totalCommissions)}
             subtitle="10% of revenue"
             icon={ArrowDownRight}
             variant="danger"
@@ -391,7 +393,7 @@ export function FinancialReportsPage() {
 
           <StatCard
             title="Vouchers Used"
-            value={`€${financialSummary.totalVouchers.toFixed(2)}`}
+            value={formatCurrency(financialSummary.totalVouchers)}
             subtitle={`${(
               (financialSummary.totalVouchers / financialSummary.totalRevenue) *
               100
@@ -402,7 +404,7 @@ export function FinancialReportsPage() {
 
           <StatCard
             title="Net Revenue"
-            value={`€${financialSummary.netRevenue.toFixed(2)}`}
+            value={formatCurrency(financialSummary.netRevenue)}
             subtitle="After all deductions"
             icon={TrendingUp}
             variant="success"
@@ -464,7 +466,7 @@ export function FinancialReportsPage() {
                           </div>
                           <div className="flex items-center justify-between mt-1">
                             <span className="text-xs text-muted-foreground">
-                              €{item.amount.toFixed(2)}
+                              {formatCurrency(item.amount)}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {item.transactions} transactions
@@ -498,7 +500,7 @@ export function FinancialReportsPage() {
                       Average Transaction
                     </span>
                     <span className="text-lg font-bold">
-                      €{financialSummary.averageTransaction.toFixed(2)}
+                      {formatCurrency(financialSummary.averageTransaction)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -712,8 +714,7 @@ export function FinancialReportsPage() {
                             <span className="font-medium">Revenue</span>
                           </div>
                           <span className="text-sm text-muted-foreground">
-                            €{currentRevenue.toFixed(0)} / €
-                            {revenueTarget.toFixed(0)}
+                            {formatCurrency(currentRevenue)} / {formatCurrency(revenueTarget)}
                           </span>
                         </div>
                         <div className="relative pt-1">
@@ -851,7 +852,7 @@ export function FinancialReportsPage() {
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">{commission.rate}%</Badge>
                             <span className="font-bold text-red-600">
-                              €{commission.amount.toFixed(2)}
+                              {formatCurrency(commission.amount)}
                             </span>
                           </div>
                         </div>
@@ -865,7 +866,7 @@ export function FinancialReportsPage() {
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">Total Commissions</span>
                       <span className="font-bold text-lg text-red-600">
-                        €{financialSummary.totalCommissions.toFixed(2)}
+                        {formatCurrency(financialSummary.totalCommissions)}
                       </span>
                     </div>
                   </div>
@@ -897,7 +898,7 @@ export function FinancialReportsPage() {
                               {voucher.usage} used
                             </Badge>
                             <span className="font-bold text-orange-600">
-                              €{voucher.amount.toFixed(2)}
+                              {formatCurrency(voucher.amount)}
                             </span>
                           </div>
                         </div>
@@ -911,7 +912,7 @@ export function FinancialReportsPage() {
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">Total Vouchers</span>
                       <span className="font-bold text-lg text-orange-600">
-                        €{financialSummary.totalVouchers.toFixed(2)}
+                        {formatCurrency(financialSummary.totalVouchers)}
                       </span>
                     </div>
                   </div>
@@ -1025,18 +1026,18 @@ export function FinancialReportsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          €{transaction.gross.toFixed(2)}
+                          {formatCurrency(transaction.gross)}
                         </TableCell>
                         <TableCell className="text-right text-red-600">
-                          -€{transaction.commission.toFixed(2)}
+                          -{formatCurrency(transaction.commission)}
                         </TableCell>
                         <TableCell className="text-right text-orange-600">
                           {transaction.voucher > 0
-                            ? `-€${transaction.voucher.toFixed(2)}`
+                            ? `-${formatCurrency(transaction.voucher)}`
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right font-bold text-green-600">
-                          €{transaction.net.toFixed(2)}
+                          {formatCurrency(transaction.net)}
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(transaction.status)}
@@ -1110,26 +1111,26 @@ export function FinancialReportsPage() {
                                     <div className="flex justify-between">
                                       <span>Gross Amount:</span>
                                       <span className="font-medium">
-                                        €{transaction.gross.toFixed(2)}
+                                        {formatCurrency(transaction.gross)}
                                       </span>
                                     </div>
                                     <div className="flex justify-between text-red-600">
                                       <span>Commission:</span>
                                       <span>
-                                        -€{transaction.commission.toFixed(2)}
+                                        -{formatCurrency(transaction.commission)}
                                       </span>
                                     </div>
                                     {transaction.voucher > 0 && (
                                       <div className="flex justify-between text-orange-600">
                                         <span>Voucher Discount:</span>
                                         <span>
-                                          -€{transaction.voucher.toFixed(2)}
+                                          -{formatCurrency(transaction.voucher)}
                                         </span>
                                       </div>
                                     )}
                                     <div className="flex justify-between font-bold text-green-600 border-t pt-2">
                                       <span>Net Amount:</span>
-                                      <span>€{transaction.net.toFixed(2)}</span>
+                                      <span>{formatCurrency(transaction.net)}</span>
                                     </div>
                                   </div>
                                 </div>

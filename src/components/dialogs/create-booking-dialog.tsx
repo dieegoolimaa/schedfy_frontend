@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Dialog,
   DialogContent,
@@ -87,6 +88,7 @@ export function CreateBookingDialog({
   packages: _packages = [],
   clientSubscriptions = [],
 }: CreateBookingDialogProps) {
+  const { formatCurrency } = useCurrency();
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -769,7 +771,7 @@ export function CreateBookingDialog({
                               <span className="text-xs text-muted-foreground">
                                 {service.duration} min
                                 {service.price &&
-                                  ` • €${service.price.toFixed(2)}`}
+                                  ` • ${formatCurrency(service.price)}`}
                               </span>
                             </div>
                           </SelectItem>

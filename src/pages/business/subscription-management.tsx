@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ import {
 
 export function SubscriptionManagementPage() {
   const [billingPeriod, setBillingPeriod] = useState("monthly");
+  const { formatCurrency } = useCurrency();
 
   // Mock subscription data
   const subscriptionData = {
@@ -201,7 +203,7 @@ export function SubscriptionManagementPage() {
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
               <div>
                 <div className="text-2xl font-bold">
-                  €{subscriptionData.billing.totalAmount.toFixed(2)}
+                  {formatCurrency(subscriptionData.billing.totalAmount)}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {billingPeriod === "monthly" ? "per month" : "per year"}
@@ -252,7 +254,7 @@ export function SubscriptionManagementPage() {
                       </div>
                       <div className="text-right">
                         <div className="font-medium">
-                          €{addOn.price.toFixed(2)}
+                          {formatCurrency(addOn.price)}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {billingPeriod === "monthly" ? "/month" : "/year"}
@@ -404,7 +406,7 @@ export function SubscriptionManagementPage() {
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
                       <div className="text-3xl font-bold">
-                        €{plan.price.toFixed(2)}
+                        {formatCurrency(plan.price)}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {billingPeriod === "monthly" ? "per month" : "per year"}
@@ -461,7 +463,9 @@ export function SubscriptionManagementPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-2xl font-bold">
-                    €{billingPeriod === "monthly" ? "19.99" : "199.90"}
+                    {formatCurrency(
+                      billingPeriod === "monthly" ? 19.99 : 199.9
+                    )}
                     <span className="text-sm font-normal text-muted-foreground ml-1">
                       {billingPeriod === "monthly" ? "/month" : "/year"}
                     </span>
@@ -575,7 +579,7 @@ export function SubscriptionManagementPage() {
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <div className="font-medium">
-                          €{invoice.amount.toFixed(2)}
+                          {formatCurrency(invoice.amount)}
                         </div>
                         <Badge
                           variant="outline"

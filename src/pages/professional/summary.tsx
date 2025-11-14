@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
   CardContent,
@@ -34,6 +35,7 @@ import {
 
 export function ProfessionalSummaryPage() {
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
 
   // Mock data
   const summary = {
@@ -145,7 +147,7 @@ export function ProfessionalSummaryPage() {
             <DollarSign className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-3xl font-bold text-foreground">€{summary.monthlyRevenue}</div>
+            <div className="text-3xl font-bold text-foreground">{formatCurrency(summary.monthlyRevenue)}</div>
             <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
               <TrendingUp className="h-3 w-3 text-emerald-500" />
               <span className="text-emerald-600 font-medium">+12%</span>

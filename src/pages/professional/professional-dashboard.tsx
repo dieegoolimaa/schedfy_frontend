@@ -603,7 +603,7 @@ export function ProfessionalDashboardPage() {
                 <p className="text-sm font-medium">Monthly Revenue</p>
                 <p className="text-xs text-muted-foreground">This month</p>
               </div>
-              <p className="text-2xl font-bold">€{stats.monthlyRevenue}</p>
+              <p className="text-2xl font-bold">{formatCurrency(stats.monthlyRevenue)}</p>
             </div>
             <div className="flex justify-between items-center p-4 border rounded-lg">
               <div>

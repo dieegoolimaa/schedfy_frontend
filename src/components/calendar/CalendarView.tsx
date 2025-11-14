@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ export function CalendarView({
   workingHours = { start: "09:00", end: "18:00" },
   asTab = false,
 }: CalendarViewProps) {
+  const { formatCurrency } = useCurrency();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -786,7 +788,7 @@ export function CalendarView({
                         Price
                       </h3>
                       <p className="text-sm">
-                        €{selectedBooking.service.price}
+                        {formatCurrency(selectedBooking.service.price)}
                       </p>
                     </div>
                   )}
@@ -938,7 +940,7 @@ export function CalendarView({
                       <DollarSign className="h-4 w-4" />
                       Price
                     </h3>
-                    <p className="text-sm">€{selectedBooking.service.price}</p>
+                    <p className="text-sm">{formatCurrency(selectedBooking.service.price)}</p>
                   </div>
                 )}
 

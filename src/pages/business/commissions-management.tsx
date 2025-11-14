@@ -4,6 +4,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { usePromotions } from "@/hooks/usePromotions";
 import { useServices } from "@/hooks/useServices";
 import { useBookings } from "@/hooks/useBookings";
+import { useCurrency } from "../../hooks/useCurrency";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -108,6 +109,7 @@ export function CommissionsManagementPage() {
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
   const { userPackage } = usePermissions();
+  const { formatCurrency } = useCurrency();
   const {
     createCommission,
     getCommissions,
@@ -1209,7 +1211,7 @@ export function CommissionsManagementPage() {
                             <TableCell>
                               {commission.type === "percentage"
                                 ? `${commission.value}%`
-                                : `€${commission.value}`}
+                                : formatCurrency(commission.value)}
                             </TableCell>
                             <TableCell className="capitalize">
                               {commission.appliesTo.replace("_", " ")}
@@ -1685,7 +1687,7 @@ export function CommissionsManagementPage() {
                             <TableCell>
                               {voucher.type === "percentage"
                                 ? `${voucher.value}%`
-                                : `€${voucher.value}`}
+                                : formatCurrency(voucher.value)}
                             </TableCell>
                             <TableCell>
                               {voucher.currentUsageCount}
@@ -2073,7 +2075,7 @@ export function CommissionsManagementPage() {
                             <TableCell>
                               {discount.type === "percentage"
                                 ? `${discount.value}%`
-                                : `€${discount.value}`}
+                                : formatCurrency(discount.value)}
                             </TableCell>
                             <TableCell className="capitalize">
                               {discount.appliesTo.replace(/_/g, " ")}

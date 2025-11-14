@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { FeatureGate } from "../../contexts/feature-flags-context";
 import {
   Card,
@@ -44,6 +45,7 @@ import {
 export function AIPremiumPage() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("starter");
+  const { formatCurrency } = useCurrency();
   const [autoBookingEnabled, setAutoBookingEnabled] = useState(true);
   const [smartPricingEnabled, setSmartPricingEnabled] = useState(false);
   const [predictiveAnalyticsEnabled, setPredictiveAnalyticsEnabled] =
@@ -307,7 +309,7 @@ export function AIPremiumPage() {
                       <CardHeader className="text-center">
                         <CardTitle>{plan.name}</CardTitle>
                         <div className="text-3xl font-bold">
-                          €{plan.price}
+                          {formatCurrency(plan.price)}
                           <span className="text-sm font-normal text-muted-foreground">
                             /month
                           </span>
@@ -474,7 +476,7 @@ export function AIPremiumPage() {
                         Current Monthly Revenue
                       </p>
                       <p className="text-2xl font-bold">
-                        €{aiInsights.revenueOptimization.currentRevenue}
+                        {formatCurrency(aiInsights.revenueOptimization.currentRevenue)}
                       </p>
                     </div>
                   </CardContent>
@@ -502,7 +504,7 @@ export function AIPremiumPage() {
                           Avg. Spending
                         </p>
                         <p className="text-xl font-bold text-purple-600">
-                          €{aiInsights.customerBehavior.averageSpending}
+                          {formatCurrency(aiInsights.customerBehavior.averageSpending)}
                         </p>
                       </div>
                     </div>

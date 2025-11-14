@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "../../lib/utils";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   publicService,
   PublicEntity,
@@ -47,6 +48,7 @@ import {
 export function PublicEntityProfilePage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
 
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
@@ -680,7 +682,7 @@ export function PublicEntityProfilePage() {
                             variant="secondary"
                             className="font-semibold text-base px-3 py-1"
                           >
-                            €{service.price}
+                            {formatCurrency(service.price)}
                           </Badge>
                         </div>
                       </CardContent>
@@ -776,7 +778,7 @@ export function PublicEntityProfilePage() {
                               Package Price:
                             </span>
                             <span className="text-2xl font-bold text-primary">
-                              €{pkg.pricing?.packagePrice?.toFixed(2) || "0.00"}
+                              {formatCurrency(pkg.pricing?.packagePrice || 0)}
                             </span>
                           </div>
                           {pkg.pricing?.discount > 0 && (

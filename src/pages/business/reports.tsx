@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useCurrency } from "../../hooks/useCurrency";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
@@ -53,6 +54,7 @@ import { Calendar, Download, DollarSign, Users, Star } from "lucide-react";
 
 export function ReportsPage() {
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
 
@@ -279,7 +281,7 @@ export function ReportsPage() {
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Revenue"
-            value={`€${totalRevenue.toLocaleString()}`}
+            value={formatCurrency(totalRevenue)}
             icon={DollarSign}
             trend={{ value: "+12.5%", isPositive: true }}
             subtitle="from last period"
@@ -484,7 +486,7 @@ export function ReportsPage() {
                           {service.service}
                         </TableCell>
                         <TableCell>{service.bookings}</TableCell>
-                        <TableCell>€{service.revenue}</TableCell>
+                        <TableCell>{formatCurrency(service.revenue)}</TableCell>
                         <TableCell>
                           <div className="flex items-center">
                             <Star className="h-3 w-3 mr-1 text-yellow-500" />
@@ -492,7 +494,7 @@ export function ReportsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          €{(service.revenue / service.bookings).toFixed(2)}
+                          {formatCurrency(service.revenue / service.bookings)}
                         </TableCell>
                       </TableRow>
                     ))}
