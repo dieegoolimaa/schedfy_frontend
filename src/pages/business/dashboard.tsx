@@ -350,13 +350,13 @@ const Dashboard = () => {
       {entityStats && !statsLoading && (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           <StatCard
-            title="Revenue This Month"
+            title={t("stats.revenueThisMonth", "Revenue This Month")}
             value={formatCurrency(entityStats.revenue.thisMonth)}
             subtitle={
               entityStats.revenue.change !== undefined
                 ? `${
                     entityStats.revenue.change > 0 ? "+" : ""
-                  }${entityStats.revenue.change.toFixed(1)}% vs last month`
+                  }${entityStats.revenue.change.toFixed(1)}% ${t("stats.vsLastMonth", "vs last month")}`
                 : undefined
             }
             icon={DollarSign}
@@ -373,13 +373,13 @@ const Dashboard = () => {
             }
           />
           <StatCard
-            title="Bookings This Month"
+            title={t("stats.bookingsThisMonth", "Bookings This Month")}
             value={entityStats.bookings.thisMonth}
             subtitle={
               entityStats.bookings.change !== undefined
                 ? `${
                     entityStats.bookings.change > 0 ? "+" : ""
-                  }${entityStats.bookings.change.toFixed(1)}% vs last month`
+                  }${entityStats.bookings.change.toFixed(1)}% ${t("stats.vsLastMonth", "vs last month")}`
                 : undefined
             }
             icon={CalendarDays}
@@ -396,7 +396,7 @@ const Dashboard = () => {
             }
           />
           <StatCard
-            title="New Clients"
+            title={t("stats.newClients", "New Clients")}
             value={entityStats.clients.newThisMonth}
             subtitle={
               entityStats.clients.change !== undefined
@@ -988,8 +988,8 @@ const Dashboard = () => {
         open={calendarOpen}
         onOpenChange={setCalendarOpen}
         bookings={bookings}
-        title="Business Calendar"
-        description="View and manage all appointments"
+        title={t("calendar.title", "Business Calendar")}
+        description={t("calendar.description", "View and manage all appointments")}
       />
       <BookingCreator
         open={quickBookingDialogOpen}

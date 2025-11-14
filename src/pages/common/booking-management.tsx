@@ -591,7 +591,9 @@ export function BookingManagementPage() {
               className="rounded-r-none"
             >
               <LayoutList className="h-4 w-4 mr-2" />
-              <span className="hidden lg:inline">{t("views.list", "List")}</span>
+              <span className="hidden lg:inline">
+                {t("views.list", "List")}
+              </span>
             </Button>
             <Button
               variant={viewMode === "kanban" ? "default" : "ghost"}
@@ -600,7 +602,9 @@ export function BookingManagementPage() {
               className="rounded-l-none"
             >
               <LayoutGrid className="h-4 w-4 mr-2" />
-              <span className="hidden lg:inline">{t("views.kanban", "Kanban")}</span>
+              <span className="hidden lg:inline">
+                {t("views.kanban", "Kanban")}
+              </span>
             </Button>
           </div>
 
@@ -611,11 +615,15 @@ export function BookingManagementPage() {
             className="hidden sm:flex"
           >
             <CalendarIcon className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">{t("actions.calendar", "Calendar")}</span>
+            <span className="hidden sm:inline">
+              {t("actions.calendar", "Calendar")}
+            </span>
           </Button>
           <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">{t("actions.newBooking", "New Booking")}</span>
+            <span className="hidden sm:inline">
+              {t("actions.newBooking", "New Booking")}
+            </span>
           </Button>
         </div>
       </div>

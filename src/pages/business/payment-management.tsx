@@ -189,7 +189,9 @@ export function PaymentManagementPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.totalRevenue", "Total Revenue")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.totalRevenue", "Total Revenue")}
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -197,7 +199,9 @@ export function PaymentManagementPage() {
               {formatCurrency(stats.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("stats.fromCompleted", "From {{count}} completed payments", { count: stats.completedCount })}
+              {t("stats.fromCompleted", "From {{count}} completed payments", {
+                count: stats.completedCount,
+              })}
             </p>
           </CardContent>
         </Card>
@@ -214,7 +218,9 @@ export function PaymentManagementPage() {
               {formatCurrency(stats.pendingAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("stats.pendingPayments", "{{count}} pending payments", { count: stats.pendingCount })}
+              {t("stats.pendingPayments", "{{count}} pending payments", {
+                count: stats.pendingCount,
+              })}
             </p>
           </CardContent>
         </Card>
