@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useAuth } from "../../contexts/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,6 +104,7 @@ interface PackageSubscription {
 }
 
 const PackageManagement: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { formatCurrency, getCurrencyCode } = useCurrency();
   const [packages, setPackages] = useState<ServicePackage[]>([]);

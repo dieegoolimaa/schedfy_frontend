@@ -87,9 +87,17 @@ export function ProfessionalSummaryPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Confirmed</Badge>;
+        return (
+          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+            Confirmed
+          </Badge>
+        );
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+            Pending
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -115,7 +123,10 @@ export function ProfessionalSummaryPage() {
             {t("professional.summary.title", "Professional Summary")}
           </h1>
           <p className="text-base text-muted-foreground">
-            {t("professional.summary.subtitle", "Your performance overview and upcoming schedule")}
+            {t(
+              "professional.summary.subtitle",
+              "Your performance overview and upcoming schedule"
+            )}
           </p>
         </div>
       </div>
@@ -130,7 +141,9 @@ export function ProfessionalSummaryPage() {
             <Calendar className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-3xl font-bold text-foreground">{summary.todayBookings}</div>
+            <div className="text-3xl font-bold text-foreground">
+              {summary.todayBookings}
+            </div>
             <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
               <TrendingUp className="h-3 w-3 text-emerald-500" />
               <span className="text-emerald-600 font-medium">+2</span>
@@ -147,7 +160,9 @@ export function ProfessionalSummaryPage() {
             <DollarSign className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-3xl font-bold text-foreground">{formatCurrency(summary.monthlyRevenue)}</div>
+            <div className="text-3xl font-bold text-foreground">
+              {formatCurrency(summary.monthlyRevenue)}
+            </div>
             <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
               <TrendingUp className="h-3 w-3 text-emerald-500" />
               <span className="text-emerald-600 font-medium">+12%</span>
@@ -164,10 +179,14 @@ export function ProfessionalSummaryPage() {
             <Star className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-3xl font-bold text-foreground">{summary.averageRating}</div>
+            <div className="text-3xl font-bold text-foreground">
+              {summary.averageRating}
+            </div>
             <div className="flex items-center space-x-1 mt-2">
               {renderStars(Math.floor(summary.averageRating))}
-              <span className="text-xs text-muted-foreground ml-2">({summary.totalClients} reviews)</span>
+              <span className="text-xs text-muted-foreground ml-2">
+                ({summary.totalClients} reviews)
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -180,7 +199,9 @@ export function ProfessionalSummaryPage() {
             <Target className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-3xl font-bold text-foreground">{summary.completionRate}%</div>
+            <div className="text-3xl font-bold text-foreground">
+              {summary.completionRate}%
+            </div>
             <Progress value={summary.completionRate} className="mt-2" />
           </CardContent>
         </Card>
@@ -190,7 +211,9 @@ export function ProfessionalSummaryPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-semibold">Weekly Performance</CardTitle>
+            <CardTitle className="text-xl font-semibold">
+              Weekly Performance
+            </CardTitle>
             <CardDescription>Bookings for the current week</CardDescription>
           </CardHeader>
           <CardContent>
@@ -216,7 +239,9 @@ export function ProfessionalSummaryPage() {
 
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-semibold">Service Distribution</CardTitle>
+            <CardTitle className="text-xl font-semibold">
+              Service Distribution
+            </CardTitle>
             <CardDescription>Services provided this month</CardDescription>
           </CardHeader>
           <CardContent>
@@ -246,7 +271,9 @@ export function ProfessionalSummaryPage() {
       {/* Today's Schedule */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold">Today's Schedule</CardTitle>
+          <CardTitle className="text-xl font-semibold">
+            Today's Schedule
+          </CardTitle>
           <CardDescription>Your upcoming appointments</CardDescription>
         </CardHeader>
         <CardContent>
@@ -258,7 +285,9 @@ export function ProfessionalSummaryPage() {
               >
                 <div className="space-y-1">
                   <div className="font-medium">{appointment.clientName}</div>
-                  <div className="text-sm text-muted-foreground">{appointment.service}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {appointment.service}
+                  </div>
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Clock className="h-3 w-3 mr-1" />
                     {appointment.time} ({appointment.duration}min)
@@ -276,7 +305,9 @@ export function ProfessionalSummaryPage() {
       {/* Performance Insights */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold">Performance Insights</CardTitle>
+          <CardTitle className="text-xl font-semibold">
+            Performance Insights
+          </CardTitle>
           <CardDescription>Key metrics and achievements</CardDescription>
         </CardHeader>
         <CardContent>
@@ -295,8 +326,12 @@ export function ProfessionalSummaryPage() {
                 <Award className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Monthly Completion</span>
               </div>
-              <div className="text-2xl font-bold">{summary.completedThisMonth}</div>
-              <div className="text-xs text-muted-foreground">appointments completed</div>
+              <div className="text-2xl font-bold">
+                {summary.completedThisMonth}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                appointments completed
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -304,8 +339,12 @@ export function ProfessionalSummaryPage() {
                 <Target className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Success Rate</span>
               </div>
-              <div className="text-2xl font-bold">{summary.completionRate}%</div>
-              <div className="text-xs text-emerald-600">Exceeds target (90%)</div>
+              <div className="text-2xl font-bold">
+                {summary.completionRate}%
+              </div>
+              <div className="text-xs text-emerald-600">
+                Exceeds target (90%)
+              </div>
             </div>
           </div>
         </CardContent>

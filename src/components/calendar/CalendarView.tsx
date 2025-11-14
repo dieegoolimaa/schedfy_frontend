@@ -940,7 +940,9 @@ export function CalendarView({
                       <DollarSign className="h-4 w-4" />
                       Price
                     </h3>
-                    <p className="text-sm">{formatCurrency(selectedBooking.service.price)}</p>
+                    <p className="text-sm">
+                      {formatCurrency(selectedBooking.service.price)}
+                    </p>
                   </div>
                 )}
 

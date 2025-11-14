@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
@@ -65,6 +66,7 @@ import {
 } from "lucide-react";
 
 export function FinancialReportsPage() {
+  const { t } = useTranslation();
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
@@ -714,7 +716,8 @@ export function FinancialReportsPage() {
                             <span className="font-medium">Revenue</span>
                           </div>
                           <span className="text-sm text-muted-foreground">
-                            {formatCurrency(currentRevenue)} / {formatCurrency(revenueTarget)}
+                            {formatCurrency(currentRevenue)} /{" "}
+                            {formatCurrency(revenueTarget)}
                           </span>
                         </div>
                         <div className="relative pt-1">
@@ -1117,7 +1120,8 @@ export function FinancialReportsPage() {
                                     <div className="flex justify-between text-red-600">
                                       <span>Commission:</span>
                                       <span>
-                                        -{formatCurrency(transaction.commission)}
+                                        -
+                                        {formatCurrency(transaction.commission)}
                                       </span>
                                     </div>
                                     {transaction.voucher > 0 && (
@@ -1130,7 +1134,9 @@ export function FinancialReportsPage() {
                                     )}
                                     <div className="flex justify-between font-bold text-green-600 border-t pt-2">
                                       <span>Net Amount:</span>
-                                      <span>{formatCurrency(transaction.net)}</span>
+                                      <span>
+                                        {formatCurrency(transaction.net)}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>

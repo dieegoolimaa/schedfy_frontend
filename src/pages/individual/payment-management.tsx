@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import {
   DollarSign,
@@ -106,6 +107,7 @@ const PAYMENT_METHODS = [
 ];
 
 export default function IndividualPaymentManagement() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [payments, setPayments] = useState<Payment[]>([]);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
@@ -37,6 +38,7 @@ import {
 } from "lucide-react";
 
 export function PaymentManagementPage() {
+  const { t } = useTranslation();
   const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useCurrency } from "../../hooks/useCurrency";
 import {
@@ -76,6 +77,7 @@ interface MonthlyData {
 }
 
 export default function ProfessionalEarningsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
   const professionalId = user?.id || "";

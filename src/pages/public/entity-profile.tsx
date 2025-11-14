@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { cn } from "../../lib/utils";
 import { useCurrency } from "../../hooks/useCurrency";
@@ -46,6 +47,7 @@ import {
 } from "lucide-react";
 
 export function PublicEntityProfilePage() {
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { formatCurrency } = useCurrency();

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -96,6 +97,7 @@ const getLatestWorkingHour = (workingHours?: WorkingHours): string => {
 };
 
 export function ProfessionalDashboardPage() {
+  const { t } = useTranslation();
   const [timeRange, setTimeRange] = useState("7d");
   const [showCalendar, setShowCalendar] = useState(false);
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
@@ -603,7 +605,9 @@ export function ProfessionalDashboardPage() {
                 <p className="text-sm font-medium">Monthly Revenue</p>
                 <p className="text-xs text-muted-foreground">This month</p>
               </div>
-              <p className="text-2xl font-bold">{formatCurrency(stats.monthlyRevenue)}</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(stats.monthlyRevenue)}
+              </p>
             </div>
             <div className="flex justify-between items-center p-4 border rounded-lg">
               <div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { FeatureGate } from "../../contexts/feature-flags-context";
 import {
@@ -43,6 +44,7 @@ import {
 } from "lucide-react";
 
 export function AIPremiumPage() {
+  const { t } = useTranslation();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const { formatCurrency } = useCurrency();
@@ -476,7 +478,9 @@ export function AIPremiumPage() {
                         Current Monthly Revenue
                       </p>
                       <p className="text-2xl font-bold">
-                        {formatCurrency(aiInsights.revenueOptimization.currentRevenue)}
+                        {formatCurrency(
+                          aiInsights.revenueOptimization.currentRevenue
+                        )}
                       </p>
                     </div>
                   </CardContent>
@@ -504,7 +508,9 @@ export function AIPremiumPage() {
                           Avg. Spending
                         </p>
                         <p className="text-xl font-bold text-purple-600">
-                          {formatCurrency(aiInsights.customerBehavior.averageSpending)}
+                          {formatCurrency(
+                            aiInsights.customerBehavior.averageSpending
+                          )}
                         </p>
                       </div>
                     </div>

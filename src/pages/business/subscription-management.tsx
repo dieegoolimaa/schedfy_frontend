@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import {
   Card,
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 
 export function SubscriptionManagementPage() {
+  const { t } = useTranslation();
   const [billingPeriod, setBillingPeriod] = useState("monthly");
   const { formatCurrency } = useCurrency();
 
@@ -286,9 +288,14 @@ export function SubscriptionManagementPage() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className={`h-2 rounded-full ${getUsageColor(subscriptionData.usage.bookings.percentage)}`}
+                    className={`h-2 rounded-full ${getUsageColor(
+                      subscriptionData.usage.bookings.percentage
+                    )}`}
                     style={{
-                      width: `${Math.min(subscriptionData.usage.bookings.percentage || 65, 100)}%`,
+                      width: `${Math.min(
+                        subscriptionData.usage.bookings.percentage || 65,
+                        100
+                      )}%`,
                     }}
                   />
                 </div>
@@ -305,9 +312,14 @@ export function SubscriptionManagementPage() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className={`h-2 rounded-full ${getUsageColor(subscriptionData.usage.professionals.percentage)}`}
+                    className={`h-2 rounded-full ${getUsageColor(
+                      subscriptionData.usage.professionals.percentage
+                    )}`}
                     style={{
-                      width: `${Math.min(subscriptionData.usage.professionals.percentage || 40, 100)}%`,
+                      width: `${Math.min(
+                        subscriptionData.usage.professionals.percentage || 40,
+                        100
+                      )}%`,
                     }}
                   />
                 </div>
@@ -323,7 +335,9 @@ export function SubscriptionManagementPage() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className={`h-2 rounded-full ${getUsageColor(subscriptionData.usage.storage.percentage)}`}
+                    className={`h-2 rounded-full ${getUsageColor(
+                      subscriptionData.usage.storage.percentage
+                    )}`}
                     style={{
                       width: `${subscriptionData.usage.storage.percentage}%`,
                     }}
@@ -341,7 +355,9 @@ export function SubscriptionManagementPage() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className={`h-2 rounded-full ${getUsageColor(subscriptionData.usage.aiInsights.percentage)}`}
+                    className={`h-2 rounded-full ${getUsageColor(
+                      subscriptionData.usage.aiInsights.percentage
+                    )}`}
                     style={{
                       width: `${subscriptionData.usage.aiInsights.percentage}%`,
                     }}
@@ -390,7 +406,9 @@ export function SubscriptionManagementPage() {
             {plans.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative ${plan.popular ? "border-primary shadow-lg" : ""}`}
+                className={`relative ${
+                  plan.popular ? "border-primary shadow-lg" : ""
+                }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">

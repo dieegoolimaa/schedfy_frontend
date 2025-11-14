@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { usePermissions } from "@/hooks/usePermissions";
 import { usePromotions } from "@/hooks/usePromotions";
@@ -106,6 +107,7 @@ interface Discount {
 }
 
 export function CommissionsManagementPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
   const { userPackage } = usePermissions();

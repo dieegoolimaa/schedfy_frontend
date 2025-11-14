@@ -7,6 +7,7 @@ import {
   useState,
   useEffect,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useAuth } from "../../contexts/auth-context";
 import { useClients } from "../../hooks/useClients";
@@ -75,6 +76,7 @@ import {
 import { Skeleton } from "../../components/ui/skeleton";
 
 export function ClientProfilePage() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedClient, setSelectedClient] = useState<any>(null);
