@@ -183,21 +183,21 @@ export default function ProfessionalProfilePage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">{t("profile.firstName", "First Name")}</Label>
                   <Input
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="John"
+                    placeholder={t("profile.firstNamePlaceholder", "John")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">{t("profile.lastName", "Last Name")}</Label>
                   <Input
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Doe"
+                    placeholder={t("profile.lastNamePlaceholder", "Doe")}
                   />
                 </div>
               </div>
@@ -242,7 +242,7 @@ export default function ProfessionalProfilePage() {
               <Textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="I am a professional with expertise in..."
+                placeholder={t("profile.bioPlaceholder", "I am a professional with expertise in...")}
                 rows={6}
                 className="resize-none"
               />

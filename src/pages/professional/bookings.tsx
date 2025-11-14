@@ -272,7 +272,7 @@ export default function ProfessionalBookingsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by client or service..."
+                  placeholder={t("filters.searchPlaceholder", "Search by client or service...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -283,14 +283,14 @@ export default function ProfessionalBookingsPage() {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder={t("filters.allStatus", "All Status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t("filters.allStatus", "All Status")}</SelectItem>
+                <SelectItem value="pending">{t("filters.pending", "Pending")}</SelectItem>
+                <SelectItem value="confirmed">{t("filters.confirmed", "Confirmed")}</SelectItem>
+                <SelectItem value="completed">{t("filters.completed", "Completed")}</SelectItem>
+                <SelectItem value="cancelled">{t("filters.cancelled", "Cancelled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

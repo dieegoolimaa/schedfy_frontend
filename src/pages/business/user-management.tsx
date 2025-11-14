@@ -268,36 +268,36 @@ export function UserManagementPage() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Add New User</DialogTitle>
+                <DialogTitle>{t("users.addUser.title", "Add New User")}</DialogTitle>
                 <DialogDescription>
-                  Create a new user account for your team.
+                  {t("users.addUser.description", "Create a new user account for your team.")}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="user-name">Full Name</Label>
-                    <Input id="user-name" placeholder="Enter full name" />
+                    <Label htmlFor="user-name">{t("users.form.fullName", "Full Name")}</Label>
+                    <Input id="user-name" placeholder={t("users.form.fullNamePlaceholder", "Enter full name")} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="user-email">Email</Label>
+                    <Label htmlFor="user-email">{t("users.form.email", "Email")}</Label>
                     <Input
                       id="user-email"
                       type="email"
-                      placeholder="user@email.com"
+                      placeholder={t("users.form.emailPlaceholder", "user@email.com")}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="user-phone">Phone</Label>
-                    <Input id="user-phone" placeholder="+351 123 456 789" />
+                    <Label htmlFor="user-phone">{t("users.form.phone", "Phone")}</Label>
+                    <Input id="user-phone" placeholder={t("users.form.phonePlaceholder", "+351 123 456 789")} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="user-role">Role</Label>
+                    <Label htmlFor="user-role">{t("users.form.role", "Role")}</Label>
                     <Select>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
+                        <SelectValue placeholder={t("users.form.selectRole", "Select role")} />
                       </SelectTrigger>
                       <SelectContent>
                         {roles.map((role) => (
@@ -315,7 +315,7 @@ export function UserManagementPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <Label>Permissions</Label>
+                  <Label>{t("users.form.permissions", "Permissions")}</Label>
                   <div className="grid grid-cols-2 gap-4">
                     {permissions.map((permission) => (
                       <div
@@ -339,8 +339,8 @@ export function UserManagementPage() {
                   </div>
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline">Cancel</Button>
-                  <Button>Create User</Button>
+                  <Button variant="outline">{t("actions.cancel", "Cancel")}</Button>
+                  <Button>{t("users.createUser", "Create User")}</Button>
                 </div>
               </div>
             </DialogContent>
@@ -387,7 +387,7 @@ export function UserManagementPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search users..."
+            placeholder={t("users.searchPlaceholder", "Search users...")}
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setSearchTerm(e.target.value)
@@ -401,7 +401,7 @@ export function UserManagementPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="all">{t("users.filters.allRoles", "All Roles")}</SelectItem>
               {roles.map((role) => (
                 <SelectItem key={role.value} value={role.value}>
                   {role.label}
