@@ -741,9 +741,9 @@ export function CommissionsManagementPage() {
           </div>
 
           {/* Overview Stats */}
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="p-3 sm:p-4">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 p-0">
                 <CardTitle className="text-sm font-medium">
                   Active Commissions
                 </CardTitle>

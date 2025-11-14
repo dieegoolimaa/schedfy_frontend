@@ -232,9 +232,9 @@ export default function ProfessionalBookingsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="pb-3 p-0">
             <CardTitle className="text-sm font-medium">Today</CardTitle>
           </CardHeader>
           <CardContent>

@@ -186,9 +186,9 @@ export function PaymentManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
             <CardTitle className="text-sm font-medium">
               {t("stats.totalRevenue", "Total Revenue")}
             </CardTitle>
@@ -206,8 +206,8 @@ export function PaymentManagementPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
             <CardTitle className="text-sm font-medium">
               {t("stats.pendingAmount", "Pending Amount")}
             </CardTitle>
@@ -225,8 +225,8 @@ export function PaymentManagementPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
             <CardTitle className="text-sm font-medium">
               {t("stats.processingFees", "Processing Fees")}
             </CardTitle>
@@ -243,8 +243,8 @@ export function PaymentManagementPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
             <CardTitle className="text-sm font-medium">
               {t("stats.failedPayments", "Failed Payments")}
             </CardTitle>

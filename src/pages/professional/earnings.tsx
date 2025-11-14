@@ -222,9 +222,9 @@ export default function ProfessionalEarningsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="pb-3 p-0">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium">This Month</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
