@@ -57,25 +57,31 @@ export default function ProfessionalBookingsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Filter bookings for this professional
-  const myBookings = bookings.filter(
-    (b) =>
-      b.professionalId === professionalId ||
-      (b.professionalId as any)?._id === professionalId
-  );
+  const myBookings = bookings.filter((b) => {
+    // Handle both populated and non-populated professionalId
+    const profId = typeof b.professional === "string" 
+      ? b.professional 
+      : b.professional?._id || b.professional?.id;
+    
+    return profId === professionalId || b.professionalId === professionalId;
+  });
 
   // Apply filters
   const filteredBookings = myBookings.filter((booking) => {
+    // Handle client name search
+    const clientName = typeof booking.client === "string"
+      ? booking.client
+      : `${booking.client?.name || ""}`.toLowerCase();
+
+    // Handle service name search
+    const serviceName = typeof booking.service === "string"
+      ? booking.service
+      : booking.service?.name?.toLowerCase() || "";
+
     const matchesSearch =
       !searchQuery ||
-      (booking.clientId as any)?.firstName
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (booking.clientId as any)?.lastName
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (booking.service as any)?.name
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase());
+      clientName.includes(searchQuery.toLowerCase()) ||
+      serviceName.includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || booking.status === statusFilter;
@@ -123,19 +129,19 @@ export default function ProfessionalBookingsPage() {
     .filter(
       (b) =>
         (b.status === "confirmed" || b.status === "pending") &&
-        b.startDateTime &&
-        new Date(b.startDateTime) >= new Date()
+        b.startTime &&
+        new Date(b.startTime) >= new Date()
     )
     .sort((a, b) => {
-      const aTime = a.startDateTime ? new Date(a.startDateTime).getTime() : 0;
-      const bTime = b.startDateTime ? new Date(b.startDateTime).getTime() : 0;
+      const aTime = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const bTime = b.startTime ? new Date(b.startTime).getTime() : 0;
       return aTime - bTime;
     });
 
   const todayBookings = upcomingBookings.filter(
     (b) =>
-      b.startDateTime &&
-      format(new Date(b.startDateTime), "yyyy-MM-dd") ===
+      b.startTime &&
+      format(new Date(b.startTime), "yyyy-MM-dd") ===
         format(new Date(), "yyyy-MM-dd")
   );
 
@@ -144,30 +150,39 @@ export default function ProfessionalBookingsPage() {
       (b) =>
         b.status === "completed" ||
         b.status === "cancelled" ||
-        (b.startDateTime && new Date(b.startDateTime) < new Date())
+        (b.startTime && new Date(b.startTime) < new Date())
     )
     .sort((a, b) => {
-      const aTime = a.startDateTime ? new Date(a.startDateTime).getTime() : 0;
-      const bTime = b.startDateTime ? new Date(b.startDateTime).getTime() : 0;
+      const aTime = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const bTime = b.startTime ? new Date(b.startTime).getTime() : 0;
       return bTime - aTime;
     });
 
   const renderBookingCard = (booking: any) => {
-    const client = booking.clientId;
-    const service = booking.service || booking.serviceId;
-    const startTime = new Date(booking.startDateTime);
-    const endTime = new Date(booking.endDateTime);
+    const client = booking.client;
+    const service = booking.service;
+    const startTime = new Date(booking.startTime);
+    const endTime = new Date(booking.endTime);
+
+    // Handle client name
+    const clientName = typeof client === "string" 
+      ? client 
+      : client?.name || `${client?.firstName || ""} ${client?.lastName || ""}`.trim() || "N/A";
+
+    // Handle client initials for avatar
+    const clientInitials = typeof client === "string"
+      ? client.substring(0, 2).toUpperCase()
+      : `${client?.firstName?.[0] || ""}${client?.lastName?.[0] || ""}`.toUpperCase() || "CL";
 
     return (
-      <Card key={booking._id}>
+      <Card key={booking.id || booking._id}>
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4 flex-1">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={(client as any)?.profilePicture} />
+                <AvatarImage src={typeof client === "object" ? client?.profilePicture : undefined} />
                 <AvatarFallback>
-                  {(client as any)?.firstName?.[0]}
-                  {(client as any)?.lastName?.[0]}
+                  {clientInitials}
                 </AvatarFallback>
               </Avatar>
 
@@ -175,10 +190,10 @@ export default function ProfessionalBookingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold">
-                      {(client as any)?.firstName} {(client as any)?.lastName}
+                      {clientName}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {(service as any)?.name || "Service"}
+                      {typeof service === "string" ? service : service?.name || "Service"}
                     </p>
                   </div>
                   {getStatusBadge(booking.status)}
@@ -195,16 +210,16 @@ export default function ProfessionalBookingsPage() {
                   </div>
                 </div>
 
-                {(client as any)?.phone && (
+                {typeof client === "object" && client?.phone && (
                   <div className="flex items-center gap-1 text-sm">
                     <Phone className="h-4 w-4" />
-                    {(client as any).phone}
+                    {client.phone}
                   </div>
                 )}
-                {(client as any)?.email && (
+                {typeof client === "object" && client?.email && (
                   <div className="flex items-center gap-1 text-sm">
                     <Mail className="h-4 w-4" />
-                    {(client as any).email}
+                    {client.email}
                   </div>
                 )}
 

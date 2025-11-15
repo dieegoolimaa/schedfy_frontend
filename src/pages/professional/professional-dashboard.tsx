@@ -56,6 +56,8 @@ import {
   DollarSign,
   Users,
   Calendar as CalendarIcon,
+  ExternalLink,
+  Store,
 } from "lucide-react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
@@ -307,6 +309,20 @@ export function ProfessionalDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {entity?.slug && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const url = `${window.location.origin}/book/${entity.slug}`;
+                window.open(url, "_blank");
+              }}
+            >
+              <Store className="h-4 w-4 mr-2" />
+              View Business Profile
+              <ExternalLink className="h-3 w-3 ml-1" />
+            </Button>
+          )}
           <Button
             variant="default"
             size="sm"
@@ -330,7 +346,7 @@ export function ProfessionalDashboardPage() {
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => fetchBookings()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
