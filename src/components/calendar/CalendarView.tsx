@@ -280,119 +280,265 @@ export function CalendarView({
 
     return (
       <div className="space-y-4">
-        {/* Day headers */}
-        <div className="grid grid-cols-8 gap-2">
-          <div className="text-sm font-medium text-muted-foreground"></div>
+        {/* Desktop view: Grid layout */}
+        <div className="hidden md:block space-y-4">
+          {/* Day headers */}
+          <div className="grid grid-cols-8 gap-2">
+            <div className="text-sm font-medium text-muted-foreground"></div>
+            {weekDays.map((day) => {
+              const isToday = day.toDateString() === new Date().toDateString();
+              const dayBookings = getBookingsForDate(day);
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={cn(
+                    "text-center p-2 rounded-lg",
+                    isToday && "bg-primary/10 border-2 border-primary"
+                  )}
+                >
+                  <div className="text-sm font-medium text-muted-foreground">
+                    {day.toLocaleDateString("en-US", { weekday: "short" })}
+                  </div>
+                  <div
+                    className={cn(
+                      "text-2xl font-bold",
+                      isToday && "text-primary"
+                    )}
+                  >
+                    {day.getDate()}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {dayBookings.length}{" "}
+                    {dayBookings.length === 1 ? "booking" : "bookings"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Time grid */}
+          <div className="max-h-[500px] overflow-y-auto border rounded-lg">
+            {hours.map((hour) => (
+              <div
+                key={hour}
+                className="grid grid-cols-8 gap-2 border-b last:border-b-0"
+              >
+                <div className="text-sm font-medium text-muted-foreground p-3 text-right bg-muted/30 sticky left-0">
+                  {hour.toString().padStart(2, "0")}:00
+                </div>
+                {weekDays.map((day) => {
+                  const dayBookings = getBookingsForDate(day).filter(
+                    (booking) => {
+                      const bookingHour = new Date(
+                        booking.startTime
+                      ).getHours();
+                      return bookingHour === hour;
+                    }
+                  );
+
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className="p-1 min-h-16 hover:bg-muted/20 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        {dayBookings.map((booking) => (
+                          <div
+                            key={booking.id}
+                            onClick={() => handleBookingClick(booking)}
+                            className={cn(
+                              "text-xs p-2 rounded-lg cursor-pointer hover:shadow-md transition-all border",
+                              booking.status === "confirmed" &&
+                                "bg-blue-100 text-blue-900 border-blue-200 hover:bg-blue-200",
+                              booking.status === "completed" &&
+                                "bg-green-100 text-green-900 border-green-200 hover:bg-green-200",
+                              booking.status === "pending" &&
+                                "bg-yellow-100 text-yellow-900 border-yellow-200 hover:bg-yellow-200",
+                              booking.status === "cancelled" &&
+                                "bg-red-100 text-red-900 border-red-200 hover:bg-red-200"
+                            )}
+                          >
+                            <div className="font-semibold truncate">
+                              {new Date(booking.startTime).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }
+                              )}
+                            </div>
+                            <div className="font-medium truncate">
+                              {typeof booking.service === "object"
+                                ? booking.service?.name
+                                : "Service"}
+                            </div>
+                            <div className="text-xs opacity-90 truncate flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {typeof booking.client === "object"
+                                ? booking.client?.name
+                                : booking.client || "Client"}
+                            </div>
+                            {booking.professional && (
+                              <div className="text-xs opacity-75 truncate">
+                                {typeof booking.professional === "object"
+                                  ? booking.professional?.name
+                                  : booking.professional}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile view: Vertical list of days */}
+        <div className="md:hidden space-y-3">
           {weekDays.map((day) => {
             const isToday = day.toDateString() === new Date().toDateString();
-            const dayBookings = getBookingsForDate(day);
+            const dayBookings = getBookingsForDate(day).sort(
+              (a, b) =>
+                new Date(a.startTime).getTime() -
+                new Date(b.startTime).getTime()
+            );
+
             return (
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "text-center p-2 rounded-lg",
-                  isToday && "bg-primary/10 border-2 border-primary"
+                  "border rounded-lg overflow-hidden",
+                  isToday && "border-primary border-2"
                 )}
               >
-                <div className="text-sm font-medium text-muted-foreground">
-                  {day.toLocaleDateString("en-US", { weekday: "short" })}
-                </div>
+                {/* Day header */}
                 <div
                   className={cn(
-                    "text-2xl font-bold",
-                    isToday && "text-primary"
+                    "p-3 border-b",
+                    isToday ? "bg-primary/10" : "bg-muted/30"
                   )}
                 >
-                  {day.getDate()}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-medium text-muted-foreground">
+                        {day.toLocaleDateString("en-US", { weekday: "long" })}
+                      </div>
+                      <div
+                        className={cn(
+                          "text-lg font-bold",
+                          isToday && "text-primary"
+                        )}
+                      >
+                        {day.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-primary">
+                        {dayBookings.length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {dayBookings.length === 1 ? "booking" : "bookings"}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {dayBookings.length}{" "}
-                  {dayBookings.length === 1 ? "booking" : "bookings"}
+
+                {/* Bookings list */}
+                <div className="divide-y">
+                  {dayBookings.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground italic">
+                      No bookings scheduled
+                    </div>
+                  ) : (
+                    dayBookings.map((booking) => (
+                      <div
+                        key={booking.id}
+                        onClick={() => handleBookingClick(booking)}
+                        className={cn(
+                          "p-3 cursor-pointer hover:bg-muted/50 transition-colors",
+                          booking.status === "confirmed" && "bg-blue-50/50",
+                          booking.status === "completed" && "bg-green-50/50",
+                          booking.status === "pending" && "bg-yellow-50/50",
+                          booking.status === "cancelled" && "bg-red-50/50"
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Time indicator */}
+                          <div className="flex-shrink-0">
+                            <div className="text-sm font-semibold">
+                              {new Date(booking.startTime).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {Math.round(
+                                (new Date(booking.endTime).getTime() -
+                                  new Date(booking.startTime).getTime()) /
+                                  60000
+                              )}{" "}
+                              min
+                            </div>
+                          </div>
+
+                          {/* Booking info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold truncate">
+                              {typeof booking.service === "object"
+                                ? booking.service?.name
+                                : "Service"}
+                            </div>
+                            <div className="text-sm text-muted-foreground truncate flex items-center gap-1 mt-1">
+                              <User className="h-3 w-3" />
+                              {typeof booking.client === "object"
+                                ? booking.client?.name
+                                : booking.client || "Client"}
+                            </div>
+                            {booking.professional && (
+                              <div className="text-xs text-muted-foreground truncate mt-0.5">
+                                {typeof booking.professional === "object"
+                                  ? booking.professional?.name
+                                  : booking.professional}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Status badge */}
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "flex-shrink-0",
+                              booking.status === "confirmed" &&
+                                "bg-blue-100 text-blue-800 border-blue-200",
+                              booking.status === "completed" &&
+                                "bg-green-100 text-green-800 border-green-200",
+                              booking.status === "pending" &&
+                                "bg-yellow-100 text-yellow-800 border-yellow-200",
+                              booking.status === "cancelled" &&
+                                "bg-red-100 text-red-800 border-red-200"
+                            )}
+                          >
+                            {booking.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Time grid */}
-        <div className="max-h-[500px] overflow-y-auto border rounded-lg">
-          {hours.map((hour) => (
-            <div
-              key={hour}
-              className="grid grid-cols-8 gap-2 border-b last:border-b-0"
-            >
-              <div className="text-sm font-medium text-muted-foreground p-3 text-right bg-muted/30 sticky left-0">
-                {hour.toString().padStart(2, "0")}:00
-              </div>
-              {weekDays.map((day) => {
-                const dayBookings = getBookingsForDate(day).filter(
-                  (booking) => {
-                    const bookingHour = new Date(booking.startTime).getHours();
-                    return bookingHour === hour;
-                  }
-                );
-
-                return (
-                  <div
-                    key={day.toISOString()}
-                    className="p-1 min-h-16 hover:bg-muted/20 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      {dayBookings.map((booking) => (
-                        <div
-                          key={booking.id}
-                          onClick={() => handleBookingClick(booking)}
-                          className={cn(
-                            "text-xs p-2 rounded-lg cursor-pointer hover:shadow-md transition-all border",
-                            booking.status === "confirmed" &&
-                              "bg-blue-100 text-blue-900 border-blue-200 hover:bg-blue-200",
-                            booking.status === "completed" &&
-                              "bg-green-100 text-green-900 border-green-200 hover:bg-green-200",
-                            booking.status === "pending" &&
-                              "bg-yellow-100 text-yellow-900 border-yellow-200 hover:bg-yellow-200",
-                            booking.status === "cancelled" &&
-                              "bg-red-100 text-red-900 border-red-200 hover:bg-red-200"
-                          )}
-                        >
-                          <div className="font-semibold truncate">
-                            {new Date(booking.startTime).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              }
-                            )}
-                          </div>
-                          <div className="font-medium truncate">
-                            {typeof booking.service === "object"
-                              ? booking.service?.name
-                              : "Service"}
-                          </div>
-                          <div className="text-xs opacity-90 truncate flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {typeof booking.client === "object"
-                              ? booking.client?.name
-                              : booking.client || "Client"}
-                          </div>
-                          {booking.professional && (
-                            <div className="text-xs opacity-75 truncate">
-                              {typeof booking.professional === "object"
-                                ? booking.professional?.name ||
-                                  `${booking.professional?.firstName || ""} ${
-                                    booking.professional?.lastName || ""
-                                  }`.trim()
-                                : booking.professional}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
         </div>
       </div>
     );
@@ -418,26 +564,30 @@ export function CalendarView({
     return (
       <div className="space-y-4">
         {/* Day Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+        <div className="grid grid-cols-3 gap-2 md:gap-4 p-3 md:p-4 bg-muted/30 rounded-lg">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
+            <div className="text-xl md:text-2xl font-bold text-primary">
               {dayBookings.length}
             </div>
-            <div className="text-sm text-muted-foreground">
-              Total Appointments
+            <div className="text-xs md:text-sm text-muted-foreground">
+              Total
             </div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-xl md:text-2xl font-bold text-green-600">
               {dayBookings.filter((b) => b.status === "completed").length}
             </div>
-            <div className="text-sm text-muted-foreground">Completed</div>
+            <div className="text-xs md:text-sm text-muted-foreground">
+              Completed
+            </div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-xl md:text-2xl font-bold text-blue-600">
               {dayBookings.filter((b) => b.status === "confirmed").length}
             </div>
-            <div className="text-sm text-muted-foreground">Confirmed</div>
+            <div className="text-xs md:text-sm text-muted-foreground">
+              Confirmed
+            </div>
           </div>
         </div>
 
@@ -449,150 +599,262 @@ export function CalendarView({
           </div>
         ) : (
           <div className="space-y-2 max-h-[500px] overflow-y-auto">
-            {/* Timeline view */}
-            {hours.map((hour) => {
-              const hourBookings = dayBookings.filter((booking) => {
-                const bookingHour = new Date(booking.startTime).getHours();
-                return bookingHour === hour;
-              });
+            {/* Desktop: Timeline view */}
+            <div className="hidden md:block space-y-2">
+              {hours.map((hour) => {
+                const hourBookings = dayBookings.filter((booking) => {
+                  const bookingHour = new Date(booking.startTime).getHours();
+                  return bookingHour === hour;
+                });
 
-              return (
-                <div key={hour} className="flex gap-4">
-                  {/* Time column */}
-                  <div className="w-20 flex-shrink-0 text-right pt-1">
-                    <div className="text-sm font-semibold text-muted-foreground">
-                      {hour.toString().padStart(2, "0")}:00
-                    </div>
-                  </div>
-
-                  {/* Bookings column */}
-                  <div className="flex-1 border-l-2 border-muted pl-4 pb-4 min-h-16">
-                    {hourBookings.length === 0 ? (
-                      <div className="h-12 flex items-center text-sm text-muted-foreground italic">
-                        Free time
+                return (
+                  <div key={hour} className="flex gap-4">
+                    {/* Time column */}
+                    <div className="w-20 flex-shrink-0 text-right pt-1">
+                      <div className="text-sm font-semibold text-muted-foreground">
+                        {hour.toString().padStart(2, "0")}:00
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {hourBookings.map((booking) => (
-                          <div
-                            key={booking.id}
-                            onClick={() => handleBookingClick(booking)}
-                            className={cn(
-                              "border-l-4 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all",
-                              booking.status === "confirmed" &&
-                                "bg-blue-50 border-blue-500 hover:bg-blue-100",
-                              booking.status === "completed" &&
-                                "bg-green-50 border-green-500 hover:bg-green-100",
-                              booking.status === "pending" &&
-                                "bg-yellow-50 border-yellow-500 hover:bg-yellow-100",
-                              booking.status === "cancelled" &&
-                                "bg-red-50 border-red-500 hover:bg-red-100"
-                            )}
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1 space-y-2">
-                                {/* Time */}
-                                <div className="flex items-center gap-2 text-sm font-semibold">
-                                  <Clock className="h-4 w-4" />
-                                  {new Date(
-                                    booking.startTime
-                                  ).toLocaleTimeString("en-US", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}{" "}
-                                  -{" "}
-                                  {new Date(booking.endTime).toLocaleTimeString(
-                                    "en-US",
-                                    {
+                    </div>
+
+                    {/* Bookings column */}
+                    <div className="flex-1 border-l-2 border-muted pl-4 pb-4 min-h-16">
+                      {hourBookings.length === 0 ? (
+                        <div className="h-12 flex items-center text-sm text-muted-foreground italic">
+                          Free time
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {hourBookings.map((booking) => (
+                            <div
+                              key={booking.id}
+                              onClick={() => handleBookingClick(booking)}
+                              className={cn(
+                                "border-l-4 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all",
+                                booking.status === "confirmed" &&
+                                  "bg-blue-50 border-blue-500 hover:bg-blue-100",
+                                booking.status === "completed" &&
+                                  "bg-green-50 border-green-500 hover:bg-green-100",
+                                booking.status === "pending" &&
+                                  "bg-yellow-50 border-yellow-500 hover:bg-yellow-100",
+                                booking.status === "cancelled" &&
+                                  "bg-red-50 border-red-500 hover:bg-red-100"
+                              )}
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 space-y-2">
+                                  {/* Time */}
+                                  <div className="flex items-center gap-2 text-sm font-semibold">
+                                    <Clock className="h-4 w-4" />
+                                    {new Date(
+                                      booking.startTime
+                                    ).toLocaleTimeString("en-US", {
                                       hour: "2-digit",
                                       minute: "2-digit",
-                                    }
-                                  )}
-                                  <span className="text-xs text-muted-foreground font-normal">
-                                    (
-                                    {Math.round(
-                                      (new Date(booking.endTime).getTime() -
-                                        new Date(booking.startTime).getTime()) /
-                                        60000
-                                    )}{" "}
-                                    min)
-                                  </span>
-                                </div>
-
-                                {/* Service */}
-                                <div className="font-semibold text-base">
-                                  {typeof booking.service === "object"
-                                    ? booking.service?.name
-                                    : "Service"}
-                                </div>
-
-                                {/* Client */}
-                                {booking.client && (
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <User className="h-4 w-4 text-muted-foreground" />
-                                    <span className="font-medium">
-                                      {typeof booking.client === "object"
-                                        ? booking.client.name
-                                        : booking.client}
+                                    })}{" "}
+                                    -{" "}
+                                    {new Date(
+                                      booking.endTime
+                                    ).toLocaleTimeString("en-US", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                    <span className="text-xs text-muted-foreground font-normal">
+                                      (
+                                      {Math.round(
+                                        (new Date(booking.endTime).getTime() -
+                                          new Date(
+                                            booking.startTime
+                                          ).getTime()) /
+                                          60000
+                                      )}{" "}
+                                      min)
                                     </span>
                                   </div>
-                                )}
 
-                                {/* Professional */}
-                                {booking.professional && (
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <User className="h-4 w-4" />
-                                    <span>
-                                      {typeof booking.professional === "object"
-                                        ? booking.professional?.name
-                                        : booking.professional}
-                                    </span>
+                                  {/* Service */}
+                                  <div className="font-semibold text-base">
+                                    {typeof booking.service === "object"
+                                      ? booking.service?.name
+                                      : "Service"}
                                   </div>
-                                )}
 
-                                {/* Price */}
-                                {typeof booking.service === "object" &&
-                                  booking.service?.price && (
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
-                                      <DollarSign className="h-4 w-4" />€
-                                      {booking.service.price}
+                                  {/* Client */}
+                                  {booking.client && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <User className="h-4 w-4 text-muted-foreground" />
+                                      <span className="font-medium">
+                                        {typeof booking.client === "object"
+                                          ? booking.client.name
+                                          : booking.client}
+                                      </span>
                                     </div>
                                   )}
 
-                                {/* Notes preview */}
-                                {booking.notes && (
-                                  <div className="text-xs text-muted-foreground italic line-clamp-1">
-                                    "{booking.notes}"
-                                  </div>
-                                )}
-                              </div>
+                                  {/* Professional */}
+                                  {booking.professional && (
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <User className="h-4 w-4" />
+                                      <span>
+                                        {typeof booking.professional ===
+                                        "object"
+                                          ? booking.professional?.name
+                                          : booking.professional}
+                                      </span>
+                                    </div>
+                                  )}
 
-                              {/* Status Badge */}
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "flex-shrink-0",
-                                  booking.status === "confirmed" &&
-                                    "bg-blue-100 text-blue-800 border-blue-200",
-                                  booking.status === "completed" &&
-                                    "bg-green-100 text-green-800 border-green-200",
-                                  booking.status === "pending" &&
-                                    "bg-yellow-100 text-yellow-800 border-yellow-200",
-                                  booking.status === "cancelled" &&
-                                    "bg-red-100 text-red-800 border-red-200"
-                                )}
-                              >
-                                {booking.status}
-                              </Badge>
+                                  {/* Price */}
+                                  {typeof booking.service === "object" &&
+                                    booking.service?.price && (
+                                      <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
+                                        <DollarSign className="h-4 w-4" />€
+                                        {booking.service.price}
+                                      </div>
+                                    )}
+
+                                  {/* Notes preview */}
+                                  {booking.notes && (
+                                    <div className="text-xs text-muted-foreground italic line-clamp-1">
+                                      "{booking.notes}"
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Status Badge */}
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "flex-shrink-0",
+                                    booking.status === "confirmed" &&
+                                      "bg-blue-100 text-blue-800 border-blue-200",
+                                    booking.status === "completed" &&
+                                      "bg-green-100 text-green-800 border-green-200",
+                                    booking.status === "pending" &&
+                                      "bg-yellow-100 text-yellow-800 border-yellow-200",
+                                    booking.status === "cancelled" &&
+                                      "bg-red-100 text-red-800 border-red-200"
+                                  )}
+                                >
+                                  {booking.status}
+                                </Badge>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mobile: Simple list view */}
+            <div className="md:hidden space-y-2">
+              {dayBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  onClick={() => handleBookingClick(booking)}
+                  className={cn(
+                    "border-l-4 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all",
+                    booking.status === "confirmed" &&
+                      "bg-blue-50 border-blue-500",
+                    booking.status === "completed" &&
+                      "bg-green-50 border-green-500",
+                    booking.status === "pending" &&
+                      "bg-yellow-50 border-yellow-500",
+                    booking.status === "cancelled" && "bg-red-50 border-red-500"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      {/* Time */}
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <Clock className="h-4 w-4" />
+                        {new Date(booking.startTime).toLocaleTimeString(
+                          "en-US",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          }
+                        )}{" "}
+                        -{" "}
+                        {new Date(booking.endTime).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })}
+                        <span className="text-xs text-muted-foreground font-normal">
+                          (
+                          {Math.round(
+                            (new Date(booking.endTime).getTime() -
+                              new Date(booking.startTime).getTime()) /
+                              60000
+                          )}{" "}
+                          min)
+                        </span>
                       </div>
-                    )}
+
+                      {/* Service */}
+                      <div className="font-semibold text-base truncate">
+                        {typeof booking.service === "object"
+                          ? booking.service?.name
+                          : "Service"}
+                      </div>
+
+                      {/* Client */}
+                      {booking.client && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <User className="h-4 w-4" />
+                          <span className="truncate">
+                            {typeof booking.client === "object"
+                              ? booking.client.name
+                              : booking.client}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Professional */}
+                      {booking.professional && (
+                        <div className="text-xs text-muted-foreground truncate">
+                          with{" "}
+                          {typeof booking.professional === "object"
+                            ? booking.professional?.name
+                            : booking.professional}
+                        </div>
+                      )}
+
+                      {/* Price */}
+                      {typeof booking.service === "object" &&
+                        booking.service?.price && (
+                          <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
+                            <DollarSign className="h-4 w-4" />€
+                            {booking.service.price}
+                          </div>
+                        )}
+                    </div>
+
+                    {/* Status Badge */}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "flex-shrink-0",
+                        booking.status === "confirmed" &&
+                          "bg-blue-100 text-blue-800 border-blue-200",
+                        booking.status === "completed" &&
+                          "bg-green-100 text-green-800 border-green-200",
+                        booking.status === "pending" &&
+                          "bg-yellow-100 text-yellow-800 border-yellow-200",
+                        booking.status === "cancelled" &&
+                          "bg-red-100 text-red-800 border-red-200"
+                      )}
+                    >
+                      {booking.status}
+                    </Badge>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -603,8 +865,8 @@ export function CalendarView({
   const calendarContent = (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 md:gap-4">
+        <div className="flex items-center justify-between md:justify-start gap-2">
           <Button variant="outline" size="sm" onClick={goToPreviousPeriod}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -614,17 +876,32 @@ export function CalendarView({
           <Button variant="outline" size="sm" onClick={goToNextPeriod}>
             <ChevronRight className="h-4 w-4" />
           </Button>
+          <Select
+            value={viewMode}
+            onValueChange={(value) => setViewMode(value as ViewMode)}
+          >
+            <SelectTrigger className="w-24 md:hidden">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="month">Month</SelectItem>
+              <SelectItem value="week">Week</SelectItem>
+              <SelectItem value="day">Day</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">{formatDateHeader()}</h3>
+        <div className="flex items-center justify-center">
+          <h3 className="text-base md:text-lg font-semibold text-center">
+            {formatDateHeader()}
+          </h3>
         </div>
 
         <Select
           value={viewMode}
           onValueChange={(value) => setViewMode(value as ViewMode)}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-32 hidden md:flex">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -715,10 +992,7 @@ export function CalendarView({
                     </h3>
                     <p className="text-sm">
                       {typeof selectedBooking.professional === "object"
-                        ? selectedBooking.professional?.name ||
-                          `${selectedBooking.professional?.firstName || ""} ${
-                            selectedBooking.professional?.lastName || ""
-                          }`.trim()
+                        ? selectedBooking.professional?.name
                         : selectedBooking.professional || "Not assigned"}
                     </p>
                   </div>
@@ -867,10 +1141,7 @@ export function CalendarView({
                   </h3>
                   <p className="text-sm">
                     {typeof selectedBooking.professional === "object"
-                      ? selectedBooking.professional?.name ||
-                        `${selectedBooking.professional?.firstName || ""} ${
-                          selectedBooking.professional?.lastName || ""
-                        }`.trim()
+                      ? selectedBooking.professional?.name
                       : selectedBooking.professional || "Not assigned"}
                   </p>
                 </div>
