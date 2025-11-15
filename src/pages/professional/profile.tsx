@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
+import { useBookings } from "../../hooks/useBookings";
 import {
   Card,
   CardContent,
@@ -40,6 +41,13 @@ export default function ProfessionalProfilePage() {
   const { t } = useTranslation("professional");
   const { user } = useAuth();
   const { toast } = useToast();
+  const entityId = user?.entityId || "";
+  const professionalId = user?.id || "";
+
+  const { bookings } = useBookings({
+    entityId,
+    autoFetch: true,
+  });
 
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
@@ -53,10 +61,39 @@ export default function ProfessionalProfilePage() {
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [newSpecialty, setNewSpecialty] = useState("");
 
+  // Calculate stats from bookings
+  const myBookings = useMemo(() => {
+    return bookings.filter((b: any) => {
+      const profId =
+        typeof b.professional === "string"
+          ? b.professional
+          : (b.professional as any)?._id || (b.professional as any)?.id;
+      return profId === professionalId || b.professionalId === professionalId;
+    });
+  }, [bookings, professionalId]);
+
+  const stats = useMemo(() => {
+    const total = myBookings.length;
+    const completed = myBookings.filter(
+      (b: any) => b.status === "completed"
+    ).length;
+    const cancelled = myBookings.filter(
+      (b: any) => b.status === "cancelled"
+    ).length;
+    const completionRate =
+      total > 0 ? Math.round(((total - cancelled) / total) * 100) : 0;
+
+    return {
+      totalBookings: total,
+      completedBookings: completed,
+      cancelledBookings: cancelled,
+      completionRate,
+    };
+  }, [myBookings]);
+
   useEffect(() => {
     fetchProfileData();
   }, []);
-
   const fetchProfileData = async () => {
     try {
       setLoading(true);
@@ -306,28 +343,9 @@ export default function ProfessionalProfilePage() {
                 <Briefcase className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {profileData?.stats?.totalBookings || 0}
-                </div>
+                <div className="text-2xl font-bold">{stats.totalBookings}</div>
                 <p className="text-xs text-muted-foreground">
-                  All time appointments
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Average Rating
-                </CardTitle>
-                <Star className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {profileData?.stats?.averageRating?.toFixed(1) || "N/A"}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  From {profileData?.stats?.totalReviews || 0} reviews
+                  {stats.completedBookings} completed
                 </p>
               </CardContent>
             </Card>
@@ -341,10 +359,36 @@ export default function ProfessionalProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {profileData?.stats?.completionRate || 0}%
+                  {stats.completionRate}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Successfully completed
+                  {stats.cancelledBookings} cancelled
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  This Month
+                </CardTitle>
+                <Star className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {
+                    myBookings.filter((b) => {
+                      const bookingDate = new Date(b.startTime || "");
+                      const now = new Date();
+                      return (
+                        bookingDate.getMonth() === now.getMonth() &&
+                        bookingDate.getFullYear() === now.getFullYear()
+                      );
+                    }).length
+                  }
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Appointments this month
                 </p>
               </CardContent>
             </Card>

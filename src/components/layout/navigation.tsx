@@ -136,14 +136,6 @@ export function Navigation() {
             path: "/entity/notification-center",
             label: t("nav.notifications", "Notifications"),
           },
-          ...(features.loyaltyManagementEnabled
-            ? [
-                {
-                  path: "/entity/loyalty-management",
-                  label: t("nav.loyalty", "Loyalty"),
-                },
-              ]
-            : []),
           ...(features.aiPremiumEnabled
             ? [
                 {

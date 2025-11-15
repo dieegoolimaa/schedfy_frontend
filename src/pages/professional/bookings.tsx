@@ -59,24 +59,27 @@ export default function ProfessionalBookingsPage() {
   // Filter bookings for this professional
   const myBookings = bookings.filter((b) => {
     // Handle both populated and non-populated professionalId
-    const profId = typeof b.professional === "string" 
-      ? b.professional 
-      : b.professional?._id || b.professional?.id;
-    
+    const profId =
+      typeof b.professional === "string"
+        ? b.professional
+        : b.professional?._id || b.professional?.id;
+
     return profId === professionalId || b.professionalId === professionalId;
   });
 
   // Apply filters
   const filteredBookings = myBookings.filter((booking) => {
     // Handle client name search
-    const clientName = typeof booking.client === "string"
-      ? booking.client
-      : `${booking.client?.name || ""}`.toLowerCase();
+    const clientName =
+      typeof booking.client === "string"
+        ? booking.client
+        : `${booking.client?.name || ""}`.toLowerCase();
 
     // Handle service name search
-    const serviceName = typeof booking.service === "string"
-      ? booking.service
-      : booking.service?.name?.toLowerCase() || "";
+    const serviceName =
+      typeof booking.service === "string"
+        ? booking.service
+        : booking.service?.name?.toLowerCase() || "";
 
     const matchesSearch =
       !searchQuery ||
@@ -165,14 +168,20 @@ export default function ProfessionalBookingsPage() {
     const endTime = new Date(booking.endTime);
 
     // Handle client name
-    const clientName = typeof client === "string" 
-      ? client 
-      : client?.name || `${client?.firstName || ""} ${client?.lastName || ""}`.trim() || "N/A";
+    const clientName =
+      typeof client === "string"
+        ? client
+        : client?.name ||
+          `${client?.firstName || ""} ${client?.lastName || ""}`.trim() ||
+          "N/A";
 
     // Handle client initials for avatar
-    const clientInitials = typeof client === "string"
-      ? client.substring(0, 2).toUpperCase()
-      : `${client?.firstName?.[0] || ""}${client?.lastName?.[0] || ""}`.toUpperCase() || "CL";
+    const clientInitials =
+      typeof client === "string"
+        ? client.substring(0, 2).toUpperCase()
+        : `${client?.firstName?.[0] || ""}${
+            client?.lastName?.[0] || ""
+          }`.toUpperCase() || "CL";
 
     return (
       <Card key={booking.id || booking._id}>
@@ -180,20 +189,24 @@ export default function ProfessionalBookingsPage() {
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4 flex-1">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={typeof client === "object" ? client?.profilePicture : undefined} />
-                <AvatarFallback>
-                  {clientInitials}
-                </AvatarFallback>
+                <AvatarImage
+                  src={
+                    typeof client === "object"
+                      ? client?.profilePicture
+                      : undefined
+                  }
+                />
+                <AvatarFallback>{clientInitials}</AvatarFallback>
               </Avatar>
 
               <div className="flex-1 space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold">
-                      {clientName}
-                    </h3>
+                    <h3 className="font-semibold">{clientName}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {typeof service === "string" ? service : service?.name || "Service"}
+                      {typeof service === "string"
+                        ? service
+                        : service?.name || "Service"}
                     </p>
                   </div>
                   {getStatusBadge(booking.status)}
@@ -249,8 +262,8 @@ export default function ProfessionalBookingsPage() {
 
       {/* Stats */}
       <StatsGrid columns={3}>
-        <Card className="p-3 sm:p-4">
-          <CardHeader className="pb-3 p-0">
+        <Card>
+          <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Today</CardTitle>
           </CardHeader>
           <CardContent>

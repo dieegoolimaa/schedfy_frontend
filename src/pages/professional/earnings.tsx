@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useState, useMemo } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import { useCurrency } from "../../hooks/useCurrency";
+import { useBookings } from "../../hooks/useBookings";
 import {
   Card,
   CardContent,
@@ -11,13 +11,6 @@ import {
 } from "../../components/ui/card";
 import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -26,14 +19,6 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
   DollarSign,
   TrendingUp,
   TrendingDown,
@@ -41,8 +26,7 @@ import {
   Download,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { format, subMonths } from "date-fns";
-import { apiClient } from "../../lib/api-client";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { toast } from "sonner";
 import {
   BarChart,
@@ -54,148 +38,131 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface EarningsData {
-  thisMonth: number;
-  lastMonth: number;
-  total: number;
-  pending: number;
-  change: number;
-}
-
-interface Payment {
-  _id: string;
-  date: Date;
-  amount: number;
-  status: "pending" | "paid" | "processing";
-  service: string;
-  clientName: string;
-  commission: number;
-}
-
 interface MonthlyData {
   month: string;
   earnings: number;
 }
 
 export default function ProfessionalEarningsPage() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
   const professionalId = user?.id || "";
+  const entityId = user?.entityId || "";
 
-  const [earningsData, setEarningsData] = useState<EarningsData>({
-    thisMonth: 0,
-    lastMonth: 0,
-    total: 0,
-    pending: 0,
-    change: 0,
+  // Fetch all bookings for this professional
+  const { bookings, loading } = useBookings({
+    entityId,
+    autoFetch: true,
   });
 
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState("6months");
 
-  useEffect(() => {
-    fetchEarningsData();
-    fetchPayments();
-    fetchMonthlyData();
-  }, [professionalId]);
+  // Filter bookings for this professional
+  const myBookings = useMemo(() => {
+    return bookings.filter((b) => {
+      const profId =
+        typeof b.professional === "string"
+          ? b.professional
+          : (b.professional as any)?._id || (b.professional as any)?.id;
+      return profId === professionalId || b.professionalId === professionalId;
+    });
+  }, [bookings, professionalId]);
 
-  const fetchEarningsData = async () => {
-    try {
-      const response = await apiClient.get(
-        `/api/professionals/${professionalId}/earnings`
-      );
-      const data = response.data as EarningsData;
-      setEarningsData(data);
-    } catch (error) {
-      console.error("Error fetching earnings:", error);
-      // Mock data for demo
-      setEarningsData({
-        thisMonth: 4250.5,
-        lastMonth: 3890.0,
-        total: 28450.75,
-        pending: 850.0,
-        change: 9.3,
+  // Calculate earnings from completed bookings
+  const completedBookings = useMemo(() => {
+    return myBookings.filter((b) => b.status === "completed");
+  }, [myBookings]);
+
+  // Get bookings by period
+  const getBookingsByPeriod = (startDate: Date, endDate: Date) => {
+    return completedBookings.filter((b) => {
+      const bookingDate = new Date(b.startTime);
+      return bookingDate >= startDate && bookingDate <= endDate;
+    });
+  };
+
+  // This month calculations
+  const thisMonthStart = startOfMonth(new Date());
+  const thisMonthEnd = endOfMonth(new Date());
+  const thisMonthBookings = getBookingsByPeriod(thisMonthStart, thisMonthEnd);
+  const thisMonthEarnings = thisMonthBookings.reduce((sum, b) => {
+    const price =
+      typeof b.service === "object" && b.service?.price ? b.service.price : 0;
+    return sum + price;
+  }, 0);
+
+  // Last month calculations
+  const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
+  const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
+  const lastMonthBookings = getBookingsByPeriod(lastMonthStart, lastMonthEnd);
+  const lastMonthEarnings = lastMonthBookings.reduce((sum, b) => {
+    const price =
+      typeof b.service === "object" && b.service?.price ? b.service.price : 0;
+    return sum + price;
+  }, 0);
+
+  // Total earnings
+  const totalEarnings = completedBookings.reduce((sum, b) => {
+    const price =
+      typeof b.service === "object" && b.service?.price ? b.service.price : 0;
+    return sum + price;
+  }, 0);
+
+  // Pending earnings (confirmed but not completed)
+  const pendingBookings = myBookings.filter(
+    (b) => b.status === "confirmed" || b.status === "pending"
+  );
+  const pendingEarnings = pendingBookings.reduce((sum, b) => {
+    const price =
+      typeof b.service === "object" && b.service?.price ? b.service.price : 0;
+    return sum + price;
+  }, 0);
+
+  // Calculate percentage change
+  const change =
+    lastMonthEarnings > 0
+      ? ((thisMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100
+      : thisMonthEarnings > 0
+      ? 100
+      : 0;
+
+  // Generate monthly data for chart
+  const monthlyData = useMemo(() => {
+    const months =
+      selectedPeriod === "3months" ? 3 : selectedPeriod === "6months" ? 6 : 12;
+    const data: MonthlyData[] = [];
+
+    for (let i = months - 1; i >= 0; i--) {
+      const monthDate = subMonths(new Date(), i);
+      const monthStart = startOfMonth(monthDate);
+      const monthEnd = endOfMonth(monthDate);
+      const monthBookings = getBookingsByPeriod(monthStart, monthEnd);
+      const earnings = monthBookings.reduce((sum, b) => {
+        const price =
+          typeof b.service === "object" && b.service?.price
+            ? b.service.price
+            : 0;
+        return sum + price;
+      }, 0);
+
+      data.push({
+        month: format(monthDate, "MMM"),
+        earnings,
       });
     }
-  };
 
-  const fetchPayments = async () => {
-    try {
-      const response = await apiClient.get(
-        `/api/professionals/${professionalId}/payments`
-      );
-      setPayments(
-        (response.data as any[]).map((p: any) => ({
-          ...p,
-          date: new Date(p.date),
-        }))
-      );
-    } catch (error) {
-      console.error("Error fetching payments:", error);
-      // Mock data for demo
-      setPayments([
-        {
-          _id: "1",
-          date: new Date(),
-          amount: 120.0,
-          status: "paid",
-          service: "Haircut",
-          clientName: "John Smith",
-          commission: 24.0,
-        },
-        {
-          _id: "2",
-          date: new Date(Date.now() - 86400000),
-          amount: 85.0,
-          status: "paid",
-          service: "Hair Coloring",
-          clientName: "Sarah Johnson",
-          commission: 17.0,
-        },
-        {
-          _id: "3",
-          date: new Date(Date.now() - 172800000),
-          amount: 150.0,
-          status: "processing",
-          service: "Full Service",
-          clientName: "Mike Davis",
-          commission: 30.0,
-        },
-      ]);
-    }
-  };
+    return data;
+  }, [selectedPeriod, completedBookings]);
 
-  const fetchMonthlyData = async () => {
-    try {
-      const response = await apiClient.get(
-        `/api/professionals/${professionalId}/earnings/monthly?period=${selectedPeriod}`
-      );
-      setMonthlyData(response.data as MonthlyData[]);
-    } catch (error) {
-      console.error("Error fetching monthly data:", error);
-      // Mock data for demo
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-      setMonthlyData(
-        months.map((month) => ({
-          month,
-          earnings: 3000 + Math.random() * 2000,
-        }))
-      );
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; label: string }> = {
-      paid: { variant: "default", label: "Paid" },
-      pending: { variant: "secondary", label: "Pending" },
-      processing: { variant: "outline", label: "Processing" },
-    };
-
-    const config = variants[status] || variants.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
+  // Recent activity (last 5 completed bookings)
+  const recentActivity = useMemo(() => {
+    return [...completedBookings]
+      .sort(
+        (a, b) =>
+          new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+      )
+      .slice(0, 5);
+  }, [completedBookings]);
 
   const handleExportStatement = async () => {
     try {
@@ -206,6 +173,14 @@ export default function ProfessionalEarningsPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading earnings data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -213,7 +188,7 @@ export default function ProfessionalEarningsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Earnings</h1>
           <p className="text-muted-foreground mt-1">
-            Track your commissions and payment history
+            Track your earnings from completed services
           </p>
         </div>
         <Button onClick={handleExportStatement}>
@@ -224,8 +199,8 @@ export default function ProfessionalEarningsPage() {
 
       {/* Stats Cards */}
       <StatsGrid columns={4}>
-        <Card className="p-3 sm:p-4">
-          <CardHeader className="pb-3 p-0">
+        <Card>
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium">This Month</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -233,23 +208,21 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(earningsData.thisMonth)}
+              {formatCurrency(thisMonthEarnings)}
             </div>
             <div className="flex items-center gap-1 text-xs mt-1">
-              {earningsData.change > 0 ? (
+              {change > 0 ? (
                 <>
                   <TrendingUp className="h-3 w-3 text-green-600" />
-                  <span className="text-green-600">
-                    +{earningsData.change.toFixed(1)}%
-                  </span>
+                  <span className="text-green-600">+{change.toFixed(1)}%</span>
                 </>
-              ) : (
+              ) : change < 0 ? (
                 <>
                   <TrendingDown className="h-3 w-3 text-red-600" />
-                  <span className="text-red-600">
-                    {earningsData.change.toFixed(1)}%
-                  </span>
+                  <span className="text-red-600">{change.toFixed(1)}%</span>
                 </>
+              ) : (
+                <span className="text-muted-foreground">No change</span>
               )}
               <span className="text-muted-foreground">vs last month</span>
             </div>
@@ -265,7 +238,7 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(earningsData.lastMonth)}
+              {formatCurrency(lastMonthEarnings)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {format(subMonths(new Date(), 1), "MMMM yyyy")}
@@ -282,10 +255,11 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(earningsData.pending)}
+              {formatCurrency(pendingEarnings)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Awaiting payment
+              {pendingBookings.length} confirmed booking
+              {pendingBookings.length !== 1 ? "s" : ""}
             </p>
           </CardContent>
         </Card>
@@ -301,219 +275,190 @@ export default function ProfessionalEarningsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(earningsData.total)}
+              {formatCurrency(totalEarnings)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">All time</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {completedBookings.length} completed service
+              {completedBookings.length !== 1 ? "s" : ""}
+            </p>
           </CardContent>
         </Card>
       </StatsGrid>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="payments">Payment History</TabsTrigger>
-          <TabsTrigger value="tax">Tax Information</TabsTrigger>
-        </TabsList>
+      {/* Monthly Earnings Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Monthly Earnings</CardTitle>
+              <CardDescription>
+                Your earnings over the selected period
+              </CardDescription>
+            </div>
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3months">Last 3 months</SelectItem>
+                <SelectItem value="6months">Last 6 months</SelectItem>
+                <SelectItem value="12months">Last 12 months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis tickFormatter={(value) => formatCurrency(value)} />
+              <Tooltip
+                formatter={(value: number) => formatCurrency(value)}
+                labelStyle={{ color: "hsl(var(--foreground))" }}
+                contentStyle={{
+                  backgroundColor: "hsl(var(--background))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Bar
+                dataKey="earnings"
+                fill="hsl(var(--primary))"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Monthly Earnings Trend</CardTitle>
-                  <CardDescription>Your earnings over time</CardDescription>
-                </div>
-                <Select
-                  value={selectedPeriod}
-                  onValueChange={setSelectedPeriod}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="3months">Last 3 Months</SelectItem>
-                    <SelectItem value="6months">Last 6 Months</SelectItem>
-                    <SelectItem value="12months">Last 12 Months</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(value: number) => formatCurrency(value)}
-                  />
-                  <Bar
-                    dataKey="earnings"
-                    fill="hsl(var(--primary))"
-                    radius={[8, 8, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+      {/* Recent Activity and Summary */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Your latest completed services</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentActivity.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No completed services yet
+                </p>
+              ) : (
+                recentActivity.map((booking) => {
+                  const client =
+                    typeof booking.client === "string"
+                      ? booking.client
+                      : booking.client?.name ||
+                        `${(booking.client as any)?.firstName || ""} ${
+                          (booking.client as any)?.lastName || ""
+                        }`.trim() ||
+                        "Unknown Client";
+                  const service =
+                    typeof booking.service === "string"
+                      ? booking.service
+                      : booking.service?.name || "Unknown Service";
+                  const price =
+                    typeof booking.service === "object" &&
+                    booking.service?.price
+                      ? booking.service.price
+                      : 0;
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Your latest commissions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {payments.slice(0, 5).map((payment) => (
+                  return (
                     <div
-                      key={payment._id}
-                      className="flex items-center justify-between"
+                      key={(booking as any)._id || booking.id}
+                      className="flex items-center justify-between py-3 border-b last:border-0"
                     >
-                      <div>
-                        <p className="font-medium">{payment.service}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(payment.date, "MMM dd, yyyy")}
-                        </p>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">{service}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{client}</span>
+                          <span>•</span>
+                          <span>
+                            {format(new Date(booking.startTime), "MMM d")}
+                          </span>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">
-                          {formatCurrency(payment.commission)}
+                        <p className="text-sm font-medium">
+                          {formatCurrency(price)}
                         </p>
-                        {getStatusBadge(payment.status)}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>This Month Summary</CardTitle>
-                <CardDescription>
-                  {format(new Date(), "MMMM yyyy")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Total Services</span>
-                  <span className="font-semibold">{payments.length}</span>
+        {/* This Month Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle>This Month Summary</CardTitle>
+            <CardDescription>
+              {format(new Date(), "MMMM yyyy")} overview
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm">Total Earnings</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">
-                    Average Commission
-                  </span>
-                  <span className="font-semibold">
-                    €
-                    {payments.length > 0
-                      ? (
-                          payments.reduce((sum, p) => sum + p.commission, 0) /
-                          payments.length
-                        ).toFixed(2)
-                      : "0.00"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Commission Rate</span>
-                  <span className="font-semibold">20%</span>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <span className="font-medium">Total Earnings</span>
-                  <span className="text-xl font-bold">
-                    {formatCurrency(earningsData.thisMonth)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Payment History Tab */}
-        <TabsContent value="payments">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-              <CardDescription>All your commission payments</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Commission</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment._id}>
-                      <TableCell>
-                        {format(payment.date, "MMM dd, yyyy")}
-                      </TableCell>
-                      <TableCell>{payment.clientName}</TableCell>
-                      <TableCell>{payment.service}</TableCell>
-                      <TableCell>{formatCurrency(payment.amount)}</TableCell>
-                      <TableCell className="font-semibold">
-                        {formatCurrency(payment.commission)}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tax Information Tab */}
-        <TabsContent value="tax">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tax Year Summary</CardTitle>
-              <CardDescription>{new Date().getFullYear()}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground">Total Income</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {formatCurrency(earningsData.total)}
-                  </p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Estimated Tax (23%)
-                  </p>
-                  <p className="text-2xl font-bold mt-1">
-                    {formatCurrency(earningsData.total * 0.23)}
-                  </p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground">Net Income</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {formatCurrency(earningsData.total * 0.77)}
-                  </p>
-                </div>
+                <span className="text-sm font-medium">
+                  {formatCurrency(thisMonthEarnings)}
+                </span>
               </div>
 
-              <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm font-medium mb-2">Important Note</p>
-                <p className="text-sm text-muted-foreground">
-                  These are estimated figures. Please consult with a tax
-                  professional for accurate tax calculation and filing. Tax
-                  rates may vary based on your location and individual
-                  circumstances.
-                </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-blue-500/10">
+                    <CalendarIcon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <span className="text-sm">Completed Services</span>
+                </div>
+                <span className="text-sm font-medium">
+                  {thisMonthBookings.length}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-orange-500/10">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <span className="text-sm">Pending Earnings</span>
+                </div>
+                <span className="text-sm font-medium">
+                  {formatCurrency(pendingEarnings)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-green-500/10">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </div>
+                  <span className="text-sm">Average per Service</span>
+                </div>
+                <span className="text-sm font-medium">
+                  {thisMonthBookings.length > 0
+                    ? formatCurrency(
+                        thisMonthEarnings / thisMonthBookings.length
+                      )
+                    : formatCurrency(0)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -33,7 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TimeSlotPicker } from "@/components/time-slot-picker";
+import { DateTimePicker } from "@/components/booking/date-time-picker";
 import type { TimeSlot } from "@/components/time-slot-picker";
 
 interface PublicEntity {
@@ -550,72 +550,84 @@ export function PublicEntityProfilePage() {
                       </div>
                     ) : (
                       <div className="grid gap-4">
-                        {packages.map((pkg) => (
-                          <Card
-                            key={pkg._id}
-                            className={`cursor-pointer transition-all hover:shadow-md ${
-                              selectedPackage === pkg._id
-                                ? "ring-2 ring-primary"
-                                : ""
-                            }`}
-                            onClick={() => {
-                              setSelectedPackage(pkg._id);
-                              setSelectedService("");
-                            }}
-                          >
-                            <CardHeader>
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <CardTitle className="text-xl">
-                                    {pkg.name}
-                                  </CardTitle>
-                                  {pkg.description && (
-                                    <CardDescription className="mt-1">
-                                      {pkg.description}
-                                    </CardDescription>
+                        {packages.map((pkg) => {
+                          // Extract service IDs from package
+                          const pkgServiceIds =
+                            pkg.services?.map((s: any) => s.id || s._id || s) ||
+                            [];
+                          const pkgServices = services.filter((svc) =>
+                            pkgServiceIds.includes(svc.id)
+                          );
+
+                          return (
+                            <Card
+                              key={pkg._id}
+                              className={`cursor-pointer transition-all hover:shadow-md ${
+                                selectedPackage === pkg._id
+                                  ? "ring-2 ring-primary"
+                                  : ""
+                              }`}
+                              onClick={() => {
+                                setSelectedPackage(pkg._id);
+                                setSelectedService("");
+                              }}
+                            >
+                              <CardHeader>
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <CardTitle className="text-xl">
+                                      {pkg.name}
+                                    </CardTitle>
+                                    {pkg.description && (
+                                      <CardDescription className="mt-1">
+                                        {pkg.description}
+                                      </CardDescription>
+                                    )}
+                                  </div>
+                                  {pkg.pricing.discount > 0 && (
+                                    <Badge
+                                      variant="destructive"
+                                      className="text-sm"
+                                    >
+                                      -{pkg.pricing.discount.toFixed(0)}% OFF
+                                    </Badge>
                                   )}
                                 </div>
-                                {pkg.pricing.discount > 0 && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="text-sm"
-                                  >
-                                    -{pkg.pricing.discount.toFixed(0)}% OFF
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <div className="flex flex-wrap gap-2">
+                                  {pkgServices.map((service) => (
+                                    <Badge key={service.id} variant="outline">
+                                      {service.name}
+                                    </Badge>
+                                  ))}
+                                </div>
+                                <div className="flex items-center justify-between pt-4 border-t">
+                                  <div>
+                                    <div className="text-sm text-muted-foreground line-through">
+                                      {formatCurrency(
+                                        pkg.pricing.originalPrice
+                                      )}
+                                    </div>
+                                    <div className="text-2xl font-bold text-primary">
+                                      {formatCurrency(pkg.pricing.packagePrice)}
+                                    </div>
+                                  </div>
+                                  <div className="text-right text-sm text-muted-foreground">
+                                    <div>{pkg.sessionsIncluded} sessions</div>
+                                    <div>{pkg.validity} days validity</div>
+                                  </div>
+                                </div>
+                                {selectedPackage === pkg._id && (
+                                  <Badge className="w-full justify-center">
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    Selected
                                   </Badge>
                                 )}
-                              </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              <div className="flex flex-wrap gap-2">
-                                {pkg.services.map((service) => (
-                                  <Badge key={service.id} variant="outline">
-                                    {service.name}
-                                  </Badge>
-                                ))}
-                              </div>
-                              <div className="flex items-center justify-between pt-4 border-t">
-                                <div>
-                                  <div className="text-sm text-muted-foreground line-through">
-                                    {formatCurrency(pkg.pricing.originalPrice)}
-                                  </div>
-                                  <div className="text-2xl font-bold text-primary">
-                                    {formatCurrency(pkg.pricing.packagePrice)}
-                                  </div>
-                                </div>
-                                <div className="text-right text-sm text-muted-foreground">
-                                  <div>{pkg.sessionsIncluded} sessions</div>
-                                  <div>{pkg.validity} days validity</div>
-                                </div>
-                              </div>
-                              {selectedPackage === pkg._id && (
-                                <Badge className="w-full justify-center">
-                                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                                  Selected
-                                </Badge>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
                     )}
                   </TabsContent>
@@ -671,7 +683,7 @@ export function PublicEntityProfilePage() {
                     {/* Date & Time Selection */}
                     <div className="space-y-2">
                       <Label>Select Date & Time</Label>
-                      <TimeSlotPicker
+                      <DateTimePicker
                         entityId={entity.id}
                         serviceId={selectedService}
                         professionalId={selectedProfessional}

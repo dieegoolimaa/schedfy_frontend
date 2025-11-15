@@ -3,9 +3,15 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Button } from "./button";
 
+export interface DateRange {
+  from: Date | undefined;
+  to: Date | undefined;
+}
+
 export interface CalendarProps {
-  selected?: Date;
-  onSelect?: (date: Date | undefined) => void;
+  mode?: "single" | "range";
+  selected?: Date | DateRange;
+  onSelect?: (date: Date | DateRange | undefined) => void;
   minDate?: Date;
   maxDate?: Date;
   className?: string;
@@ -13,6 +19,7 @@ export interface CalendarProps {
 }
 
 export function Calendar({
+  mode = "single",
   selected,
   onSelect,
   minDate,
@@ -21,7 +28,11 @@ export function Calendar({
   disabled,
 }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = React.useState(
-    selected || new Date()
+    mode === "single" && selected instanceof Date
+      ? selected
+      : mode === "range" && selected && "from" in selected && selected.from
+      ? selected.from
+      : new Date()
   );
 
   const getDaysInMonth = (date: Date) => {
@@ -75,11 +86,55 @@ export function Calendar({
 
   const isSelected = (day: number) => {
     if (!selected) return false;
-    return (
-      day === selected.getDate() &&
-      currentMonth.getMonth() === selected.getMonth() &&
-      currentMonth.getFullYear() === selected.getFullYear()
+
+    if (mode === "single" && selected instanceof Date) {
+      return (
+        day === selected.getDate() &&
+        currentMonth.getMonth() === selected.getMonth() &&
+        currentMonth.getFullYear() === selected.getFullYear()
+      );
+    }
+
+    if (mode === "range" && selected && "from" in selected) {
+      const date = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth(),
+        day
+      );
+      const from = selected.from;
+      const to = selected.to;
+
+      if (from && !to) {
+        return date.toDateString() === from.toDateString();
+      }
+
+      if (from && to) {
+        return (
+          date.toDateString() === from.toDateString() ||
+          date.toDateString() === to.toDateString()
+        );
+      }
+    }
+
+    return false;
+  };
+
+  const isInRange = (day: number) => {
+    if (mode !== "range" || !selected || !("from" in selected)) return false;
+
+    const date = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      day
     );
+    const from = selected.from;
+    const to = selected.to;
+
+    if (from && to) {
+      return date > from && date < to;
+    }
+
+    return false;
   };
 
   const handleDateClick = (day: number) => {
@@ -90,7 +145,27 @@ export function Calendar({
       currentMonth.getMonth(),
       day
     );
-    onSelect?.(newDate);
+
+    if (mode === "single") {
+      onSelect?.(newDate);
+    } else if (mode === "range") {
+      const currentRange =
+        selected && "from" in selected
+          ? selected
+          : { from: undefined, to: undefined };
+
+      if (!currentRange.from || (currentRange.from && currentRange.to)) {
+        // Start new range
+        onSelect?.({ from: newDate, to: undefined });
+      } else {
+        // Complete the range
+        if (newDate >= currentRange.from) {
+          onSelect?.({ from: currentRange.from, to: newDate });
+        } else {
+          onSelect?.({ from: newDate, to: currentRange.from });
+        }
+      }
+    }
   };
 
   // Build calendar grid
@@ -176,6 +251,7 @@ export function Calendar({
 
               const isDayToday = isToday(day);
               const isDaySelected = isSelected(day);
+              const isDayInRange = isInRange(day);
               const isDayDisabled = isDateDisabled(day);
 
               return (
@@ -191,13 +267,19 @@ export function Calendar({
                     !isDaySelected &&
                       !isDayToday &&
                       !isDayDisabled &&
+                      !isDayInRange &&
                       "bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600/50 hover:scale-105 hover:shadow-md",
+                    // In range (between start and end)
+                    isDayInRange &&
+                      !isDayDisabled &&
+                      "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100",
                     // Today
                     isDayToday &&
                       !isDaySelected &&
                       !isDayDisabled &&
+                      !isDayInRange &&
                       "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 text-gray-900 dark:text-white font-bold ring-2 ring-gray-400 dark:ring-gray-500 hover:scale-105 hover:shadow-md",
-                    // Selected
+                    // Selected (start or end date)
                     isDaySelected &&
                       !isDayDisabled &&
                       "bg-gradient-to-br from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 text-white dark:text-gray-900 font-bold shadow-lg scale-105 ring-2 ring-gray-900 dark:ring-gray-100",
@@ -226,6 +308,12 @@ export function Calendar({
               <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gradient-to-br from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300" />
               <span className="text-gray-600 dark:text-gray-400">Selected</span>
             </div>
+            {mode === "range" && (
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-200 dark:bg-gray-600" />
+                <span className="text-gray-600 dark:text-gray-400">Range</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 ring-2 ring-gray-400 dark:ring-gray-500" />
               <span className="text-gray-600 dark:text-gray-400">Today</span>

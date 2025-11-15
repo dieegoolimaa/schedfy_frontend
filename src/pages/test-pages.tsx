@@ -160,11 +160,6 @@ export function TestPagesPage() {
           description: "Notifications",
         },
         {
-          name: "Loyalty Management",
-          path: "/entity/loyalty-management",
-          description: "Loyalty programs",
-        },
-        {
           name: "AI Premium",
           path: "/entity/ai-premium",
           description: "AI features",

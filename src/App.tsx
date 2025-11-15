@@ -42,7 +42,6 @@ import { CommissionsManagementPage } from "./pages/business/commissions-manageme
 import { PaymentManagementPage } from "./pages/business/payment-management";
 import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
 import { AIPremiumPage } from "./pages/business/ai-premium";
-import { LoyaltyManagementPage } from "./pages/business/loyalty-management";
 import { NotificationCenterPage } from "./pages/business/notification-center";
 import PackageManagementPage from "./pages/business/package-management";
 import ReviewsManagementPage from "./pages/reviews-management";
@@ -347,18 +346,6 @@ function App() {
                 />
                 {/* Legacy route - redirect to /entity/bookings */}
                 <Route
-                  path="/entity/booking-management"
-                  element={
-                    <EntityRoute>
-                      <OnboardingGuard>
-                        <Layout>
-                          <BookingManagementPage />
-                        </Layout>
-                      </OnboardingGuard>
-                    </EntityRoute>
-                  }
-                />
-                <Route
                   path="/entity/services"
                   element={
                     <EntityRoute>
@@ -443,16 +430,6 @@ function App() {
                         <EntityProfilePage />
                       </Layout>
                     </EntityRoute>
-                  }
-                />
-                <Route
-                  path="/entity/loyalty-management"
-                  element={
-                    <BusinessRoute>
-                      <Layout>
-                        <LoyaltyManagementPage />
-                      </Layout>
-                    </BusinessRoute>
                   }
                 />
                 <Route

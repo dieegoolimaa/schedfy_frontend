@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import {
   Card,
@@ -68,7 +67,8 @@ interface WeeklySchedule {
 
 interface BlockedDate {
   _id?: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   reason: string;
   allDay: boolean;
   startTime?: string;
@@ -93,7 +93,6 @@ const DEFAULT_DAY_SCHEDULE: DaySchedule = {
 };
 
 export default function ProfessionalSchedulePage() {
-  const { t } = useTranslation("professional");
   const { user } = useAuth();
   const professionalId = user?.id || "";
 
@@ -114,7 +113,13 @@ export default function ProfessionalSchedulePage() {
 
   // Block date dialog state
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
+  });
   const [blockReason, setBlockReason] = useState("");
   const [blockAllDay, setBlockAllDay] = useState(true);
   const [blockStartTime, setBlockStartTime] = useState("09:00");
@@ -132,14 +137,51 @@ export default function ProfessionalSchedulePage() {
       );
       const data = response.data as any;
 
-      if (data.weeklySchedule) {
-        setWeeklySchedule(data.weeklySchedule);
+      // Convert workingHours from backend format to weeklySchedule
+      if (data.workingHours && Array.isArray(data.workingHours)) {
+        const newSchedule: WeeklySchedule = {
+          sunday: { ...DEFAULT_DAY_SCHEDULE },
+          monday: { ...DEFAULT_DAY_SCHEDULE },
+          tuesday: { ...DEFAULT_DAY_SCHEDULE },
+          wednesday: { ...DEFAULT_DAY_SCHEDULE },
+          thursday: { ...DEFAULT_DAY_SCHEDULE },
+          friday: { ...DEFAULT_DAY_SCHEDULE },
+          saturday: { ...DEFAULT_DAY_SCHEDULE },
+        };
+
+        data.workingHours.forEach((wh: any) => {
+          const dayKey = DAYS_OF_WEEK[wh.day]?.key;
+          if (dayKey) {
+            const slots: TimeSlot[] = [
+              { start: wh.startTime || "09:00", end: wh.endTime || "17:00" },
+            ];
+
+            // Add breaks as additional slots
+            if (wh.breaks && Array.isArray(wh.breaks)) {
+              wh.breaks.forEach((breakSlot: any) => {
+                slots.push({
+                  start: breakSlot.startTime,
+                  end: breakSlot.endTime,
+                });
+              });
+            }
+
+            newSchedule[dayKey as keyof WeeklySchedule] = {
+              enabled: wh.isAvailable !== false,
+              slots,
+            };
+          }
+        });
+
+        setWeeklySchedule(newSchedule);
       }
+
       if (data.blockedDates) {
         setBlockedDates(
           data.blockedDates.map((d: any) => ({
             ...d,
-            date: new Date(d.date),
+            startDate: new Date(d.startDate),
+            endDate: new Date(d.endDate),
           }))
         );
       }
@@ -159,11 +201,30 @@ export default function ProfessionalSchedulePage() {
   const handleSaveSchedule = async () => {
     try {
       setLoading(true);
+
+      // Convert weeklySchedule to workingHours format expected by backend
+      const workingHours = Object.entries(weeklySchedule).map(
+        ([dayKey, schedule]) => {
+          const dayIndex = DAYS_OF_WEEK.findIndex((d) => d.key === dayKey);
+          return {
+            day: dayIndex,
+            isAvailable: schedule.enabled,
+            startTime: schedule.slots[0]?.start || "09:00",
+            endTime: schedule.slots[0]?.end || "17:00",
+            breaks: schedule.slots.slice(1).map((slot: TimeSlot) => ({
+              startTime: slot.start,
+              endTime: slot.end,
+            })),
+          };
+        }
+      );
+
       await apiClient.patch(`/api/users/${professionalId}/schedule`, {
-        weeklySchedule,
+        workingHours,
         blockedDates: blockedDates.map((d) => ({
           ...d,
-          date: d.date.toISOString(),
+          startDate: d.startDate.toISOString(),
+          endDate: d.endDate.toISOString(),
         })),
         bufferTime,
         breakTime,
@@ -225,13 +286,17 @@ export default function ProfessionalSchedulePage() {
   };
 
   const handleBlockDate = () => {
-    if (!selectedDate) {
-      toast.error("Please select a date");
+    if (!dateRange.from) {
+      toast.error("Please select at least one date");
       return;
     }
 
+    const startDate = dateRange.from;
+    const endDate = dateRange.to || dateRange.from;
+
     const newBlock: BlockedDate = {
-      date: selectedDate,
+      startDate,
+      endDate,
       reason: blockReason || "Unavailable",
       allDay: blockAllDay,
       ...(!blockAllDay && { startTime: blockStartTime, endTime: blockEndTime }),
@@ -239,10 +304,14 @@ export default function ProfessionalSchedulePage() {
 
     setBlockedDates((prev) => [...prev, newBlock]);
     setBlockDialogOpen(false);
-    setSelectedDate(undefined);
+    setDateRange({ from: undefined, to: undefined });
     setBlockReason("");
     setBlockAllDay(true);
-    toast.success("Date blocked successfully");
+    const days =
+      Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      ) + 1;
+    toast.success(`${days} day${days > 1 ? "s" : ""} blocked successfully`);
   };
 
   const removeBlockedDate = (index: number) => {
@@ -260,113 +329,181 @@ export default function ProfessionalSchedulePage() {
             Manage your availability and working hours
           </p>
         </div>
-        <Button onClick={handleSaveSchedule} disabled={loading}>
+        <Button onClick={handleSaveSchedule} disabled={loading} size="lg">
           <Save className="h-4 w-4 mr-2" />
           Save Changes
         </Button>
       </div>
 
+      {/* Quick Settings */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Buffer Time</CardTitle>
+            <CardDescription>
+              Time between appointments for preparation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select
+              value={bufferTime.toString()}
+              onValueChange={(v) => setBufferTime(Number(v))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">No buffer</SelectItem>
+                <SelectItem value="5">5 minutes</SelectItem>
+                <SelectItem value="10">10 minutes</SelectItem>
+                <SelectItem value="15">15 minutes</SelectItem>
+                <SelectItem value="30">30 minutes</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Break Duration</CardTitle>
+            <CardDescription>
+              Standard break time during your schedule
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select
+              value={breakTime.toString()}
+              onValueChange={(v) => setBreakTime(Number(v))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">No break</SelectItem>
+                <SelectItem value="30">30 minutes</SelectItem>
+                <SelectItem value="60">1 hour</SelectItem>
+                <SelectItem value="90">1.5 hours</SelectItem>
+                <SelectItem value="120">2 hours</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      </div>
+
       <Tabs defaultValue="weekly" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="weekly">Weekly Schedule</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="weekly">Weekly Hours</TabsTrigger>
           <TabsTrigger value="blocked">Blocked Dates</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
         </TabsList>
 
         {/* Weekly Schedule */}
         <TabsContent value="weekly" className="space-y-4">
-          {DAYS_OF_WEEK.map(({ key, label }) => {
-            const dayKey = key as keyof WeeklySchedule;
-            const daySchedule = weeklySchedule[dayKey];
+          <div className="grid gap-4">
+            {DAYS_OF_WEEK.map(({ key, label }) => {
+              const dayKey = key as keyof WeeklySchedule;
+              const daySchedule = weeklySchedule[dayKey];
 
-            return (
-              <Card key={key}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={daySchedule.enabled}
-                        onCheckedChange={() => toggleDay(dayKey)}
-                      />
-                      <div>
-                        <CardTitle className="text-lg">{label}</CardTitle>
-                        <CardDescription>
-                          {daySchedule.enabled
-                            ? `${daySchedule.slots.length} time slot(s)`
-                            : "Day off"}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    {daySchedule.enabled && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addTimeSlot(dayKey)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Slot
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-
-                {daySchedule.enabled && (
-                  <CardContent className="space-y-3">
-                    {daySchedule.slots.map((slot, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-3 border rounded-lg"
-                      >
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <div className="flex items-center gap-2 flex-1">
-                          <input
-                            type="time"
-                            value={slot.start}
-                            onChange={(e) =>
-                              updateTimeSlot(
-                                dayKey,
-                                index,
-                                "start",
-                                e.target.value
-                              )
-                            }
-                            className="px-3 py-2 border rounded-md"
-                          />
-                          <span className="text-muted-foreground">to</span>
-                          <input
-                            type="time"
-                            value={slot.end}
-                            onChange={(e) =>
-                              updateTimeSlot(
-                                dayKey,
-                                index,
-                                "end",
-                                e.target.value
-                              )
-                            }
-                            className="px-3 py-2 border rounded-md"
-                          />
+              return (
+                <Card
+                  key={key}
+                  className={!daySchedule.enabled ? "opacity-60" : ""}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="flex items-center gap-3 min-w-[180px]">
+                        <Switch
+                          checked={daySchedule.enabled}
+                          onCheckedChange={() => toggleDay(dayKey)}
+                        />
+                        <div>
+                          <h3 className="font-semibold">{label}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {daySchedule.enabled
+                              ? `${daySchedule.slots.length} slot${
+                                  daySchedule.slots.length !== 1 ? "s" : ""
+                                }`
+                              : "Unavailable"}
+                          </p>
                         </div>
-                        {daySchedule.slots.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeTimeSlot(dayKey, index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
-                    ))}
+
+                      {daySchedule.enabled && (
+                        <div className="flex-1 space-y-3">
+                          {daySchedule.slots.map((slot, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-3"
+                            >
+                              <div className="flex items-center gap-2 flex-1">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <input
+                                  type="time"
+                                  value={slot.start}
+                                  onChange={(e) =>
+                                    updateTimeSlot(
+                                      dayKey,
+                                      index,
+                                      "start",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="px-3 py-1.5 border rounded-md text-sm"
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                  —
+                                </span>
+                                <input
+                                  type="time"
+                                  value={slot.end}
+                                  onChange={(e) =>
+                                    updateTimeSlot(
+                                      dayKey,
+                                      index,
+                                      "end",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="px-3 py-1.5 border rounded-md text-sm"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {daySchedule.slots.length > 1 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      removeTimeSlot(dayKey, index)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {index === daySchedule.slots.length - 1 && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addTimeSlot(dayKey)}
+                                  >
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Add
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
-                )}
-              </Card>
-            );
-          })}
+                </Card>
+              );
+            })}
+          </div>
         </TabsContent>
 
         {/* Blocked Dates */}
         <TabsContent value="blocked" className="space-y-4">
+          {" "}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -396,12 +533,45 @@ export default function ProfessionalSchedulePage() {
 
                     <div className="space-y-4 py-4">
                       <div>
-                        <Label>Select Date</Label>
+                        <Label className="block mb-2">
+                          {!dateRange.from
+                            ? "Select date or date range"
+                            : dateRange.to
+                            ? `${format(
+                                dateRange.from,
+                                "MMM d, yyyy"
+                              )} - ${format(dateRange.to, "MMM d, yyyy")}`
+                            : `${format(
+                                dateRange.from,
+                                "MMM d, yyyy"
+                              )} (click again to select range)`}
+                        </Label>
                         <Calendar
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          className="rounded-md border"
+                          mode="range"
+                          selected={dateRange}
+                          onSelect={(range) => {
+                            if (
+                              range &&
+                              typeof range === "object" &&
+                              "from" in range
+                            ) {
+                              setDateRange(range);
+                            }
+                          }}
+                          className="rounded-md border mx-auto"
                         />
+                        {(dateRange.from || dateRange.to) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setDateRange({ from: undefined, to: undefined })
+                            }
+                            className="mt-2 w-full"
+                          >
+                            Clear selection
+                          </Button>
+                        )}
                       </div>
 
                       <div>
@@ -472,34 +642,50 @@ export default function ProfessionalSchedulePage() {
               ) : (
                 <div className="space-y-3">
                   {blockedDates
-                    .sort((a, b) => a.date.getTime() - b.date.getTime())
-                    .map((block, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">
-                              {format(block.date, "MMMM dd, yyyy")}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {block.reason}
-                              {!block.allDay &&
-                                ` • ${block.startTime} - ${block.endTime}`}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeBlockedDate(index)}
+                    .sort(
+                      (a, b) => a.startDate.getTime() - b.startDate.getTime()
+                    )
+                    .map((block, index) => {
+                      const isSingleDay =
+                        format(block.startDate, "yyyy-MM-dd") ===
+                        format(block.endDate, "yyyy-MM-dd");
+
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 border rounded-lg"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                          <div className="flex items-center gap-3">
+                            <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">
+                                {isSingleDay
+                                  ? format(block.startDate, "MMMM dd, yyyy")
+                                  : `${format(
+                                      block.startDate,
+                                      "MMM dd"
+                                    )} - ${format(
+                                      block.endDate,
+                                      "MMM dd, yyyy"
+                                    )}`}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {block.reason}
+                                {!block.allDay &&
+                                  ` • ${block.startTime} - ${block.endTime}`}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeBlockedDate(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
                 </div>
               )}
             </CardContent>
