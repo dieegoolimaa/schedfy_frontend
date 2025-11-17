@@ -14,6 +14,7 @@ interface TimeSlotPickerProps {
   selectedSlot?: TimeSlot | null;
   onSelectSlot: (slot: TimeSlot) => void;
   className?: string;
+  includeOverbooking?: boolean; // Only for internal/authenticated users
 }
 
 export function TimeSlotPicker({
@@ -24,6 +25,7 @@ export function TimeSlotPicker({
   selectedSlot,
   onSelectSlot,
   className,
+  includeOverbooking = false, // Default false for public access
 }: TimeSlotPickerProps) {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,12 +46,14 @@ export function TimeSlotPicker({
           serviceId,
           date,
           professionalId,
+          includeOverbooking,
         });
         const response = await bookingsService.getAvailableSlots({
           entityId,
           serviceId,
           date,
           professionalId,
+          includeOverbooking,
         });
         console.log("[TimeSlotPicker] Response:", response);
         setSlots(response.data || []);
@@ -75,7 +79,7 @@ export function TimeSlotPicker({
     };
 
     loadSlots();
-  }, [entityId, serviceId, date, professionalId]);
+  }, [entityId, serviceId, date, professionalId, includeOverbooking]);
 
   if (loading) {
     return (
@@ -133,16 +137,29 @@ export function TimeSlotPicker({
           return (
             <Button
               key={`${slot.time}-${slot.professionalId}-${index}`}
-              variant={isSelected ? "default" : "outline"}
+              variant={
+                isSelected
+                  ? "default"
+                  : slot.isOverbooking
+                  ? "destructive"
+                  : "outline"
+              }
               size="lg"
               className={cn(
                 "flex flex-col items-center justify-center h-auto py-4 px-4 transition-all duration-200 relative",
                 "min-h-[70px] w-full",
                 isSelected
                   ? "ring-2 ring-primary shadow-lg bg-primary text-primary-foreground"
+                  : slot.isOverbooking
+                  ? "border-orange-500 bg-orange-50 hover:bg-orange-100 text-orange-900"
                   : "hover:shadow-md hover:border-primary/50"
               )}
               onClick={() => onSelectSlot(slot)}
+              title={
+                slot.isOverbooking
+                  ? "Fully booked - overbooking available for internal use"
+                  : undefined
+              }
             >
               <span className="font-bold text-lg leading-tight mb-0.5">
                 {slot.time}
@@ -150,6 +167,24 @@ export function TimeSlotPicker({
               {slot.duration && (
                 <span className="text-xs opacity-80">{slot.duration} min</span>
               )}
+              {slot.isOverbooking && (
+                <Badge
+                  variant="secondary"
+                  className="absolute top-1 left-1 text-[10px] px-1 py-0 h-4 bg-orange-600 text-white"
+                >
+                  Full
+                </Badge>
+              )}
+              {slot.totalCount &&
+                slot.totalCount > 1 &&
+                !slot.isOverbooking && (
+                  <Badge
+                    variant="secondary"
+                    className="absolute top-1 left-1 text-[10px] px-1 py-0 h-4"
+                  >
+                    {slot.availableCount}/{slot.totalCount}
+                  </Badge>
+                )}
               {isSelected && (
                 <CheckCircle className="absolute top-1 right-1 h-4 w-4" />
               )}

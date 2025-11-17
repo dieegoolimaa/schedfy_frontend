@@ -118,6 +118,7 @@ export interface CreateBookingDto {
         paidAmount?: number;
     };
     createdBy: string;
+    isOverbooking?: boolean; // Allow internal users to book even when fully booked
 }
 
 export interface UpdateBookingDto {
@@ -177,6 +178,9 @@ export interface TimeSlot {
     professionalId?: string;
     professionalName?: string;
     duration: number;
+    availableCount?: number; // Number of available professionals
+    totalCount?: number; // Total number of professionals
+    isOverbooking?: boolean; // Flag indicating this is an overbooking slot
 }
 
 export interface SlotAvailability {

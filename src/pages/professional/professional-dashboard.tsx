@@ -153,6 +153,7 @@ export function ProfessionalDashboardPage() {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // All bookings for today (including past ones for stats)
   const todaySchedule = myBookings
     .filter((booking) => {
       const bookingDate = new Date(booking.startTime);
@@ -163,17 +164,21 @@ export function ProfessionalDashboardPage() {
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
 
+  // This week (from Sunday to now)
   const thisWeekStart = new Date(today);
   thisWeekStart.setDate(today.getDate() - today.getDay());
+  thisWeekStart.setHours(0, 0, 0, 0);
   const weeklyBookings = myBookings.filter((b) => {
     const bookingDate = new Date(b.startTime);
-    return bookingDate >= thisWeekStart;
+    return bookingDate >= thisWeekStart && bookingDate <= new Date();
   });
 
+  // This month (from 1st to now)
   const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  thisMonthStart.setHours(0, 0, 0, 0);
   const monthlyBookings = myBookings.filter((b) => {
     const bookingDate = new Date(b.startTime);
-    return bookingDate >= thisMonthStart;
+    return bookingDate >= thisMonthStart && bookingDate <= new Date();
   });
 
   // Professional data from user context

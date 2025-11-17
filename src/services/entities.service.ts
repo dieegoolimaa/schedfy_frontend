@@ -83,29 +83,15 @@ export const entitiesService = {
     },
 
     updateNotificationSettings: async (notificationSettings: {
+        emailEnabled?: boolean;
         smsEnabled?: boolean;
         whatsappEnabled?: boolean;
-        notifyOwner?: {
-            newBooking?: boolean;
-            cancelledBooking?: boolean;
-            newPayment?: boolean;
-            newReview?: boolean;
-        };
-        notifyClient?: {
-            bookingConfirmation?: boolean;
-            bookingReminder?: boolean;
-            bookingCancellation?: boolean;
-            paymentReceipt?: boolean;
-        };
-        notifyProfessional?: {
-            newAssignment?: boolean;
-            bookingCancellation?: boolean;
-            scheduleChange?: boolean;
-        };
-        reminderTimings?: {
-            enabled24h?: boolean;
-            enabled2h?: boolean;
-            enabled30min?: boolean;
+        notifications?: {
+            [key: string]: {
+                email?: boolean;
+                sms?: boolean;
+                whatsapp?: boolean;
+            };
         };
     }) => {
         return apiClient.patch<Entity>('/api/entities/notification-settings', notificationSettings);

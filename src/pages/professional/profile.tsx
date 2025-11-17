@@ -58,8 +58,15 @@ export default function ProfessionalProfilePage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
+  const [jobFunction, setJobFunction] = useState("");
+  const [experience, setExperience] = useState("");
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [newSpecialty, setNewSpecialty] = useState("");
+  const [certifications, setCertifications] = useState<string[]>([]);
+  const [newCertification, setNewCertification] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [website, setWebsite] = useState("");
 
   // Calculate stats from bookings
   const myBookings = useMemo(() => {
@@ -106,8 +113,16 @@ export default function ProfessionalProfilePage() {
       setLastName(data.lastName || "");
       setEmail(data.email || "");
       setPhone(data.phone || "");
-      setBio(data.bio || "");
-      setSpecialties(data.specialties || []);
+
+      // Professional Info
+      setBio(data.professionalInfo?.bio || "");
+      setJobFunction(data.professionalInfo?.jobFunction || "");
+      setExperience(data.professionalInfo?.experience?.toString() || "");
+      setSpecialties(data.professionalInfo?.specialties || []);
+      setCertifications(data.professionalInfo?.certifications || []);
+      setInstagram(data.professionalInfo?.socialMedia?.instagram || "");
+      setLinkedin(data.professionalInfo?.socialMedia?.linkedin || "");
+      setWebsite(data.professionalInfo?.socialMedia?.website || "");
     } catch (error) {
       console.error("Failed to fetch profile:", error);
       toast({
@@ -128,8 +143,18 @@ export default function ProfessionalProfilePage() {
         firstName,
         lastName,
         phone,
-        bio,
-        specialties,
+        professionalInfo: {
+          bio,
+          jobFunction,
+          experience: experience ? parseInt(experience) : undefined,
+          specialties,
+          certifications,
+          socialMedia: {
+            instagram: instagram || undefined,
+            linkedin: linkedin || undefined,
+            website: website || undefined,
+          },
+        },
       });
 
       toast({
@@ -158,6 +183,20 @@ export default function ProfessionalProfilePage() {
 
   const handleRemoveSpecialty = (specialty: string) => {
     setSpecialties(specialties.filter((s) => s !== specialty));
+  };
+
+  const handleAddCertification = () => {
+    if (
+      newCertification.trim() &&
+      !certifications.includes(newCertification.trim())
+    ) {
+      setCertifications([...certifications, newCertification.trim()]);
+      setNewCertification("");
+    }
+  };
+
+  const handleRemoveCertification = (certification: string) => {
+    setCertifications(certifications.filter((c) => c !== certification));
   };
 
   if (loading && !profileData) {
@@ -274,6 +313,43 @@ export default function ProfessionalProfilePage() {
         <TabsContent value="professional" className="space-y-6">
           <Card>
             <CardHeader>
+              <CardTitle>Job Information</CardTitle>
+              <CardDescription>
+                Your professional role and experience
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="jobFunction">Job Function</Label>
+                  <Input
+                    id="jobFunction"
+                    value={jobFunction}
+                    onChange={(e) => setJobFunction(e.target.value)}
+                    placeholder="e.g., Hair Stylist, Massage Therapist"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Set by your employer:{" "}
+                    {profileData?.professionalInfo?.jobFunction || "Not set"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="experience">Years of Experience</Label>
+                  <Input
+                    id="experience"
+                    type="number"
+                    min="0"
+                    value={experience}
+                    onChange={(e) => setExperience(e.target.value)}
+                    placeholder="e.g., 5"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Bio</CardTitle>
               <CardDescription>
                 Tell clients about your experience and expertise
@@ -327,6 +403,86 @@ export default function ProfessionalProfilePage() {
                     No specialties added yet
                   </p>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Certifications</CardTitle>
+              <CardDescription>
+                Add your professional certifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  value={newCertification}
+                  onChange={(e) => setNewCertification(e.target.value)}
+                  placeholder="e.g., Licensed Cosmetologist, Certified Massage Therapist"
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && handleAddCertification()
+                  }
+                />
+                <Button onClick={handleAddCertification} variant="outline">
+                  Add
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {certifications.map((cert) => (
+                  <Badge
+                    key={cert}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => handleRemoveCertification(cert)}
+                  >
+                    {cert} ×
+                  </Badge>
+                ))}
+                {certifications.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No certifications added yet
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Social Media</CardTitle>
+              <CardDescription>
+                Connect your professional profiles
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="instagram">Instagram</Label>
+                <Input
+                  id="instagram"
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  placeholder="@yourhandle"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="linkedin">LinkedIn</Label>
+                <Input
+                  id="linkedin"
+                  value={linkedin}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  placeholder="linkedin.com/in/yourprofile"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="website">Website</Label>
+                <Input
+                  id="website"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="www.yourwebsite.com"
+                />
               </div>
             </CardContent>
           </Card>

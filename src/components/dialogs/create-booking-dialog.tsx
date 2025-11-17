@@ -925,6 +925,7 @@ export function CreateBookingDialog({
                       onSelectSlot={(slot) =>
                         updateBookingSlot(bookingSlot.id, "slot", slot)
                       }
+                      includeOverbooking={true}
                     />
                   )}
 

@@ -15,36 +15,31 @@ import { UnauthorizedPage } from "./pages/unauthorized";
 import { UpgradePage } from "./pages/upgrade";
 
 // Simple Plan pages
-import SimpleDashboardPage from "./pages/simple/dashboard";
-import { SimpleReportsPage } from "./pages/simple/reports";
-import { SimpleSettingsPage } from "./pages/simple/settings";
+// (All consolidated in /common)
 
 // Individual Plan pages
-import IndividualDashboardPage from "./pages/individual/dashboard";
-import { IndividualReportsPage } from "./pages/individual/reports";
-import IndividualPaymentManagementPage from "./pages/individual/payment-management";
+// (All consolidated in /common)
 
 // Business/Entity Plan pages
-import EntityDashboardPage from "./pages/business/dashboard";
-import { ReportsPage as EntityReportsPage } from "./pages/business/reports";
-import { ProfessionalsPage as EntityProfessionalsPage } from "./pages/business/professionals";
 import { UserManagementPage as EntityUserManagementPage } from "./pages/business/user-management";
-import { SubscriptionManagementPage as EntitySubscriptionManagementPage } from "./pages/business/subscription-management";
 import { DataAnalyticsPage as EntityDataAnalyticsPage } from "./pages/business/data-analytics";
 
 // Common pages (shared across all plan types)
 import { ClientProfilePage } from "./pages/common/client-profile";
 import { EntityProfilePage } from "./pages/common/entity-profile";
 import { BookingManagementPage } from "./pages/common/booking-management";
-import { ServicesPage } from "./pages/common/services";
-import { SettingsPage as EntitySettingsPage } from "./pages/business/settings";
+import { ProfessionalsPage } from "./pages/common/professionals";
+import UnifiedReportsPage from "./pages/common/reports";
+import UnifiedSettingsPage from "./pages/common/settings";
+import UnifiedSubscriptionManagement from "./pages/common/subscription-management";
+import UnifiedDashboard from "./pages/common/dashboard";
+import UnifiedPaymentManagement from "./pages/common/payment-management";
 import { CommissionsManagementPage } from "./pages/business/commissions-management";
-import { PaymentManagementPage } from "./pages/business/payment-management";
 import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
 import { AIPremiumPage } from "./pages/business/ai-premium";
-import { NotificationCenterPage } from "./pages/business/notification-center";
-import PackageManagementPage from "./pages/business/package-management";
-import ReviewsManagementPage from "./pages/reviews-management";
+import NotificationPreferences from "./pages/common/notification-preferences";
+import ServicesAndPackagesPage from "./pages/common/services-packages";
+import ReviewsManagementPage from "./pages/common/reviews-management";
 
 // Professional pages
 import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
@@ -139,8 +134,10 @@ function App() {
                 <Route path="/integrations" element={<IntegrationsPage />} />
                 <Route path="/about" element={<AboutPage />} />
 
-                {/* Test/Demo pages */}
-                <Route path="/test-pages" element={<TestPagesPage />} />
+                {/* Test/Demo pages - Only available in development */}
+                {import.meta.env.DEV && (
+                  <Route path="/test-pages" element={<TestPagesPage />} />
+                )}
 
                 {/* Special pages */}
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -153,7 +150,7 @@ function App() {
                     <ProtectedRoute allowedPlans={["simple"]}>
                       <OnboardingGuard>
                         <Layout>
-                          <SimpleDashboardPage />
+                          <UnifiedDashboard />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -167,7 +164,7 @@ function App() {
                     >
                       <OnboardingGuard>
                         <Layout>
-                          <ServicesPage />
+                          <ServicesAndPackagesPage />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -195,7 +192,7 @@ function App() {
                     >
                       <OnboardingGuard>
                         <Layout>
-                          <SimpleReportsPage />
+                          <UnifiedReportsPage />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -209,7 +206,7 @@ function App() {
                     >
                       <OnboardingGuard>
                         <Layout>
-                          <SimpleSettingsPage />
+                          <UnifiedSettingsPage />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -231,6 +228,19 @@ function App() {
                   }
                 />
 
+                <Route
+                  path="/simple/subscription"
+                  element={
+                    <ProtectedRoute allowedPlans={["simple"]}>
+                      <OnboardingGuard>
+                        <Layout>
+                          <UnifiedSubscriptionManagement />
+                        </Layout>
+                      </OnboardingGuard>
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Individual Plan Routes */}
                 <Route
                   path="/individual/dashboard"
@@ -238,7 +248,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <IndividualDashboardPage />
+                          <UnifiedDashboard />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -250,7 +260,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <ServicesPage />
+                          <ServicesAndPackagesPage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -274,8 +284,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          ```
-                          <IndividualReportsPage />
+                          <UnifiedReportsPage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -287,7 +296,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <IndividualPaymentManagementPage />
+                          <UnifiedPaymentManagement />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -318,6 +327,19 @@ function App() {
                   }
                 />
 
+                <Route
+                  path="/individual/subscription"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <UnifiedSubscriptionManagement />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+
                 {/* Business/Entity Plan Routes */}
                 <Route
                   path="/entity/dashboard"
@@ -325,7 +347,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <EntityDashboardPage />
+                          <UnifiedDashboard />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
@@ -351,7 +373,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <ServicesPage />
+                          <ServicesAndPackagesPage />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
@@ -363,7 +385,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <EntityReportsPage />
+                          <UnifiedReportsPage />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
@@ -374,7 +396,6 @@ function App() {
                   element={
                     <EntityRoute>
                       <OnboardingGuard>
-                        ```
                         <Layout>
                           <EntityFinancialReportsPage />
                         </Layout>
@@ -388,7 +409,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <NotificationCenterPage />
+                          <NotificationPreferences />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
@@ -413,11 +434,9 @@ function App() {
                 <Route
                   path="/entity/professionals"
                   element={
-                    <ProtectedRoute
-                      allowedPlans={["simple", "individual", "business"]}
-                    >
+                    <ProtectedRoute allowedPlans={["simple", "business"]}>
                       <Layout>
-                        <EntityProfessionalsPage />
+                        <ProfessionalsPage />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -447,7 +466,7 @@ function App() {
                   element={
                     <BusinessRoute>
                       <Layout>
-                        <EntitySubscriptionManagementPage />
+                        <UnifiedSubscriptionManagement />
                       </Layout>
                     </BusinessRoute>
                   }
@@ -457,7 +476,7 @@ function App() {
                   element={
                     <BusinessRoute>
                       <Layout>
-                        <EntitySubscriptionManagementPage />
+                        <UnifiedSubscriptionManagement />
                       </Layout>
                     </BusinessRoute>
                   }
@@ -465,21 +484,21 @@ function App() {
                 <Route
                   path="/entity/clients"
                   element={
-                    <EntityRoute>
+                    <IndividualPlusRoute>
                       <Layout>
                         <ClientProfilePage />
                       </Layout>
-                    </EntityRoute>
+                    </IndividualPlusRoute>
                   }
                 />
                 <Route
                   path="/entity/client-profile"
                   element={
-                    <EntityRoute>
+                    <IndividualPlusRoute>
                       <Layout>
                         <ClientProfilePage />
                       </Layout>
-                    </EntityRoute>
+                    </IndividualPlusRoute>
                   }
                 />
                 <Route
@@ -497,7 +516,7 @@ function App() {
                   element={
                     <EntityRoute>
                       <Layout>
-                        <EntitySettingsPage />
+                        <UnifiedSettingsPage />
                       </Layout>
                     </EntityRoute>
                   }
@@ -507,17 +526,17 @@ function App() {
                   element={
                     <EntityRoute>
                       <Layout>
-                        <PaymentManagementPage />
+                        <UnifiedPaymentManagement />
                       </Layout>
                     </EntityRoute>
                   }
                 />
                 <Route
-                  path="/entity/package-management"
+                  path="/entity/services-packages"
                   element={
                     <EntityRoute>
                       <Layout>
-                        <PackageManagementPage />
+                        <ServicesAndPackagesPage />
                       </Layout>
                     </EntityRoute>
                   }
@@ -612,7 +631,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <ServicesPage />
+                        <ServicesAndPackagesPage />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -622,7 +641,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <EntityReportsPage />
+                        <UnifiedReportsPage />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -633,7 +652,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <EntitySettingsPage />
+                        <UnifiedSettingsPage />
                       </Layout>
                     </ProtectedRoute>
                   }

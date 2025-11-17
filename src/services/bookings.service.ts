@@ -21,6 +21,7 @@ export const bookingsService = {
         serviceId: string;
         date: string;
         professionalId?: string;
+        includeOverbooking?: boolean; // Only for internal/authenticated users
     }) => {
         return apiClient.get<TimeSlot[]>('/api/bookings/available-slots', params);
     },

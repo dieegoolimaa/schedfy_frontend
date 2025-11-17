@@ -2,8 +2,6 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { TimeSlotPicker } from "../time-slot-picker";
 import { TimeSlot } from "@/services/bookings.service";
-import { Card } from "@/components/ui/card";
-import { CalendarIcon } from "lucide-react";
 
 interface DateTimePickerProps {
   entityId: string;
@@ -13,6 +11,7 @@ interface DateTimePickerProps {
   onDateChange: (date: Date | undefined) => void;
   selectedSlot: TimeSlot | null;
   onSlotSelect: (slot: TimeSlot) => void;
+  includeOverbooking?: boolean; // Only for internal/authenticated users
 }
 
 export function DateTimePicker({
@@ -23,26 +22,24 @@ export function DateTimePicker({
   onDateChange,
   selectedSlot,
   onSlotSelect,
+  includeOverbooking = false, // Default false for public access
 }: DateTimePickerProps) {
   return (
-    <div className="space-y-6">
-      {/* Calendar */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <CalendarIcon className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Select Date</h3>
-        </div>
+    <div className="space-y-3">
+      {/* Compact Calendar */}
+      <div className="border rounded-md p-2">
         <Calendar
+          mode="single"
           selected={selectedDate}
-          onSelect={onDateChange}
+          onSelect={(date) => onDateChange(date as Date | undefined)}
           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-          className="rounded-md border w-full"
+          className="w-full"
         />
-      </Card>
+      </div>
 
       {/* Time Slots */}
       {selectedDate && (
-        <Card className="p-4">
+        <div className="border rounded-md p-3">
           <TimeSlotPicker
             entityId={entityId}
             serviceId={serviceId}
@@ -50,8 +47,9 @@ export function DateTimePicker({
             professionalId={professionalId}
             selectedSlot={selectedSlot}
             onSelectSlot={onSlotSelect}
+            includeOverbooking={includeOverbooking}
           />
-        </Card>
+        </div>
       )}
     </div>
   );

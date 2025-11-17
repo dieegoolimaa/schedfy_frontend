@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { format } from "date-fns";
 import { useCurrency } from "@/hooks/useCurrency";
 import { publicService } from "@/services/public.service";
 import { toast } from "sonner";
@@ -33,8 +34,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DateTimePicker } from "@/components/booking/date-time-picker";
-import type { TimeSlot } from "@/components/time-slot-picker";
 
 interface PublicEntity {
   id: string;
@@ -93,6 +92,11 @@ interface ServicePackage {
   status: string;
 }
 
+interface TimeSlot {
+  time: string;
+  professionalId?: string;
+}
+
 export function PublicEntityProfilePage() {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
@@ -115,6 +119,22 @@ export function PublicEntityProfilePage() {
   const [selectedProfessional, setSelectedProfessional] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+
+  // Package bookings - array to hold multiple appointments
+  const [packageBookings, setPackageBookings] = useState<
+    Array<{
+      serviceId: string;
+      serviceName: string;
+      date?: Date;
+      slot?: TimeSlot;
+      professionalId?: string;
+      availableSlots?: TimeSlot[];
+      serviceInstance?: number;
+      totalInstances?: number;
+    }>
+  >([]);
+
   const [clientData, setClientData] = useState({
     name: "",
     email: "",
@@ -214,68 +234,135 @@ export function PublicEntityProfilePage() {
   }, [selectedService, services, professionals]);
 
   const handleBooking = async () => {
-    if (!selectedService || !selectedDate || !selectedSlot) {
-      toast.error("Please select all booking details");
-      return;
-    }
-
     if (!clientData.name || !clientData.email || !clientData.phone) {
       toast.error("Please fill in all required information");
       return;
     }
 
-    setBooking(true);
-    try {
-      const service = services.find((s) => s.id === selectedService);
-      if (!service) {
-        toast.error("Service not found");
+    // Check if it's a package booking or single service booking
+    const isPackageBooking = selectedPackage && packageBookings.length > 0;
+
+    if (isPackageBooking) {
+      // Validate all package bookings have date and slot
+      if (packageBookings.some((b) => !b.date || !b.slot)) {
+        toast.error("Please schedule all services in the package");
         return;
       }
+    } else {
+      // Single service booking validation
+      if (!selectedService || !selectedDate || !selectedSlot) {
+        toast.error("Please select all booking details");
+        return;
+      }
+    }
 
-      const duration = service?.duration || 60;
-      const basePrice = service?.price || 0;
+    setBooking(true);
+    try {
+      if (isPackageBooking) {
+        // Create multiple bookings for package
+        const bookingPromises = packageBookings.map(async (pkgBooking) => {
+          const service = services.find((s) => s.id === pkgBooking.serviceId);
+          if (!service || !pkgBooking.date || !pkgBooking.slot) return null;
 
-      const [hours, minutes] = selectedSlot.time.split(":").map(Number);
-      const startDateTime = new Date(selectedDate);
-      startDateTime.setHours(hours, minutes, 0, 0);
+          const duration = service.duration || 60;
+          const basePrice = service.price || 0;
 
-      const endDateTime = new Date(startDateTime);
-      endDateTime.setMinutes(endDateTime.getMinutes() + duration);
+          const [hours, minutes] = pkgBooking.slot.time.split(":").map(Number);
+          const startDateTime = new Date(pkgBooking.date);
+          startDateTime.setHours(hours, minutes, 0, 0);
 
-      const bookingData = {
-        entityId: entity!.id,
-        serviceId: selectedService,
-        professionalId:
-          selectedSlot.professionalId || selectedProfessional || undefined,
-        clientInfo: {
-          name: clientData.name,
-          email: clientData.email,
-          phone: clientData.phone,
+          const endDateTime = new Date(startDateTime);
+          endDateTime.setMinutes(endDateTime.getMinutes() + duration);
+
+          const bookingData = {
+            entityId: entity!.id,
+            serviceId: pkgBooking.serviceId,
+            professionalId:
+              pkgBooking.slot.professionalId ||
+              pkgBooking.professionalId ||
+              undefined,
+            isPackageBooking: true,
+            clientInfo: {
+              name: clientData.name,
+              email: clientData.email,
+              phone: clientData.phone,
+              notes: clientData.notes || undefined,
+            },
+            startDateTime: startDateTime.toISOString(),
+            endDateTime: endDateTime.toISOString(),
+            pricing: {
+              basePrice: basePrice,
+              totalPrice: basePrice,
+              currency: "EUR",
+            },
+            status: "pending",
+            notes: clientData.notes || undefined,
+            createdBy: entity!.id,
+          };
+
+          return publicService.createBooking(entity!.id, bookingData as any);
+        });
+
+        await Promise.all(bookingPromises);
+
+        toast.success(
+          `${packageBookings.length} appointments confirmed! You will receive confirmation emails shortly.`
+        );
+      } else {
+        // Single service booking
+        const service = services.find((s) => s.id === selectedService);
+        if (!service) {
+          toast.error("Service not found");
+          return;
+        }
+
+        const duration = service?.duration || 60;
+        const basePrice = service?.price || 0;
+
+        const [hours, minutes] = selectedSlot!.time.split(":").map(Number);
+        const startDateTime = new Date(selectedDate!);
+        startDateTime.setHours(hours, minutes, 0, 0);
+
+        const endDateTime = new Date(startDateTime);
+        endDateTime.setMinutes(endDateTime.getMinutes() + duration);
+
+        const bookingData = {
+          entityId: entity!.id,
+          serviceId: selectedService,
+          professionalId:
+            selectedSlot!.professionalId || selectedProfessional || undefined,
+          clientInfo: {
+            name: clientData.name,
+            email: clientData.email,
+            phone: clientData.phone,
+            notes: clientData.notes || undefined,
+          },
+          startDateTime: startDateTime.toISOString(),
+          endDateTime: endDateTime.toISOString(),
+          pricing: {
+            basePrice: basePrice,
+            totalPrice: basePrice,
+            currency: "EUR",
+          },
+          status: "pending",
           notes: clientData.notes || undefined,
-        },
-        startDateTime: startDateTime.toISOString(),
-        endDateTime: endDateTime.toISOString(),
-        pricing: {
-          basePrice: basePrice,
-          totalPrice: basePrice,
-          currency: "EUR",
-        },
-        status: "pending",
-        notes: clientData.notes || undefined,
-        createdBy: entity!.id,
-      };
+          createdBy: entity!.id,
+        };
 
-      await publicService.createBooking(entity!.id, bookingData as any);
+        await publicService.createBooking(entity!.id, bookingData as any);
 
-      toast.success(
-        "Booking confirmed! You will receive a confirmation email shortly."
-      );
+        toast.success(
+          "Booking confirmed! You will receive a confirmation email shortly."
+        );
+      }
 
       // Reset form
       setSelectedService("");
+      setSelectedPackage("");
       setSelectedProfessional("");
       setSelectedDate(undefined);
       setSelectedSlot(null);
+      setPackageBookings([]);
       setClientData({ name: "", email: "", phone: "", notes: "" });
     } catch (error: any) {
       console.error("Booking failed:", error);
@@ -473,16 +560,26 @@ export function PublicEntityProfilePage() {
                   value={activeTab}
                   onValueChange={(v: any) => setActiveTab(v)}
                 >
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="services" className="gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Services ({services.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="packages" className="gap-2">
-                      <Package className="h-4 w-4" />
-                      Packages ({packages.length})
-                    </TabsTrigger>
-                  </TabsList>
+                  {/* Only show tabs if there are packages */}
+                  {packages.length > 0 ? (
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsTrigger value="services" className="gap-2">
+                        <Sparkles className="h-4 w-4" />
+                        Services ({services.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="packages" className="gap-2">
+                        <Package className="h-4 w-4" />
+                        Packages ({packages.length})
+                      </TabsTrigger>
+                    </TabsList>
+                  ) : (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Sparkles className="h-5 w-5" />
+                        Available Services
+                      </h3>
+                    </div>
+                  )}
 
                   {/* Services Tab */}
                   <TabsContent value="services" className="space-y-6">
@@ -551,14 +648,6 @@ export function PublicEntityProfilePage() {
                     ) : (
                       <div className="grid gap-4">
                         {packages.map((pkg) => {
-                          // Extract service IDs from package
-                          const pkgServiceIds =
-                            pkg.services?.map((s: any) => s.id || s._id || s) ||
-                            [];
-                          const pkgServices = services.filter((svc) =>
-                            pkgServiceIds.includes(svc.id)
-                          );
-
                           return (
                             <Card
                               key={pkg._id}
@@ -570,6 +659,51 @@ export function PublicEntityProfilePage() {
                               onClick={() => {
                                 setSelectedPackage(pkg._id);
                                 setSelectedService("");
+                                // Initialize bookings for all services in package with quantities
+                                const bookingEntries: any[] = [];
+                                pkg.services?.forEach((pkgService: any) => {
+                                  const serviceId =
+                                    pkgService.serviceId?.id ||
+                                    pkgService.serviceId?._id ||
+                                    pkgService.serviceId ||
+                                    pkgService.id ||
+                                    pkgService._id ||
+                                    pkgService;
+                                  const quantity = pkgService.quantity || 1;
+                                  const service = services.find(
+                                    (s) => s.id === serviceId
+                                  );
+
+                                  if (service) {
+                                    // Create multiple booking slots for quantity > 1
+                                    for (let i = 0; i < quantity; i++) {
+                                      bookingEntries.push({
+                                        serviceId: service.id,
+                                        serviceName: service.name,
+                                        date: undefined,
+                                        slot: undefined,
+                                        professionalId: undefined,
+                                        serviceInstance: i + 1,
+                                        totalInstances: quantity,
+                                      });
+                                    }
+                                  }
+                                });
+
+                                setPackageBookings(bookingEntries);
+
+                                // Scroll to booking form after a brief delay
+                                setTimeout(() => {
+                                  const bookingForm = document.querySelector(
+                                    '[data-booking-form="packages"]'
+                                  );
+                                  if (bookingForm) {
+                                    bookingForm.scrollIntoView({
+                                      behavior: "smooth",
+                                      block: "start",
+                                    });
+                                  }
+                                }, 100);
                               }}
                             >
                               <CardHeader>
@@ -596,11 +730,35 @@ export function PublicEntityProfilePage() {
                               </CardHeader>
                               <CardContent className="space-y-4">
                                 <div className="flex flex-wrap gap-2">
-                                  {pkgServices.map((service) => (
-                                    <Badge key={service.id} variant="outline">
-                                      {service.name}
-                                    </Badge>
-                                  ))}
+                                  {pkg.services?.map(
+                                    (pkgService: any, idx: number) => {
+                                      const serviceId =
+                                        pkgService.serviceId?.id ||
+                                        pkgService.serviceId?._id ||
+                                        pkgService.serviceId ||
+                                        pkgService.id ||
+                                        pkgService._id ||
+                                        pkgService;
+                                      const quantity = pkgService.quantity || 1;
+                                      const service = services.find(
+                                        (s) => s.id === serviceId
+                                      );
+
+                                      return service ? (
+                                        <Badge
+                                          key={`${serviceId}-${idx}`}
+                                          variant="outline"
+                                        >
+                                          {service.name}
+                                          {quantity > 1 && (
+                                            <span className="ml-1 font-bold">
+                                              x{quantity}
+                                            </span>
+                                          )}
+                                        </Badge>
+                                      ) : null;
+                                    }
+                                  )}
                                 </div>
                                 <div className="flex items-center justify-between pt-4 border-t">
                                   <div>
@@ -633,8 +791,405 @@ export function PublicEntityProfilePage() {
                   </TabsContent>
                 </Tabs>
 
-                {/* Booking Form */}
-                {selectedService && (
+                {/* Booking Form - Packages */}
+                {selectedPackage && packageBookings.length > 0 && (
+                  <div
+                    className="mt-8 space-y-6 pt-8 border-t"
+                    data-booking-form="packages"
+                  >
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">
+                        Schedule All Package Services
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Please schedule appointments for each service included
+                        in your package.
+                      </p>
+                    </div>
+
+                    {/* List of services to book */}
+                    <div className="space-y-4">
+                      {packageBookings.map((booking, index) => {
+                        const service = services.find(
+                          (s) => s.id === booking.serviceId
+                        );
+                        if (!service) return null;
+
+                        const isBooked = !!(booking.date && booking.slot);
+                        const instanceLabel =
+                          booking.totalInstances && booking.totalInstances > 1
+                            ? ` (${booking.serviceInstance} of ${booking.totalInstances})`
+                            : "";
+
+                        return (
+                          <Card
+                            key={`${booking.serviceId}-${index}`}
+                            className={isBooked ? "border-primary" : ""}
+                          >
+                            <CardHeader className="pb-3">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <CardTitle className="text-base">
+                                      {index + 1}. {service.name}
+                                      {instanceLabel}
+                                    </CardTitle>
+                                    {isBooked && (
+                                      <Badge
+                                        variant="default"
+                                        className="text-xs"
+                                      >
+                                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                                        Scheduled
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {service.duration} min
+                                    </span>
+                                    {isBooked &&
+                                      booking.date &&
+                                      booking.slot && (
+                                        <span className="flex items-center gap-1 text-primary">
+                                          <Calendar className="h-3 w-3" />
+                                          {format(
+                                            booking.date,
+                                            "MMM dd"
+                                          )} at {booking.slot.time}
+                                        </span>
+                                      )}
+                                  </div>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                              {/* Simple Date & Time Selection */}
+                              <div className="space-y-3">
+                                <div className="space-y-2">
+                                  <Label className="text-sm">
+                                    Select Date & Time
+                                  </Label>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <Input
+                                      type="date"
+                                      min={format(new Date(), "yyyy-MM-dd")}
+                                      value={
+                                        booking.date
+                                          ? format(booking.date, "yyyy-MM-dd")
+                                          : ""
+                                      }
+                                      onChange={async (e) => {
+                                        const date = e.target.value
+                                          ? new Date(e.target.value)
+                                          : undefined;
+                                        const updated = [...packageBookings];
+                                        updated[index] = {
+                                          ...updated[index],
+                                          date,
+                                          slot: undefined,
+                                          availableSlots: [],
+                                        };
+                                        setPackageBookings(updated);
+
+                                        // Fetch available slots for this date
+                                        if (date && entity?.id) {
+                                          try {
+                                            const response =
+                                              await publicService.getAvailableSlots(
+                                                entity.id,
+                                                {
+                                                  serviceId: booking.serviceId,
+                                                  date: format(
+                                                    date,
+                                                    "yyyy-MM-dd"
+                                                  ),
+                                                  professionalId:
+                                                    booking.professionalId,
+                                                }
+                                              );
+                                            const updatedWithSlots = [
+                                              ...packageBookings,
+                                            ];
+                                            updatedWithSlots[index] = {
+                                              ...updatedWithSlots[index],
+                                              date,
+                                              slot: undefined,
+                                              availableSlots: response.data,
+                                            };
+                                            setPackageBookings(
+                                              updatedWithSlots
+                                            );
+                                          } catch (error) {
+                                            console.error(
+                                              "Failed to fetch slots:",
+                                              error
+                                            );
+                                            toast.error(
+                                              "Failed to load available times"
+                                            );
+                                          }
+                                        }
+                                      }}
+                                      className="text-sm"
+                                    />
+                                    <select
+                                      value={booking.slot?.time || ""}
+                                      onChange={(e) => {
+                                        if (!e.target.value || !booking.date)
+                                          return;
+
+                                        // Find the selected slot
+                                        const selectedSlot = (
+                                          booking.availableSlots || []
+                                        ).find(
+                                          (s) => s.time === e.target.value
+                                        );
+
+                                        if (!selectedSlot) return;
+
+                                        const updated = [...packageBookings];
+                                        updated[index] = {
+                                          ...updated[index],
+                                          slot: selectedSlot,
+                                          professionalId:
+                                            selectedSlot.professionalId,
+                                        };
+                                        setPackageBookings(updated);
+                                      }}
+                                      disabled={
+                                        !booking.date ||
+                                        !booking.availableSlots ||
+                                        booking.availableSlots.length === 0
+                                      }
+                                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                      <option value="">Select time</option>
+                                      {(booking.availableSlots || [])
+                                        .filter((slot) => {
+                                          // Filter out times already booked by other services in this package
+                                          // that share the same professional on the same date
+                                          if (!booking.date) return true;
+
+                                          const currentService = services.find(
+                                            (s) => s.id === booking.serviceId
+                                          );
+                                          if (!currentService) return true;
+
+                                          const currentProfs =
+                                            currentService.professionalIds ||
+                                            [];
+
+                                          return !packageBookings.some(
+                                            (b, i) => {
+                                              // Skip current service
+                                              if (i === index) return false;
+
+                                              // Skip if other service has no date or slot
+                                              if (!b.date || !b.slot)
+                                                return false;
+
+                                              // Check if same date
+                                              if (
+                                                format(
+                                                  booking.date!,
+                                                  "yyyy-MM-dd"
+                                                ) !==
+                                                format(b.date, "yyyy-MM-dd")
+                                              ) {
+                                                return false;
+                                              }
+
+                                              // Check if they share professionals
+                                              const otherService =
+                                                services.find(
+                                                  (s) => s.id === b.serviceId
+                                                );
+                                              if (!otherService) return false;
+
+                                              const otherProfs =
+                                                otherService.professionalIds ||
+                                                [];
+                                              const sharedProfs =
+                                                currentProfs.filter((p) =>
+                                                  otherProfs.includes(p)
+                                                );
+
+                                              // If they share professionals and same time, filter it out
+                                              return (
+                                                sharedProfs.length > 0 &&
+                                                b.slot.time === slot.time
+                                              );
+                                            }
+                                          );
+                                        })
+                                        .map((slot) => (
+                                          <option
+                                            key={slot.time}
+                                            value={slot.time}
+                                          >
+                                            {slot.time}
+                                          </option>
+                                        ))}
+                                    </select>
+                                  </div>
+                                  {!booking.date && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Select a date first
+                                    </p>
+                                  )}
+                                  {booking.date &&
+                                    booking.availableSlots &&
+                                    booking.availableSlots.length === 0 && (
+                                      <p className="text-xs text-amber-600">
+                                        No available times for this date
+                                      </p>
+                                    )}
+                                  {booking.date &&
+                                    booking.availableSlots &&
+                                    booking.availableSlots.length > 0 &&
+                                    booking.availableSlots.filter((slot) => {
+                                      const currentService = services.find(
+                                        (s) => s.id === booking.serviceId
+                                      );
+                                      if (!currentService) return true;
+                                      const currentProfs =
+                                        currentService.professionalIds || [];
+                                      return !packageBookings.some((b, i) => {
+                                        if (i === index || !b.date || !b.slot)
+                                          return false;
+                                        if (
+                                          format(
+                                            booking.date!,
+                                            "yyyy-MM-dd"
+                                          ) !== format(b.date, "yyyy-MM-dd")
+                                        )
+                                          return false;
+                                        const otherService = services.find(
+                                          (s) => s.id === b.serviceId
+                                        );
+                                        if (!otherService) return false;
+                                        const otherProfs =
+                                          otherService.professionalIds || [];
+                                        const sharedProfs = currentProfs.filter(
+                                          (p) => otherProfs.includes(p)
+                                        );
+                                        return (
+                                          sharedProfs.length > 0 &&
+                                          b.slot.time === slot.time
+                                        );
+                                      });
+                                    }).length === 0 && (
+                                      <p className="text-xs text-amber-600">
+                                        All available times are already booked
+                                        by other services in this package
+                                      </p>
+                                    )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+
+                    {/* Client Information for Package */}
+                    <div className="space-y-4 pt-6 border-t">
+                      <h4 className="font-semibold">Your Information</h4>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="pkg-name">Full Name *</Label>
+                          <Input
+                            id="pkg-name"
+                            placeholder="John Doe"
+                            value={clientData.name}
+                            onChange={(e) =>
+                              setClientData({
+                                ...clientData,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="pkg-email">Email *</Label>
+                          <Input
+                            id="pkg-email"
+                            type="email"
+                            placeholder="john@example.com"
+                            value={clientData.email}
+                            onChange={(e) =>
+                              setClientData({
+                                ...clientData,
+                                email: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pkg-phone">Phone *</Label>
+                        <Input
+                          id="pkg-phone"
+                          type="tel"
+                          placeholder="+1 (555) 000-0000"
+                          value={clientData.phone}
+                          onChange={(e) =>
+                            setClientData({
+                              ...clientData,
+                              phone: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pkg-notes">Additional Notes</Label>
+                        <Textarea
+                          id="pkg-notes"
+                          placeholder="Any special requests or information..."
+                          rows={3}
+                          value={clientData.notes}
+                          onChange={(e) =>
+                            setClientData({
+                              ...clientData,
+                              notes: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* Book All Package Services Button */}
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      onClick={handleBooking}
+                      disabled={
+                        booking ||
+                        !clientData.name ||
+                        !clientData.email ||
+                        !clientData.phone ||
+                        packageBookings.some((b) => !b.date || !b.slot)
+                      }
+                    >
+                      {booking ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Confirming {packageBookings.length} Appointments...
+                        </>
+                      ) : (
+                        <>
+                          <Calendar className="h-5 w-5 mr-2" />
+                          Confirm {packageBookings.length} Package Appointments
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Booking Form - Services (only show if NO package selected) */}
+                {selectedService && !selectedPackage && (
                   <div className="mt-8 space-y-6 pt-8 border-t">
                     <h3 className="text-xl font-semibold">Booking Details</h3>
 
@@ -683,15 +1238,91 @@ export function PublicEntityProfilePage() {
                     {/* Date & Time Selection */}
                     <div className="space-y-2">
                       <Label>Select Date & Time</Label>
-                      <DateTimePicker
-                        entityId={entity.id}
-                        serviceId={selectedService}
-                        professionalId={selectedProfessional}
-                        selectedDate={selectedDate}
-                        onDateChange={setSelectedDate}
-                        selectedSlot={selectedSlot}
-                        onSlotSelect={setSelectedSlot}
-                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">
+                            Date
+                          </Label>
+                          <Input
+                            type="date"
+                            min={format(new Date(), "yyyy-MM-dd")}
+                            value={
+                              selectedDate
+                                ? format(selectedDate, "yyyy-MM-dd")
+                                : ""
+                            }
+                            onChange={async (e) => {
+                              const date = e.target.value
+                                ? new Date(e.target.value)
+                                : undefined;
+                              setSelectedDate(date);
+                              setSelectedSlot(null);
+                              setAvailableSlots([]);
+
+                              // Fetch available slots
+                              if (date && entity?.id && selectedService) {
+                                try {
+                                  const response =
+                                    await publicService.getAvailableSlots(
+                                      entity.id,
+                                      {
+                                        serviceId: selectedService,
+                                        date: format(date, "yyyy-MM-dd"),
+                                        professionalId: selectedProfessional,
+                                      }
+                                    );
+                                  setAvailableSlots(response.data);
+                                } catch (error) {
+                                  console.error(
+                                    "Failed to fetch slots:",
+                                    error
+                                  );
+                                  toast.error("Failed to load available times");
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">
+                            Time
+                          </Label>
+                          <select
+                            value={selectedSlot?.time || ""}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const slot = availableSlots.find(
+                                  (s) => s.time === e.target.value
+                                );
+                                if (slot) {
+                                  setSelectedSlot(slot);
+                                }
+                              }
+                            }}
+                            disabled={
+                              !selectedDate || availableSlots.length === 0
+                            }
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">Select time</option>
+                            {availableSlots.map((slot) => (
+                              <option key={slot.time} value={slot.time}>
+                                {slot.time}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      {!selectedDate && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Please select a date first
+                        </p>
+                      )}
+                      {selectedDate && availableSlots.length === 0 && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          No available times for this date
+                        </p>
+                      )}
                     </div>
 
                     {/* Client Information */}
@@ -792,7 +1423,6 @@ export function PublicEntityProfilePage() {
               </CardContent>
             </Card>
           </div>
-
           {/* Right Sidebar - Team & Info */}
           <div className="space-y-6">
             {/* Team */}
@@ -829,18 +1459,18 @@ export function PublicEntityProfilePage() {
             {/* Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact</CardTitle>
+                <CardTitle>Contact Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 {entity.phone && (
                   <a
                     href={`tel:${entity.phone}`}
                     className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                   >
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <Phone className="h-5 w-5 text-primary" />
                     </div>
-                    <span>{entity.phone}</span>
+                    <span className="font-medium">{entity.phone}</span>
                   </a>
                 )}
                 {entity.email && (
@@ -848,14 +1478,98 @@ export function PublicEntityProfilePage() {
                     href={`mailto:${entity.email}`}
                     className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
                   >
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <Mail className="h-5 w-5 text-primary" />
                     </div>
-                    <span>{entity.email}</span>
+                    <span className="font-medium break-all">
+                      {entity.email}
+                    </span>
                   </a>
+                )}
+                {entity.instagram && (
+                  <a
+                    href={`https://instagram.com/${entity.instagram.replace(
+                      "@",
+                      ""
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 text-sm hover:text-primary transition-colors"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Instagram className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">{entity.instagram}</span>
+                  </a>
+                )}
+                {entity.address && (
+                  <div className="flex items-start gap-3 text-sm pt-2 border-t">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <MapPin className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium mb-1">Address</p>
+                      <p className="text-muted-foreground">
+                        {entity.address.street && (
+                          <>
+                            {entity.address.street}
+                            <br />
+                          </>
+                        )}
+                        {entity.address.city && entity.address.state && (
+                          <>
+                            {entity.address.city}, {entity.address.state}
+                            <br />
+                          </>
+                        )}
+                        {entity.address.country}
+                      </p>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
+
+            {/* Working Hours */}
+            {entity.workingHours && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Working Hours</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {[
+                      { key: "monday", label: "Monday" },
+                      { key: "tuesday", label: "Tuesday" },
+                      { key: "wednesday", label: "Wednesday" },
+                      { key: "thursday", label: "Thursday" },
+                      { key: "friday", label: "Friday" },
+                      { key: "saturday", label: "Saturday" },
+                      { key: "sunday", label: "Sunday" },
+                    ].map(({ key, label }) => {
+                      const hours = entity.workingHours?.[key];
+                      return (
+                        <div
+                          key={key}
+                          className="flex justify-between items-center text-sm py-1"
+                        >
+                          <span className="font-medium">{label}</span>
+                          {hours && hours.enabled ? (
+                            <span className="text-muted-foreground">
+                              {hours.start} - {hours.end}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground italic">
+                              Closed
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

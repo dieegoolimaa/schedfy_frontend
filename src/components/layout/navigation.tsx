@@ -105,7 +105,10 @@ export function Navigation() {
             path: "/entity/bookings",
             label: t("nav.bookings", "Bookings"),
           },
-          { path: "/entity/services", label: t("nav.services", "Services") },
+          {
+            path: "/entity/services-packages",
+            label: t("nav.servicesPackages", "Services & Packages"),
+          },
           { path: "/entity/reviews", label: t("nav.reviews", "Reviews") },
           {
             path: "/entity/professionals",
@@ -120,10 +123,6 @@ export function Navigation() {
           {
             path: "/entity/commissions-management",
             label: t("nav.commissions", "Commissions"),
-          },
-          {
-            path: "/entity/package-management",
-            label: t("nav.packages", "Service Packages"),
           },
           { path: "/entity/reports", label: t("nav.reports", "Reports") },
           {
@@ -168,8 +167,8 @@ export function Navigation() {
             label: t("nav.bookings", "Bookings"),
           },
           {
-            path: "/individual/services",
-            label: t("nav.services", "Services"),
+            path: "/entity/services-packages",
+            label: t("nav.servicesPackages", "Services & Packages"),
           },
           {
             path: "/individual/reports",
@@ -240,7 +239,7 @@ export function Navigation() {
             label: t("nav.bookings", "Bookings"),
           },
           {
-            path: "/simple/services",
+            path: "/entity/services-packages",
             label: t("nav.services", "Services"),
           },
           {
@@ -637,6 +636,19 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Dev Tools Badge - Only in development */}
+            {import.meta.env.DEV && (
+              <Link to="/test-pages">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex items-center gap-1 text-xs border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950"
+                >
+                  🧪 Dev Tools
+                </Button>
+              </Link>
+            )}
+
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"

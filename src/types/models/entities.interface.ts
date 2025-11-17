@@ -19,6 +19,18 @@ export interface Entity {
     status?: string;
     createdAt?: string;
     updatedAt?: string;
+    notificationSettings?: {
+        emailEnabled: boolean;
+        smsEnabled: boolean;
+        whatsappEnabled: boolean;
+        notifications?: {
+            [key: string]: {
+                email?: boolean;
+                sms?: boolean;
+                whatsapp?: boolean;
+            };
+        };
+    };
 }
 
 export interface EntityProfile {

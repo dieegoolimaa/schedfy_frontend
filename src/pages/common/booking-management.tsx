@@ -660,15 +660,6 @@ export function BookingManagementPage() {
           icon={XCircle}
           variant="danger"
         />
-
-        {canViewPricing && (
-          <StatCard
-            title={t("stats.revenue", "Revenue")}
-            value={formatCurrency(stats.revenue)}
-            icon={DollarSign}
-            variant="success"
-          />
-        )}
       </StatsGrid>
 
       {/* Filters */}
