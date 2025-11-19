@@ -38,6 +38,7 @@ interface CalendarViewProps {
     end?: string; // "18:00"
   };
   asTab?: boolean; // If true, render without Dialog wrapper
+  defaultView?: ViewMode;
 }
 
 type ViewMode = "month" | "week" | "day";
@@ -50,10 +51,11 @@ export function CalendarView({
   description = "View and manage your appointments",
   workingHours = { start: "09:00", end: "18:00" },
   asTab = false,
+  defaultView = "month",
 }: CalendarViewProps) {
   const { formatCurrency } = useCurrency();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [viewMode, setViewMode] = useState<ViewMode>(defaultView);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showBookingDetails, setShowBookingDetails] = useState(false);
 
@@ -1040,13 +1042,13 @@ export function CalendarView({
                     variant="outline"
                     className={cn(
                       selectedBooking.status === "confirmed" &&
-                        "bg-blue-100 text-blue-800 border-blue-200",
+                        "bg-blue-100 text-blue-800",
                       selectedBooking.status === "completed" &&
-                        "bg-green-100 text-green-800 border-green-200",
+                        "bg-green-100 text-green-800",
                       selectedBooking.status === "pending" &&
-                        "bg-yellow-100 text-yellow-800 border-yellow-200",
+                        "bg-yellow-100 text-yellow-800",
                       selectedBooking.status === "cancelled" &&
-                        "bg-red-100 text-red-800 border-red-200"
+                        "bg-red-100 text-red-800"
                     )}
                   >
                     {selectedBooking.status}
@@ -1190,13 +1192,13 @@ export function CalendarView({
                   variant="outline"
                   className={cn(
                     selectedBooking.status === "confirmed" &&
-                      "bg-blue-100 text-blue-800 border-blue-200",
+                      "bg-blue-100 text-blue-800",
                     selectedBooking.status === "completed" &&
-                      "bg-green-100 text-green-800 border-green-200",
+                      "bg-green-100 text-green-800",
                     selectedBooking.status === "pending" &&
-                      "bg-yellow-100 text-yellow-800 border-yellow-200",
+                      "bg-yellow-100 text-yellow-800",
                     selectedBooking.status === "cancelled" &&
-                      "bg-red-100 text-red-800 border-red-200"
+                      "bg-red-100 text-red-800"
                   )}
                 >
                   {selectedBooking.status}

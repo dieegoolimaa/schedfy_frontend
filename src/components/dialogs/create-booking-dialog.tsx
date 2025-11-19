@@ -67,6 +67,7 @@ interface CreateBookingDialogProps {
   clientId?: string; // For showing available package subscriptions
   packages?: ServicePackage[]; // Available packages for purchase
   clientSubscriptions?: PackageSubscription[]; // Client's active subscriptions
+  onSuccess?: () => void; // Callback for successful booking creation (especially for recurring)
 }
 
 export function CreateBookingDialog({
@@ -78,6 +79,7 @@ export function CreateBookingDialog({
   clientId,
   packages: _packages = [],
   clientSubscriptions = [],
+  onSuccess,
 }: CreateBookingDialogProps) {
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
@@ -387,6 +389,11 @@ export function CreateBookingDialog({
           toast.success(
             `Created ${totalCreated} recurring bookings successfully!`
           );
+        }
+
+        // Trigger success callback for recurring bookings
+        if (onSuccess) {
+          onSuccess();
         }
       } else {
         // Regular booking creation (non-recurring)

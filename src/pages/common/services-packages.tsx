@@ -487,6 +487,9 @@ const ServicesAndPackages: React.FC = () => {
           basePrice: parseFloat(serviceFormData.price),
           currency: "EUR",
         },
+        bookingSettings: {
+          requiresManualConfirmation: serviceFormData.requireManualConfirmation,
+        },
         createdBy: user?.id!,
       };
 
@@ -530,6 +533,9 @@ const ServicesAndPackages: React.FC = () => {
         pricing: {
           basePrice: parseFloat(serviceFormData.price),
           currency: "EUR",
+        },
+        bookingSettings: {
+          requiresManualConfirmation: serviceFormData.requireManualConfirmation,
         },
         updatedBy: user?.id!,
       };

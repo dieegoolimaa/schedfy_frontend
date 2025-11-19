@@ -237,6 +237,10 @@ export function BookingCreator({
       entityId={entityId}
       services={mappedServices}
       onSubmit={handleSubmit}
+      onSuccess={() => {
+        // For recurring bookings handled internally by CreateBookingDialog
+        bookingCount.current += 1;
+      }}
     />
   );
 }

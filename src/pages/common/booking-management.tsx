@@ -486,64 +486,73 @@ export function BookingManagementPage() {
     });
   }, [bookings, clients, servicesFromApi, professionalsList]);
 
-  const filteredBookings = displayBookings.filter((booking) => {
-    const matchesSearch =
-      (booking.client?.name || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      (booking.service?.name || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      (booking.professional?.name || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+  const filteredBookings = displayBookings
+    .filter((booking) => {
+      const matchesSearch =
+        (booking.client?.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (booking.service?.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (booking.professional?.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
-    const matchesClientSearch =
-      clientSearchTerm === "" ||
-      (booking.client?.name || "")
-        .toLowerCase()
-        .includes(clientSearchTerm.toLowerCase()) ||
-      (booking.client?.email || "")
-        .toLowerCase()
-        .includes(clientSearchTerm.toLowerCase()) ||
-      (
-        (booking.client && "phone" in booking.client && booking.client.phone) ||
-        ""
-      ).includes(clientSearchTerm);
+      const matchesClientSearch =
+        clientSearchTerm === "" ||
+        (booking.client?.name || "")
+          .toLowerCase()
+          .includes(clientSearchTerm.toLowerCase()) ||
+        (booking.client?.email || "")
+          .toLowerCase()
+          .includes(clientSearchTerm.toLowerCase()) ||
+        (
+          (booking.client &&
+            "phone" in booking.client &&
+            booking.client.phone) ||
+          ""
+        ).includes(clientSearchTerm);
 
-    const matchesStatus =
-      statusFilter === "all" || booking.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || booking.status === statusFilter;
 
-    const today = new Date().toISOString().split("T")[0];
-    const bookingDate = booking.startTime
-      ? booking.startTime.split("T")[0]
-      : "";
-    const matchesDate =
-      dateFilter === "all" ||
-      (dateFilter === "today" && bookingDate === today) ||
-      (dateFilter === "upcoming" && new Date(bookingDate) > new Date(today)) ||
-      (dateFilter === "past" && new Date(bookingDate) < new Date(today));
+      const today = new Date().toISOString().split("T")[0];
+      const bookingDate = booking.startTime
+        ? booking.startTime.split("T")[0]
+        : "";
+      const matchesDate =
+        dateFilter === "all" ||
+        (dateFilter === "today" && bookingDate === today) ||
+        (dateFilter === "upcoming" &&
+          new Date(bookingDate) > new Date(today)) ||
+        (dateFilter === "past" && new Date(bookingDate) < new Date(today));
 
-    const matchesService =
-      serviceFilter === "all" || booking.service?.name === serviceFilter;
+      const matchesService =
+        serviceFilter === "all" || booking.service?.name === serviceFilter;
 
-    const matchesProfessional =
-      professionalFilter === "all" ||
-      booking.professional?.name === professionalFilter;
+      const matchesProfessional =
+        professionalFilter === "all" ||
+        booking.professional?.name === professionalFilter;
 
-    // Payment status removed as it's not in the Booking model
-    const matchesPayment = paymentFilter === "all"; // Placeholder
+      // Payment status removed as it's not in the Booking model
+      const matchesPayment = paymentFilter === "all"; // Placeholder
 
-    return (
-      matchesSearch &&
-      matchesClientSearch &&
-      matchesStatus &&
-      matchesDate &&
-      matchesService &&
-      matchesProfessional &&
-      matchesPayment
-    );
-  });
+      return (
+        matchesSearch &&
+        matchesClientSearch &&
+        matchesStatus &&
+        matchesDate &&
+        matchesService &&
+        matchesProfessional &&
+        matchesPayment
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.startTime || 0).getTime();
+      const dateB = new Date(b.startTime || 0).getTime();
+      return dateA - dateB;
+    });
 
   console.log("[BookingManagement] Filtering:", {
     totalBookings: displayBookings.length,
