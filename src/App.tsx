@@ -21,15 +21,14 @@ import { UpgradePage } from "./pages/upgrade";
 // (All consolidated in /common)
 
 // Business/Entity Plan pages
-import { UserManagementPage as EntityUserManagementPage } from "./pages/business/user-management";
-import { DataAnalyticsPage as EntityDataAnalyticsPage } from "./pages/business/data-analytics";
+// (All consolidated in /common)
 
 // Common pages (shared across all plan types)
 import { ClientProfilePage } from "./pages/common/client-profile";
 import { EntityProfilePage } from "./pages/common/entity-profile";
 import { BookingManagementPage } from "./pages/common/booking-management";
 import { ProfessionalsPage } from "./pages/common/professionals";
-import UnifiedReportsPage from "./pages/common/reports";
+import { OperationalReportsPage } from "./pages/common/operational-reports";
 import UnifiedSettingsPage from "./pages/common/settings";
 import UnifiedSubscriptionManagement from "./pages/common/subscription-management";
 import UnifiedDashboard from "./pages/common/dashboard";
@@ -78,6 +77,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/auth-context";
 import { RegionProvider } from "./contexts/region-context";
 import { RegionInitializer } from "./components/region-initializer";
+import { storage } from "./lib/storage";
 import { FeatureFlagsProvider } from "./contexts/feature-flags-context";
 
 function App() {
@@ -86,7 +86,7 @@ function App() {
   useEffect(() => {
     // Region detection is now handled by RegionProvider
     // Keep this for backward compatibility with manual locale changes
-    const storedLocale = localStorage.getItem("schedfy-locale");
+    const storedLocale = storage.getLocale();
     if (storedLocale && i18n.language !== storedLocale) {
       i18n.changeLanguage(storedLocale);
     }
@@ -192,7 +192,7 @@ function App() {
                     >
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedReportsPage />
+                          <OperationalReportsPage />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -284,7 +284,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedReportsPage />
+                          <OperationalReportsPage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -385,7 +385,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedReportsPage />
+                          <OperationalReportsPage />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
@@ -451,16 +451,7 @@ function App() {
                     </EntityRoute>
                   }
                 />
-                <Route
-                  path="/entity/users"
-                  element={
-                    <BusinessRoute>
-                      <Layout>
-                        <EntityUserManagementPage />
-                      </Layout>
-                    </BusinessRoute>
-                  }
-                />
+
                 <Route
                   path="/entity/subscription"
                   element={
@@ -501,16 +492,7 @@ function App() {
                     </IndividualPlusRoute>
                   }
                 />
-                <Route
-                  path="/entity/analytics"
-                  element={
-                    <EntityRoute>
-                      <Layout>
-                        <EntityDataAnalyticsPage />
-                      </Layout>
-                    </EntityRoute>
-                  }
-                />
+
                 <Route
                   path="/entity/settings"
                   element={
@@ -641,7 +623,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <UnifiedReportsPage />
+                        <OperationalReportsPage />
                       </Layout>
                     </ProtectedRoute>
                   }

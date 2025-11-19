@@ -15,7 +15,9 @@ import {
   setUserRegion as setStoredRegion,
   getAvailableRegions,
 } from "../lib/region-config";
-import { usePricing, PricingEntry } from "../hooks/usePricing";
+import { usePricing } from "../hooks/usePricing";
+import type { PricingEntry } from "../types/models/pricing.interface";
+import { storage } from "../lib/storage";
 
 interface RegionContextType {
   region: RegionCode;
@@ -56,7 +58,7 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
     setRegionState(detectedRegion);
 
     // Only update i18n language if user hasn't manually selected one
-    const manualLanguage = localStorage.getItem("schedfy-language");
+    const manualLanguage = storage.getLanguage();
     if (!manualLanguage) {
       const config = getRegionConfig(detectedRegion);
       if (i18n.language !== config.locale) {
@@ -73,13 +75,13 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
 
     // Only update language if user hasn't manually selected one
     // OR if switching to Brazil (always use PT for Brazil)
-    const manualLanguage = localStorage.getItem("schedfy-language");
+    const manualLanguage = storage.getLanguage();
     const config = getRegionConfig(newRegion);
 
     // Special handling: Brazil always uses pt-BR
     if (newRegion === "BR") {
       i18n.changeLanguage("pt");
-      localStorage.setItem("schedfy-language", "pt");
+      storage.setLanguage("pt");
     }
     // If no manual language choice, sync with region
     else if (!manualLanguage) {
@@ -99,7 +101,19 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
           billingPeriod as "monthly" | "yearly"
         );
         if (apiPrice) {
-          return apiPrice.displayPrice;
+          const price = apiPrice.price[billingPeriod as "monthly" | "yearly"];
+          const currency = apiPrice.currency;
+
+          // Format price using Intl.NumberFormat
+          try {
+            return new Intl.NumberFormat(regionConfig.locale, {
+              style: "currency",
+              currency: currency,
+            }).format(price);
+          } catch (e) {
+            // Fallback if formatting fails
+            return `${currency} ${price}`;
+          }
         }
       }
       // Fallback to static pricing from region config

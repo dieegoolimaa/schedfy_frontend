@@ -1,6 +1,66 @@
 {
   "title": "Gestão de Assinatura",
+  "subtitle": "Gerencie sua assinatura e complemento de insights de IA",
   "description": "Gerencie sua assinatura e cobrança",
+  "upgrade": "Fazer Upgrade",
+  "currentPlan": "Plano Atual",
+  "free": "Grátis",
+  "nextBilling": "Próxima cobrança",
+  "managePayment": "Gerenciar Pagamento",
+  "cancel": "Cancelar Assinatura",
+  "confirmCancel": "Tem certeza que deseja cancelar sua assinatura?",
+  "cancelSuccess": "Assinatura cancelada com sucesso",
+  "cancelError": "Erro ao cancelar assinatura",
+  "upgradeRequired": "Upgrade necessário para esta ação",
+  "included": "Incluído",
+  "selectPlan": "Selecionar Plano",
+  "error": "Erro ao carregar assinatura",
+  "features": {
+    "basicBooking": "Agendamento Básico",
+    "singleUser": "Usuário Único",
+    "basicSchedule": "Agenda Básica",
+    "basicReports": "Relatórios Básicos",
+    "aiInsights": "Insights de IA",
+    "multiUser": "Múltiplos Usuários",
+    "advancedBooking": "Agendamento Avançado",
+    "clientManagement": "Gestão de Clientes",
+    "advancedReports": "Relatórios Avançados",
+    "analytics": "Análises",
+    "unlimitedBooking": "Agendamento Ilimitado",
+    "premiumReports": "Relatórios Premium",
+    "advancedAnalytics": "Análises Avançadas",
+    "prioritySupport": "Suporte Prioritário"
+  },
+  "plan": {
+    "plan": "Plano",
+    "activeSince": "Ativo desde",
+    "status": {
+      "active": "Ativo",
+      "canceled": "Cancelado",
+      "past_due": "Atrasado"
+    },
+    "includedFeatures": "Recursos Incluídos",
+    "activeAddOns": "Complementos Ativos"
+  },
+  "planDescription": {
+    "simple": "Para quem está começando",
+    "individual": "Para profissionais autônomos",
+    "business": "Para equipes e empresas em crescimento"
+  },
+  "aiInsights": {
+    "title": "Insights de IA",
+    "description": "Receba recomendações inteligentes para seu negócio",
+    "enabled": "Insights de IA ativados",
+    "disabled": "Insights de IA desativados",
+    "toggleError": "Erro ao alterar status dos Insights de IA",
+    "activeMessage": "Você tem acesso total aos insights de IA"
+  },
+  "billingHistory": "Histórico de Cobrança",
+  "billingHistoryDescription": "Veja suas faturas passadas",
+  "upgradePrompt": {
+    "title": "Faça Upgrade do seu Plano",
+    "description": "Desbloqueie mais recursos para seu negócio"
+  },
   "current": {
     "title": "Plano Atual",
     "status": "Status",
@@ -14,17 +74,72 @@
     "period": "Período de Cobrança",
     "monthly": "Mensal",
     "yearly": "Anual",
-    "saveWithYearly": "Economize 20% com cobrança anual"
+    "save20": "Economize 20%",
+    "saveWithYearly": "Economize 20% com cobrança anual",
+    "perMonth": "por mês",
+    "perYear": "por ano",
+    "nextBilling": "Próxima cobrança",
+    "paymentMethod": {
+      "title": "Método de Pagamento",
+      "description": "Gerencie suas informações de pagamento",
+      "cardEnding": "Visa com final 4242",
+      "expires": "Expira em"
+    },
+    "information": {
+      "title": "Informações de Cobrança",
+      "description": "Atualize seus detalhes de cobrança",
+      "companyName": "Nome da Empresa",
+      "vatNumber": "Número de IVA/NIF",
+      "address": "Endereço",
+      "update": "Atualizar Informações de Cobrança"
+    }
   },
-  "addons": {
-    "title": "Complementos",
-    "description": "Aprimore sua assinatura com recursos adicionais"
+  "usage": {
+    "title": "Visão Geral de Uso",
+    "description": "Estatísticas de uso do mês atual",
+    "bookings": "Agendamentos",
+    "professionals": "Profissionais",
+    "storage": "Armazenamento",
+    "aiInsights": "Insights de IA"
+  },
+  "tabs": {
+    "changePlan": "Alterar Plano",
+    "addOns": "Complementos",
+    "billing": "Cobrança",
+    "invoices": "Faturas"
+  },
+  "addOns": {
+    "title": "Complementos Disponíveis",
+    "description": "Aprimore sua assinatura com recursos adicionais",
+    "active": "Ativo",
+    "aiInsights": {
+      "name": "Insights de Negócios com IA",
+      "description": "Análises avançadas e recomendações com IA",
+      "features": {
+        "predictive": "Análise preditiva",
+        "clientBehavior": "Insights de comportamento do cliente",
+        "optimization": "Dicas de otimização de negócios"
+      }
+    }
   },
   "plans": {
     "title": "Planos Disponíveis",
     "upgrade": "Fazer Upgrade",
+    "currentPlan": "Plano Atual",
     "mostPopular": "Mais Popular",
-    "features": "Recursos"
+    "features": "Recursos",
+    "simple": {
+      "name": "Simples",
+      "description": "Perfeito para começar"
+    },
+    "individual": {
+      "name": "Individual",
+      "description": "Recursos aprimorados para negócios em crescimento"
+    },
+    "business": {
+      "name": "Empresarial",
+      "description": "Solução completa para equipes"
+    }
   },
   "ai": {
     "title": "Insights de IA para Negócios",
@@ -32,12 +147,21 @@
   },
   "invoices": {
     "title": "Histórico de Cobrança",
+    "description": "Baixe e gerencie suas faturas",
     "invoice": "Fatura",
-    "download": "Baixar"
+    "download": "Baixar",
+    "status": {
+      "paid": "Pago",
+      "pending": "Pendente",
+      "failed": "Falhou"
+    }
   },
   "actions": {
     "changePlan": "Alterar Plano",
     "cancelSubscription": "Cancelar Assinatura",
-    "updatePayment": "Atualizar Método de Pagamento"
+    "updatePayment": "Atualizar Pagamento",
+    "downloadInvoice": "Baixar Fatura",
+    "update": "Atualizar",
+    "download": "Baixar"
   }
 }

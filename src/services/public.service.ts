@@ -66,7 +66,7 @@ export const publicService = {
      * Create a new booking (public)
      * Uses: POST /api/bookings
      */
-    createBooking: async (entityId: string, data: CreatePublicBookingRequest) => {
+    createBooking: async (data: CreatePublicBookingRequest) => {
         return apiClient.post(`/api/bookings`, data);
     },
 
@@ -79,7 +79,7 @@ export const publicService = {
      * This method is deprecated and should not be used.
      * @deprecated Use confirmBooking endpoint directly from bookings service instead
      */
-    verifyBooking: async (entityId: string, bookingId: string, verificationCode: string) => {
+    verifyBooking: async (_entityId: string, _bookingId: string, _verificationCode: string) => {
         // No verification endpoint exists - bookings are confirmed automatically or manually
         throw new Error('Booking verification endpoint does not exist. Bookings are auto-confirmed or require manual confirmation.');
     },
@@ -89,7 +89,7 @@ export const publicService = {
      * Uses: PATCH /api/bookings/:id/cancel
      */
     cancelBooking: async (
-        entityId: string,
+        _entityId: string,
         bookingId: string,
         verificationCode: string,
         reason?: string
@@ -104,7 +104,7 @@ export const publicService = {
      * Get professionals for an entity (public)
      * Uses: GET /api/users?entityId=...&role=professional&status=active
      */
-    getEntityProfessionals: async (entityId: string, serviceId?: string) => {
+    getEntityProfessionals: async (entityId: string, _serviceId?: string) => {
         const params: any = {
             entityId,
             role: 'professional',

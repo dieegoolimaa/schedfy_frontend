@@ -208,6 +208,38 @@ export function FinancialReportsPage() {
       .slice(0, 10);
   }, [filteredBookings, financialSummary.totalRevenue]);
 
+  // Revenue by Professional
+  const revenueByProfessional = useMemo(() => {
+    const completedBookings = filteredBookings.filter(
+      (b) => b.status === "completed"
+    );
+
+    const map = new Map<string, { revenue: number; bookings: number }>();
+
+    completedBookings.forEach((b) => {
+      const name = b.professional?.name || "Unassigned";
+      const revenue = b.service?.pricing?.basePrice || 0;
+
+      const current = map.get(name) || { revenue: 0, bookings: 0 };
+      map.set(name, {
+        revenue: current.revenue + revenue,
+        bookings: current.bookings + 1,
+      });
+    });
+
+    const totalRevenue = financialSummary.totalRevenue;
+
+    return Array.from(map.entries())
+      .map(([name, data]) => ({
+        name,
+        revenue: data.revenue,
+        bookings: data.bookings,
+        percentage: totalRevenue > 0 ? (data.revenue / totalRevenue) * 100 : 0,
+        averageTicket: data.bookings > 0 ? data.revenue / data.bookings : 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+  }, [filteredBookings, financialSummary.totalRevenue]);
+
   // Commission details calculated from revenue
   const commissionDetails = useMemo(() => {
     const totalRevenue = financialSummary.totalRevenue;
@@ -431,6 +463,9 @@ export function FinancialReportsPage() {
               <TabsTrigger value="overview" className="whitespace-nowrap">
                 {t("tabs.overview", "Overview")}
               </TabsTrigger>
+              <TabsTrigger value="professionals" className="whitespace-nowrap">
+                {t("tabs.professionals", "Professionals")}
+              </TabsTrigger>
               <TabsTrigger value="goals" className="whitespace-nowrap">
                 {t("tabs.goals", "Goals & Targets")}
               </TabsTrigger>
@@ -540,6 +575,61 @@ export function FinancialReportsPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="professionals" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue by Professional</CardTitle>
+                <CardDescription>
+                  Financial performance per professional
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Professional</TableHead>
+                      <TableHead className="text-right">Revenue</TableHead>
+                      <TableHead className="text-right">% of Total</TableHead>
+                      <TableHead className="text-right">Bookings</TableHead>
+                      <TableHead className="text-right">Avg. Ticket</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {revenueByProfessional.map((prof) => (
+                      <TableRow key={prof.name}>
+                        <TableCell className="font-medium">
+                          {prof.name}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(prof.revenue)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-sm text-muted-foreground">
+                              {prof.percentage.toFixed(1)}%
+                            </span>
+                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary"
+                                style={{ width: `${prof.percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {prof.bookings}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(prof.averageTicket)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="goals" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               {/* Set Goals Form */}
@@ -646,9 +736,9 @@ export function FinancialReportsPage() {
                         await createGoal({
                           entityId,
                           name: "Monthly Revenue",
-                          type: "revenue",
+                          type: "revenue" as any,
                           targetValue: parseFloat(goalFormData.revenueTarget),
-                          period: goalFormData.period,
+                          period: goalFormData.period as any,
                           startDate,
                           endDate,
                           metadata: { currency: "EUR" },
@@ -660,9 +750,9 @@ export function FinancialReportsPage() {
                         await createGoal({
                           entityId,
                           name: "Monthly Bookings",
-                          type: "bookings",
+                          type: "bookings" as any,
                           targetValue: parseFloat(goalFormData.bookingsTarget),
-                          period: goalFormData.period,
+                          period: goalFormData.period as any,
                           startDate,
                           endDate,
                         });
@@ -673,11 +763,11 @@ export function FinancialReportsPage() {
                         await createGoal({
                           entityId,
                           name: "New Clients",
-                          type: "new_clients",
+                          type: "new_clients" as any,
                           targetValue: parseFloat(
                             goalFormData.newClientsTarget
                           ),
-                          period: goalFormData.period,
+                          period: goalFormData.period as any,
                           startDate,
                           endDate,
                         });

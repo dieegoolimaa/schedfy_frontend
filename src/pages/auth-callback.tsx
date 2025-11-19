@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { getDashboardRoute } from "../lib/utils";
+import { storage } from "../lib/storage";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -57,8 +58,8 @@ export function AuthCallbackPage() {
         };
 
         // Store auth data
-        localStorage.setItem("schedfy-user", JSON.stringify(mockUser));
-        localStorage.setItem("schedfy-token", `mock-jwt-token-oauth-${state}`);
+        storage.setUser(mockUser);
+        storage.setToken(`mock-jwt-token-oauth-${state}`);
 
         toast.success(
           `Google ${state === "login" ? "login" : "registration"} successful!`

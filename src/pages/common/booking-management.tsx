@@ -9,7 +9,6 @@ import { useServices } from "../../hooks/useServices";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
 import { BookingCreator } from "../../components/booking";
-import { BookingsKanban } from "../../components/bookings/bookings-kanban";
 import {
   Card,
   CardContent,
@@ -79,7 +78,6 @@ import {
   DollarSign,
   Hourglass,
   LayoutList,
-  LayoutGrid,
 } from "lucide-react";
 import PaymentForm from "../../components/payments/PaymentForm";
 
@@ -100,6 +98,7 @@ export function BookingManagementPage() {
     cancelBooking,
     createBooking: _createBooking,
     updateBooking,
+    cancelRecurringSeries,
   } = useBookings({
     entityId,
     autoFetch: true,
@@ -117,10 +116,10 @@ export function BookingManagementPage() {
     useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
 
-  // View mode state (list or kanban)
-  const [viewMode, setViewMode] = useState<"list" | "kanban">(() => {
+  // View mode state (list or calendar)
+  const [viewMode, setViewMode] = useState<"list" | "calendar">(() => {
     const saved = localStorage.getItem("bookingsViewMode");
-    return (saved as "list" | "kanban") || "list";
+    return (saved as "list" | "calendar") || "calendar";
   });
 
   // Update localStorage when view mode changes
@@ -130,10 +129,14 @@ export function BookingManagementPage() {
 
   // Dialog state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isCalendarViewOpen, setIsCalendarViewOpen] = useState(false);
   const [selectedBookingDetails, setSelectedBookingDetails] =
     useState<any>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [recurringSeriesBookings, setRecurringSeriesBookings] = useState<any[]>(
+    []
+  );
+  const [isRecurringSeriesDialogOpen, setIsRecurringSeriesDialogOpen] =
+    useState(false);
 
   // Additional filter states
   const [serviceFilter, setServiceFilter] = useState("all");
@@ -174,6 +177,52 @@ export function BookingManagementPage() {
   const handleViewDetails = (booking: any) => {
     setSelectedBookingDetails(booking);
     setIsDetailsDialogOpen(true);
+  };
+
+  // View recurring series - filtra bookings já carregados
+  const handleViewRecurringSeries = (parentBookingId: string) => {
+    // Filtra bookings que fazem parte desta série
+    const seriesBookings = displayBookings.filter(
+      (b) =>
+        (b as any).recurrence?.parentBookingId === parentBookingId ||
+        b.id === parentBookingId
+    );
+
+    // Ordena por data
+    const sortedSeries = seriesBookings.sort((a, b) => {
+      const dateA = new Date(a.startTime || 0);
+      const dateB = new Date(b.startTime || 0);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    console.log(
+      "[BookingManagement] Recurring series bookings:",
+      sortedSeries.length,
+      "bookings"
+    );
+    setRecurringSeriesBookings(sortedSeries);
+    setIsRecurringSeriesDialogOpen(true);
+  };
+
+  // Cancel recurring series
+  const handleCancelRecurringSeries = async (parentBookingId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to cancel all future bookings in this series?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await cancelRecurringSeries(parentBookingId);
+      // Recarrega bookings para atualizar a lista
+      await fetchBookings();
+      setIsRecurringSeriesDialogOpen(false);
+      setIsDetailsDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to cancel recurring series:", error);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -568,8 +617,8 @@ export function BookingManagementPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/* View Mode Toggle - Hidden on mobile */}
-          <div className="hidden md:flex items-center border rounded-lg">
+          {/* View Mode Toggle */}
+          <div className="flex items-center border rounded-lg">
             <Button
               variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
@@ -582,29 +631,18 @@ export function BookingManagementPage() {
               </span>
             </Button>
             <Button
-              variant={viewMode === "kanban" ? "default" : "ghost"}
+              variant={viewMode === "calendar" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setViewMode("kanban")}
+              onClick={() => setViewMode("calendar")}
               className="rounded-l-none"
             >
-              <LayoutGrid className="h-4 w-4 mr-2" />
+              <CalendarIcon className="h-4 w-4 mr-2" />
               <span className="hidden lg:inline">
-                {t("views.kanban", "Kanban")}
+                {t("views.calendar", "Calendar")}
               </span>
             </Button>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCalendarViewOpen(true)}
-            className="hidden sm:flex"
-          >
-            <CalendarIcon className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">
-              {t("actions.calendar", "Calendar")}
-            </span>
-          </Button>
           <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">
@@ -743,21 +781,11 @@ export function BookingManagementPage() {
                       <SelectItem value="all">
                         {t("filters.allServices", "All Services")}
                       </SelectItem>
-                      <SelectItem value="Haircut & Styling">
-                        Haircut & Styling
-                      </SelectItem>
-                      <SelectItem value="Full Manicure">
-                        Full Manicure
-                      </SelectItem>
-                      <SelectItem value="Deep Tissue Massage">
-                        Deep Tissue Massage
-                      </SelectItem>
-                      <SelectItem value="Color Treatment">
-                        Color Treatment
-                      </SelectItem>
-                      <SelectItem value="Facial Treatment">
-                        Facial Treatment
-                      </SelectItem>
+                      {services.map((service) => (
+                        <SelectItem key={service.id} value={service.name}>
+                          {service.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -779,14 +807,20 @@ export function BookingManagementPage() {
                       <SelectItem value="all">
                         {t("filters.allProfessionals", "All Professionals")}
                       </SelectItem>
-                      <SelectItem value="João Santos">João Santos</SelectItem>
-                      <SelectItem value="Sofia Oliveira">
-                        Sofia Oliveira
-                      </SelectItem>
-                      <SelectItem value="Carlos Ferreira">
-                        Carlos Ferreira
-                      </SelectItem>
-                      <SelectItem value="Maria Silva">Maria Silva</SelectItem>
+                      {professionalsList.map((professional) => (
+                        <SelectItem
+                          key={professional.id || professional._id}
+                          value={
+                            `${professional.firstName || ""} ${
+                              professional.lastName || ""
+                            }`.trim() || professional.name
+                          }
+                        >
+                          {`${professional.firstName || ""} ${
+                            professional.lastName || ""
+                          }`.trim() || professional.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -840,9 +874,8 @@ export function BookingManagementPage() {
         </div>
       </div>
 
-      {/* Bookings View - List or Kanban (Kanban only on desktop) */}
-      {viewMode === "list" ||
-      (typeof window !== "undefined" && window.innerWidth < 768) ? (
+      {/* Bookings View - List or Calendar */}
+      {viewMode === "list" ? (
         <Card>
           <CardHeader>
             <CardTitle>Bookings ({filteredBookings.length})</CardTitle>
@@ -917,8 +950,45 @@ export function BookingManagementPage() {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <div className="font-medium">
+                              <div className="font-medium flex items-center gap-2">
                                 {booking.service?.name}
+                                {(booking as any).recurrence?.isRecurring && (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 text-blue-700 border-blue-200 text-xs cursor-pointer hover:bg-blue-100"
+                                    onClick={() => {
+                                      const parentId =
+                                        (booking as any).recurrence
+                                          ?.parentBookingId || booking.id;
+                                      handleViewRecurringSeries(parentId);
+                                    }}
+                                    title="Click to view all bookings in series"
+                                  >
+                                    <svg
+                                      className="h-3 w-3 mr-1"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                      />
+                                    </svg>
+                                    {(booking as any).recurrence
+                                      ?.currentOccurrence
+                                      ? `${
+                                          (booking as any).recurrence
+                                            .currentOccurrence
+                                        }/${
+                                          (booking as any).recurrence
+                                            .totalOccurrences || "?"
+                                        }`
+                                      : "Recurring"}
+                                  </Badge>
+                                )}
                               </div>
                               <div className="text-sm text-muted-foreground">
                                 {(booking.service as any)?.duration?.duration ||
@@ -1281,73 +1351,16 @@ export function BookingManagementPage() {
           </CardContent>
         </Card>
       ) : (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">
-                {t("kanban.title", "Kanban Board")} ({filteredBookings.length}{" "}
-                {t("kanban.bookings", "bookings")})
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {t(
-                  "kanban.description",
-                  "Drag and drop bookings to update their status"
-                )}
-              </p>
-            </div>
-          </div>
-          <BookingsKanban
-            bookings={filteredBookings.map((booking) => ({
-              _id: booking.id,
-              clientId: {
-                _id: booking.client?.id || "",
-                firstName: booking.client?.name?.split(" ")[0] || "Unknown",
-                lastName:
-                  booking.client?.name?.split(" ").slice(1).join(" ") || "",
-                avatar:
-                  booking.client && "avatar" in booking.client
-                    ? (booking.client.avatar as string | undefined)
-                    : undefined,
-              },
-              serviceId: booking.service
-                ? {
-                    _id: booking.service.id || "",
-                    name: booking.service.name || "",
-                  }
-                : undefined,
-              professionalId: booking.professional
-                ? {
-                    _id: booking.professional.id || "",
-                    firstName: booking.professional.name?.split(" ")[0] || "",
-                    lastName:
-                      booking.professional.name
-                        ?.split(" ")
-                        .slice(1)
-                        .join(" ") || "",
-                  }
-                : undefined,
-              date: booking.date || "",
-              time: booking.time || "",
-              status: booking.status === "no-show" ? "no_show" : booking.status,
-              totalPrice:
-                "price" in booking && typeof booking.price === "number"
-                  ? booking.price
-                  : "totalPrice" in booking &&
-                    typeof booking.totalPrice === "number"
-                  ? booking.totalPrice
-                  : 0,
-              isRecurring:
-                "recurrenceParentId" in booking && booking.recurrenceParentId
-                  ? true
-                  : false,
-              recurrenceParentId:
-                "recurrenceParentId" in booking
-                  ? (booking.recurrenceParentId as string)
-                  : undefined,
-            }))}
-            onRefresh={fetchBookings}
-          />
-        </div>
+        <Card>
+          <CardContent className="p-0 sm:p-6">
+            <CalendarView
+              open={false}
+              onOpenChange={() => {}}
+              bookings={filteredBookings}
+              asTab={true}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {/* Edit Dialog */}
@@ -1720,6 +1733,151 @@ export function BookingManagementPage() {
                 </div>
               )}
 
+              {/* Recurring Booking Information */}
+              {selectedBookingDetails.recurrence?.isRecurring && (
+                <div className="border-t pt-4">
+                  <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Recurring Booking
+                  </Label>
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Frequency:</span>
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-100 text-blue-800 border-blue-300"
+                      >
+                        {selectedBookingDetails.recurrence.frequency ===
+                        "weekly"
+                          ? "Weekly"
+                          : selectedBookingDetails.recurrence.frequency ===
+                            "daily"
+                          ? "Daily"
+                          : selectedBookingDetails.recurrence.frequency ===
+                            "monthly"
+                          ? "Monthly"
+                          : selectedBookingDetails.recurrence.frequency}
+                      </Badge>
+                    </div>
+                    {selectedBookingDetails.recurrence.interval &&
+                      selectedBookingDetails.recurrence.interval > 1 && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            Interval:
+                          </span>
+                          <span className="font-medium">
+                            Every {selectedBookingDetails.recurrence.interval}{" "}
+                            {selectedBookingDetails.recurrence.frequency ===
+                            "weekly"
+                              ? "weeks"
+                              : selectedBookingDetails.recurrence.frequency ===
+                                "daily"
+                              ? "days"
+                              : "months"}
+                          </span>
+                        </div>
+                      )}
+                    {selectedBookingDetails.recurrence.daysOfWeek &&
+                      selectedBookingDetails.recurrence.daysOfWeek.length >
+                        0 && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Days:</span>
+                          <span className="font-medium">
+                            {selectedBookingDetails.recurrence.daysOfWeek
+                              .map(
+                                (day: number) =>
+                                  [
+                                    "Sun",
+                                    "Mon",
+                                    "Tue",
+                                    "Wed",
+                                    "Thu",
+                                    "Fri",
+                                    "Sat",
+                                  ][day]
+                              )
+                              .join(", ")}
+                          </span>
+                        </div>
+                      )}
+                    {selectedBookingDetails.recurrence.currentOccurrence &&
+                      selectedBookingDetails.recurrence.totalOccurrences && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            Occurrence:
+                          </span>
+                          <span className="font-medium">
+                            {
+                              selectedBookingDetails.recurrence
+                                .currentOccurrence
+                            }{" "}
+                            of{" "}
+                            {selectedBookingDetails.recurrence.totalOccurrences}
+                          </span>
+                        </div>
+                      )}
+                    {selectedBookingDetails.recurrence.endDate && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Ends on:</span>
+                        <span className="font-medium">
+                          {new Date(
+                            selectedBookingDetails.recurrence.endDate
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
+                    )}
+                    {selectedBookingDetails.recurrence.parentBookingId &&
+                      !selectedBookingDetails.recurrence.currentOccurrence && (
+                        <div className="text-xs text-blue-700 mt-2">
+                          ℹ️ This is the first booking in a recurring series
+                        </div>
+                      )}
+                    {selectedBookingDetails.recurrence.parentBookingId &&
+                      selectedBookingDetails.recurrence.currentOccurrence &&
+                      selectedBookingDetails.recurrence.currentOccurrence >
+                        1 && (
+                        <div className="text-xs text-blue-700 mt-2">
+                          ℹ️ Part of recurring booking series
+                        </div>
+                      )}
+
+                    {/* View Series Button */}
+                    <div className="mt-3 pt-2 border-t border-blue-200">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          const parentId =
+                            selectedBookingDetails.recurrence.parentBookingId ||
+                            selectedBookingDetails.id;
+                          handleViewRecurringSeries(parentId);
+                        }}
+                      >
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        View All Bookings in Series
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button
                   variant="outline"
@@ -1756,17 +1914,215 @@ export function BookingManagementPage() {
         }}
       />
 
-      {/* Calendar View Dialog */}
-      <CalendarView
-        open={isCalendarViewOpen}
-        onOpenChange={setIsCalendarViewOpen}
-        bookings={bookings}
-        title={t("calendar.title", "Booking Calendar")}
-        description={t(
-          "calendar.description",
-          "View all bookings in calendar format"
-        )}
-      />
+      {/* Recurring Series Dialog */}
+      <Dialog
+        open={isRecurringSeriesDialogOpen}
+        onOpenChange={setIsRecurringSeriesDialogOpen}
+      >
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Recurring Booking Series
+            </DialogTitle>
+            <DialogDescription>
+              All bookings in this recurring series (
+              {recurringSeriesBookings.length} total)
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Series Summary */}
+            {recurringSeriesBookings.length > 0 &&
+              recurringSeriesBookings[0].recurrence && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Service:</span>
+                      <p className="font-medium">
+                        {recurringSeriesBookings[0].service?.name}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">
+                        Professional:
+                      </span>
+                      <p className="font-medium">
+                        {recurringSeriesBookings[0].professional?.name}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Frequency:</span>
+                      <p className="font-medium capitalize">
+                        {recurringSeriesBookings[0].recurrence.frequency}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">
+                        Total Bookings:
+                      </span>
+                      <p className="font-medium">
+                        {recurringSeriesBookings.length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            {/* Bookings List */}
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recurringSeriesBookings.map((booking, index) => (
+                    <TableRow key={booking.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {booking.startTime
+                              ? new Date(booking.startTime).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )
+                              : "N/A"}
+                          </div>
+                          <div className="text-sm text-muted-foreground flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {booking.startTime
+                              ? new Date(booking.startTime).toLocaleTimeString(
+                                  "en-US",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )
+                              : "N/A"}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">
+                          {booking.client?.name}
+                        </div>
+                        {booking.client?.phone && (
+                          <div className="text-sm text-muted-foreground">
+                            {booking.client.phone}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getStatusColor(booking.status)}
+                        >
+                          {getStatusIcon(booking.status)}
+                          <span className="ml-1 capitalize">
+                            {booking.status}
+                          </span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              handleViewDetails(booking);
+                              setIsRecurringSeriesDialogOpen(false);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {booking.status !== "cancelled" &&
+                            booking.status !== "completed" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={async () => {
+                                  if (confirm("Cancel this booking?")) {
+                                    try {
+                                      await cancelBooking(booking.id);
+                                      // Recarrega bookings e atualiza a série
+                                      await fetchBookings();
+                                      // Refiltra a série localmente
+                                      const parentId =
+                                        recurringSeriesBookings[0].recurrence
+                                          ?.parentBookingId ||
+                                        recurringSeriesBookings[0].id;
+                                      handleViewRecurringSeries(parentId);
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to cancel booking:",
+                                        error
+                                      );
+                                    }
+                                  }
+                                }}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setIsRecurringSeriesDialogOpen(false)}
+              >
+                Close
+              </Button>
+              {recurringSeriesBookings.length > 0 &&
+                recurringSeriesBookings[0].recurrence?.parentBookingId && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      const parentId =
+                        recurringSeriesBookings[0].recurrence.parentBookingId ||
+                        recurringSeriesBookings[0].id;
+                      handleCancelRecurringSeries(parentId);
+                    }}
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Cancel All Future Bookings
+                  </Button>
+                )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2,13 +2,13 @@
  * Packages DTOs
  */
 
-import { PackageRecurrence } from '../enums';
+
 
 export interface CreatePackageDto {
     entityId: string;
     name: string;
     description?: string;
-    services: string[]; // Array of service IDs
+    services: { serviceId: string; quantity: number }[]; // Array of service objects with quantity
     pricing: {
         packagePrice: number;
         currency: string;
@@ -23,7 +23,7 @@ export interface CreatePackageDto {
 export interface UpdatePackageDto {
     name?: string;
     description?: string;
-    services?: string[];
+    services?: { serviceId: string; quantity: number }[];
     pricing?: {
         packagePrice: number;
         currency: string;

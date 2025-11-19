@@ -1,14 +1,14 @@
 /**
  * Packages Interfaces
+ * Matches backend schema structure
  */
 
 import { PackageStatus, PackageRecurrence } from '../enums';
+import type { Service } from './services.interface';
 
 export interface PackageService {
-    serviceId: string;
-    serviceName?: string;
+    serviceId: string | Service; // Can be populated
     quantity: number;
-    usedQuantity?: number;
 }
 
 export interface ServicePackage {
@@ -17,18 +17,22 @@ export interface ServicePackage {
     name: string;
     description?: string;
     services: PackageService[];
-    price: number;
-    discountPercentage?: number;
-    finalPrice: number;
-    validity: {
-        type: 'days' | 'months' | 'unlimited';
-        value?: number;
+    pricing: {
+        originalPrice: number;
+        packagePrice: number;
+        discount: number;
+        currency: string;
     };
-    recurrence?: PackageRecurrence;
+    recurrence: PackageRecurrence;
+    validity: number; // Days
+    sessionsIncluded: number;
     status: PackageStatus;
-    isActive: boolean;
-    maxSubscriptions?: number;
-    currentSubscriptions?: number;
+    allowOnlineBooking: boolean;
+    stripePriceId?: string;
+    stripeProductId?: string;
+    metadata?: Record<string, string>;
+    createdBy: string;
+    updatedBy?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -36,25 +40,20 @@ export interface ServicePackage {
 export interface PackageSubscription {
     _id: string;
     entityId: string;
-    packageId: string;
-    package?: ServicePackage;
-    clientId: string;
-    clientName?: string;
-    purchaseDate: string;
-    expirationDate?: string;
-    status: 'active' | 'expired' | 'cancelled' | 'completed';
-    services: {
-        serviceId: string;
-        serviceName?: string;
-        totalQuantity: number;
-        usedQuantity: number;
-        remainingQuantity: number;
-    }[];
-    totalValue: number;
-    paidValue: number;
-    paymentStatus: 'pending' | 'paid' | 'partial' | 'refunded';
+    packageId: string | ServicePackage;
+    clientId: string | {
+        _id: string;
+        name: string;
+        email: string;
+        phone?: string;
+    };
+    status: 'active' | 'expired' | 'cancelled' | 'paused' | 'completed';
+    startDate: string;
+    expiryDate: string;
+    sessionsUsed: number;
+    sessionsTotal: number;
     autoRenew: boolean;
-    nextRenewalDate?: string;
+    paymentStatus?: 'pending' | 'paid' | 'partial' | 'refunded';
     createdAt: string;
     updatedAt: string;
 }

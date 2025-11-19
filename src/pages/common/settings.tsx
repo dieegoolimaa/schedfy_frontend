@@ -20,32 +20,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
-import { Separator } from "../../components/ui/separator";
 import { BusinessProfileManager } from "../../components/business-profile-manager";
-import {
-  User,
-  Bell,
-  Shield,
-  Palette,
-  Save,
-  Building2,
-  Clock,
-} from "lucide-react";
+import { User, Shield, Save, Building2, Clock } from "lucide-react";
 
 /**
  * Unified Settings Page - Adapts to user's plan (Simple, Individual, Business)
  * Consolidates all settings variations into a single adaptive component
  */
 export default function UnifiedSettingsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("settings");
   const { user } = useAuth();
   const plan = user?.plan || "simple";
   const [activeTab, setActiveTab] = useState(
@@ -72,17 +56,22 @@ export default function UnifiedSettingsPage() {
             name: response.data.name || "",
             description: response.data.description || "",
             address: response.data.address || "",
-            phone: (response.data as any).contactInfo?.phone || "",
-            email: (response.data as any).contactInfo?.email || "",
-            website: (response.data as any).contactInfo?.website || "",
-            publicSlug: (response.data as any).publicSlug || "",
-            logo: (response.data as any).branding?.logo || "",
-            coverImage: (response.data as any).branding?.coverImage || "",
+            phone: response.data.phone || "",
+            email: response.data.email || "",
+            website: response.data.website || "",
+            publicSlug: response.data.username || "",
+            logo: response.data.logo || "",
+            coverImage: response.data.banner || "",
           });
+
+          // Initialize working hours if available
+          if ((response.data as any).workingHours) {
+            setWorkingHours((response.data as any).workingHours);
+          }
         }
       } catch (error) {
         console.error("Failed to load entity:", error);
-        toast.error(t("settings.errors.loadFailed"));
+        toast.error(t("errors.loadFailed"));
       } finally {
         setLoadingEntity(false);
       }
@@ -157,26 +146,6 @@ export default function UnifiedSettingsPage() {
     },
   });
 
-  // Notification Settings
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    appointmentReminders: true,
-    marketingEmails: false,
-    newBookingAlert: true,
-    cancellationAlert: true,
-  });
-
-  // Appearance Settings
-  const [appearanceSettings, setAppearanceSettings] = useState({
-    theme: "light",
-    language: "en",
-    currency: "EUR",
-    timezone: "Europe/Lisbon",
-    dateFormat: "dd/MM/yyyy",
-    timeFormat: "24h",
-  });
-
   // Privacy Settings
   const [privacySettings, setPrivacySettings] = useState({
     profileVisible: true,
@@ -194,33 +163,39 @@ export default function UnifiedSettingsPage() {
         name: profileData.name,
         description: profileData.description,
         address: profileData.address,
+        phone: profileData.phone,
+        website: profileData.website,
       } as any);
-      toast.success(t("settings.success.profileSaved"));
+      toast.success(t("success.profileSaved"));
     } catch (error) {
       console.error("Failed to save profile:", error);
-      toast.error(t("settings.errors.saveFailed"));
+      toast.error(t("errors.saveFailed"));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveSettings = () => {
-    toast.success(t("settings.success.settingsSaved"));
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true);
+
+      // Save Working Hours if applicable
+      if (plan === "business" || plan === "individual") {
+        await entitiesService.updateWorkingHours(workingHours);
+      }
+
+      // Note: Appearance settings are typically local or user-specific,
+      // and Privacy settings might need a specific endpoint if not part of profile.
+      // For now, we focus on saving Working Hours as requested.
+
+      toast.success(t("success.settingsSaved"));
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+      toast.error(t("errors.saveFailed"));
+    } finally {
+      setSaving(false);
+    }
   };
-
-  const languages = [
-    { value: "en", label: "English" },
-    { value: "pt", label: "Português" },
-    { value: "es", label: "Español" },
-    { value: "fr", label: "Français" },
-  ];
-
-  const timezones = [
-    { value: "Europe/Lisbon", label: "Europe/Lisbon (GMT+0)" },
-    { value: "Europe/London", label: "Europe/London (GMT+0)" },
-    { value: "Europe/Paris", label: "Europe/Paris (GMT+1)" },
-    { value: "America/New_York", label: "America/New_York (GMT-5)" },
-  ];
 
   if (loadingEntity) {
     return (
@@ -234,10 +209,8 @@ export default function UnifiedSettingsPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t("settings.title")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("settings.description")}
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
       </div>
 
@@ -250,30 +223,22 @@ export default function UnifiedSettingsPage() {
           {plan === "business" && (
             <TabsTrigger value="business" className="gap-2">
               <Building2 className="w-4 h-4" />
-              {t("settings.tabs.business")}
+              {t("tabs.business")}
             </TabsTrigger>
           )}
           <TabsTrigger value="profile" className="gap-2">
             <User className="w-4 h-4" />
-            {t("settings.tabs.profile")}
+            {t("tabs.profile")}
           </TabsTrigger>
           {(plan === "business" || plan === "individual") && (
             <TabsTrigger value="hours" className="gap-2">
               <Clock className="w-4 h-4" />
-              {t("settings.tabs.workingHours")}
+              {t("tabs.workingHours")}
             </TabsTrigger>
           )}
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="w-4 h-4" />
-            {t("settings.tabs.notifications")}
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="gap-2">
-            <Palette className="w-4 h-4" />
-            {t("settings.tabs.appearance")}
-          </TabsTrigger>
           <TabsTrigger value="privacy" className="gap-2">
             <Shield className="w-4 h-4" />
-            {t("settings.tabs.privacy")}
+            {t("tabs.privacy")}
           </TabsTrigger>
         </TabsList>
 
@@ -281,17 +246,24 @@ export default function UnifiedSettingsPage() {
         {plan === "business" && (
           <TabsContent value="business" className="space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>{t("settings.business.title")}</CardTitle>
-                <CardDescription>
-                  {t("settings.business.description")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {entity && (
                   <BusinessProfileManager
-                    entityId={(entity as any).id || user?.entityId || ""}
-                    entityType={(entity as any).type || "business"}
+                    entityId={entity.id || user?.entityId || ""}
+                    entityType={entity.plan || "business"}
+                    initialData={{
+                      businessName: entity.name,
+                      username: entity.username,
+                      description: entity.description,
+                      address: entity.address,
+                      phone: entity.phone,
+                      email: entity.email,
+                      website: entity.website,
+                      logo: entity.logo,
+                      banner: entity.banner,
+                      publicPageEnabled:
+                        (entity as any).publicProfile?.enabled ?? true,
+                    }}
                   />
                 )}
               </CardContent>
@@ -303,15 +275,13 @@ export default function UnifiedSettingsPage() {
         <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t("settings.profile.title")}</CardTitle>
-              <CardDescription>
-                {t("settings.profile.description")}
-              </CardDescription>
+              <CardTitle>{t("profile.title")}</CardTitle>
+              <CardDescription>{t("profile.description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">{t("settings.profile.name")}</Label>
+                  <Label htmlFor="name">{t("profile.name")}</Label>
                   <Input
                     id="name"
                     value={profileData.name}
@@ -321,7 +291,7 @@ export default function UnifiedSettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">{t("settings.profile.phone")}</Label>
+                  <Label htmlFor="phone">{t("profile.phone")}</Label>
                   <Input
                     id="phone"
                     value={profileData.phone}
@@ -333,7 +303,7 @@ export default function UnifiedSettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">{t("settings.profile.email")}</Label>
+                <Label htmlFor="email">{t("profile.email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -345,9 +315,7 @@ export default function UnifiedSettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">
-                  {t("settings.profile.description")}
-                </Label>
+                <Label htmlFor="description">{t("profile.description")}</Label>
                 <Textarea
                   id="description"
                   rows={4}
@@ -362,7 +330,7 @@ export default function UnifiedSettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">{t("settings.profile.address")}</Label>
+                <Label htmlFor="address">{t("profile.address")}</Label>
                 <Input
                   id="address"
                   value={profileData.address}
@@ -373,7 +341,7 @@ export default function UnifiedSettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website">{t("settings.profile.website")}</Label>
+                <Label htmlFor="website">{t("profile.website")}</Label>
                 <Input
                   id="website"
                   type="url"
@@ -387,9 +355,7 @@ export default function UnifiedSettingsPage() {
               <div className="flex justify-end">
                 <Button onClick={handleSaveProfile} disabled={saving}>
                   <Save className="w-4 h-4 mr-2" />
-                  {saving
-                    ? t("settings.actions.saving")
-                    : t("settings.actions.save")}
+                  {saving ? t("actions.saving") : t("actions.save")}
                 </Button>
               </div>
             </CardContent>
@@ -401,60 +367,72 @@ export default function UnifiedSettingsPage() {
           <TabsContent value="hours" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>{t("settings.workingHours.title")}</CardTitle>
+                <CardTitle>{t("workingHours.title")}</CardTitle>
                 <CardDescription>
-                  {t("settings.workingHours.description")}
+                  {t("workingHours.description")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Object.entries(workingHours).map(([day, hours]) => (
-                  <div
-                    key={day}
-                    className="flex items-center gap-4 p-4 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-2 w-32">
-                      <Switch
-                        checked={hours.enabled}
-                        onCheckedChange={(checked) =>
-                          setWorkingHours({
-                            ...workingHours,
-                            [day]: { ...hours, enabled: checked },
-                          })
-                        }
-                      />
-                      <Label className="capitalize">{day}</Label>
-                    </div>
-                    {hours.enabled && (
-                      <div className="flex gap-2 flex-1">
-                        <Input
-                          type="time"
-                          value={hours.start}
-                          onChange={(e) =>
+                {Object.entries(workingHours)
+                  .filter(([day]) =>
+                    [
+                      "monday",
+                      "tuesday",
+                      "wednesday",
+                      "thursday",
+                      "friday",
+                      "saturday",
+                      "sunday",
+                    ].includes(day)
+                  )
+                  .map(([day, hours]) => (
+                    <div
+                      key={day}
+                      className="flex items-center gap-4 p-4 border rounded-lg"
+                    >
+                      <div className="flex items-center gap-2 w-32">
+                        <Switch
+                          checked={hours.enabled}
+                          onCheckedChange={(checked) =>
                             setWorkingHours({
                               ...workingHours,
-                              [day]: { ...hours, start: e.target.value },
+                              [day]: { ...hours, enabled: checked },
                             })
                           }
                         />
-                        <span className="self-center">-</span>
-                        <Input
-                          type="time"
-                          value={hours.end}
-                          onChange={(e) =>
-                            setWorkingHours({
-                              ...workingHours,
-                              [day]: { ...hours, end: e.target.value },
-                            })
-                          }
-                        />
+                        <Label className="capitalize">{day}</Label>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {hours.enabled && (
+                        <div className="flex gap-2 flex-1">
+                          <Input
+                            type="time"
+                            value={hours.start}
+                            onChange={(e) =>
+                              setWorkingHours({
+                                ...workingHours,
+                                [day]: { ...hours, start: e.target.value },
+                              })
+                            }
+                          />
+                          <span className="self-center">-</span>
+                          <Input
+                            type="time"
+                            value={hours.end}
+                            onChange={(e) =>
+                              setWorkingHours({
+                                ...workingHours,
+                                [day]: { ...hours, end: e.target.value },
+                              })
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 <div className="flex justify-end">
-                  <Button onClick={handleSaveSettings}>
+                  <Button onClick={handleSaveSettings} disabled={saving}>
                     <Save className="w-4 h-4 mr-2" />
-                    {t("settings.actions.save")}
+                    {saving ? t("actions.saving") : t("actions.save")}
                   </Button>
                 </div>
               </CardContent>
@@ -462,207 +440,19 @@ export default function UnifiedSettingsPage() {
           </TabsContent>
         )}
 
-        {/* Notifications Tab */}
-        <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("settings.notifications.title")}</CardTitle>
-              <CardDescription>
-                {t("settings.notifications.description")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>{t("settings.notifications.email")}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t("settings.notifications.emailDesc")}
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationSettings.emailNotifications}
-                  onCheckedChange={(checked) =>
-                    setNotificationSettings({
-                      ...notificationSettings,
-                      emailNotifications: checked,
-                    })
-                  }
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>{t("settings.notifications.sms")}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t("settings.notifications.smsDesc")}
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationSettings.smsNotifications}
-                  onCheckedChange={(checked) =>
-                    setNotificationSettings({
-                      ...notificationSettings,
-                      smsNotifications: checked,
-                    })
-                  }
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>{t("settings.notifications.reminders")}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t("settings.notifications.remindersDesc")}
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationSettings.appointmentReminders}
-                  onCheckedChange={(checked) =>
-                    setNotificationSettings({
-                      ...notificationSettings,
-                      appointmentReminders: checked,
-                    })
-                  }
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSettings}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {t("settings.actions.save")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Appearance Tab */}
-        <TabsContent value="appearance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("settings.appearance.title")}</CardTitle>
-              <CardDescription>
-                {t("settings.appearance.description")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>{t("settings.appearance.theme")}</Label>
-                  <Select
-                    value={appearanceSettings.theme}
-                    onValueChange={(value) =>
-                      setAppearanceSettings({
-                        ...appearanceSettings,
-                        theme: value,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="system">System</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t("settings.appearance.language")}</Label>
-                  <Select
-                    value={appearanceSettings.language}
-                    onValueChange={(value) =>
-                      setAppearanceSettings({
-                        ...appearanceSettings,
-                        language: value,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map((lang) => (
-                        <SelectItem key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t("settings.appearance.timezone")}</Label>
-                  <Select
-                    value={appearanceSettings.timezone}
-                    onValueChange={(value) =>
-                      setAppearanceSettings({
-                        ...appearanceSettings,
-                        timezone: value,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timezones.map((tz) => (
-                        <SelectItem key={tz.value} value={tz.value}>
-                          {tz.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t("settings.appearance.currency")}</Label>
-                  <Select
-                    value={appearanceSettings.currency}
-                    onValueChange={(value) =>
-                      setAppearanceSettings({
-                        ...appearanceSettings,
-                        currency: value,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="GBP">GBP (£)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSettings}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {t("settings.actions.save")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         {/* Privacy Tab */}
         <TabsContent value="privacy" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t("settings.privacy.title")}</CardTitle>
-              <CardDescription>
-                {t("settings.privacy.description")}
-              </CardDescription>
+              <CardTitle>{t("privacy.title")}</CardTitle>
+              <CardDescription>{t("privacy.description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>{t("settings.privacy.profileVisible")}</Label>
+                  <Label>{t("privacy.profileVisible")}</Label>
                   <p className="text-sm text-muted-foreground">
-                    {t("settings.privacy.profileVisibleDesc")}
+                    {t("privacy.profileVisibleDesc")}
                   </p>
                 </div>
                 <Switch
@@ -675,28 +465,10 @@ export default function UnifiedSettingsPage() {
                   }
                 />
               </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>{t("settings.privacy.twoFactor")}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t("settings.privacy.twoFactorDesc")}
-                  </p>
-                </div>
-                <Switch
-                  checked={privacySettings.twoFactorAuth}
-                  onCheckedChange={(checked) =>
-                    setPrivacySettings({
-                      ...privacySettings,
-                      twoFactorAuth: checked,
-                    })
-                  }
-                />
-              </div>
               <div className="flex justify-end">
                 <Button onClick={handleSaveSettings}>
                   <Save className="w-4 h-4 mr-2" />
-                  {t("settings.actions.save")}
+                  {t("actions.save")}
                 </Button>
               </div>
             </CardContent>

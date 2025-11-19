@@ -157,8 +157,8 @@ export function BookingCreator({
           totalPrice: selectedService.price || 0,
           currency: "EUR",
         },
-        // Created by (REQUIRED by backend)
-        createdBy: user?.id || "",
+        // Created by (REQUIRED by backend) - fallback to _id or entityId
+        createdBy: user?.id || (user as any)?._id || entityId,
         // Plan-specific fields
         ...(planType === "simple" && {
           status: "confirmed", // Simple plan auto-confirms
@@ -170,7 +170,31 @@ export function BookingCreator({
         }),
       };
 
+      // Validate required fields before submitting
+      if (!apiData.entityId) {
+        throw new Error("Entity ID is required");
+      }
+      if (!apiData.serviceId) {
+        throw new Error("Service ID is required");
+      }
+      if (!apiData.createdBy) {
+        throw new Error("User ID is required (createdBy)");
+      }
+      if (!apiData.startDateTime || !apiData.endDateTime) {
+        throw new Error("Start and end date/time are required");
+      }
+      if (!apiData.clientInfo?.name || !apiData.clientInfo?.phone) {
+        throw new Error("Client name and phone are required");
+      }
+
       console.log("[BookingCreator] Creating booking:", apiData);
+      console.log("[BookingCreator] User context:", {
+        userId: user?.id,
+        userIdType: typeof user?.id,
+        userObjectId: (user as any)?._id,
+        entityId,
+        createdBy: apiData.createdBy,
+      });
 
       await createBooking(apiData);
 

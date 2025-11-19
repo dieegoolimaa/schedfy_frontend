@@ -1,32 +1,41 @@
 /**
  * Services Module Interfaces - Frontend
+ * Matches backend schema structure
  */
 
 export interface Service {
-    id: string;
+    _id: string;
+    id?: string; // Alias for _id
     entityId: string;
     name: string;
-    description: string;
-    category: string;
-    price: number;
-    currency: string;
-    duration: number; // in minutes
-    isActive: boolean;
-    isPublic: boolean;
-    imageUrl?: string;
-    slug: string;
-    sortOrder: number;
-    professionalIds: string[];
+    description?: string;
+    category?: string;
+    status: 'active' | 'inactive' | 'draft';
+    duration: {
+        durationType: 'fixed' | 'variable';
+        duration: number;
+        minDuration?: number;
+        maxDuration?: number;
+        bufferBefore: number;
+        bufferAfter: number;
+    };
+    pricing: {
+        basePrice: number;
+        currency: string;
+        priceType: 'fixed' | 'starting_from';
+        discounts?: Array<{
+            name: string;
+            discountType: 'percentage' | 'fixed';
+            value: number;
+            conditions?: string;
+            validFrom?: Date;
+            validUntil?: Date;
+            isActive: boolean;
+        }>;
+    };
     assignedProfessionals?: string[];
-    bookingCount: number;
-    createdAt: string;
-    updatedAt: string;
-    status?: 'active' | 'inactive' | 'draft';
-    bookings?: number;
-    rating?: number;
-    popularity?: number;
-    image?: string;
-    requiresManualConfirmation?: boolean;
+    professionals?: string[]; // Alias
+    professionalIds?: string[]; // Alias
     bookingSettings?: {
         maxAdvanceBookingDays?: number;
         minAdvanceBookingHours?: number;
@@ -37,8 +46,51 @@ export interface Service {
         cancellationPolicy?: string;
         cancellationDeadlineHours?: number;
         requiresManualConfirmation?: boolean;
-        requireManualConfirmation?: boolean; // For Individual/Business plans
     };
+    availability?: Array<{
+        day: number;
+        isAvailable: boolean;
+        timeSlots: Array<{
+            startTime: string;
+            endTime: string;
+        }>;
+    }>;
+    customFields?: Array<{
+        id: string;
+        label: string;
+        fieldType: 'text' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox';
+        isRequired: boolean;
+        options?: string[];
+        placeholder?: string;
+        validation?: string;
+    }>;
+    images?: string[];
+    coverImage?: string;
+    tags?: string[];
+    commission?: {
+        enabled: boolean;
+        type: 'percentage' | 'fixed';
+        value: number;
+    };
+    seo?: {
+        isPublic: boolean;
+        slug?: string;
+        metaDescription?: string;
+        seoTitle?: string;
+    };
+    analytics?: {
+        totalBookings: number;
+        completedBookings: number;
+        cancelledBookings: number;
+        averageRating?: number;
+        totalRevenue: number;
+        lastBookingDate?: Date;
+    };
+    sortOrder: number;
+    createdBy: string;
+    updatedBy?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface CreateServiceDto {
@@ -70,6 +122,7 @@ export interface CreateServiceDto {
     };
     status?: 'active' | 'inactive' | 'draft';
     assignedProfessionals?: string[];
+    professionals?: string[]; // Alias for assignedProfessionals
     bookingSettings?: {
         maxAdvanceBookingDays?: number;
         minAdvanceBookingHours?: number;
@@ -79,7 +132,7 @@ export interface CreateServiceDto {
         depositPercentage?: number;
         cancellationPolicy?: string;
         cancellationDeadlineHours?: number;
-        requireManualConfirmation?: boolean; // For Individual/Business plans
+        requiresManualConfirmation?: boolean; // For Individual/Business plans
     };
     images?: string[];
     coverImage?: string;
@@ -112,6 +165,43 @@ export interface UpdateServiceDto {
     };
     status?: 'active' | 'inactive' | 'draft';
     assignedProfessionals?: string[];
+    professionals?: string[]; // Alias for assignedProfessionals
+    bookingSettings?: {
+        maxAdvanceBookingDays?: number;
+        minAdvanceBookingHours?: number;
+        maxBookingsPerDay?: number;
+        allowOnlineBooking?: boolean;
+        requireDeposit?: boolean;
+        depositPercentage?: number;
+        cancellationPolicy?: string;
+        cancellationDeadlineHours?: number;
+        requiresManualConfirmation?: boolean;
+    };
+    availability?: Array<{
+        day: number;
+        isAvailable: boolean;
+        timeSlots: Array<{
+            startTime: string;
+            endTime: string;
+        }>;
+    }>;
+    customFields?: Array<{
+        id: string;
+        label: string;
+        fieldType: 'text' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox';
+        isRequired: boolean;
+        options?: string[];
+        placeholder?: string;
+        validation?: string;
+    }>;
+    images?: string[];
+    coverImage?: string;
+    tags?: string[];
+    commission?: {
+        enabled: boolean;
+        type: 'percentage' | 'fixed';
+        value: number;
+    };
     seo?: {
         isPublic?: boolean;
         slug?: string;

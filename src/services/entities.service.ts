@@ -67,7 +67,7 @@ export const entitiesService = {
     },
 
     updateWorkingHours: async (workingHours: CompleteOnboardingDto['workingHours']) => {
-        return apiClient.patch<EntityProfile>('/api/entities/profile/working-hours', {
+        return apiClient.patch<EntityProfile>('/api/entities/profile', {
             workingHours,
         });
     },

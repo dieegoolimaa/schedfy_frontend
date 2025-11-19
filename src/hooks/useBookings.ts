@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { bookingsService } from "../services/bookings.service";
+import { apiClient } from "../lib/api-client";
 import { Booking, CreateBookingDto, UpdateBookingDto } from "../types/models/bookings.interface";
 import { toast } from 'sonner';
 
@@ -156,11 +157,23 @@ export function useBookings(options: UseBookingsOptions = {}) {
             toast.success('Booking created successfully!');
             return response.data;
         } catch (err: any) {
+            console.error('[useBookings] Full error object:', err);
+            console.error('[useBookings] Response data:', err.response?.data);
+            console.error('[useBookings] Status code:', err.response?.status);
+
             // Handle booking conflicts specifically
             if (err.response?.status === 409) {
                 const conflictMessage = err.response?.data?.message || 'This time slot is no longer available';
                 setError(conflictMessage);
                 toast.error(`Booking Conflict: ${conflictMessage}`);
+            } else if (err.response?.status === 400) {
+                // Validation errors
+                const validationErrors = err.response?.data?.message || err.response?.data?.errors;
+                const errorMessage = Array.isArray(validationErrors)
+                    ? validationErrors.join(', ')
+                    : validationErrors || 'Validation failed';
+                setError(errorMessage);
+                toast.error(`Validation Error: ${errorMessage}`);
             } else {
                 const errorMessage = err.message || 'Failed to create booking';
                 setError(errorMessage);
@@ -341,6 +354,27 @@ export function useBookings(options: UseBookingsOptions = {}) {
         }
     }, [autoFetch, fetchBookings]);
 
+    // Cancel recurring booking series (cancela todos os bookings futuros)
+    const cancelRecurringSeries = useCallback(async (parentBookingId: string, reason?: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            await apiClient.patch(`/api/bookings/recurring/${parentBookingId}/cancel-series`, { reason });
+            toast.success('Recurring booking series cancelled');
+
+            // Refresh bookings list
+            await fetchBookings();
+        } catch (err: any) {
+            const errorMessage = err.message || 'Failed to cancel recurring series';
+            setError(errorMessage);
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchBookings]);
+
     return {
         bookings,
         loading,
@@ -355,5 +389,6 @@ export function useBookings(options: UseBookingsOptions = {}) {
         markNoShow,
         deleteBooking,
         checkAvailability,
+        cancelRecurringSeries,
     };
 }

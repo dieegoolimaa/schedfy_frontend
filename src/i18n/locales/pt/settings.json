@@ -1,30 +1,69 @@
 {
     "title": "Configurações",
-    "subtitle": "Gerencie as configurações da sua conta",
+    "description": "Gerencie as configurações da sua conta e preferências",
+    "tabs": {
+        "business": "Negócio",
+        "profile": "Perfil",
+        "workingHours": "Horário de Funcionamento",
+        "notifications": "Notificações",
+        "appearance": "Aparência",
+        "privacy": "Privacidade"
+    },
+    "business": {
+        "title": "Perfil da Empresa",
+        "description": "Configure as informações da sua empresa e página pública"
+    },
     "profile": {
-        "title": "Perfil",
-        "personal": "Informações Pessoais",
-        "account": "Conta"
+        "title": "Perfil Pessoal",
+        "description": "Gerencie suas informações pessoais",
+        "name": "Nome",
+        "phone": "Telefone",
+        "email": "Email",
+        "description": "Descrição",
+        "address": "Endereço",
+        "website": "Website"
+    },
+    "workingHours": {
+        "title": "Horário de Funcionamento",
+        "description": "Defina seus horários de disponibilidade"
     },
     "notifications": {
-        "title": "Notificações",
-        "email": "E-mail",
-        "sms": "SMS",
-        "push": "Push"
+        "title": "Preferências de Notificação",
+        "description": "Escolha como você quer ser notificado",
+        "email": "Notificações por Email",
+        "emailDesc": "Receba atualizações sobre agendamentos por email",
+        "sms": "Notificações por SMS",
+        "smsDesc": "Receba atualizações sobre agendamentos por SMS",
+        "reminders": "Lembretes de Agendamento",
+        "remindersDesc": "Receba lembretes antes dos seus agendamentos"
     },
-    "security": {
-        "title": "Segurança",
-        "password": "Palavra-passe",
-        "twoFactor": "Autenticação de Dois Fatores"
-    },
-    "preferences": {
-        "title": "Preferências",
+    "appearance": {
+        "title": "Aparência",
+        "description": "Personalize a aparência do aplicativo",
+        "theme": "Tema",
         "language": "Idioma",
         "timezone": "Fuso Horário",
         "currency": "Moeda"
     },
+    "privacy": {
+        "title": "Privacidade",
+        "description": "Gerencie suas configurações de privacidade",
+        "profileVisible": "Perfil Público Visível",
+        "profileVisibleDesc": "Permitir que seu perfil seja encontrado publicamente",
+        "twoFactor": "Autenticação de Dois Fatores",
+        "twoFactorDesc": "Adicione uma camada extra de segurança à sua conta"
+    },
     "actions": {
         "save": "Salvar Alterações",
+        "saving": "Salvando...",
         "cancel": "Cancelar"
+    },
+    "errors": {
+        "loadFailed": "Falha ao carregar configurações",
+        "saveFailed": "Falha ao salvar configurações"
+    },
+    "success": {
+        "profileSaved": "Perfil salvo com sucesso",
+        "settingsSaved": "Configurações salvas com sucesso"
     }
 }

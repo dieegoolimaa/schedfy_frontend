@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { useCurrency } from "@/hooks/useCurrency";
 import { publicService } from "@/services/public.service";
 import { toast } from "sonner";
@@ -45,12 +44,9 @@ interface PublicEntity {
   phone?: string;
   email?: string;
   instagram?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-  };
+  address?: string;
+  city?: string;
+  country?: string;
   rating: number;
   totalReviews: number;
   workingHours: any;
@@ -98,7 +94,6 @@ interface TimeSlot {
 }
 
 export function PublicEntityProfilePage() {
-  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
@@ -151,7 +146,16 @@ export function PublicEntityProfilePage() {
       try {
         const entityResponse = await publicService.getEntityBySlug(slug);
         const entityData = entityResponse.data;
-        setEntity(entityData);
+
+        // Map backend fields to frontend interface
+        const mappedEntity = {
+          ...entityData,
+          slug:
+            (entityData as any).publicSlug || (entityData as any).slug || slug,
+          coverImage:
+            (entityData as any).banner || (entityData as any).coverImage,
+        };
+        setEntity(mappedEntity);
 
         const entityId = entityData.id || (entityData as any)._id;
 
@@ -216,6 +220,17 @@ export function PublicEntityProfilePage() {
     fetchEntityData();
   }, [slug]);
 
+  // Check if a slot is in the past
+  const isSlotInPast = (date: Date, time: string) => {
+    if (!isToday(date)) return false;
+
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotDate = new Date(date);
+    slotDate.setHours(hours, minutes, 0, 0);
+
+    return slotDate < new Date();
+  };
+
   // Filter professionals by selected service
   const availableProfessionals = useMemo(() => {
     if (!selectedService) return professionals;
@@ -265,7 +280,6 @@ export function PublicEntityProfilePage() {
           if (!service || !pkgBooking.date || !pkgBooking.slot) return null;
 
           const duration = service.duration || 60;
-          const basePrice = service.price || 0;
 
           const [hours, minutes] = pkgBooking.slot.time.split(":").map(Number);
           const startDateTime = new Date(pkgBooking.date);
@@ -282,25 +296,16 @@ export function PublicEntityProfilePage() {
               pkgBooking.professionalId ||
               undefined,
             isPackageBooking: true,
-            clientInfo: {
-              name: clientData.name,
-              email: clientData.email,
-              phone: clientData.phone,
-              notes: clientData.notes || undefined,
-            },
-            startDateTime: startDateTime.toISOString(),
-            endDateTime: endDateTime.toISOString(),
-            pricing: {
-              basePrice: basePrice,
-              totalPrice: basePrice,
-              currency: "EUR",
-            },
+            clientName: clientData.name,
+            clientEmail: clientData.email,
+            clientPhone: clientData.phone,
+            startTime: startDateTime.toISOString(),
+            endTime: endDateTime.toISOString(),
             status: "pending",
             notes: clientData.notes || undefined,
-            createdBy: entity!.id,
           };
 
-          return publicService.createBooking(entity!.id, bookingData as any);
+          return publicService.createBooking(bookingData as any);
         });
 
         await Promise.all(bookingPromises);
@@ -317,7 +322,6 @@ export function PublicEntityProfilePage() {
         }
 
         const duration = service?.duration || 60;
-        const basePrice = service?.price || 0;
 
         const [hours, minutes] = selectedSlot!.time.split(":").map(Number);
         const startDateTime = new Date(selectedDate!);
@@ -331,25 +335,16 @@ export function PublicEntityProfilePage() {
           serviceId: selectedService,
           professionalId:
             selectedSlot!.professionalId || selectedProfessional || undefined,
-          clientInfo: {
-            name: clientData.name,
-            email: clientData.email,
-            phone: clientData.phone,
-            notes: clientData.notes || undefined,
-          },
-          startDateTime: startDateTime.toISOString(),
-          endDateTime: endDateTime.toISOString(),
-          pricing: {
-            basePrice: basePrice,
-            totalPrice: basePrice,
-            currency: "EUR",
-          },
+          clientName: clientData.name,
+          clientEmail: clientData.email,
+          clientPhone: clientData.phone,
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
           status: "pending",
           notes: clientData.notes || undefined,
-          createdBy: entity!.id,
         };
 
-        await publicService.createBooking(entity!.id, bookingData as any);
+        await publicService.createBooking(bookingData as any);
 
         toast.success(
           "Booking confirmed! You will receive a confirmation email shortly."
@@ -479,11 +474,13 @@ export function PublicEntityProfilePage() {
                       {entity.name}
                     </h1>
                     <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                      {entity.address && (
+                      {(entity.address || entity.city || entity.country) && (
                         <div className="flex items-center gap-1.5">
                           <MapPin className="h-4 w-4" />
                           <span>
-                            {entity.address.city}, {entity.address.country}
+                            {[entity.city, entity.country]
+                              .filter(Boolean)
+                              .join(", ") || entity.address}
                           </span>
                         </div>
                       )}
@@ -968,6 +965,17 @@ export function PublicEntityProfilePage() {
                                       <option value="">Select time</option>
                                       {(booking.availableSlots || [])
                                         .filter((slot) => {
+                                          // Filter out past slots if date is today
+                                          if (
+                                            booking.date &&
+                                            isSlotInPast(
+                                              booking.date,
+                                              slot.time
+                                            )
+                                          ) {
+                                            return false;
+                                          }
+
                                           // Filter out times already booked by other services in this package
                                           // that share the same professional on the same date
                                           if (!booking.date) return true;
@@ -1305,11 +1313,17 @@ export function PublicEntityProfilePage() {
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             <option value="">Select time</option>
-                            {availableSlots.map((slot) => (
-                              <option key={slot.time} value={slot.time}>
-                                {slot.time}
-                              </option>
-                            ))}
+                            {availableSlots
+                              .filter(
+                                (slot) =>
+                                  !selectedDate ||
+                                  !isSlotInPast(selectedDate, slot.time)
+                              )
+                              .map((slot) => (
+                                <option key={slot.time} value={slot.time}>
+                                  {slot.time}
+                                </option>
+                              ))}
                           </select>
                         </div>
                       </div>
@@ -1502,7 +1516,7 @@ export function PublicEntityProfilePage() {
                     <span className="font-medium">{entity.instagram}</span>
                   </a>
                 )}
-                {entity.address && (
+                {(entity.address || entity.city || entity.country) && (
                   <div className="flex items-start gap-3 text-sm pt-2 border-t">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <MapPin className="h-5 w-5 text-primary" />
@@ -1510,19 +1524,15 @@ export function PublicEntityProfilePage() {
                     <div className="flex-1">
                       <p className="font-medium mb-1">Address</p>
                       <p className="text-muted-foreground">
-                        {entity.address.street && (
+                        {entity.address}
+                        {(entity.city || entity.country) && (
                           <>
-                            {entity.address.street}
                             <br />
+                            {[entity.city, entity.country]
+                              .filter(Boolean)
+                              .join(", ")}
                           </>
                         )}
-                        {entity.address.city && entity.address.state && (
-                          <>
-                            {entity.address.city}, {entity.address.state}
-                            <br />
-                          </>
-                        )}
-                        {entity.address.country}
                       </p>
                     </div>
                   </div>

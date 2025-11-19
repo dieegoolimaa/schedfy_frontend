@@ -118,13 +118,16 @@ export function Navigation() {
             path: "/entity/client-profile",
             label: t("nav.clients", "Clients"),
           },
+          {
+            path: "/entity/reports",
+            label: t("nav.operationalReports", "Operational Analysis"),
+          },
         ],
         financial: [
           {
             path: "/entity/commissions-management",
             label: t("nav.commissions", "Commissions"),
           },
-          { path: "/entity/reports", label: t("nav.reports", "Reports") },
           {
             path: "/entity/financial-reports",
             label: t("nav.financialReports", "Financial Reports"),

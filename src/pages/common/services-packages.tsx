@@ -55,78 +55,20 @@ import { apiClient } from "../../lib/api";
 import { toast } from "sonner";
 import { AssignProfessionalsDialog } from "../../components/dialogs/assign-professionals-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-
-interface Service {
-  _id: string;
-  id?: string;
-  name: string;
-  description?: string;
-  category?: string;
-  pricing: {
-    basePrice: number;
-    currency: string;
-  };
-  duration?:
-    | number
-    | {
-        durationType?: "fixed" | "variable";
-        duration: number;
-        bufferBefore?: number;
-        bufferAfter?: number;
-      };
-  isActive?: boolean;
-  isPublic?: boolean;
-  status?: string;
-  professionalIds?: string[];
-  assignedProfessionals?: string[];
-  professionals?: string[];
-}
-
-interface ServiceWithQuantity {
-  serviceId: string;
-  quantity: number;
-}
-
-interface ServicePackage {
-  _id: string;
-  entityId: string;
-  name: string;
-  description?: string;
-  services: Array<{
-    serviceId: Service | string;
-    quantity: number;
-  }>;
-  pricing: {
-    originalPrice: number;
-    packagePrice: number;
-    discount: number;
-    currency: string;
-  };
-  recurrence: "monthly" | "one_time";
-  validity: number;
-  sessionsIncluded: number;
-  status: "active" | "inactive" | "draft";
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PackageSubscription {
-  _id: string;
-  clientId: {
-    _id: string;
-    name: string;
-    email: string;
-  };
-  entityId: string;
-  packageId: ServicePackage;
-  status: "active" | "expired" | "cancelled" | "paused";
-  startDate: string;
-  expiryDate: string;
-  sessionsUsed: number;
-  sessionsTotal: number;
-  autoRenew: boolean;
-  createdAt: string;
-}
+import type {
+  Service,
+  CreateServiceDto,
+  UpdateServiceDto,
+} from "../../types/models/services.interface";
+import type {
+  ServicePackage,
+  PackageSubscription,
+} from "../../types/models/packages.interface";
+import type {
+  CreatePackageDto,
+  UpdatePackageDto,
+} from "../../types/dto/packages.dto";
+import { PackageRecurrence } from "../../types/enums/package-recurrence.enum";
 
 const ServicesAndPackages: React.FC = () => {
   const { user } = useAuth();
@@ -151,9 +93,9 @@ const ServicesAndPackages: React.FC = () => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    services: [] as ServiceWithQuantity[],
+    services: [] as { serviceId: string; quantity: number }[],
     packagePrice: 0,
-    recurrence: "one_time" as "monthly" | "one_time",
+    recurrence: PackageRecurrence.ONE_TIME,
     validity: 30,
     sessionsIncluded: 1,
     status: "active" as "active" | "inactive" | "draft",
@@ -199,6 +141,7 @@ const ServicesAndPackages: React.FC = () => {
       const servicesRes = await apiClient.get<Service[]>(
         `/api/services/entity/${user?.entityId}`
       );
+      console.log("[DEBUG] Services loaded:", servicesRes.data?.length || 0);
       setServices(servicesRes.data || []);
 
       // Only fetch packages if user has access
@@ -237,88 +180,151 @@ const ServicesAndPackages: React.FC = () => {
   const handleCreatePackage = async () => {
     try {
       if (!formData.name || formData.services.length === 0) {
-        toast.error("Preencha todos os campos obrigatórios");
+        toast.error("Preencha nome e selecione pelo menos um serviço");
         return;
       }
 
-      if (!formData.packagePrice || formData.packagePrice <= 0) {
-        toast.error("Preço do pacote deve ser maior que zero");
+      if (formData.packagePrice <= 0) {
+        toast.error("O preço do pacote deve ser maior que zero");
         return;
       }
 
-      await apiClient.post("/api/packages", {
-        entityId: user?.entityId,
-        name: formData.name,
-        description: formData.description,
-        services: formData.services, // Already in correct format: [{serviceId, quantity}]
+      const originalPrice = calculateOriginalPrice();
+      if (formData.packagePrice > originalPrice) {
+        toast.error(
+          `O preço do pacote não pode ser maior que o valor total dos serviços (€${originalPrice.toFixed(
+            2
+          )})`
+        );
+        return;
+      }
+
+      const payload: CreatePackageDto = {
+        entityId: user?.entityId!,
+        name: formData.name.trim(),
+        description: formData.description?.trim() || undefined,
+        services: formData.services.map((s) => ({
+          serviceId: s.serviceId,
+          quantity: s.quantity,
+        })),
         pricing: {
-          packagePrice: formData.packagePrice,
+          packagePrice: Number(formData.packagePrice.toFixed(2)),
           currency: "EUR",
-          // Backend calculates originalPrice and discount automatically
         },
         recurrence: formData.recurrence,
         validity: formData.validity,
         sessionsIncluded: formData.sessionsIncluded,
-        createdBy: user?.id,
-      });
+        createdBy: user?.id!,
+      };
+
+      console.log(
+        "[DEBUG] Creating package with payload:",
+        JSON.stringify(payload, null, 2)
+      );
+
+      await apiClient.post("/api/packages", payload);
 
       toast.success("Pacote criado com sucesso!");
       setIsCreateModalOpen(false);
       resetForm();
       fetchData();
     } catch (error: any) {
-      console.error("Error creating package:", error);
-      toast.error(error.response?.data?.message || "Erro ao criar pacote");
+      console.error("[ERROR] Error creating package:", error);
+      console.error("[ERROR] Error response:", error.response?.data);
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Erro ao criar pacote";
+      toast.error(msg);
     }
   };
 
   const handleUpdatePackage = async () => {
+    if (!selectedPackage) return;
+
     try {
-      if (!selectedPackage) return;
-
       if (!formData.name || formData.services.length === 0) {
-        toast.error("Preencha todos os campos obrigatórios");
+        toast.error("Preencha nome e selecione pelo menos um serviço");
         return;
       }
 
-      if (!formData.packagePrice || formData.packagePrice <= 0) {
-        toast.error("Preço do pacote deve ser maior que zero");
+      if (formData.packagePrice <= 0) {
+        toast.error("O preço do pacote deve ser maior que zero");
         return;
       }
 
-      await apiClient.patch(`/api/packages/${selectedPackage._id}`, {
-        name: formData.name,
-        description: formData.description,
-        services: formData.services, // Already in correct format: [{serviceId, quantity}]
+      const originalPrice = calculateOriginalPrice();
+      if (formData.packagePrice > originalPrice) {
+        toast.error(
+          `O preço do pacote não pode ser maior que o valor total dos serviços (€${originalPrice.toFixed(
+            2
+          )})`
+        );
+        return;
+      }
+
+      const payload: UpdatePackageDto = {
+        name: formData.name.trim(),
+        description: formData.description?.trim() || undefined,
+        services: formData.services.map((s) => ({
+          serviceId: s.serviceId,
+          quantity: s.quantity,
+        })),
         pricing: {
-          packagePrice: formData.packagePrice,
+          packagePrice: Number(formData.packagePrice.toFixed(2)),
           currency: "EUR",
-          // Backend recalculates originalPrice and discount automatically
         },
         recurrence: formData.recurrence,
         validity: formData.validity,
         sessionsIncluded: formData.sessionsIncluded,
-        updatedBy: user?.id,
-      });
+        updatedBy: user?.id!,
+      };
+
+      console.log(
+        "[DEBUG] Updating package with payload:",
+        JSON.stringify(payload, null, 2)
+      );
+
+      await apiClient.patch(`/api/packages/${selectedPackage._id}`, payload);
 
       toast.success("Pacote atualizado com sucesso!");
       setIsEditModalOpen(false);
       resetForm();
       fetchData();
     } catch (error: any) {
-      console.error("Error updating package:", error);
-      toast.error(error.response?.data?.message || "Erro ao atualizar pacote");
+      console.error("[ERROR] Error updating package:", error);
+      console.error("[ERROR] Error response:", error.response?.data);
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Erro ao atualizar pacote";
+      toast.error(msg);
     }
   };
 
   const handleToggleStatus = async (packageId: string) => {
     try {
+      console.log("[DEBUG] Toggling status for package ID:", packageId);
+      console.log(
+        "[DEBUG] PATCH URL:",
+        `/api/packages/${packageId}/toggle-status`
+      );
+
       await apiClient.patch(`/api/packages/${packageId}/toggle-status`);
+
+      console.log("[DEBUG] Status toggled successfully");
       toast.success("Status atualizado com sucesso!");
       fetchData();
     } catch (error: any) {
-      console.error("Error toggling status:", error);
-      toast.error(error.response?.data?.message || "Erro ao atualizar status");
+      console.error("[ERROR] Error toggling status:", error);
+      console.error("[ERROR] Error response:", error.response);
+      console.error("[ERROR] Error data:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Erro ao atualizar status";
+      toast.error(errorMessage);
     }
   };
 
@@ -326,12 +332,24 @@ const ServicesAndPackages: React.FC = () => {
     try {
       if (!confirm("Tem certeza que deseja excluir este pacote?")) return;
 
+      console.log("[DEBUG] Deleting package with ID:", packageId);
+      console.log("[DEBUG] DELETE URL:", `/api/packages/${packageId}`);
+
       await apiClient.delete(`/api/packages/${packageId}`);
+
+      console.log("[DEBUG] Package deleted successfully");
       toast.success("Pacote excluído com sucesso!");
       fetchData();
     } catch (error: any) {
-      console.error("Error deleting package:", error);
-      toast.error(error.response?.data?.message || "Erro ao excluir pacote");
+      console.error("[ERROR] Error deleting package:", error);
+      console.error("[ERROR] Error response:", error.response);
+      console.error("[ERROR] Error data:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Erro ao excluir pacote";
+      toast.error(errorMessage);
     }
   };
 
@@ -372,7 +390,7 @@ const ServicesAndPackages: React.FC = () => {
       description: "",
       services: [],
       packagePrice: 0,
-      recurrence: "one_time",
+      recurrence: PackageRecurrence.ONE_TIME,
       validity: 30,
       sessionsIncluded: 1,
       status: "active",
@@ -434,13 +452,13 @@ const ServicesAndPackages: React.FC = () => {
 
     const matchesStatus =
       serviceStatusFilter === "all" ||
-      (serviceStatusFilter === "active" && service.isActive !== false) ||
-      (serviceStatusFilter === "inactive" && service.isActive === false);
+      (serviceStatusFilter === "active" && service.status !== "inactive") ||
+      (serviceStatusFilter === "inactive" && service.status === "inactive");
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const activeServices = services.filter((s) => s.isActive !== false);
+  const activeServices = services.filter((s) => s.status !== "inactive");
 
   // Service CRUD Functions
   const handleCreateService = async () => {
@@ -455,11 +473,12 @@ const ServicesAndPackages: React.FC = () => {
         return;
       }
 
-      await apiClient.post("/api/services", {
-        entityId: user?.entityId,
+      const payload: CreateServiceDto = {
+        entityId: user?.entityId!,
         name: serviceFormData.name,
-        description: serviceFormData.description,
+        description: serviceFormData.description || undefined,
         category: serviceFormData.category,
+        status: serviceFormData.isActive ? "active" : "inactive",
         duration: {
           durationType: "fixed",
           duration: parseInt(serviceFormData.duration),
@@ -468,20 +487,23 @@ const ServicesAndPackages: React.FC = () => {
           basePrice: parseFloat(serviceFormData.price),
           currency: "EUR",
         },
-        isActive: serviceFormData.isActive,
-        isPublic: serviceFormData.isPublic,
-        bookingSettings: {
-          requiresManualConfirmation: serviceFormData.requireManualConfirmation,
-        },
-        createdBy: user?.id,
-      });
+        createdBy: user?.id!,
+      };
+
+      console.log(
+        "[DEBUG] Creating service with payload:",
+        JSON.stringify(payload, null, 2)
+      );
+
+      await apiClient.post("/api/services", payload);
 
       toast.success("Serviço criado com sucesso!");
       setIsServiceCreateModalOpen(false);
       resetServiceForm();
       fetchData();
     } catch (error: any) {
-      console.error("Error creating service:", error);
+      console.error("[ERROR] Error creating service:", error);
+      console.error("[ERROR] Error response:", error.response?.data);
       toast.error(error.response?.data?.message || "Erro ao criar serviço");
     }
   };
@@ -496,10 +518,11 @@ const ServicesAndPackages: React.FC = () => {
         return;
       }
 
-      await apiClient.patch(`/api/services/${serviceId}`, {
+      const payload: UpdateServiceDto = {
         name: serviceFormData.name,
-        description: serviceFormData.description,
+        description: serviceFormData.description || undefined,
         category: serviceFormData.category,
+        status: serviceFormData.isActive ? "active" : "inactive",
         duration: {
           durationType: "fixed",
           duration: parseInt(serviceFormData.duration),
@@ -508,19 +531,23 @@ const ServicesAndPackages: React.FC = () => {
           basePrice: parseFloat(serviceFormData.price),
           currency: "EUR",
         },
-        isActive: serviceFormData.isActive,
-        isPublic: serviceFormData.isPublic,
-        bookingSettings: {
-          requiresManualConfirmation: serviceFormData.requireManualConfirmation,
-        },
-      });
+        updatedBy: user?.id!,
+      };
+
+      console.log(
+        "[DEBUG] Updating service with payload:",
+        JSON.stringify(payload, null, 2)
+      );
+
+      await apiClient.patch(`/api/services/${serviceId}`, payload);
 
       toast.success("Serviço atualizado com sucesso!");
       setIsServiceEditModalOpen(false);
       resetServiceForm();
       fetchData();
     } catch (error: any) {
-      console.error("Error updating service:", error);
+      console.error("[ERROR] Error updating service:", error);
+      console.error("[ERROR] Error response:", error.response?.data);
       toast.error(error.response?.data?.message || "Erro ao atualizar serviço");
     }
   };
@@ -541,10 +568,7 @@ const ServicesAndPackages: React.FC = () => {
   const openServiceEditModal = (service: Service) => {
     setEditingService(service);
 
-    const durationValue =
-      typeof service.duration === "object"
-        ? service.duration.duration
-        : service.duration || 0;
+    const durationValue = service.duration.duration;
 
     setServiceFormData({
       name: service.name,
@@ -553,10 +577,10 @@ const ServicesAndPackages: React.FC = () => {
       customCategory: "",
       duration: String(durationValue),
       price: String(service.pricing.basePrice),
-      isActive: service.isActive !== false,
-      isPublic: service.isPublic !== false,
+      isActive: service.status !== "inactive",
+      isPublic: service.seo?.isPublic !== false,
       requireManualConfirmation:
-        (service as any).bookingSettings?.requiresManualConfirmation || false,
+        service.bookingSettings?.requiresManualConfirmation || false,
     });
     setShowCustomCategory(false);
     setIsServiceEditModalOpen(true);
@@ -600,10 +624,16 @@ const ServicesAndPackages: React.FC = () => {
   const activeSubscriptions = subscriptions.filter(
     (s) => s.status === "active"
   ).length;
-  const totalRevenue = subscriptions.reduce(
-    (sum, sub) => sum + sub.packageId.pricing.packagePrice,
-    0
-  );
+  const totalRevenue = subscriptions.reduce((sum, sub) => {
+    if (
+      typeof sub.packageId === "object" &&
+      sub.packageId &&
+      "pricing" in sub.packageId
+    ) {
+      return sum + sub.packageId.pricing.packagePrice;
+    }
+    return sum;
+  }, 0);
 
   if (loading) {
     return (
@@ -1057,7 +1087,7 @@ const ServicesAndPackages: React.FC = () => {
                           {formatCurrency(service.pricing.basePrice)}
                         </TableCell>
                         <TableCell>
-                          {service.isActive !== false ? (
+                          {(service as any).status !== "inactive" ? (
                             <Badge variant="default">Ativo</Badge>
                           ) : (
                             <Badge variant="secondary">Inativo</Badge>
@@ -1501,13 +1531,17 @@ const ServicesAndPackages: React.FC = () => {
                           type="number"
                           min="0"
                           step="0.01"
-                          value={formData.packagePrice}
-                          onChange={(e) =>
+                          value={formData.packagePrice || ""}
+                          onChange={(e) => {
+                            const value =
+                              e.target.value === ""
+                                ? 0
+                                : parseFloat(e.target.value);
                             setFormData({
                               ...formData,
-                              packagePrice: parseFloat(e.target.value),
-                            })
-                          }
+                              packagePrice: isNaN(value) ? 0 : value,
+                            });
+                          }}
                         />
                         {formData.services.length > 0 &&
                           formData.packagePrice > 0 && (
@@ -1523,13 +1557,17 @@ const ServicesAndPackages: React.FC = () => {
                           id="validity"
                           type="number"
                           min="7"
-                          value={formData.validity}
-                          onChange={(e) =>
+                          value={formData.validity || ""}
+                          onChange={(e) => {
+                            const value =
+                              e.target.value === ""
+                                ? 30
+                                : parseInt(e.target.value);
                             setFormData({
                               ...formData,
-                              validity: parseInt(e.target.value),
-                            })
-                          }
+                              validity: isNaN(value) ? 30 : value,
+                            });
+                          }}
                         />
                       </div>
                     </div>
@@ -1540,18 +1578,23 @@ const ServicesAndPackages: React.FC = () => {
                         <Label>Recorrência</Label>
                         <Select
                           value={formData.recurrence}
-                          onValueChange={(value: "monthly" | "one_time") =>
-                            setFormData({ ...formData, recurrence: value })
+                          onValueChange={(value) =>
+                            setFormData({
+                              ...formData,
+                              recurrence: value as PackageRecurrence,
+                            })
                           }
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="one_time">
+                            <SelectItem value={PackageRecurrence.ONE_TIME}>
                               Pagamento Único
                             </SelectItem>
-                            <SelectItem value="monthly">Mensal</SelectItem>
+                            <SelectItem value={PackageRecurrence.MONTHLY}>
+                              Mensal
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1767,31 +1810,44 @@ const ServicesAndPackages: React.FC = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      subscriptions.map((sub) => (
-                        <TableRow key={sub._id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {sub.clientId.name}
+                      subscriptions.map((sub) => {
+                        const clientName =
+                          typeof sub.clientId === "object" && sub.clientId
+                            ? sub.clientId.name
+                            : "Unknown";
+                        const clientEmail =
+                          typeof sub.clientId === "object" && sub.clientId
+                            ? sub.clientId.email
+                            : "";
+                        const packageName =
+                          typeof sub.packageId === "object" && sub.packageId
+                            ? sub.packageId.name
+                            : "Unknown";
+
+                        return (
+                          <TableRow key={sub._id}>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{clientName}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {clientEmail}
+                                </div>
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {sub.clientId.email}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{sub.packageId.name}</TableCell>
-                          <TableCell>{getStatusBadge(sub.status)}</TableCell>
-                          <TableCell>
-                            {sub.sessionsUsed} / {sub.sessionsTotal}
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(sub.expiryDate), "dd/MM/yyyy")}
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(sub.createdAt), "dd/MM/yyyy")}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                            </TableCell>
+                            <TableCell>{packageName}</TableCell>
+                            <TableCell>{getStatusBadge(sub.status)}</TableCell>
+                            <TableCell>
+                              {sub.sessionsUsed} / {sub.sessionsTotal}
+                            </TableCell>
+                            <TableCell>
+                              {format(new Date(sub.expiryDate), "dd/MM/yyyy")}
+                            </TableCell>
+                            <TableCell>
+                              {format(new Date(sub.createdAt), "dd/MM/yyyy")}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -1935,13 +1991,15 @@ const ServicesAndPackages: React.FC = () => {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={formData.packagePrice}
-                    onChange={(e) =>
+                    value={formData.packagePrice || ""}
+                    onChange={(e) => {
+                      const value =
+                        e.target.value === "" ? 0 : parseFloat(e.target.value);
                       setFormData({
                         ...formData,
-                        packagePrice: parseFloat(e.target.value) || 0,
-                      })
-                    }
+                        packagePrice: isNaN(value) ? 0 : value,
+                      });
+                    }}
                   />
                   {formData.services.length > 0 &&
                     formData.packagePrice > 0 && (
@@ -1957,13 +2015,15 @@ const ServicesAndPackages: React.FC = () => {
                     id="edit-validity"
                     type="number"
                     min="7"
-                    value={formData.validity}
-                    onChange={(e) =>
+                    value={formData.validity || ""}
+                    onChange={(e) => {
+                      const value =
+                        e.target.value === "" ? 30 : parseInt(e.target.value);
                       setFormData({
                         ...formData,
-                        validity: parseInt(e.target.value) || 30,
-                      })
-                    }
+                        validity: isNaN(value) ? 30 : value,
+                      });
+                    }}
                   />
                 </div>
               </div>
@@ -1974,16 +2034,23 @@ const ServicesAndPackages: React.FC = () => {
                   <Label htmlFor="edit-recurrence">Recorrência</Label>
                   <Select
                     value={formData.recurrence}
-                    onValueChange={(value: "monthly" | "one_time") =>
-                      setFormData({ ...formData, recurrence: value })
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        recurrence: value as PackageRecurrence,
+                      })
                     }
                   >
                     <SelectTrigger id="edit-recurrence">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="one_time">Pagamento Único</SelectItem>
-                      <SelectItem value="monthly">Mensal</SelectItem>
+                      <SelectItem value={PackageRecurrence.ONE_TIME}>
+                        Pagamento Único
+                      </SelectItem>
+                      <SelectItem value={PackageRecurrence.MONTHLY}>
+                        Mensal
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

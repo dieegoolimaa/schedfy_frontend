@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useCurrency } from "../../hooks/useCurrency";
+import { useAuth } from "../../contexts/auth-context";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,7 @@ import { type TimeSlot } from "../../services/bookings.service";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { X, Plus, Info, Package, Clock, Users } from "lucide-react";
+import { Info, Package, Clock, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
@@ -57,21 +58,12 @@ interface PackageSubscription {
   status: string;
 }
 
-interface BookingSlot {
-  id: string;
-  serviceId: string;
-  professionalId?: string;
-  date: string;
-  slot: TimeSlot | null;
-}
-
 interface CreateBookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   entityId: string;
   services: Service[];
   onSubmit: (bookingData: any) => Promise<void>;
-  allowMultiple?: boolean;
   clientId?: string; // For showing available package subscriptions
   packages?: ServicePackage[]; // Available packages for purchase
   clientSubscriptions?: PackageSubscription[]; // Client's active subscriptions
@@ -83,12 +75,12 @@ export function CreateBookingDialog({
   entityId,
   services,
   onSubmit,
-  allowMultiple = true,
   clientId,
   packages: _packages = [],
   clientSubscriptions = [],
 }: CreateBookingDialogProps) {
   const { formatCurrency } = useCurrency();
+  const { user } = useAuth();
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -97,7 +89,13 @@ export function CreateBookingDialog({
   const [usePackage, setUsePackage] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<string>("");
 
-  // Booking mode: 'time' or 'professional'
+  // Single booking fields (replaces bookingSlots array)
+  const [serviceId, setServiceId] = useState("");
+  const [professionalId, setProfessionalId] = useState<string | undefined>(
+    undefined
+  );
+  const [date, setDate] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [bookingMode, setBookingMode] = useState<"time" | "professional">(
     "time"
   );
@@ -119,11 +117,6 @@ export function CreateBookingDialog({
 
   // Professionals list
   const [professionals, setProfessionals] = useState<any[]>([]);
-
-  // Multiple bookings state
-  const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([
-    { id: "1", serviceId: "", professionalId: undefined, date: "", slot: null },
-  ]);
 
   // Load professionals when dialog opens
   useEffect(() => {
@@ -155,21 +148,14 @@ export function CreateBookingDialog({
   // Filter professionals by selected service
   // Only show professionals assigned to the selected service
   const availableProfessionalsForService = useMemo(() => {
-    // Get current booking slot
-    const currentSlot = bookingSlots[0];
-    if (!currentSlot?.serviceId) {
+    if (!serviceId) {
       return professionals; // No service selected, show all
     }
 
     // Find selected service
-    const selectedService = services.find(
-      (s) => s.id === currentSlot.serviceId
-    );
+    const selectedService = services.find((s) => s.id === serviceId);
     if (!selectedService) {
-      console.log(
-        "[CreateBookingDialog] Service not found:",
-        currentSlot.serviceId
-      );
+      console.log("[CreateBookingDialog] Service not found:", serviceId);
       return professionals;
     }
 
@@ -214,91 +200,39 @@ export function CreateBookingDialog({
     });
 
     return filtered;
-  }, [bookingSlots, services, professionals]);
+  }, [serviceId, services, professionals]);
 
   // Get selected subscription details
   const selectedSubscriptionData = clientSubscriptions.find(
     (sub) => sub.id === selectedSubscription
   );
 
-  // Get all unique service IDs from booking slots
-  const selectedServiceIds = [
-    ...new Set(
-      bookingSlots.filter((bs) => bs.serviceId).map((bs) => bs.serviceId)
-    ),
-  ];
-
-  // Check if ALL selected services are included in the package
-  const allServicesInPackage =
-    usePackage && selectedSubscriptionData
-      ? selectedServiceIds.every((serviceId) =>
-          selectedSubscriptionData.packageId.services.some(
-            (s) => s.id === serviceId
-          )
+  // Check if selected service is included in the package
+  const serviceInPackage =
+    usePackage && selectedSubscriptionData && serviceId
+      ? selectedSubscriptionData.packageId.services.some(
+          (s) => s.id === serviceId
         )
       : true;
 
-  // Calculate required sessions
-  const requiredSessions = bookingSlots.filter(
-    (bs) => bs.serviceId && bs.date && bs.slot
-  ).length;
+  // Calculate required sessions (always 1 for single booking)
+  const requiredSessions = serviceId && date && selectedSlot ? 1 : 0;
   const hasEnoughSessions = selectedSubscriptionData
     ? selectedSubscriptionData.sessionsRemaining >= requiredSessions
     : false;
-
-  const addBookingSlot = () => {
-    const newId = (bookingSlots.length + 1).toString();
-    setBookingSlots([
-      ...bookingSlots,
-      {
-        id: newId,
-        serviceId: "",
-        professionalId: undefined,
-        date: "",
-        slot: null,
-      },
-    ]);
-  };
-
-  const removeBookingSlot = (id: string) => {
-    if (bookingSlots.length === 1) {
-      toast.error("At least one booking slot is required");
-      return;
-    }
-    setBookingSlots(bookingSlots.filter((slot) => slot.id !== id));
-  };
-
-  const updateBookingSlot = (
-    id: string,
-    field: "serviceId" | "professionalId" | "date" | "slot",
-    value: string | TimeSlot | null | undefined
-  ) => {
-    setBookingSlots(
-      bookingSlots.map((slot) =>
-        slot.id === id
-          ? {
-              ...slot,
-              [field]: value,
-              // Reset slot when service, professional, or date changes
-              ...(field === "serviceId" ||
-              field === "professionalId" ||
-              field === "date"
-                ? { slot: null }
-                : {}),
-            }
-          : slot
-      )
-    );
-  };
 
   const resetForm = () => {
     setClientName("");
     setClientPhone("");
     setClientEmail("");
     setNotes("");
+    setServiceId("");
+    setProfessionalId(undefined);
+    setDate("");
+    setSelectedSlot(null);
+    setBookingMode("time");
     setUsePackage(false);
     setSelectedSubscription("");
-    setBookingMode("time");
     setIsRecurring(false);
     setRecurrenceFrequency("weekly");
     setRecurrenceInterval(1);
@@ -306,15 +240,6 @@ export function CreateBookingDialog({
     setRecurrenceEndType("occurrences");
     setRecurrenceEndDate("");
     setRecurrenceOccurrences(10);
-    setBookingSlots([
-      {
-        id: "1",
-        serviceId: "",
-        professionalId: undefined,
-        date: "",
-        slot: null,
-      },
-    ]);
   };
 
   const toggleDayOfWeek = (day: number) => {
@@ -329,33 +254,16 @@ export function CreateBookingDialog({
       return;
     }
 
-    // Validate all booking slots have service, date and slot
-    const validSlots = bookingSlots.filter(
-      (bs) => bs.serviceId && bs.date && bs.slot
-    );
-    if (validSlots.length === 0) {
-      toast.error("Please select service, date and time for at least one slot");
-      return;
-    }
-
-    // Check if any slot is missing service
-    const incompleteSlots = bookingSlots.filter(
-      (bs) => (bs.date || bs.slot) && !bs.serviceId
-    );
-    if (incompleteSlots.length > 0) {
-      toast.error("Please select a service for all booking slots");
+    // Validate booking has service, date and slot
+    if (!serviceId || !date || !selectedSlot) {
+      toast.error("Please select service, date and time");
       return;
     }
 
     // Validate professional selection when in professional mode
-    if (bookingMode === "professional") {
-      const missingProfessional = bookingSlots.filter(
-        (bs) => bs.serviceId && !bs.professionalId
-      );
-      if (missingProfessional.length > 0) {
-        toast.error("Please select a professional for all booking slots");
-        return;
-      }
+    if (bookingMode === "professional" && !professionalId) {
+      toast.error("Please select a professional");
+      return;
     }
 
     // Validate package usage
@@ -364,10 +272,8 @@ export function CreateBookingDialog({
         toast.error("Please select a package subscription");
         return;
       }
-      if (!allServicesInPackage) {
-        toast.error(
-          "One or more selected services are not included in this package"
-        );
+      if (!serviceInPackage) {
+        toast.error("Selected service is not included in this package");
         return;
       }
       if (!hasEnoughSessions) {
@@ -381,10 +287,7 @@ export function CreateBookingDialog({
     setSubmitting(true);
     try {
       // Check if recurring booking is enabled
-      if (isRecurring && validSlots.length > 0) {
-        // For recurring bookings, use only the first slot as base
-        const baseSlot = validSlots[0];
-
+      if (isRecurring) {
         // Validate recurrence settings
         if (
           recurrenceFrequency === "weekly" &&
@@ -403,17 +306,42 @@ export function CreateBookingDialog({
           return;
         }
 
+        // Validar serviço selecionado
+        const selectedService = services.find((s) => s.id === serviceId);
+        if (!selectedService) {
+          toast.error("Service not found");
+          setSubmitting(false);
+          return;
+        }
+
+        // Validar user ID
+        const userId = user?.id || (user as any)?._id || entityId;
+        if (!userId) {
+          toast.error("User ID not available");
+          setSubmitting(false);
+          return;
+        }
+
         // Create recurring booking via API
         const recurringBookingData = {
           booking: {
-            clientName,
-            clientPhone,
-            clientEmail,
-            serviceId: baseSlot.serviceId,
-            professionalId: baseSlot.slot!.professionalId,
-            startDateTime: baseSlot.slot!.startDateTime,
-            endDateTime: baseSlot.slot!.endDateTime,
-            notes,
+            entityId: entityId,
+            serviceId: serviceId,
+            professionalId: selectedSlot.professionalId,
+            clientInfo: {
+              name: clientName,
+              email: clientEmail,
+              phone: clientPhone,
+              notes: notes,
+            },
+            startDateTime: selectedSlot.startDateTime,
+            endDateTime: selectedSlot.endDateTime,
+            pricing: {
+              basePrice: selectedService.price || 0,
+              totalPrice: selectedService.price || 0,
+              currency: "EUR",
+            },
+            createdBy: userId,
           },
           recurrence: {
             frequency: recurrenceFrequency,
@@ -427,8 +355,21 @@ export function CreateBookingDialog({
               occurrences: recurrenceOccurrences,
             }),
           },
-          userId: entityId, // This will be replaced by actual user ID in backend
+          userId: userId,
         };
+
+        // Log recurring booking data para debug
+        console.log("[CreateBookingDialog] Recurring booking data:", {
+          booking: recurringBookingData.booking,
+          recurrence: recurringBookingData.recurrence,
+          userId: recurringBookingData.userId,
+          serviceFound: !!selectedService,
+          userContext: {
+            userId: user?.id,
+            userObjectId: (user as any)?._id,
+            entityId,
+          },
+        });
 
         // Call recurring booking endpoint
         const response = await apiClient.post(
@@ -436,7 +377,7 @@ export function CreateBookingDialog({
           recurringBookingData
         );
 
-        const { totalCreated, errors } = (response.data as any).data;
+        const { totalCreated, errors } = response.data as any;
 
         if (errors && errors.length > 0) {
           toast.warning(
@@ -449,34 +390,26 @@ export function CreateBookingDialog({
         }
       } else {
         // Regular booking creation (non-recurring)
-        for (const bookingSlot of validSlots) {
-          await onSubmit({
-            clientName,
-            clientPhone,
-            clientEmail,
-            serviceId: bookingSlot.serviceId,
-            professionalId: bookingSlot.slot!.professionalId,
-            startDateTime: bookingSlot.slot!.startDateTime,
-            endDateTime: bookingSlot.slot!.endDateTime,
-            notes,
-            // Package-related fields
-            ...(usePackage &&
-              selectedSubscription && {
-                isPackageBooking: true,
-                packageSubscriptionId: selectedSubscription,
-              }),
-          });
-        }
+        await onSubmit({
+          clientName,
+          clientPhone,
+          clientEmail,
+          serviceId: serviceId,
+          professionalId: selectedSlot.professionalId,
+          startDateTime: selectedSlot.startDateTime,
+          endDateTime: selectedSlot.endDateTime,
+          notes,
+          // Package-related fields
+          ...(usePackage &&
+            selectedSubscription && {
+              isPackageBooking: true,
+              packageSubscriptionId: selectedSubscription,
+            }),
+        });
 
         toast.success(
-          `${validSlots.length} booking${
-            validSlots.length > 1 ? "s" : ""
-          } created successfully!${
-            usePackage
-              ? ` ${requiredSessions} session${
-                  requiredSessions > 1 ? "s" : ""
-                } deducted from package.`
-              : ""
+          `Booking created successfully!${
+            usePackage ? ` 1 session deducted from package.` : ""
           }`
         );
       }
@@ -545,405 +478,353 @@ export function CreateBookingDialog({
           </div>
 
           {/* Package Selection - Only show if client has subscriptions */}
-          {clientId &&
-            clientSubscriptions.length > 0 &&
-            selectedServiceIds.length > 0 && (
-              <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-primary" />
-                    <Label htmlFor="use-package" className="cursor-pointer">
-                      Use Package Session
-                    </Label>
-                  </div>
-                  <Switch
-                    id="use-package"
-                    checked={usePackage}
-                    onCheckedChange={(checked) => {
-                      setUsePackage(checked);
-                      if (!checked) {
-                        setSelectedSubscription("");
-                      }
-                    }}
-                  />
+          {clientId && clientSubscriptions.length > 0 && serviceId && (
+            <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-primary" />
+                  <Label htmlFor="use-package" className="cursor-pointer">
+                    Use Package Session
+                  </Label>
                 </div>
-
-                {usePackage && (
-                  <div className="space-y-3 pt-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="subscription">
-                        Select Package Subscription{" "}
-                        <span className="text-destructive">*</span>
-                      </Label>
-                      <Select
-                        value={selectedSubscription}
-                        onValueChange={setSelectedSubscription}
-                      >
-                        <SelectTrigger id="subscription">
-                          <SelectValue placeholder="Choose a subscription" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clientSubscriptions
-                            .filter((sub) => sub.status === "active")
-                            .map((subscription) => {
-                              const packageServices =
-                                subscription.packageId.services;
-
-                              // Check if ALL selected services are included
-                              const allIncluded = selectedServiceIds.every(
-                                (serviceId) =>
-                                  packageServices.some(
-                                    (s) => s.id === serviceId
-                                  )
-                              );
-
-                              return (
-                                <SelectItem
-                                  key={subscription.id}
-                                  value={subscription.id}
-                                  disabled={
-                                    !allIncluded ||
-                                    subscription.sessionsRemaining === 0
-                                  }
-                                >
-                                  <div className="flex flex-col items-start">
-                                    <div className="flex items-center gap-2">
-                                      <span>{subscription.packageId.name}</span>
-                                      {allIncluded && (
-                                        <Badge
-                                          variant="secondary"
-                                          className="text-xs"
-                                        >
-                                          {subscription.sessionsRemaining}{" "}
-                                          sessions left
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    {!allIncluded && (
-                                      <span className="text-xs text-muted-foreground">
-                                        Some services not included
-                                      </span>
-                                    )}
-                                    {allIncluded &&
-                                      subscription.sessionsRemaining === 0 && (
-                                        <span className="text-xs text-destructive">
-                                          No sessions remaining
-                                        </span>
-                                      )}
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Info about package usage */}
-                    {selectedSubscription && selectedSubscriptionData && (
-                      <Alert>
-                        <Info className="h-4 w-4" />
-                        <AlertTitle>Package Session Info</AlertTitle>
-                        <AlertDescription>
-                          <div className="space-y-1 text-sm">
-                            <p>
-                              <strong>Package:</strong>{" "}
-                              {selectedSubscriptionData.packageId.name}
-                            </p>
-                            <p>
-                              <strong>Sessions Available:</strong>{" "}
-                              {selectedSubscriptionData.sessionsRemaining}
-                            </p>
-                            <p>
-                              <strong>Sessions Required:</strong>{" "}
-                              {requiredSessions}
-                            </p>
-                            {!hasEnoughSessions && (
-                              <p className="text-destructive font-medium mt-2">
-                                ⚠️ Not enough sessions available. Please reduce
-                                booking slots or choose a different package.
-                              </p>
-                            )}
-                            {hasEnoughSessions && (
-                              <p className="text-green-600 font-medium mt-2">
-                                ✓ Sufficient sessions available. No payment
-                                required.
-                              </p>
-                            )}
-                          </div>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                    {/* Warning if services not in package */}
-                    {selectedSubscription &&
-                      selectedSubscriptionData &&
-                      !allServicesInPackage && (
-                        <Alert variant="destructive">
-                          <AlertTitle>Services Not Included</AlertTitle>
-                          <AlertDescription>
-                            One or more selected services are not included in
-                            this package. Please select a different package or
-                            disable package usage.
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                  </div>
-                )}
-
-                {!usePackage && (
-                  <p className="text-xs text-muted-foreground">
-                    Toggle on to use a package session instead of paying per
-                    service
-                  </p>
-                )}
+                <Switch
+                  id="use-package"
+                  checked={usePackage}
+                  onCheckedChange={(checked) => {
+                    setUsePackage(checked);
+                    if (!checked) {
+                      setSelectedSubscription("");
+                    }
+                  }}
+                />
               </div>
-            )}
 
-          {/* Date and Time Slots - Multiple if allowed */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">
-                Booking Slots{" "}
-                {allowMultiple && !isRecurring && "(You can add multiple)"}
-              </h3>
-              {allowMultiple && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addBookingSlot}
-                  disabled={isRecurring}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Slot
-                </Button>
-              )}
-            </div>
-
-            {isRecurring && bookingSlots.length > 0 && (
-              <Alert className="bg-blue-50 border-blue-200">
-                <Info className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800">
-                  Recurring booking will use the time and date from the first
-                  slot as template
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {bookingSlots.map((bookingSlot, index) => (
-              <Card key={bookingSlot.id} className="p-4">
-                <CardContent className="p-0 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">
-                      Booking #{index + 1}
-                    </Label>
-                    {allowMultiple && bookingSlots.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeBookingSlot(bookingSlot.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Service Selection for this slot */}
+              {usePackage && (
+                <div className="space-y-3 pt-2">
                   <div className="space-y-2">
-                    <Label>
-                      Service <span className="text-destructive">*</span>
+                    <Label htmlFor="subscription">
+                      Select Package Subscription{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Select
-                      value={bookingSlot.serviceId}
-                      onValueChange={(value) =>
-                        updateBookingSlot(bookingSlot.id, "serviceId", value)
-                      }
+                      value={selectedSubscription}
+                      onValueChange={setSelectedSubscription}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a service" />
+                      <SelectTrigger id="subscription">
+                        <SelectValue placeholder="Choose a subscription" />
                       </SelectTrigger>
                       <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem key={service.id} value={service.id}>
-                            <div className="flex flex-col items-start">
-                              <span>{service.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {service.duration} min
-                                {service.price &&
-                                  ` • ${formatCurrency(service.price)}`}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {clientSubscriptions
+                          .filter((sub) => sub.status === "active")
+                          .map((subscription) => {
+                            const packageServices =
+                              subscription.packageId.services;
+
+                            // Check if selected service is included
+                            const allIncluded = serviceId
+                              ? packageServices.some((s) => s.id === serviceId)
+                              : false;
+
+                            return (
+                              <SelectItem
+                                key={subscription.id}
+                                value={subscription.id}
+                                disabled={
+                                  !allIncluded ||
+                                  subscription.sessionsRemaining === 0
+                                }
+                              >
+                                <div className="flex flex-col items-start">
+                                  <div className="flex items-center gap-2">
+                                    <span>{subscription.packageId.name}</span>
+                                    {allIncluded && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                      >
+                                        {subscription.sessionsRemaining}{" "}
+                                        sessions left
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {!allIncluded && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Some services not included
+                                    </span>
+                                  )}
+                                  {allIncluded &&
+                                    subscription.sessionsRemaining === 0 && (
+                                      <span className="text-xs text-destructive">
+                                        No sessions remaining
+                                      </span>
+                                    )}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Booking Mode Selection - ALWAYS show when service is selected */}
-                  {bookingSlot.serviceId && (
-                    <div className="space-y-3">
-                      <Label className="text-sm font-medium">
-                        Booking Preference
+                  {/* Info about package usage */}
+                  {selectedSubscription && selectedSubscriptionData && (
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertTitle>Package Session Info</AlertTitle>
+                      <AlertDescription>
+                        <div className="space-y-1 text-sm">
+                          <p>
+                            <strong>Package:</strong>{" "}
+                            {selectedSubscriptionData.packageId.name}
+                          </p>
+                          <p>
+                            <strong>Sessions Available:</strong>{" "}
+                            {selectedSubscriptionData.sessionsRemaining}
+                          </p>
+                          <p>
+                            <strong>Sessions Required:</strong>{" "}
+                            {requiredSessions}
+                          </p>
+                          {!hasEnoughSessions && (
+                            <p className="text-destructive font-medium mt-2">
+                              ⚠️ Not enough sessions available. Please reduce
+                              booking slots or choose a different package.
+                            </p>
+                          )}
+                          {hasEnoughSessions && (
+                            <p className="text-green-600 font-medium mt-2">
+                              ✓ Sufficient sessions available. No payment
+                              required.
+                            </p>
+                          )}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Warning if service not in package */}
+                  {selectedSubscription &&
+                    selectedSubscriptionData &&
+                    !serviceInPackage && (
+                      <Alert variant="destructive">
+                        <AlertTitle>Service Not Included</AlertTitle>
+                        <AlertDescription>
+                          Selected service is not included in this package.
+                          Please select a different package or disable package
+                          usage.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                </div>
+              )}
+
+              {!usePackage && (
+                <p className="text-xs text-muted-foreground">
+                  Toggle on to use a package session instead of paying per
+                  service
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Service, Date and Time */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold">Service & Time</h3>
+
+            {isRecurring && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  Recurring booking will create multiple bookings based on your
+                  selected frequency and schedule
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Card className="p-4">
+              <CardContent className="p-0 space-y-3">
+                {/* Service Selection */}
+                <div className="space-y-2">
+                  <Label>
+                    Service <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={serviceId}
+                    onValueChange={(value) => {
+                      setServiceId(value);
+                      setSelectedSlot(null); // Reset slot when service changes
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map((service) => (
+                        <SelectItem key={service.id} value={service.id}>
+                          <div className="flex flex-col items-start">
+                            <span>{service.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {service.duration} min
+                              {service.price &&
+                                ` • ${formatCurrency(service.price)}`}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Booking Mode Selection - show when service is selected */}
+                {serviceId && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">
+                      Booking Preference
+                    </Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Card
+                        className={`cursor-pointer transition-all ${
+                          bookingMode === "time"
+                            ? "ring-2 ring-primary shadow-sm"
+                            : "hover:shadow-sm"
+                        }`}
+                        onClick={() => {
+                          setBookingMode("time");
+                          setProfessionalId(undefined);
+                          setSelectedSlot(null);
+                        }}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <Clock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                          <h4 className="text-sm font-medium">By Time</h4>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Any professional
+                          </p>
+                        </CardContent>
+                      </Card>
+                      <Card
+                        className={`cursor-pointer transition-all ${
+                          bookingMode === "professional"
+                            ? "ring-2 ring-primary shadow-sm"
+                            : "hover:shadow-sm"
+                        }`}
+                        onClick={() => {
+                          setBookingMode("professional");
+                          setProfessionalId(undefined);
+                          setSelectedSlot(null);
+                        }}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                          <h4 className="text-sm font-medium">
+                            By Professional
+                          </h4>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Choose professional
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {/* Professional Selection - Only show if mode is 'professional' */}
+                {serviceId &&
+                  bookingMode === "professional" &&
+                  availableProfessionalsForService.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>
+                        Select Professional{" "}
+                        <span className="text-destructive">*</span>
                       </Label>
-                      <div className="grid grid-cols-2 gap-3">
-                        <Card
-                          className={`cursor-pointer transition-all ${
-                            bookingMode === "time"
-                              ? "ring-2 ring-primary shadow-sm"
-                              : "hover:shadow-sm"
-                          }`}
-                          onClick={() => {
-                            setBookingMode("time");
-                            updateBookingSlot(
-                              bookingSlot.id,
-                              "professionalId",
-                              undefined
-                            );
-                          }}
-                        >
-                          <CardContent className="p-4 text-center">
-                            <Clock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                            <h4 className="text-sm font-medium">By Time</h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Any professional
-                            </p>
-                          </CardContent>
-                        </Card>
-                        <Card
-                          className={`cursor-pointer transition-all ${
-                            bookingMode === "professional"
-                              ? "ring-2 ring-primary shadow-sm"
-                              : "hover:shadow-sm"
-                          }`}
-                          onClick={() => setBookingMode("professional")}
-                        >
-                          <CardContent className="p-4 text-center">
-                            <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                            <h4 className="text-sm font-medium">
-                              By Professional
-                            </h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Choose professional
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </div>
+                      <Select
+                        value={professionalId || ""}
+                        onValueChange={(value) => {
+                          setProfessionalId(value);
+                          setSelectedSlot(null);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a professional" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableProfessionalsForService.map(
+                            (professional) => (
+                              <SelectItem
+                                key={professional.id || professional._id}
+                                value={professional.id || professional._id}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span>
+                                    {professional.firstName}{" "}
+                                    {professional.lastName}
+                                  </span>
+                                  {professional.rating && (
+                                    <span className="text-xs text-muted-foreground">
+                                      ⭐ {professional.rating}
+                                    </span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
 
-                  {/* Professional Selection - Only show if mode is 'professional' */}
-                  {bookingSlot.serviceId &&
-                    bookingMode === "professional" &&
-                    availableProfessionalsForService.length > 0 && (
-                      <div className="space-y-2">
-                        <Label>
-                          Select Professional{" "}
-                          <span className="text-destructive">*</span>
-                        </Label>
-                        <Select
-                          value={bookingSlot.professionalId || ""}
-                          onValueChange={(value) =>
-                            updateBookingSlot(
-                              bookingSlot.id,
-                              "professionalId",
-                              value
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a professional" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableProfessionalsForService.map(
-                              (professional) => (
-                                <SelectItem
-                                  key={professional.id || professional._id}
-                                  value={professional.id || professional._id}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span>
-                                      {professional.firstName}{" "}
-                                      {professional.lastName}
-                                    </span>
-                                    {professional.rating && (
-                                      <span className="text-xs text-muted-foreground">
-                                        ⭐ {professional.rating}
-                                      </span>
-                                    )}
-                                  </div>
-                                </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-
-                  {/* Warning when "By Professional" selected but no professionals available */}
-                  {bookingSlot.serviceId &&
-                    bookingMode === "professional" &&
-                    availableProfessionalsForService.length === 0 && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
-                        <p className="text-sm text-amber-800">
-                          ⚠️ No professionals available for this service. Please
-                          use "By Time" mode.
-                        </p>
-                      </div>
-                    )}
-
-                  <div className="space-y-2">
-                    <Label>
-                      Date <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      type="date"
-                      min={today}
-                      value={bookingSlot.date}
-                      onChange={(e) =>
-                        updateBookingSlot(
-                          bookingSlot.id,
-                          "date",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-
-                  {bookingSlot.serviceId && bookingSlot.date && (
-                    <TimeSlotPicker
-                      entityId={entityId}
-                      serviceId={bookingSlot.serviceId}
-                      date={bookingSlot.date}
-                      professionalId={
-                        bookingMode === "professional" &&
-                        bookingSlot.professionalId
-                          ? bookingSlot.professionalId
-                          : undefined
-                      }
-                      selectedSlot={bookingSlot.slot}
-                      onSelectSlot={(slot) =>
-                        updateBookingSlot(bookingSlot.id, "slot", slot)
-                      }
-                      includeOverbooking={true}
-                    />
+                {/* Warning when "By Professional" selected but no professionals available */}
+                {serviceId &&
+                  bookingMode === "professional" &&
+                  availableProfessionalsForService.length === 0 && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                      <p className="text-sm text-amber-800">
+                        ⚠️ No professionals available for this service. Please
+                        use "By Time" mode.
+                      </p>
+                    </div>
                   )}
 
-                  {bookingSlot.slot && (
-                    <Badge variant="secondary" className="mt-2">
-                      Selected:{" "}
-                      {bookingSlot.slot.startDateTime
-                        .split("T")[1]
-                        .substring(0, 5)}{" "}
-                      -{" "}
-                      {bookingSlot.slot.endDateTime
-                        .split("T")[1]
-                        .substring(0, 5)}
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                <div className="space-y-2">
+                  <Label>
+                    Date <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    min={today}
+                    value={date}
+                    onChange={(e) => {
+                      setDate(e.target.value);
+                      setSelectedSlot(null);
+                    }}
+                  />
+                </div>
+
+                {serviceId && date && (
+                  <TimeSlotPicker
+                    entityId={entityId}
+                    serviceId={serviceId}
+                    date={date}
+                    professionalId={
+                      bookingMode === "professional" && professionalId
+                        ? professionalId
+                        : undefined
+                    }
+                    selectedSlot={selectedSlot}
+                    onSelectSlot={(slot) => setSelectedSlot(slot)}
+                    includeOverbooking={true}
+                  />
+                )}
+
+                {selectedSlot && (
+                  <Badge variant="secondary" className="mt-2">
+                    Selected:{" "}
+                    {selectedSlot.startDateTime.split("T")[1].substring(0, 5)} -{" "}
+                    {selectedSlot.endDateTime.split("T")[1].substring(0, 5)}
+                  </Badge>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Notes */}
@@ -959,7 +840,7 @@ export function CreateBookingDialog({
           </div>
 
           {/* Recurring Booking Section */}
-          {allowMultiple && !usePackage && bookingSlots.length === 1 && (
+          {!usePackage && (
             <div className="space-y-4 pt-4 border-t">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1185,34 +1066,20 @@ export function CreateBookingDialog({
             disabled={
               !clientName ||
               !clientPhone ||
-              !bookingSlots.some((bs) => bs.serviceId && bs.date && bs.slot) ||
-              (bookingMode === "professional" &&
-                bookingSlots.some(
-                  (bs) => bs.serviceId && !bs.professionalId
-                )) ||
+              !serviceId ||
+              !date ||
+              !selectedSlot ||
+              (bookingMode === "professional" && !professionalId) ||
               (usePackage && !selectedSubscription) ||
               (usePackage && !hasEnoughSessions) ||
-              (usePackage && !allServicesInPackage) ||
+              (usePackage && !serviceInPackage) ||
               submitting
             }
           >
             {submitting ? (
               "Creating..."
             ) : (
-              <>
-                {usePackage ? "Use Package Session" : "Create Booking"}
-                {" • "}
-                {
-                  bookingSlots.filter(
-                    (bs) => bs.serviceId && bs.date && bs.slot
-                  ).length
-                }{" "}
-                slot
-                {bookingSlots.filter((bs) => bs.serviceId && bs.date && bs.slot)
-                  .length > 1
-                  ? "s"
-                  : ""}
-              </>
+              <>{usePackage ? "Use Package Session" : "Create Booking"}</>
             )}
           </Button>
         </div>

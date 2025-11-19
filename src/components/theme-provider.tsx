@@ -5,6 +5,7 @@ import React, {
   useState,
   useMemo,
 } from "react";
+import { storage } from "../lib/storage";
 
 type Theme = "dark" | "light" | "system";
 
@@ -33,7 +34,7 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    () => (storage.getTheme() as Theme) || defaultTheme
   );
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function ThemeProvider({
     () => ({
       theme,
       setTheme: (theme: Theme) => {
-        localStorage.setItem(storageKey, theme);
+        storage.setTheme(theme);
         setTheme(theme);
       },
     }),

@@ -12,6 +12,7 @@ import {
   LoginCredentials,
 } from "../types/dto/auth";
 import { authService } from "../services/auth.service";
+import { storage } from "../lib/storage";
 
 // Use AuthEntity as Entity for this context
 type Entity = AuthEntity;
@@ -164,7 +165,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
   // Check for existing token on app load
   useEffect(() => {
     const checkAuthStatus = async () => {
-      const token = localStorage.getItem("schedfy-access-token");
+      const token = storage.getToken();
       console.log("[AuthProvider] Token on reload:", token);
       if (token) {
         try {
@@ -189,14 +190,12 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
               payload: { user: transformedUser, entity: entityData },
             });
           } else {
-            localStorage.removeItem("schedfy-access-token");
-            localStorage.removeItem("schedfy-refresh-token");
+            storage.clearAuth();
             dispatch({ type: "AUTH_LOGOUT" });
           }
         } catch (error) {
           console.error("Auth check failed:", error);
-          localStorage.removeItem("schedfy-access-token");
-          localStorage.removeItem("schedfy-refresh-token");
+          storage.clearAuth();
           dispatch({ type: "AUTH_LOGOUT" });
         }
       }
@@ -311,10 +310,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
   };
 
   const logout = () => {
-    localStorage.removeItem("schedfy-access-token");
-    localStorage.removeItem("schedfy-refresh-token");
-    localStorage.removeItem("schedfy-token");
-    localStorage.removeItem("schedfy-user");
+    storage.clearAuth();
     setRequires2FA(false);
     setTempToken(null);
     dispatch({ type: "AUTH_LOGOUT" });
@@ -322,7 +318,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
 
   const refreshToken = async () => {
     try {
-      const refreshTokenValue = localStorage.getItem("schedfy-refresh-token");
+      const refreshTokenValue = storage.getRefreshToken();
       if (!refreshTokenValue) {
         throw new Error("No refresh token available");
       }
@@ -336,11 +332,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       const { access_token, refresh_token } = response.data;
 
       if (access_token) {
-        localStorage.setItem("schedfy-access-token", access_token);
-        localStorage.setItem("schedfy-token", access_token);
+        storage.setToken(access_token);
       }
       if (refresh_token) {
-        localStorage.setItem("schedfy-refresh-token", refresh_token);
+        storage.setRefreshToken(refresh_token);
       }
     } catch (error) {
       logout();

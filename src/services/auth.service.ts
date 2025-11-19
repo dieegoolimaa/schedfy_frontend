@@ -3,6 +3,7 @@
  */
 
 import { apiClient } from '../lib/api-client';
+import { storage } from '../lib/storage';
 import type { ApiResponse } from '../types/dto/api';
 import type { LoginCredentials } from '../types/dto/auth';
 import type {
@@ -23,15 +24,14 @@ export const authService = {
 
         // Store tokens
         if (response.data?.access_token) {
-            localStorage.setItem('schedfy-token', response.data.access_token);
-            localStorage.setItem('schedfy-access-token', response.data.access_token);
+            storage.setToken(response.data.access_token);
         }
         if (response.data?.refresh_token) {
-            localStorage.setItem('schedfy-refresh-token', response.data.refresh_token);
+            storage.setRefreshToken(response.data.refresh_token);
         }
         // Store user data
         if (response.data?.user) {
-            localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
+            storage.setUser(response.data.user);
         }
 
         return response;
@@ -45,15 +45,14 @@ export const authService = {
 
         // Store tokens
         if (response.data?.access_token) {
-            localStorage.setItem('schedfy-token', response.data.access_token);
-            localStorage.setItem('schedfy-access-token', response.data.access_token);
+            storage.setToken(response.data.access_token);
         }
         if (response.data?.refresh_token) {
-            localStorage.setItem('schedfy-refresh-token', response.data.refresh_token);
+            storage.setRefreshToken(response.data.refresh_token);
         }
         // Store user data
         if (response.data?.user) {
-            localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
+            storage.setUser(response.data.user);
         }
 
         return response;
@@ -101,15 +100,14 @@ export const authService = {
 
         // Store tokens
         if (accessToken) {
-            localStorage.setItem('schedfy-token', accessToken);
-            localStorage.setItem('schedfy-access-token', accessToken);
+            storage.setToken(accessToken);
         }
         if (refreshToken) {
-            localStorage.setItem('schedfy-refresh-token', refreshToken);
+            storage.setRefreshToken(refreshToken);
         }
         // Store user data
         if (response.data?.user) {
-            localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
+            storage.setUser(response.data.user);
         }
 
         return response;
@@ -126,15 +124,14 @@ export const authService = {
 
         // Store tokens
         if (response.data?.access_token) {
-            localStorage.setItem('schedfy-token', response.data.access_token);
-            localStorage.setItem('schedfy-access-token', response.data.access_token);
+            storage.setToken(response.data.access_token);
         }
         if (response.data?.refresh_token) {
-            localStorage.setItem('schedfy-refresh-token', response.data.refresh_token);
+            storage.setRefreshToken(response.data.refresh_token);
         }
         // Store user data
         if (response.data?.user) {
-            localStorage.setItem('schedfy-user', JSON.stringify(response.data.user));
+            storage.setUser(response.data.user);
         }
 
         return response;
@@ -155,8 +152,7 @@ export const authService = {
         const response = await apiClient.post<RefreshTokenResponse>('/api/auth/refresh', payload);
 
         if (response.data?.access_token) {
-            localStorage.setItem('schedfy-token', response.data.access_token);
-            localStorage.setItem('schedfy-access-token', response.data.access_token);
+            storage.setToken(response.data.access_token);
         }
 
         return response;
@@ -170,10 +166,7 @@ export const authService = {
             await apiClient.post('/api/auth/logout');
         } finally {
             // Clear local storage regardless of API response
-            localStorage.removeItem('schedfy-token');
-            localStorage.removeItem('schedfy-access-token');
-            localStorage.removeItem('schedfy-refresh-token');
-            localStorage.removeItem('schedfy-user');
+            storage.clearAuth();
         }
     },
 
@@ -181,20 +174,13 @@ export const authService = {
      * Check if user is authenticated
      */
     isAuthenticated: (): boolean => {
-        return !!localStorage.getItem('schedfy-token');
+        return !!storage.getToken();
     },
 
     /**
      * Get stored user data
      */
     getStoredUser: (): AuthUser | null => {
-        const userStr = localStorage.getItem('schedfy-user');
-        if (!userStr) return null;
-
-        try {
-            return JSON.parse(userStr);
-        } catch {
-            return null;
-        }
+        return storage.getUser();
     },
 };

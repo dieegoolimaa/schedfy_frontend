@@ -1,4 +1,5 @@
 import { ApiResponse, ApiError } from '../types/dto/api';
+import { storage } from './storage';
 
 // In development, use empty string to leverage Vite proxy
 // In production, use the full API URL from env variable
@@ -12,7 +13,7 @@ export class ApiClient {
     }
 
     private getAuthToken(): string | null {
-        return localStorage.getItem('schedfy-token');
+        return storage.getToken();
     }
 
     /**

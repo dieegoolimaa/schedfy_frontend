@@ -9,6 +9,7 @@ import type {
     LocaleCode,
     RegionConfig
 } from '../types/models/regional.interface';
+import { storage } from './storage';
 
 export type { RegionCode, CurrencyCode, LocaleCode, RegionConfig };
 
@@ -68,7 +69,7 @@ export const REGIONS: Record<RegionCode, RegionConfig> = {
  */
 export function detectUserRegion(): RegionCode {
     // 1. Check localStorage first (user preference) - HIGHEST PRIORITY
-    const stored = localStorage.getItem('schedfy-region') as RegionCode;
+    const stored = storage.getRegion() as RegionCode;
     if (stored && REGIONS[stored]) {
         return stored;
     }
@@ -127,11 +128,11 @@ export function getRegionConfig(region?: RegionCode): RegionConfig {
  * Set user's preferred region
  */
 export function setUserRegion(region: RegionCode): void {
-    localStorage.setItem('schedfy-region', region);
+    storage.setRegion(region);
 
     // Update i18n locale
     const config = REGIONS[region];
-    localStorage.setItem('schedfy-locale', config.locale);
+    storage.setLocale(config.locale);
 
     // Trigger storage event for other tabs
     globalThis.dispatchEvent(new StorageEvent('storage', {
