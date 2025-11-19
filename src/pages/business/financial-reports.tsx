@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useAuth } from "../../contexts/auth-context";
@@ -70,6 +71,7 @@ export function FinancialReportsPage() {
   const { t } = useTranslation("financial");
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const entityId = user?.entityId || user?.id || "";
 
   // Fetch bookings data from API
@@ -577,11 +579,20 @@ export function FinancialReportsPage() {
 
           <TabsContent value="professionals" className="space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Revenue by Professional</CardTitle>
-                <CardDescription>
-                  Financial performance per professional
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Revenue by Professional</CardTitle>
+                  <CardDescription>
+                    Financial performance per professional
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/operational-reports")}
+                >
+                  View Operational Performance
+                </Button>
               </CardHeader>
               <CardContent>
                 <Table>

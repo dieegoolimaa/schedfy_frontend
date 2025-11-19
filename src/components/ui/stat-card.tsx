@@ -12,6 +12,7 @@ interface StatCardProps {
   };
   className?: string;
   variant?: "default" | "success" | "warning" | "danger" | "info";
+  onClick?: () => void;
 }
 
 export function StatCard({
@@ -22,6 +23,7 @@ export function StatCard({
   trend,
   className,
   variant = "default",
+  onClick,
 }: StatCardProps) {
   const variantColors = {
     default: "text-gray-900 dark:text-white",
@@ -41,8 +43,10 @@ export function StatCard({
 
   return (
     <div
+      onClick={onClick}
       className={cn(
         "bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 transition-all hover:shadow-md",
+        onClick && "cursor-pointer hover:border-primary/50",
         className
       )}
     >

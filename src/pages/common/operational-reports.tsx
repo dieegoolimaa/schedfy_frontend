@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useClients } from "../../hooks/useClients";
@@ -61,6 +62,7 @@ import {
 
 export function OperationalReportsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const entityId = user?.entityId || user?.id || "";
   const plan = user?.plan || "simple";
 
@@ -524,11 +526,20 @@ export function OperationalReportsPage() {
         {plan === "business" && (
           <TabsContent value="professionals" className="space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Professional Performance</CardTitle>
-                <CardDescription>
-                  Operational metrics per professional
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Professional Performance</CardTitle>
+                  <CardDescription>
+                    Operational metrics per professional
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/financial-reports")}
+                >
+                  View Financial Performance
+                </Button>
               </CardHeader>
               <CardContent>
                 <Table>
