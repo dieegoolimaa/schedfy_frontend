@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
@@ -64,7 +64,6 @@ import {
   Users,
   DollarSign,
   Clock,
-  Calendar,
   Brain,
   Lightbulb,
   Target,
@@ -112,6 +111,25 @@ const ConsolidatedDashboard = () => {
     entityId,
     autoFetch: true,
   });
+
+  // Live dashboard state
+  const [liveData, setLiveData] = useState<{ upcoming: any[]; inProgress: any[] }>({ upcoming: [], inProgress: [] });
+
+  // Fetch live status periodically (e.g., every 30 seconds)
+  useEffect(() => {
+    if (!entityId) return;
+    const fetchLive = async () => {
+      try {
+        const response = await apiClient.get(`/api/bookings/live-status?entityId=${entityId}`);
+        setLiveData(response.data as any);
+      } catch (e) {
+        console.error('Failed to fetch live status', e);
+      }
+    };
+    fetchLive();
+    const interval = setInterval(fetchLive, 30000);
+    return () => clearInterval(interval);
+  }, [entityId]);
 
   const { services, loading: servicesLoading } = useServices({
     entityId,
@@ -738,937 +756,1006 @@ const ConsolidatedDashboard = () => {
                       Create Booking
                     </Button>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {upcomingBookings.map((booking) => (
-                      <div
-                        key={booking.id}
-                        className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
-                      >
-                        <Avatar className="h-10 w-10 mt-1">
-                          <AvatarImage src="" />
-                          <AvatarFallback className="text-sm font-medium">
-                            {booking.client?.name?.[0] || "?"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold leading-none truncate">
-                                {booking.client?.name || "Unknown"}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1 truncate">
-                                {booking.service?.name || "Unknown Service"}
-                              </p>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <div className="flex items-center gap-1 text-sm font-medium">
-                                <Clock className="h-3 w-3" />
-                                {formatTime(booking.startTime)}
-                              </div>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  booking.status === "confirmed"
-                                    ? "text-xs bg-green-50 text-green-700 border-green-200"
-                                    : "text-xs bg-amber-50 text-amber-700 border-amber-200"
-                                }
-                              >
-                                {booking.status}
-                              </Badge>
-                            </div>
+                ) : <div className="space-y-3">
+                  {/* Existing upcoming bookings list */}
+                  {upcomingBookings.map((booking) => (
+                    <div
+                      key={booking.id}
+                      className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
+                    >
+                      <Avatar className="h-10 w-10 mt-1">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="text-sm font-medium">
+                          {booking.client?.name?.[0] || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold leading-none truncate">
+                              {booking.client?.name || "Unknown"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                              {booking.service?.name || "Unknown Service"}
+                            </p>
                           </div>
-                          <div className="flex items-center gap-1 pt-1">
+                          <div className="text-right shrink-0">
+                            <div className="flex items-center gap-1 text-sm font-medium">
+                              <Clock className="h-3 w-3" />
+                              {formatTime(booking.startTime)}
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={
+                                booking.status === "confirmed"
+                                  ? "text-xs bg-green-50 text-green-700 border-green-200"
+                                  : "text-xs bg-amber-50 text-amber-700 border-amber-200"
+                              }
+                            >
+                              {booking.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 pt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDetails(booking);
+                            }}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          {booking.status === "pending" && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 px-2 text-xs"
+                              className="h-7 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleViewDetails(booking);
+                                // confirm logic placeholder
                               }}
                             >
-                              <Eye className="h-3 w-3 mr-1" />
-                              View
+                              Confirm
                             </Button>
-                            {booking.status === "pending" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleConfirmBooking(booking.id);
-                                }}
-                              >
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Confirm
-                              </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Live Dashboard Widget */}
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle>{t('dashboard.liveUpdates', 'Live Updates')}</CardTitle>
+                      <CardDescription>{t('dashboard.liveDescription', 'Upcoming and in‑progress bookings')}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {loading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Upcoming */}
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">{t('dashboard.upcoming', 'Upcoming')}</h3>
+                            {liveData.upcoming.length === 0 ? (
+                              <p className="text-muted-foreground text-sm">{t('dashboard.noUpcoming', 'No upcoming bookings')}</p>
+                            ) : (
+                              <ul className="space-y-2">
+                                {liveData.upcoming.map((b) => (
+                                  <li key={b.id} className="flex items-center justify-between text-sm">
+                                    <span>{b.clientName} – {b.serviceName}</span>
+                                    <Badge variant="outline" className="ml-2">
+                                      {b.minutesUntilStart} min
+                                    </Badge>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                          {/* In Progress */}
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">{t('dashboard.inProgress', 'In Progress')}</h3>
+                            {liveData.inProgress.length === 0 ? (
+                              <p className="text-muted-foreground text-sm">{t('dashboard.noInProgress', 'No bookings in progress')}</p>
+                            ) : (
+                              <ul className="space-y-2">
+                                {liveData.inProgress.map((b) => (
+                                  <li key={b.id} className="flex items-center justify-between text-sm">
+                                    <span>{b.clientName} – {b.serviceName}</span>
+                                    <Badge variant="secondary" className="ml-2">
+                                      In Progress
+                                    </Badge>
+                                  </li>
+                                ))}
+                              </ul>
                             )}
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>}
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Sidebar Column - Business or Main Column - Simple/Individual */}
-        {plan !== "business" && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    {(user?.plan || "simple") === "individual"
-                      ? "Today's Schedule"
-                      : t("upcomingBookings.title")}
-                  </CardTitle>
-                  <CardDescription>
-                    {(user?.plan || "simple") === "individual"
-                      ? "Your appointments for today"
-                      : t("upcomingBookings.description")}
-                  </CardDescription>
-                </div>
-                {plan === "simple" && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleViewSchedule}
-                  >
-                    {t("viewAll")}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : upcomingBookings.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>
-                    {plan === "simple"
-                      ? t("upcomingBookings.noBookings")
-                      : "No appointments scheduled for today"}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-4"
-                    onClick={handleNewBooking}
-                  >
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    {plan === "simple"
-                      ? t("upcomingBookings.createBooking")
-                      : "Create Booking"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {upcomingBookings.map((booking) => {
-                    const currentPlan = user?.plan || "simple";
-                    return (
-                      <div
-                        key={booking.id}
-                        className={`flex items-center ${currentPlan === "business"
-                          ? "items-start gap-3"
-                          : "justify-between"
-                          } p-3 sm:p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer`}
-                        onClick={() =>
-                          currentPlan === "business"
-                            ? null
-                            : navigate(`/${plan}/bookings`)
-                        }
-                      >
-                        {currentPlan === "business" ? (
-                          <>
-                            <Avatar className="h-10 w-10 mt-1">
-                              <AvatarImage src="" />
-                              <AvatarFallback className="text-sm font-medium">
-                                {booking.client?.name?.[0] || "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0 space-y-1">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold leading-none truncate">
-                                    {booking.client?.name || "Unknown"}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground mt-1 truncate">
-                                    {booking.service?.name || "Unknown Service"}
-                                  </p>
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <div className="flex items-center gap-1 text-sm font-medium">
-                                    <Clock className="h-3 w-3" />
-                                    {formatTime(booking.startTime)}
-                                  </div>
-                                  <p
-                                    className={`text-xs mt-0.5 ${booking.status === "confirmed"
-                                      ? "text-green-600"
-                                      : "text-amber-600"
-                                      }`}
-                                  >
-                                    {booking.status === "pending"
-                                      ? "pending"
-                                      : booking.status}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 pt-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 px-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleViewDetails(booking);
-                                  }}
-                                >
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  <span className="text-xs">View</span>
-                                </Button>
-                                {booking.status === "pending" && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleConfirmBooking(booking.id);
-                                    }}
-                                  >
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    <span className="text-xs">Confirm</span>
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="flex items-center space-x-4">
-                              <div
-                                className={`w-2 h-8 rounded-full ${booking.status === "confirmed"
-                                  ? "bg-blue-500"
-                                  : "bg-yellow-500"
-                                  }`}
-                              />
-                              <div>
-                                <p className="font-medium">
-                                  {booking.client?.name ||
-                                    (plan === "simple"
-                                      ? t("upcomingBookings.unknownClient")
-                                      : "Unknown Client")}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {booking.service?.name ||
-                                    (plan === "simple"
-                                      ? t("upcomingBookings.unknownService")
-                                      : "Unknown Service")}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium">
-                                {formatTime(booking.startTime)}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {formatDate(booking.startTime)}
-                              </p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {(user?.plan || "simple") === "business" && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="sm"
-                      onClick={handleViewAllAppointments}
-                    >
-                      <ChevronRight className="h-4 w-4 mr-2" />
-                      View All Appointments
-                    </Button>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Business: Sidebar */}
-        {plan === "business" ? (
+        {/* Simple & Individual: Main Column */}
+        {(plan === "simple" || plan === "individual") && (
           <div className="space-y-6">
-            {/* Quick Actions - Business */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Quick Actions</CardTitle>
-                <CardDescription className="text-xs">
-                  Common tasks and shortcuts
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start h-9 text-sm"
-                    onClick={handleNewBooking}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Booking
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start h-9 text-sm"
-                    onClick={() => navigate("/entity/professionals")}
-                  >
-                    <Users className="mr-2 h-4 w-4" />
-                    Manage Team
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start h-9 text-sm"
-                    onClick={() => navigate("/entity/financial-reports")}
-                  >
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Financial Reports
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start h-9 text-sm"
-                    onClick={() => navigate("/entity/settings")}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Monthly Goals - Business */}
+            {/* Upcoming Bookings - Simple & Individual */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-base">Monthly Goals</CardTitle>
-                    <CardDescription className="text-xs">
-                      Track your progress
-                    </CardDescription>
+                    <CardTitle>
+                      {(user?.plan || "simple") === "individual"
+                        ? "Today's Schedule"
+                        : t("upcomingBookings.title")}
+                    </CardTitle>
+                                            <CardDescription>
+                                              {(user?.plan || "simple") === "individual"
+                                                ? "Your appointments for today"
+                                                : t("upcomingBookings.description")}
+                                            </CardDescription>
+                                          </div>
+                                          {plan === "simple" && (
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={handleViewSchedule}
+                                            >
+                                              {t("viewAll")}
+                                              <ArrowRight className="ml-2 h-4 w-4" />
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </CardHeader>
+                                      <CardContent>
+                                        {loading ? (
+                                          <div className="flex items-center justify-center py-8">
+                                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                          </div>
+                                        ) : upcomingBookings.length === 0 ? (
+                                          <div className="text-center py-8 text-muted-foreground">
+                                            <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                                            <p>
+                                              {plan === "simple"
+                                                ? t("upcomingBookings.noBookings")
+                                                : "No appointments scheduled for today"}
+                                            </p>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="mt-4"
+                                              onClick={handleNewBooking}
+                                            >
+                                              <CalendarDays className="mr-2 h-4 w-4" />
+                                              {plan === "simple"
+                                                ? t("upcomingBookings.createBooking")
+                                                : "Create Booking"}
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <div className="space-y-4">
+                                            {upcomingBookings.map((booking) => {
+                                              const currentPlan = user?.plan || "simple";
+                                              return (
+                                                <div
+                                                  key={booking.id}
+                                                  className={`flex items-center ${currentPlan === "business"
+                                                    ? "items-start gap-3"
+                                                    : "justify-between"
+                                                    } p-3 sm:p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer`}
+                                                  onClick={() =>
+                                                    currentPlan === "business"
+                                                      ? null
+                                                      : navigate(`/${plan}/bookings`)
+                                                  }
+                                                >
+                                                  {currentPlan === "business" ? (
+                                                    <>
+                                                      <Avatar className="h-10 w-10 mt-1">
+                                                        <AvatarImage src="" />
+                                                        <AvatarFallback className="text-sm font-medium">
+                                                          {booking.client?.name?.[0] || "?"}
+                                                        </AvatarFallback>
+                                                      </Avatar>
+                                                      <div className="flex-1 min-w-0 space-y-1">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                          <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-semibold leading-none truncate">
+                                                              {booking.client?.name || "Unknown"}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                                                              {booking.service?.name || "Unknown Service"}
+                                                            </p>
+                                                          </div>
+                                                          <div className="text-right shrink-0">
+                                                            <div className="flex items-center gap-1 text-sm font-medium">
+                                                              <Clock className="h-3 w-3" />
+                                                              {formatTime(booking.startTime)}
+                                                            </div>
+                                                            <p
+                                                              className={`text-xs mt-0.5 ${booking.status === "confirmed"
+                                                                ? "text-green-600"
+                                                                : "text-amber-600"
+                                                                }`}
+                                                            >
+                                                              {booking.status === "pending"
+                                                                ? "pending"
+                                                                : booking.status}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 pt-2">
+                                                          <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 px-2"
+                                                            onClick={(e) => {
+                                                              e.stopPropagation();
+                                                              handleViewDetails(booking);
+                                                            }}
+                                                          >
+                                                            <Eye className="h-3 w-3 mr-1" />
+                                                            <span className="text-xs">View</span>
+                                                          </Button>
+                                                          {booking.status === "pending" && (
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleConfirmBooking(booking.id);
+                                                              }}
+                                                            >
+                                                              <CheckCircle className="h-3 w-3 mr-1" />
+                                                              <span className="text-xs">Confirm</span>
+                                                            </Button>
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    </>
+                                                  ) : (
+                                                    <>
+                                                      <div className="flex items-center space-x-4">
+                                                        <div
+                                                          className={`w-2 h-8 rounded-full ${booking.status === "confirmed"
+                                                            ? "bg-blue-500"
+                                                            : "bg-yellow-500"
+                                                            }`}
+                                                        />
+                                                        <div>
+                                                          <p className="font-medium">
+                                                            {booking.client?.name ||
+                                                              (plan === "simple"
+                                                                ? t("upcomingBookings.unknownClient")
+                                                                : "Unknown Client")}
+                                                          </p>
+                                                          <p className="text-sm text-muted-foreground">
+                                                            {booking.service?.name ||
+                                                              (plan === "simple"
+                                                                ? t("upcomingBookings.unknownService")
+                                                                : "Unknown Service")}
+                                                          </p>
+                                                        </div>
+                                                      </div>
+                                                      <div className="text-right">
+                                                        <p className="font-medium">
+                                                          {formatTime(booking.startTime)}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                          {formatDate(booking.startTime)}
+                                                        </p>
+                                                      </div>
+                                                    </>
+                                                  )}
+                                                </div>
+                                              );
+                                            })}
+                                            {(user?.plan || "simple") === "business" && (
+                                              <Button
+                                                variant="outline"
+                                                className="w-full"
+                                                size="sm"
+                                                onClick={handleViewAllAppointments}
+                                              >
+                                                <ChevronRight className="h-4 w-4 mr-2" />
+                                                View All Appointments
+                                              </Button>
+                                            )}
+                                          </div>
+                                        )}
+                                      </CardContent>
+                                    </Card>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate("/entity/financial-reports")}
-                  >
-                    <Target className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {Array.isArray(goals) && goals.length > 0 ? (
-                  goals.slice(0, 3).map((goal) => {
-                    const progress =
-                      goal.targetValue > 0
-                        ? (goal.currentValue / goal.targetValue) * 100
-                        : 0;
-                    const displayValue =
-                      goal.type === "revenue"
-                        ? `${formatCurrency(
-                          goal.currentValue
-                        )} / ${formatCurrency(goal.targetValue)}`
-                        : `${goal.currentValue} / ${goal.targetValue}`;
+                  )
+                                }
 
-                    return (
-                      <div key={goal._id} className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium truncate flex-1">
-                            {goal.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {progress.toFixed(0)}%
-                          </span>
-                        </div>
-                        <Progress value={progress} className="h-2" />
-                        <p className="text-xs text-muted-foreground">
-                          {displayValue}
-                        </p>
+                  {/* Business: Sidebar */}
+                  {
+                    plan === "business" ? (
+                      <div className="space-y-6">
+                        {/* Quick Actions - Business */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Quick Actions</CardTitle>
+                            <CardDescription className="text-xs">
+                              Common tasks and shortcuts
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid gap-2">
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start h-9 text-sm"
+                                onClick={handleNewBooking}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                New Booking
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start h-9 text-sm"
+                                onClick={() => navigate("/entity/professionals")}
+                              >
+                                <Users className="mr-2 h-4 w-4" />
+                                Manage Team
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start h-9 text-sm"
+                                onClick={() => navigate("/entity/financial-reports")}
+                              >
+                                <BarChart3 className="mr-2 h-4 w-4" />
+                                Financial Reports
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start h-9 text-sm"
+                                onClick={() => navigate("/entity/settings")}
+                              >
+                                <Settings className="mr-2 h-4 w-4" />
+                                Settings
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Monthly Goals - Business */}
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <CardTitle className="text-base">Monthly Goals</CardTitle>
+                                <CardDescription className="text-xs">
+                                  Track your progress
+                                </CardDescription>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate("/entity/financial-reports")}
+                              >
+                                <Target className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {Array.isArray(goals) && goals.length > 0 ? (
+                              goals.slice(0, 3).map((goal) => {
+                                const progress =
+                                  goal.targetValue > 0
+                                    ? (goal.currentValue / goal.targetValue) * 100
+                                    : 0;
+                                const displayValue =
+                                  goal.type === "revenue"
+                                    ? `${formatCurrency(
+                                      goal.currentValue
+                                    )} / ${formatCurrency(goal.targetValue)}`
+                                    : `${goal.currentValue} / ${goal.targetValue}`;
+
+                                return (
+                                  <div key={goal._id} className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="font-medium truncate flex-1">
+                                        {goal.name}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground ml-2">
+                                        {progress.toFixed(0)}%
+                                      </span>
+                                    </div>
+                                    <Progress value={progress} className="h-2" />
+                                    <p className="text-xs text-muted-foreground">
+                                      {displayValue}
+                                    </p>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="text-center py-4 text-muted-foreground text-xs">
+                                <p>No goals set for this month</p>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="text-xs mt-1"
+                                  onClick={() => navigate("/entity/financial-reports")}
+                                >
+                                  Set Your Goals
+                                </Button>
+                              </div>
+                            )}
+                            {Array.isArray(goals) && goals.length > 0 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs"
+                                onClick={() => navigate("/entity/financial-reports")}
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Update Goals
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+
+                        {/* Recent Activity - Business */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Recent Activity</CardTitle>
+                            <CardDescription className="text-xs">
+                              Latest updates
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {recentActivity.slice(0, 4).map((activity) => (
+                              <div key={activity.id} className="flex items-start space-x-2">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted shrink-0">
+                                  <CalendarDays className="h-3.5 w-3.5" />
+                                </div>
+                                <div className="flex-1 space-y-0.5 min-w-0">
+                                  <p className="text-xs leading-snug truncate">
+                                    {activity.message}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {activity.time}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </CardContent>
+                        </Card>
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground text-xs">
-                    <p>No goals set for this month</p>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="text-xs mt-1"
-                      onClick={() => navigate("/entity/financial-reports")}
-                    >
-                      Set Your Goals
-                    </Button>
-                  </div>
-                )}
-                {Array.isArray(goals) && goals.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs"
-                    onClick={() => navigate("/entity/financial-reports")}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Update Goals
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+                    ) : (
+                      /* Simple & Individual: Original Layout */
+                      <>
+                        <QuickBookingWidget entityId={entityId} />
 
-            {/* Recent Activity - Business */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Recent Activity</CardTitle>
-                <CardDescription className="text-xs">
-                  Latest updates
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {recentActivity.slice(0, 4).map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted shrink-0">
-                      <CalendarDays className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="flex-1 space-y-0.5 min-w-0">
-                      <p className="text-xs leading-snug truncate">
-                        {activity.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          /* Simple & Individual: Original Layout */
-          <>
-            <QuickBookingWidget entityId={entityId} />
+                        {/* Quick Actions - Simple & Individual */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>{t("quickActions.title")}</CardTitle>
+                            <CardDescription>
+                              {plan === "individual"
+                                ? "Common tasks and shortcuts"
+                                : "Quick access to key features"}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid gap-3">
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start h-10"
+                                onClick={handleNewBooking}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                New Booking
+                              </Button>
+                              {plan === "individual" && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full justify-start h-10"
+                                    onClick={handleAddClient}
+                                  >
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                    Add Client
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full justify-start h-10"
+                                    onClick={() => navigate("/individual/services")}
+                                  >
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    My Services
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start h-10"
+                                onClick={handleViewSchedule}
+                              >
+                                <CalendarDays className="mr-2 h-4 w-4" />
+                                {plan === "individual" ? "View Calendar" : "View Schedule"}
+                              </Button>
+                              {plan === "simple" && (
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start h-10"
+                                  onClick={() => navigate("/simple/services")}
+                                >
+                                  <Settings className="mr-2 h-4 w-4" />
+                                  My Services
+                                </Button>
+                              )}
+                              {plan === "individual" && (
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start h-10"
+                                  onClick={() => navigate("/individual/payment-management")}
+                                >
+                                  <CreditCard className="mr-2 h-4 w-4" />
+                                  Payment Tracking
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start h-10"
+                                onClick={handleGenerateReport}
+                              >
+                                <BarChart3 className="mr-2 h-4 w-4" />
+                                {plan === "individual" ? "View Reports" : "Reports"}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </>
+                    )
+                  }
 
-            {/* Quick Actions - Simple & Individual */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("quickActions.title")}</CardTitle>
-                <CardDescription>
-                  {plan === "individual"
-                    ? "Common tasks and shortcuts"
-                    : "Quick access to key features"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start h-10"
-                    onClick={handleNewBooking}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Booking
-                  </Button>
-                  {plan === "individual" && (
-                    <>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start h-10"
-                        onClick={handleAddClient}
-                      >
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Add Client
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start h-10"
-                        onClick={() => navigate("/individual/services")}
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        My Services
-                      </Button>
-                    </>
-                  )}
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start h-10"
-                    onClick={handleViewSchedule}
-                  >
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    {plan === "individual" ? "View Calendar" : "View Schedule"}
-                  </Button>
-                  {plan === "simple" && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-10"
-                      onClick={() => navigate("/simple/services")}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      My Services
-                    </Button>
-                  )}
-                  {plan === "individual" && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-10"
-                      onClick={() => navigate("/individual/payment-management")}
-                    >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Payment Tracking
-                    </Button>
-                  )}
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start h-10"
-                    onClick={handleGenerateReport}
-                  >
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    {plan === "individual" ? "View Reports" : "Reports"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* Simple: Upgrade Banner */}
-        {plan === "simple" && (
-          <Card className="border-2 border-dashed border-primary/50">
-            <CardContent className="p-3 sm:p-6 bg-gradient-to-r from-blue-50 to-purple-50">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-blue-900 mb-1">
-                    Unlock More Features
-                  </h3>
-                  <p className="text-sm text-blue-700 mb-3">
-                    Upgrade to Individual for AI insights, advanced reports, and
-                    unlimited bookings.
-                  </p>
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={handleUpgradePlan}
-                  >
-                    View Plans
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+                  {/* Simple: Upgrade Banner */}
+                  {
+                    plan === "simple" && (
+                      <Card className="border-2 border-dashed border-primary/50">
+                        <CardContent className="p-3 sm:p-6 bg-gradient-to-r from-blue-50 to-purple-50">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <TrendingUp className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-blue-900 mb-1">
+                                Unlock More Features
+                              </h3>
+                              <p className="text-sm text-blue-700 mb-3">
+                                Upgrade to Individual for AI insights, advanced reports, and
+                                unlimited bookings.
+                              </p>
+                              <Button
+                                size="sm"
+                                className="w-full"
+                                onClick={handleUpgradePlan}
+                              >
+                                View Plans
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  }
+                </div >
 
       {/* Recent Activity - Simple & Individual */}
-      {(plan === "simple" || plan === "individual") && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("recentActivity.title")}</CardTitle>
-            <CardDescription>
-              {plan === "individual"
-                ? "Latest updates and notifications"
-                : t("recentActivity.description")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {plan === "simple" ? (
-                <>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                    <div className="flex-1">
-                      <p className="text-sm">
-                        {t("recentActivity.newBookingConfirmed")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t("recentActivity.minutesAgo", { count: 2 })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                    <div className="flex-1">
-                      <p className="text-sm">
-                        {t("recentActivity.sessionCompleted")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t("recentActivity.hourAgo")}
-                      </p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                    <div className="flex-1">
-                      <p className="text-sm">
-                        New booking confirmed for tomorrow
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        2 minutes ago
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                    <div className="flex-1">
-                      <p className="text-sm">
-                        Payment received from Maria Silva - €45.00
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        1 hour ago
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                    <div className="flex-1">
-                      <p className="text-sm">New 5-star review received</p>
-                      <p className="text-xs text-muted-foreground">
-                        3 hours ago
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                {
+                  (plan === "simple" || plan === "individual") && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t("recentActivity.title")}</CardTitle>
+                        <CardDescription>
+                          {plan === "individual"
+                            ? "Latest updates and notifications"
+                            : t("recentActivity.description")}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {plan === "simple" ? (
+                            <>
+                              <div className="flex items-center space-x-4">
+                                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                <div className="flex-1">
+                                  <p className="text-sm">
+                                    {t("recentActivity.newBookingConfirmed")}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {t("recentActivity.minutesAgo", { count: 2 })}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-4">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                <div className="flex-1">
+                                  <p className="text-sm">
+                                    {t("recentActivity.sessionCompleted")}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {t("recentActivity.hourAgo")}
+                                  </p>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center space-x-4">
+                                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                <div className="flex-1">
+                                  <p className="text-sm">
+                                    New booking confirmed for tomorrow
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    2 minutes ago
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-4">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                <div className="flex-1">
+                                  <p className="text-sm">
+                                    Payment received from Maria Silva - €45.00
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    1 hour ago
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-4">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                                <div className="flex-1">
+                                  <p className="text-sm">New 5-star review received</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    3 hours ago
+                                  </p>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                }
 
-      {/* AI Insights - Individual & Business */}
-      {(plan === "individual" || plan === "business") && (
-        <Card className={plan === "business" ? "col-span-full" : ""}>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Brain className="h-5 w-5 text-purple-600" />
-              <CardTitle>
-                {plan === "business" ? "Business Intelligence" : "AI Insights"}
-              </CardTitle>
-            </div>
-            <CardDescription>
-              {plan === "business"
-                ? "AI-powered insights to optimize your business operations"
-                : "Intelligent recommendations to optimize your practice"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`space-y-4 ${plan === "business"
-                ? "md:grid md:grid-cols-2 lg:grid-cols-3 md:space-y-0 md:gap-4"
-                : ""
-                }`}
-            >
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-                <div className="flex items-start space-x-3">
-                  <Target className="h-5 w-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">
-                      {plan === "business"
-                        ? "Peak Hours Optimization"
-                        : "Revenue Opportunity"}
-                    </h4>
-                    <p className="text-sm text-blue-700 mb-2">
-                      {plan === "business"
-                        ? "Add 2 more professionals during 2-5 PM to reduce wait times and increase revenue by 23%."
-                        : "Your Tuesday afternoons have 40% availability. Consider offering promotions for off-peak hours to increase bookings."}
-                    </p>
-                    {(user?.plan || "simple") === "business" ? (
-                      <div className="text-xs text-blue-600 font-medium">
-                        Potential +€1,200/month
-                      </div>
-                    ) : (
-                      <Badge variant="outline" className="text-xs bg-blue-100">
-                        Potential +€180/week
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
+                {/* AI Insights - Individual & Business */}
+                {
+                  (plan === "individual" || plan === "business") && (
+                    <Card className={plan === "business" ? "col-span-full" : ""}>
+                      <CardHeader>
+                        <div className="flex items-center space-x-2">
+                          <Brain className="h-5 w-5 text-purple-600" />
+                          <CardTitle>
+                            {plan === "business" ? "Business Intelligence" : "AI Insights"}
+                          </CardTitle>
+                        </div>
+                        <CardDescription>
+                          {plan === "business"
+                            ? "AI-powered insights to optimize your business operations"
+                            : "Intelligent recommendations to optimize your practice"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div
+                          className={`space-y-4 ${plan === "business"
+                            ? "md:grid md:grid-cols-2 lg:grid-cols-3 md:space-y-0 md:gap-4"
+                            : ""
+                            }`}
+                        >
+                          <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                            <div className="flex items-start space-x-3">
+                              <Target className="h-5 w-5 text-blue-600 mt-0.5" />
+                              <div>
+                                <h4 className="font-semibold text-blue-900 mb-1">
+                                  {plan === "business"
+                                    ? "Peak Hours Optimization"
+                                    : "Revenue Opportunity"}
+                                </h4>
+                                <p className="text-sm text-blue-700 mb-2">
+                                  {plan === "business"
+                                    ? "Add 2 more professionals during 2-5 PM to reduce wait times and increase revenue by 23%."
+                                    : "Your Tuesday afternoons have 40% availability. Consider offering promotions for off-peak hours to increase bookings."}
+                                </p>
+                                {(user?.plan || "simple") === "business" ? (
+                                  <div className="text-xs text-blue-600 font-medium">
+                                    Potential +€1,200/month
+                                  </div>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs bg-blue-100">
+                                    Potential +€180/week
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
 
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                <div className="flex items-start space-x-3">
-                  <Lightbulb className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-green-900 mb-1">
-                      {plan === "business"
-                        ? "Service Bundling"
-                        : "Client Retention Tip"}
-                    </h4>
-                    <p className="text-sm text-green-700 mb-2">
-                      {plan === "business"
-                        ? "70% of hair color clients also book styling. Create a combo package to increase average booking value."
-                        : "Clients who book follow-up appointments within 24 hours have 85% higher retention. Enable automatic follow-up reminders."}
-                    </p>
-                    {(user?.plan || "simple") === "business" ? (
-                      <div className="text-xs text-green-600 font-medium">
-                        Implement now
-                      </div>
-                    ) : (
-                      <Badge variant="outline" className="text-xs bg-green-100">
-                        Actionable
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
+                          <div className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                            <div className="flex items-start space-x-3">
+                              <Lightbulb className="h-5 w-5 text-green-600 mt-0.5" />
+                              <div>
+                                <h4 className="font-semibold text-green-900 mb-1">
+                                  {plan === "business"
+                                    ? "Service Bundling"
+                                    : "Client Retention Tip"}
+                                </h4>
+                                <p className="text-sm text-green-700 mb-2">
+                                  {plan === "business"
+                                    ? "70% of hair color clients also book styling. Create a combo package to increase average booking value."
+                                    : "Clients who book follow-up appointments within 24 hours have 85% higher retention. Enable automatic follow-up reminders."}
+                                </p>
+                                {(user?.plan || "simple") === "business" ? (
+                                  <div className="text-xs text-green-600 font-medium">
+                                    Implement now
+                                  </div>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs bg-green-100">
+                                    Actionable
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
 
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-                <div className="flex items-start space-x-3">
-                  {plan === "business" ? (
-                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                  ) : (
-                    <TrendingDown className="h-5 w-5 text-amber-600 mt-0.5" />
-                  )}
-                  <div>
-                    <h4 className="font-semibold text-amber-900 mb-1">
-                      {plan === "business"
-                        ? "Client Retention Alert"
-                        : "Service Performance"}
-                    </h4>
-                    <p className="text-sm text-amber-700 mb-2">
-                      {plan === "business"
-                        ? "15 clients haven't returned in 45+ days. Send personalized re-engagement campaigns to win them back."
-                        : 'Your "Hair Styling" service has lower demand this month. Consider bundling it with popular services or adjusting pricing.'}
-                    </p>
-                    {(user?.plan || "simple") === "business" ? (
-                      <div className="text-xs text-amber-600 font-medium">
-                        Action required
-                      </div>
-                    ) : (
-                      <Badge variant="outline" className="text-xs bg-amber-100">
-                        Monitor
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                          <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                            <div className="flex items-start space-x-3">
+                              {plan === "business" ? (
+                                <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                              ) : (
+                                <TrendingDown className="h-5 w-5 text-amber-600 mt-0.5" />
+                              )}
+                              <div>
+                                <h4 className="font-semibold text-amber-900 mb-1">
+                                  {plan === "business"
+                                    ? "Client Retention Alert"
+                                    : "Service Performance"}
+                                </h4>
+                                <p className="text-sm text-amber-700 mb-2">
+                                  {plan === "business"
+                                    ? "15 clients haven't returned in 45+ days. Send personalized re-engagement campaigns to win them back."
+                                    : 'Your "Hair Styling" service has lower demand this month. Consider bundling it with popular services or adjusting pricing.'}
+                                </p>
+                                {(user?.plan || "simple") === "business" ? (
+                                  <div className="text-xs text-amber-600 font-medium">
+                                    Action required
+                                  </div>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs bg-amber-100">
+                                    Monitor
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                }
 
-      {/* Dialogs */}
-      {(plan === "individual" || plan === "business") && (
-        <CalendarView
-          open={calendarOpen}
-          onOpenChange={setCalendarOpen}
-          bookings={bookings}
-          title={
-            plan === "business"
-              ? t("calendar.title", "Business Calendar")
-              : "My Calendar"
-          }
-          description={
-            plan === "business"
-              ? t("calendar.description", "View and manage all appointments")
-              : "View and manage your appointments"
-          }
-        />
-      )}
-
-      {plan === "individual" && (
-        <AddClientDialog
-          open={addClientDialogOpen}
-          onOpenChange={setAddClientDialogOpen}
-          onClientAdded={() => console.log("Client added successfully")}
-        />
-      )}
-
-      <BookingCreator
-        open={quickBookingDialogOpen}
-        onOpenChange={setQuickBookingDialogOpen}
-        services={services}
-        planType={plan}
-        showPricing={plan !== "simple"}
-        onSuccess={handleBookingCreated}
-      />
-
-      {/* Booking Details Dialog - Business only */}
-      {plan === "business" && (
-        <Dialog
-          open={isDetailsDialogOpen}
-          onOpenChange={setIsDetailsDialogOpen}
-        >
-          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Booking Details</DialogTitle>
-              <DialogDescription>
-                Complete information about this booking
-              </DialogDescription>
-            </DialogHeader>
-            {selectedBookingDetails && (
-              <div className="space-y-6 py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Client
-                    </Label>
-                    <p className="text-base font-semibold mt-1">
-                      {selectedBookingDetails.client?.name || "N/A"}
-                    </p>
-                    {selectedBookingDetails.client?.email && (
-                      <p className="text-xs text-muted-foreground">
-                        {selectedBookingDetails.client.email}
-                      </p>
-                    )}
-                    {selectedBookingDetails.client?.phone && (
-                      <p className="text-xs text-muted-foreground">
-                        {selectedBookingDetails.client.phone}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Status
-                    </Label>
-                    <div className="mt-1">
-                      <Badge
-                        variant="outline"
-                        className={
-                          selectedBookingDetails.status === "confirmed"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : selectedBookingDetails.status === "pending"
-                              ? "bg-amber-50 text-amber-700 border-amber-200"
-                              : selectedBookingDetails.status === "completed"
-                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                : "bg-gray-50 text-gray-700 border-gray-200"
-                        }
-                      >
-                        {selectedBookingDetails.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Service
-                    </Label>
-                    <p className="text-sm font-semibold mt-1">
-                      {selectedBookingDetails.service?.name || "N/A"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedBookingDetails.service?.duration || 0} min • €
-                      {selectedBookingDetails.service?.pricing?.basePrice ||
-                        selectedBookingDetails.service?.price ||
-                        0}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Professional
-                    </Label>
-                    <p className="text-sm font-semibold mt-1">
-                      {selectedBookingDetails.professional?.name || "N/A"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Date & Time
-                    </Label>
-                    <p className="text-sm font-semibold mt-1">
-                      {selectedBookingDetails.startTime
-                        ? new Date(
-                          selectedBookingDetails.startTime
-                        ).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                        : "N/A"}
-                    </p>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {selectedBookingDetails.startTime
-                        ? new Date(
-                          selectedBookingDetails.startTime
-                        ).toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Payment Status
-                    </Label>
-                    <div className="mt-1">
-                      <Badge
-                        variant="outline"
-                        className={
-                          selectedBookingDetails.paymentStatus === "paid"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : "bg-amber-50 text-amber-700 border-amber-200"
-                        }
-                      >
-                        {selectedBookingDetails.paymentStatus || "pending"}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                {selectedBookingDetails.notes && (
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Notes
-                    </Label>
-                    <p className="text-sm mt-1 p-3 bg-muted rounded-lg">
-                      {selectedBookingDetails.notes}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-2 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsDetailsDialogOpen(false)}
-                  >
-                    Close
-                  </Button>
-                  {selectedBookingDetails.status === "pending" && (
-                    <Button
-                      onClick={() =>
-                        handleConfirmBooking(selectedBookingDetails.id)
+                {/* Dialogs */}
+                {
+                  (plan === "individual" || plan === "business") && (
+                    <CalendarView
+                      open={calendarOpen}
+                      onOpenChange={setCalendarOpen}
+                      bookings={bookings}
+                      title={
+                        plan === "business"
+                          ? t("calendar.title", "Business Calendar")
+                          : "My Calendar"
                       }
-                      className="bg-green-600 hover:bg-green-700 text-white"
+                      description={
+                        plan === "business"
+                          ? t("calendar.description", "View and manage all appointments")
+                          : "View and manage your appointments"
+                      }
+                    />
+                  )
+                }
+
+                {
+                  plan === "individual" && (
+                    <AddClientDialog
+                      open={addClientDialogOpen}
+                      onOpenChange={setAddClientDialogOpen}
+                      onClientAdded={() => console.log("Client added successfully")}
+                    />
+                  )
+                }
+
+                <BookingCreator
+                  open={quickBookingDialogOpen}
+                  onOpenChange={setQuickBookingDialogOpen}
+                  services={services.filter(s => s.id) as any[]}
+                  planType={plan}
+                  showPricing={plan !== "simple"}
+                  onSuccess={handleBookingCreated}
+                />
+
+                {/* Booking Details Dialog - Business only */}
+                {
+                  plan === "business" && (
+                    <Dialog
+                      open={isDetailsDialogOpen}
+                      onOpenChange={setIsDetailsDialogOpen}
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Confirm Booking
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
+                      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Booking Details</DialogTitle>
+                          <DialogDescription>
+                            Complete information about this booking
+                          </DialogDescription>
+                        </DialogHeader>
+                        {selectedBookingDetails && (
+                          <div className="space-y-6 py-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                  Client
+                                </Label>
+                                <p className="text-base font-semibold mt-1">
+                                  {selectedBookingDetails.client?.name || "N/A"}
+                                </p>
+                                {selectedBookingDetails.client?.email && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {selectedBookingDetails.client.email}
+                                  </p>
+                                )}
+                                {selectedBookingDetails.client?.phone && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {selectedBookingDetails.client.phone}
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                  Status
+                                </Label>
+                                <div className="mt-1">
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      selectedBookingDetails.status === "confirmed"
+                                        ? "bg-green-50 text-green-700 border-green-200"
+                                        : selectedBookingDetails.status === "pending"
+                                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                                          : selectedBookingDetails.status === "completed"
+                                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                                            : "bg-gray-50 text-gray-700 border-gray-200"
+                                    }
+                                  >
+                                    {selectedBookingDetails.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                  Service
+                                </Label>
+                                <p className="text-sm font-semibold mt-1">
+                                  {selectedBookingDetails.service?.name || "N/A"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {selectedBookingDetails.service?.duration || 0} min • €
+                                  {selectedBookingDetails.service?.pricing?.basePrice ||
+                                    selectedBookingDetails.service?.price ||
+                                    0}
+                                </p>
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                  Professional
+                                </Label>
+                                <p className="text-sm font-semibold mt-1">
+                                  {selectedBookingDetails.professional?.name || "N/A"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                  Date & Time
+                                </Label>
+                                <p className="text-sm font-semibold mt-1">
+                                  {selectedBookingDetails.startTime
+                                    ? new Date(
+                                      selectedBookingDetails.startTime
+                                    ).toLocaleDateString("en-US", {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    })
+                                    : "N/A"}
+                                </p>
+                                <p className="text-xs text-muted-foreground flex items-center mt-1">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {selectedBookingDetails.startTime
+                                    ? new Date(
+                                      selectedBookingDetails.startTime
+                                    ).toLocaleTimeString("en-US", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })
+                                    : "N/A"}
+                                </p>
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                  Payment Status
+                                </Label>
+                                <div className="mt-1">
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      selectedBookingDetails.paymentStatus === "paid"
+                                        ? "bg-green-50 text-green-700 border-green-200"
+                                        : "bg-amber-50 text-amber-700 border-amber-200"
+                                    }
+                                  >
+                                    {selectedBookingDetails.paymentStatus || "pending"}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+
+                            {selectedBookingDetails.notes && (
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">
+                                  Notes
+                                </Label>
+                                <p className="text-sm mt-1 p-3 bg-muted rounded-lg">
+                                  {selectedBookingDetails.notes}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="flex justify-end gap-2 pt-4 border-t">
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsDetailsDialogOpen(false)}
+                              >
+                                Close
+                              </Button>
+                              {selectedBookingDetails.status === "pending" && (
+                                <Button
+                                  onClick={() =>
+                                    handleConfirmBooking(selectedBookingDetails.id)
+                                  }
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Confirm Booking
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                  )
+                }
+              </div >
+              );
 };
 
-export default ConsolidatedDashboard;
+              export default ConsolidatedDashboard;

@@ -143,6 +143,7 @@ export function BookingCreator({
         entityId,
         serviceId: bookingData.serviceId,
         professionalId: bookingData.professionalId,
+        clientId: bookingData.clientId, // Pass linked client ID if available
         startDateTime: bookingData.startDateTime,
         endDateTime: bookingData.endDateTime,
         clientInfo: {

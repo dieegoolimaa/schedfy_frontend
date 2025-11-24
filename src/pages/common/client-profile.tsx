@@ -1,3 +1,4 @@
+
 import {
   JSXElementConstructor,
   Key,
@@ -76,6 +77,8 @@ import {
 } from "lucide-react";
 import { Skeleton } from "../../components/ui/skeleton";
 
+import { CreateBookingDialog } from "../../components/dialogs/create-booking-dialog";
+
 export function ClientProfilePage() {
   const { t } = useTranslation("clients");
   const [searchTerm, setSearchTerm] = useState("");
@@ -86,6 +89,8 @@ export function ClientProfilePage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingClientData, setEditingClientData] = useState<any>(null);
   const [clientToDelete, setClientToDelete] = useState<any>(null);
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [preSelectedClientForBooking, setPreSelectedClientForBooking] = useState<any>(null);
 
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
@@ -123,7 +128,7 @@ export function ClientProfilePage() {
       const full = await getClientWithBookings(String(client.id));
       // Ensure full name is available
       if (full && !full.name) {
-        full.name = `${full.firstName || ""} ${full.lastName || ""}`.trim();
+        full.name = `${full.firstName || ""} ${full.lastName || ""} `.trim();
       }
       setSelectedClient(full);
       setShowClientDetails(true);
@@ -150,7 +155,7 @@ export function ClientProfilePage() {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
+        return `${year} -${month} -${day} `;
       } catch {
         return "";
       }
@@ -268,7 +273,7 @@ export function ClientProfilePage() {
 
     const clientName =
       clientToDelete.name ||
-      `${clientToDelete.firstName} ${clientToDelete.lastName}`;
+      `${clientToDelete.firstName} ${clientToDelete.lastName} `;
 
     try {
       toast.loading("Deleting client...", { id: "delete-client" });
@@ -292,8 +297,8 @@ export function ClientProfilePage() {
     }
   };
 
-  const getClientBookings = (clientId: number) => {
-    return recentBookings.filter((booking) => booking.clientId === clientId);
+  const getClientBookings = (clientId: string | number) => {
+    return recentBookings.filter((booking) => String(booking.clientId) === String(clientId));
   };
 
   // Build a small recent bookings feed by fetching bookings for the first
@@ -316,22 +321,23 @@ export function ClientProfilePage() {
 
         return {
           id: booking.id || booking._id,
+          clientId: booking.clientId || booking.client?.id || booking.client?._id,
           clientName: client
-            ? `${client.firstName || ""} ${client.lastName || ""}`.trim() ||
-              client.name
+            ? `${client.firstName || ""} ${client.lastName || ""} `.trim() ||
+            client.name
             : booking.client?.name || "Unknown Client",
           service: booking.service?.name || "Unknown Service",
           professional:
             booking.professional?.name ||
             (booking.professional?.firstName && booking.professional?.lastName
-              ? `${booking.professional.firstName} ${booking.professional.lastName}`.trim()
+              ? `${booking.professional.firstName} ${booking.professional.lastName} `.trim()
               : "Unknown Professional"),
           date: booking.startDateTime || booking.date,
           time: booking.startDateTime
             ? new Date(booking.startDateTime).toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
+              hour: "2-digit",
+              minute: "2-digit",
+            })
             : booking.time || "N/A",
           amount: booking.totalPrice || booking.price || 0,
           status: booking.status || "pending",
@@ -484,7 +490,7 @@ export function ClientProfilePage() {
         toast.error("❌ Client Already Exists", {
           id: "create-client",
           duration: 6000,
-          description: `A client with the email ${newClient.email} is already registered in your system. Please use a different email address.`,
+          description: `A client with the email ${newClient.email} is already registered in your system.Please use a different email address.`,
         });
       } else if (
         errorMessage.toLowerCase().includes("phone") &&
@@ -493,7 +499,7 @@ export function ClientProfilePage() {
         toast.error("❌ Phone Number Already Registered", {
           id: "create-client",
           duration: 6000,
-          description: `A client with the phone number ${newClient.phone} is already registered in your system. Please use a different phone number.`,
+          description: `A client with the phone number ${newClient.phone} is already registered in your system.Please use a different phone number.`,
         });
       } else if (errorMessage.toLowerCase().includes("duplicate")) {
         toast.error("❌ Duplicate Client Information", {
@@ -503,7 +509,7 @@ export function ClientProfilePage() {
             "This client information is already registered. Please check the email and phone number.",
         });
       } else {
-        toast.error(`Failed to create client: ${errorMessage}`, {
+        toast.error(`Failed to create client: ${errorMessage} `, {
           id: "create-client",
           duration: 5000,
         });
@@ -523,7 +529,7 @@ export function ClientProfilePage() {
   // Ensure client has name field constructed from firstName/lastName
   const ensureClientName = (client: any) => {
     if (!client.name && (client.firstName || client.lastName)) {
-      client.name = `${client.firstName || ""} ${client.lastName || ""}`.trim();
+      client.name = `${client.firstName || ""} ${client.lastName || ""} `.trim();
     }
     return client;
   };
@@ -562,7 +568,7 @@ export function ClientProfilePage() {
     averageSpent:
       clientsArray.length > 0
         ? clientsArray.reduce((sum, c) => sum + (c.stats?.totalSpent || 0), 0) /
-          clientsArray.length
+        clientsArray.length
         : 0,
     totalBookings: clientsArray.reduce(
       (sum, c) => sum + (c.stats?.totalBookings || 0),
@@ -602,6 +608,8 @@ export function ClientProfilePage() {
                   )}
                 </DialogDescription>
               </DialogHeader>
+
+
               <div className="space-y-4 py-4">
                 {/* Name Fields */}
                 <div className="grid grid-cols-2 gap-3">
@@ -705,8 +713,8 @@ export function ClientProfilePage() {
                             newClient.birthDate
                               ? newClient.birthDate instanceof Date
                                 ? newClient.birthDate
-                                    .toISOString()
-                                    .split("T")[0]
+                                  .toISOString()
+                                  .split("T")[0]
                                 : newClient.birthDate
                               : ""
                           }
@@ -893,143 +901,142 @@ export function ClientProfilePage() {
                 <TableBody>
                   {clientsLoading
                     ? Array.from({ length: 4 }).map((_, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell>
-                            <Skeleton className="h-6 w-24" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-32" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-20" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-16" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-16" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-12" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-6 w-20" />
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      <TableRow key={idx}>
+                        <TableCell>
+                          <Skeleton className="h-6 w-24" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-16" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-16" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-12" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-6 w-20" />
+                        </TableCell>
+                      </TableRow>
+                    ))
                     : filteredClients.map((client) => {
-                        const totalSpent = client.stats?.totalSpent || 0;
-                        const totalBookings = client.stats?.totalBookings || 0;
-                        const lastVisit =
-                          client.stats?.lastBookingDate || client.createdAt;
-                        const averageSpent =
-                          client.stats?.averageBookingValue || 0;
+                      const totalSpent = client.stats?.totalSpent || 0;
+                      const totalBookings = client.stats?.totalBookings || 0;
+                      const lastVisit =
+                        client.stats?.lastBookingDate || client.createdAt;
+                      const averageSpent =
+                        client.stats?.averageBookingValue || 0;
 
-                        // Generate initials for avatar
-                        const initials = `${client.firstName?.[0] || ""}${
-                          client.lastName?.[0] || ""
-                        }`.toUpperCase();
+                      // Generate initials for avatar
+                      const initials = `${client.firstName?.[0] || ""}${client.lastName?.[0] || ""
+                        } `.toUpperCase();
 
-                        return (
-                          <TableRow key={client.id}>
-                            <TableCell>
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src="" />
-                                  <AvatarFallback className="text-xs">
-                                    {initials}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium">
-                                    {client.name}
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    Member since{" "}
-                                    {new Date(
-                                      client.createdAt
-                                    ).toLocaleDateString()}
-                                  </div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="space-y-1">
-                                <div className="flex items-center text-sm">
-                                  <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
-                                  {client.email}
-                                </div>
-                                {client.phone && (
-                                  <div className="flex items-center text-sm text-muted-foreground">
-                                    <Phone className="h-3 w-3 mr-1" />
-                                    {client.phone}
-                                  </div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="space-y-1">
+                      return (
+                        <TableRow key={client.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src="" />
+                                <AvatarFallback className="text-xs">
+                                  {initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
                                 <div className="font-medium">
-                                  {totalBookings} bookings
-                                </div>
-                                {lastVisit && (
-                                  <div className="text-sm text-muted-foreground">
-                                    Last:{" "}
-                                    {new Date(lastVisit).toLocaleDateString()}
-                                  </div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="space-y-1">
-                                <div className="font-medium">
-                                  {formatCurrency(totalSpent)}
+                                  {client.name}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Avg: {formatCurrency(averageSpent)}
+                                  Member since{" "}
+                                  {new Date(
+                                    client.createdAt
+                                  ).toLocaleDateString()}
                                 </div>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={getStatusColor(
-                                  client.status || "active"
-                                )}
-                              >
-                                {client.status || "active"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex space-x-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewClient(client)}
-                                  title="View Details"
-                                >
-                                  View
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => openEditClient(client)}
-                                >
-                                  Edit
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => confirmDeleteClient(client)}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  Delete
-                                </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center text-sm">
+                                <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
+                                {client.email}
                               </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                              {client.phone && (
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                  <Phone className="h-3 w-3 mr-1" />
+                                  {client.phone}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="font-medium">
+                                {totalBookings} bookings
+                              </div>
+                              {lastVisit && (
+                                <div className="text-sm text-muted-foreground">
+                                  Last:{" "}
+                                  {new Date(lastVisit).toLocaleDateString()}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="font-medium">
+                                {formatCurrency(totalSpent)}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                Avg: {formatCurrency(averageSpent)}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={getStatusColor(
+                                client.status || "active"
+                              )}
+                            >
+                              {client.status || "active"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewClient(client)}
+                                title="View Details"
+                              >
+                                View
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditClient(client)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => confirmDeleteClient(client)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -1128,10 +1135,10 @@ export function ClientProfilePage() {
                               booking.status === "completed"
                                 ? "bg-green-100 text-green-800 border-green-200"
                                 : booking.status === "confirmed"
-                                ? "bg-blue-100 text-blue-800 border-blue-200"
-                                : booking.status === "cancelled"
-                                ? "bg-red-100 text-red-800 border-red-200"
-                                : "bg-gray-100 text-gray-800 border-gray-200"
+                                  ? "bg-blue-100 text-blue-800 border-blue-200"
+                                  : booking.status === "cancelled"
+                                    ? "bg-red-100 text-red-800 border-red-200"
+                                    : "bg-gray-100 text-gray-800 border-gray-200"
                             }
                           >
                             {booking.status}
@@ -1184,9 +1191,8 @@ export function ClientProfilePage() {
                     )
                     .slice(0, 5)
                     .map((client, index) => {
-                      const initials = `${client.firstName?.[0] || ""}${
-                        client.lastName?.[0] || ""
-                      }`.toUpperCase();
+                      const initials = `${client.firstName?.[0] || ""}${client.lastName?.[0] || ""
+                        } `.toUpperCase();
                       const totalSpent = client.stats?.totalSpent || 0;
                       const totalBookings = client.stats?.totalBookings || 0;
 
@@ -1352,18 +1358,29 @@ export function ClientProfilePage() {
       <Dialog open={showClientDetails} onOpenChange={setShowClientDetails}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="" />
-                <AvatarFallback>{selectedClient?.avatar}</AvatarFallback>
-              </Avatar>
-              <div>
-                <div>{selectedClient?.name}</div>
-                <div className="text-sm text-muted-foreground font-normal">
-                  Client Profile & Booking History
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src="" />
+                  <AvatarFallback>{selectedClient?.avatar}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div>{selectedClient?.name}</div>
+                  <div className="text-sm text-muted-foreground font-normal">
+                    Client Profile & Booking History
+                  </div>
                 </div>
-              </div>
-            </DialogTitle>
+              </DialogTitle>
+              <Button
+                onClick={() => {
+                  setPreSelectedClientForBooking(selectedClient);
+                  setIsBookingDialogOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Booking
+              </Button>
+            </div>
             <DialogDescription>
               View complete client information, booking history, and business
               insights
@@ -1396,20 +1413,20 @@ export function ClientProfilePage() {
                       <p className="text-lg font-bold">
                         {selectedClient.createdAt
                           ? new Date(
-                              selectedClient.createdAt
-                            ).toLocaleDateString("en-US", {
-                              month: "short",
-                              year: "numeric",
-                            })
+                            selectedClient.createdAt
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            year: "numeric",
+                          })
                           : "N/A"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {selectedClient.createdAt
                           ? Math.floor(
-                              (Date.now() -
-                                new Date(selectedClient.createdAt).getTime()) /
-                                (1000 * 60 * 60 * 24 * 30)
-                            )
+                            (Date.now() -
+                              new Date(selectedClient.createdAt).getTime()) /
+                            (1000 * 60 * 60 * 24 * 30)
+                          )
                           : 0}{" "}
                         months ago
                       </p>
@@ -1444,19 +1461,19 @@ export function ClientProfilePage() {
                           const lastBooking =
                             bookings.length > 0
                               ? bookings.sort(
-                                  (a, b) =>
-                                    new Date(b.date).getTime() -
-                                    new Date(a.date).getTime()
-                                )[0]
+                                (a, b) =>
+                                  new Date(b.date).getTime() -
+                                  new Date(a.date).getTime()
+                              )[0]
                               : null;
                           return lastBooking
                             ? new Date(lastBooking.date).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                }
-                              )
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )
                             : "Never";
                         })()}
                       </p>
@@ -1466,16 +1483,16 @@ export function ClientProfilePage() {
                           const lastBooking =
                             bookings.length > 0
                               ? bookings.sort(
-                                  (a, b) =>
-                                    new Date(b.date).getTime() -
-                                    new Date(a.date).getTime()
-                                )[0]
+                                (a, b) =>
+                                  new Date(b.date).getTime() -
+                                  new Date(a.date).getTime()
+                              )[0]
                               : null;
                           if (!lastBooking) return "No visits";
                           const daysAgo = Math.floor(
                             (Date.now() -
                               new Date(lastBooking.date).getTime()) /
-                              (1000 * 60 * 60 * 24)
+                            (1000 * 60 * 60 * 24)
                           );
                           return daysAgo === 0
                             ? "Today"
@@ -1541,7 +1558,8 @@ export function ClientProfilePage() {
                         variant="outline"
                         className={`${getStatusColor(
                           selectedClient.status
-                        )} mt-1`}
+                        )
+                          } mt - 1`}
                       >
                         {selectedClient.status || "active"}
                       </Badge>
@@ -1568,14 +1586,14 @@ export function ClientProfilePage() {
                             1,
                             Math.floor(
                               (Date.now() - memberSince.getTime()) /
-                                (1000 * 60 * 60 * 24 * 30)
+                              (1000 * 60 * 60 * 24 * 30)
                             )
                           );
                           const visitsPerMonth = (
                             bookings.length / monthsSince
                           ).toFixed(1);
 
-                          return `${visitsPerMonth}x/mo`;
+                          return `${visitsPerMonth} x / mo`;
                         })()}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -1622,17 +1640,17 @@ export function ClientProfilePage() {
                         </div>
                         {(selectedClient.dateOfBirth ||
                           selectedClient.birthDate) && (
-                          <div className="flex items-center gap-3">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              Born:{" "}
-                              {new Date(
-                                selectedClient.dateOfBirth ||
+                            <div className="flex items-center gap-3">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span>
+                                Born:{" "}
+                                {new Date(
+                                  selectedClient.dateOfBirth ||
                                   selectedClient.birthDate
-                              ).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
                         <div className="pt-2">
                           <Label className="text-sm font-medium">Address</Label>
                           <p className="text-sm text-muted-foreground mt-1">
@@ -1777,7 +1795,7 @@ export function ClientProfilePage() {
                         </Label>
                         <div className="flex gap-2 mt-2">
                           {selectedClient.preferredServices &&
-                          selectedClient.preferredServices.length > 0 ? (
+                            selectedClient.preferredServices.length > 0 ? (
                             selectedClient.preferredServices.map(
                               (
                                 service:
@@ -1785,9 +1803,9 @@ export function ClientProfilePage() {
                                   | number
                                   | boolean
                                   | ReactElement<
-                                      any,
-                                      string | JSXElementConstructor<any>
-                                    >
+                                    any,
+                                    string | JSXElementConstructor<any>
+                                  >
                                   | Iterable<ReactNode>
                                   | ReactPortal
                                   | Iterable<ReactNode>
@@ -1840,9 +1858,10 @@ export function ClientProfilePage() {
                           <Label className="text-sm font-medium">Status</Label>
                           <Badge
                             variant="outline"
-                            className={`mt-1 ${getStatusColor(
+                            className={`mt - 1 ${getStatusColor(
                               selectedClient.status
-                            )}`}
+                            )
+                              } `}
                           >
                             {selectedClient.status}
                           </Badge>
@@ -1977,6 +1996,24 @@ export function ClientProfilePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Create Booking Dialog */}
+      {isBookingDialogOpen && (
+        <CreateBookingDialog
+          open={isBookingDialogOpen}
+          onOpenChange={setIsBookingDialogOpen}
+          entityId={entityId}
+          services={[]} // Services will be loaded by the dialog or hook if not passed, but better to pass if available
+          onSubmit={async (data) => {
+            console.log("Booking created from profile:", data);
+            setIsBookingDialogOpen(false);
+            toast.success("Booking created successfully");
+            // Refresh bookings
+            // fetchBookings(); // If available
+          }}
+          clientId={preSelectedClientForBooking?.id || preSelectedClientForBooking?._id}
+        />
+      )}
     </div>
   );
 }

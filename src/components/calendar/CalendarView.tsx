@@ -60,28 +60,48 @@ export function CalendarView({
     let start = 9;
     let end = 18;
 
-    console.log("[CalendarView] getHoursRange called. Date:", date, "workingHours:", workingHours);
+    console.log(
+      "[CalendarView] getHoursRange called. Date:",
+      date,
+      "workingHours:",
+      workingHours
+    );
 
     if (workingHours) {
       // Check if it's the full entity structure (has 'monday', 'tuesday' etc)
-      const isFullConfig = 'monday' in workingHours;
+      const isFullConfig = "monday" in workingHours;
       console.log("[CalendarView] isFullConfig:", isFullConfig);
 
       if (isFullConfig) {
-        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const days = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ];
 
         if (date) {
           // Specific day range (for Day View)
           const dayName = days[date.getDay()];
           const dayConfig = (workingHours as any)[dayName];
-          console.log("[CalendarView] Day View - Day:", dayName, "Config:", dayConfig);
+          console.log(
+            "[CalendarView] Day View - Day:",
+            dayName,
+            "Config:",
+            dayConfig
+          );
 
           if (dayConfig?.enabled && dayConfig.start && dayConfig.end) {
-            start = parseInt(dayConfig.start.split(':')[0]);
-            end = parseInt(dayConfig.end.split(':')[0]);
+            start = parseInt(dayConfig.start.split(":")[0]);
+            end = parseInt(dayConfig.end.split(":")[0]);
           } else {
             // If closed, we might want to show a standard range or handle differently
-            console.log("[CalendarView] Day is closed or invalid config, using default 9-18");
+            console.log(
+              "[CalendarView] Day is closed or invalid config, using default 9-18"
+            );
           }
         } else {
           // Union range (for Week View) - find min start and max end across all enabled days
@@ -95,14 +115,21 @@ export function CalendarView({
 
             if (day?.enabled && day.start && day.end) {
               hasEnabled = true;
-              const s = parseInt(day.start.split(':')[0]);
-              const e = parseInt(day.end.split(':')[0]);
+              const s = parseInt(day.start.split(":")[0]);
+              const e = parseInt(day.end.split(":")[0]);
               if (!isNaN(s) && s < minStart) minStart = s;
               if (!isNaN(e) && e > maxEnd) maxEnd = e;
             }
           });
 
-          console.log("[CalendarView] Week View - Calculated range:", minStart, "-", maxEnd, "hasEnabled:", hasEnabled);
+          console.log(
+            "[CalendarView] Week View - Calculated range:",
+            minStart,
+            "-",
+            maxEnd,
+            "hasEnabled:",
+            hasEnabled
+          );
 
           if (hasEnabled) {
             start = minStart;
@@ -137,7 +164,9 @@ export function CalendarView({
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedBookingsGroup, setSelectedBookingsGroup] = useState<Booking[] | null>(null);
+  const [selectedBookingsGroup, setSelectedBookingsGroup] = useState<
+    Booking[] | null
+  >(null);
   const [showBookingsGroupDialog, setShowBookingsGroupDialog] = useState(false);
 
   // Debug: log bookings
@@ -304,21 +333,22 @@ export function CalendarView({
                       className={cn(
                         "text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity",
                         booking.status === "confirmed" &&
-                        "bg-blue-100 text-blue-800",
+                          "bg-blue-100 text-blue-800",
                         booking.status === "completed" &&
-                        "bg-green-100 text-green-800",
+                          "bg-green-100 text-green-800",
                         booking.status === "pending" &&
-                        "bg-yellow-100 text-yellow-800",
+                          "bg-yellow-100 text-yellow-800",
                         booking.status === "cancelled" &&
-                        "bg-red-100 text-red-800"
+                          "bg-red-100 text-red-800"
                       )}
                       title={`${new Date(booking.startTime).toLocaleTimeString(
                         "en-US",
                         { hour: "2-digit", minute: "2-digit" }
-                      )} - ${typeof booking.service === "object"
-                        ? booking.service?.name
-                        : "Service"
-                        }`}
+                      )} - ${
+                        typeof booking.service === "object"
+                          ? booking.service?.name
+                          : "Service"
+                      }`}
                     >
                       {new Date(booking.startTime).toLocaleTimeString("en-US", {
                         hour: "2-digit",
@@ -440,32 +470,37 @@ export function CalendarView({
                               className={cn(
                                 "relative p-1.5 rounded-md cursor-pointer hover:shadow-lg transition-all border-l-4 h-full flex flex-col justify-between group overflow-hidden",
                                 booking.status === "confirmed" &&
-                                "bg-blue-50 border-blue-500 hover:bg-blue-100",
+                                  "bg-blue-50 border-blue-500 hover:bg-blue-100",
                                 booking.status === "completed" &&
-                                "bg-green-50 border-green-500 hover:bg-green-100",
+                                  "bg-green-50 border-green-500 hover:bg-green-100",
                                 booking.status === "pending" &&
-                                "bg-amber-50 border-amber-500 hover:bg-amber-100",
+                                  "bg-amber-50 border-amber-500 hover:bg-amber-100",
                                 booking.status === "cancelled" &&
-                                "bg-red-50 border-red-500 hover:bg-red-100"
+                                  "bg-red-50 border-red-500 hover:bg-red-100"
                               )}
                             >
                               {/* Time Badge */}
                               <div className="flex items-center justify-between mb-0.5">
-                                <div className={cn(
-                                  "text-[10px] font-bold px-1 py-0.5 rounded",
-                                  booking.status === "confirmed" && "bg-blue-200 text-blue-900",
-                                  booking.status === "completed" && "bg-green-200 text-green-900",
-                                  booking.status === "pending" && "bg-amber-200 text-amber-900",
-                                  booking.status === "cancelled" && "bg-red-200 text-red-900"
-                                )}>
-                                  {new Date(booking.startTime).toLocaleTimeString(
-                                    "en-US",
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: false,
-                                    }
+                                <div
+                                  className={cn(
+                                    "text-[10px] font-bold px-1 py-0.5 rounded",
+                                    booking.status === "confirmed" &&
+                                      "bg-blue-200 text-blue-900",
+                                    booking.status === "completed" &&
+                                      "bg-green-200 text-green-900",
+                                    booking.status === "pending" &&
+                                      "bg-amber-200 text-amber-900",
+                                    booking.status === "cancelled" &&
+                                      "bg-red-200 text-red-900"
                                   )}
+                                >
+                                  {new Date(
+                                    booking.startTime
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  })}
                                 </div>
                               </div>
 
@@ -592,7 +627,7 @@ export function CalendarView({
                               {Math.round(
                                 (new Date(booking.endTime).getTime() -
                                   new Date(booking.startTime).getTime()) /
-                                60000
+                                  60000
                               )}{" "}
                               min
                             </div>
@@ -626,13 +661,13 @@ export function CalendarView({
                             className={cn(
                               "flex-shrink-0",
                               booking.status === "confirmed" &&
-                              "bg-blue-100 text-blue-800 border-blue-200",
+                                "bg-blue-100 text-blue-800 border-blue-200",
                               booking.status === "completed" &&
-                              "bg-green-100 text-green-800 border-green-200",
+                                "bg-green-100 text-green-800 border-green-200",
                               booking.status === "pending" &&
-                              "bg-yellow-100 text-yellow-800 border-yellow-200",
+                                "bg-yellow-100 text-yellow-800 border-yellow-200",
                               booking.status === "cancelled" &&
-                              "bg-red-100 text-red-800 border-red-200"
+                                "bg-red-100 text-red-800 border-red-200"
                             )}
                           >
                             {booking.status}
@@ -745,34 +780,39 @@ export function CalendarView({
                               className={cn(
                                 "relative border-l-4 rounded-lg p-2.5 cursor-pointer hover:shadow-xl transition-all h-full flex items-center justify-between group",
                                 booking.status === "confirmed" &&
-                                "bg-blue-50 border-blue-500 hover:bg-blue-100",
+                                  "bg-blue-50 border-blue-500 hover:bg-blue-100",
                                 booking.status === "completed" &&
-                                "bg-green-50 border-green-500 hover:bg-green-100",
+                                  "bg-green-50 border-green-500 hover:bg-green-100",
                                 booking.status === "pending" &&
-                                "bg-amber-50 border-amber-500 hover:bg-amber-100",
+                                  "bg-amber-50 border-amber-500 hover:bg-amber-100",
                                 booking.status === "cancelled" &&
-                                "bg-red-50 border-red-500 hover:bg-red-100"
+                                  "bg-red-50 border-red-500 hover:bg-red-100"
                               )}
                             >
                               {/* Left: Time with Icon */}
                               <div className="flex items-center gap-2.5">
-                                <div className={cn(
-                                  "flex items-center justify-center w-14 h-14 rounded-lg",
-                                  booking.status === "confirmed" && "bg-blue-100",
-                                  booking.status === "completed" && "bg-green-100",
-                                  booking.status === "pending" && "bg-amber-100",
-                                  booking.status === "cancelled" && "bg-red-100"
-                                )}>
+                                <div
+                                  className={cn(
+                                    "flex items-center justify-center w-14 h-14 rounded-lg",
+                                    booking.status === "confirmed" &&
+                                      "bg-blue-100",
+                                    booking.status === "completed" &&
+                                      "bg-green-100",
+                                    booking.status === "pending" &&
+                                      "bg-amber-100",
+                                    booking.status === "cancelled" &&
+                                      "bg-red-100"
+                                  )}
+                                >
                                   <div className="text-center">
                                     <div className="text-base font-bold text-gray-900 leading-tight">
-                                      {new Date(booking.startTime).toLocaleTimeString(
-                                        "en-US",
-                                        {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                          hour12: false,
-                                        }
-                                      )}
+                                      {new Date(
+                                        booking.startTime
+                                      ).toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false,
+                                      })}
                                     </div>
                                   </div>
                                 </div>
@@ -801,7 +841,8 @@ export function CalendarView({
                                     <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5">
                                       <span>Por:</span>
                                       <span className="truncate">
-                                        {typeof booking.professional === "object"
+                                        {typeof booking.professional ===
+                                        "object"
                                           ? booking.professional?.name
                                           : booking.professional}
                                       </span>
@@ -816,13 +857,13 @@ export function CalendarView({
                                 className={cn(
                                   "flex-shrink-0 text-[10px] h-5",
                                   booking.status === "confirmed" &&
-                                  "bg-blue-100 text-blue-800 border-blue-300",
+                                    "bg-blue-100 text-blue-800 border-blue-300",
                                   booking.status === "completed" &&
-                                  "bg-green-100 text-green-800 border-green-300",
+                                    "bg-green-100 text-green-800 border-green-300",
                                   booking.status === "pending" &&
-                                  "bg-amber-100 text-amber-800 border-amber-300",
+                                    "bg-amber-100 text-amber-800 border-amber-300",
                                   booking.status === "cancelled" &&
-                                  "bg-red-100 text-red-800 border-red-300"
+                                    "bg-red-100 text-red-800 border-red-300"
                                 )}
                               >
                                 {booking.status}
@@ -846,11 +887,11 @@ export function CalendarView({
                   className={cn(
                     "border-l-4 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all",
                     booking.status === "confirmed" &&
-                    "bg-blue-50 border-blue-500",
+                      "bg-blue-50 border-blue-500",
                     booking.status === "completed" &&
-                    "bg-green-50 border-green-500",
+                      "bg-green-50 border-green-500",
                     booking.status === "pending" &&
-                    "bg-yellow-50 border-yellow-500",
+                      "bg-yellow-50 border-yellow-500",
                     booking.status === "cancelled" && "bg-red-50 border-red-500"
                   )}
                 >
@@ -878,7 +919,7 @@ export function CalendarView({
                           {Math.round(
                             (new Date(booking.endTime).getTime() -
                               new Date(booking.startTime).getTime()) /
-                            60000
+                              60000
                           )}{" "}
                           min)
                         </span>
@@ -929,13 +970,13 @@ export function CalendarView({
                       className={cn(
                         "flex-shrink-0",
                         booking.status === "confirmed" &&
-                        "bg-blue-100 text-blue-800 border-blue-200",
+                          "bg-blue-100 text-blue-800 border-blue-200",
                         booking.status === "completed" &&
-                        "bg-green-100 text-green-800 border-green-200",
+                          "bg-green-100 text-green-800 border-green-200",
                         booking.status === "pending" &&
-                        "bg-yellow-100 text-yellow-800 border-yellow-200",
+                          "bg-yellow-100 text-yellow-800 border-yellow-200",
                         booking.status === "cancelled" &&
-                        "bg-red-100 text-red-800 border-red-200"
+                          "bg-red-100 text-red-800 border-red-200"
                       )}
                     >
                       {booking.status}
@@ -1167,13 +1208,13 @@ export function CalendarView({
                     variant="outline"
                     className={cn(
                       selectedBooking.status === "confirmed" &&
-                      "bg-blue-100 text-blue-800",
+                        "bg-blue-100 text-blue-800",
                       selectedBooking.status === "completed" &&
-                      "bg-green-100 text-green-800",
+                        "bg-green-100 text-green-800",
                       selectedBooking.status === "pending" &&
-                      "bg-yellow-100 text-yellow-800",
+                        "bg-yellow-100 text-yellow-800",
                       selectedBooking.status === "cancelled" &&
-                      "bg-red-100 text-red-800"
+                        "bg-red-100 text-red-800"
                     )}
                   >
                     {selectedBooking.status}
@@ -1331,13 +1372,13 @@ export function CalendarView({
                   variant="outline"
                   className={cn(
                     selectedBooking.status === "confirmed" &&
-                    "bg-blue-100 text-blue-800",
+                      "bg-blue-100 text-blue-800",
                     selectedBooking.status === "completed" &&
-                    "bg-green-100 text-green-800",
+                      "bg-green-100 text-green-800",
                     selectedBooking.status === "pending" &&
-                    "bg-yellow-100 text-yellow-800",
+                      "bg-yellow-100 text-yellow-800",
                     selectedBooking.status === "cancelled" &&
-                    "bg-red-100 text-red-800"
+                      "bg-red-100 text-red-800"
                   )}
                 >
                   {selectedBooking.status}
@@ -1397,17 +1438,17 @@ export function CalendarView({
             <DialogDescription>
               {selectedBookingsGroup && selectedBookingsGroup.length > 0
                 ? `${new Date(
-                  selectedBookingsGroup[0].startTime
-                ).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })} at ${new Date(
-                  selectedBookingsGroup[0].startTime
-                ).toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}`
+                    selectedBookingsGroup[0].startTime
+                  ).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })} at ${new Date(
+                    selectedBookingsGroup[0].startTime
+                  ).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
                 : "Selected bookings"}
             </DialogDescription>
           </DialogHeader>
@@ -1423,11 +1464,11 @@ export function CalendarView({
                 className={cn(
                   "p-3 rounded-lg border cursor-pointer hover:shadow-md transition-all",
                   booking.status === "confirmed" &&
-                  "bg-blue-50 border-blue-200",
+                    "bg-blue-50 border-blue-200",
                   booking.status === "completed" &&
-                  "bg-green-50 border-green-200",
+                    "bg-green-50 border-green-200",
                   booking.status === "pending" &&
-                  "bg-yellow-50 border-yellow-200",
+                    "bg-yellow-50 border-yellow-200",
                   booking.status === "cancelled" && "bg-red-50 border-red-200"
                 )}
               >
@@ -1457,13 +1498,13 @@ export function CalendarView({
                     variant="outline"
                     className={cn(
                       booking.status === "confirmed" &&
-                      "bg-blue-100 text-blue-800 border-blue-200",
+                        "bg-blue-100 text-blue-800 border-blue-200",
                       booking.status === "completed" &&
-                      "bg-green-100 text-green-800 border-green-200",
+                        "bg-green-100 text-green-800 border-green-200",
                       booking.status === "pending" &&
-                      "bg-yellow-100 text-yellow-800 border-yellow-200",
+                        "bg-yellow-100 text-yellow-800 border-yellow-200",
                       booking.status === "cancelled" &&
-                      "bg-red-100 text-red-800 border-red-200"
+                        "bg-red-100 text-red-800 border-red-200"
                     )}
                   >
                     {booking.status}

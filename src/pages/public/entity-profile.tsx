@@ -296,13 +296,22 @@ export function PublicEntityProfilePage() {
               pkgBooking.professionalId ||
               undefined,
             isPackageBooking: true,
-            clientName: clientData.name,
-            clientEmail: clientData.email,
-            clientPhone: clientData.phone,
-            startTime: startDateTime.toISOString(),
-            endTime: endDateTime.toISOString(),
+            clientInfo: {
+              name: clientData.name,
+              email: clientData.email,
+              phone: clientData.phone,
+              notes: clientData.notes || undefined,
+            },
+            startDateTime: startDateTime.toISOString(),
+            endDateTime: endDateTime.toISOString(),
             status: "pending",
             notes: clientData.notes || undefined,
+            pricing: {
+              basePrice: service.price || 0,
+              totalPrice: service.price || 0,
+              currency: "EUR",
+            },
+            createdBy: entity!.id, // Using entity ID as creator for public bookings
           };
 
           return publicService.createBooking(bookingData as any);
@@ -335,13 +344,22 @@ export function PublicEntityProfilePage() {
           serviceId: selectedService,
           professionalId:
             selectedSlot!.professionalId || selectedProfessional || undefined,
-          clientName: clientData.name,
-          clientEmail: clientData.email,
-          clientPhone: clientData.phone,
-          startTime: startDateTime.toISOString(),
-          endTime: endDateTime.toISOString(),
+          clientInfo: {
+            name: clientData.name,
+            email: clientData.email,
+            phone: clientData.phone,
+            notes: clientData.notes || undefined,
+          },
+          startDateTime: startDateTime.toISOString(),
+          endDateTime: endDateTime.toISOString(),
           status: "pending",
           notes: clientData.notes || undefined,
+          pricing: {
+            basePrice: service.price || 0,
+            totalPrice: service.price || 0,
+            currency: "EUR",
+          },
+          createdBy: entity!.id, // Using entity ID as creator for public bookings
         };
 
         await publicService.createBooking(bookingData as any);
@@ -590,11 +608,10 @@ export function PublicEntityProfilePage() {
                         {services.map((service) => (
                           <Card
                             key={service.id}
-                            className={`cursor-pointer transition-all hover:shadow-md ${
-                              selectedService === service.id
-                                ? "ring-2 ring-primary"
-                                : ""
-                            }`}
+                            className={`cursor-pointer transition-all hover:shadow-md ${selectedService === service.id
+                              ? "ring-2 ring-primary"
+                              : ""
+                              }`}
                             onClick={() => {
                               setSelectedService(service.id);
                               setSelectedPackage("");
@@ -648,11 +665,10 @@ export function PublicEntityProfilePage() {
                           return (
                             <Card
                               key={pkg._id}
-                              className={`cursor-pointer transition-all hover:shadow-md ${
-                                selectedPackage === pkg._id
-                                  ? "ring-2 ring-primary"
-                                  : ""
-                              }`}
+                              className={`cursor-pointer transition-all hover:shadow-md ${selectedPackage === pkg._id
+                                ? "ring-2 ring-primary"
+                                : ""
+                                }`}
                               onClick={() => {
                                 setSelectedPackage(pkg._id);
                                 setSelectedService("");
@@ -1209,11 +1225,10 @@ export function PublicEntityProfilePage() {
                           {availableProfessionals.map((prof) => (
                             <Card
                               key={prof.id}
-                              className={`cursor-pointer transition-all hover:shadow-sm ${
-                                selectedProfessional === prof.id
-                                  ? "ring-2 ring-primary"
-                                  : ""
-                              }`}
+                              className={`cursor-pointer transition-all hover:shadow-sm ${selectedProfessional === prof.id
+                                ? "ring-2 ring-primary"
+                                : ""
+                                }`}
                               onClick={() => setSelectedProfessional(prof.id)}
                             >
                               <CardContent className="p-4 flex items-center gap-3">

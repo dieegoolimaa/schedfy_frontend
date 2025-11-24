@@ -24,7 +24,7 @@ import { type TimeSlot } from "../../services/bookings.service";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Info, Package, Clock, Users } from "lucide-react";
+import { Info, Package, Clock, Users, Search, X, Check, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
@@ -90,6 +90,83 @@ export function CreateBookingDialog({
   const [submitting, setSubmitting] = useState(false);
   const [usePackage, setUsePackage] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<string>("");
+
+  // Client search state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showClientResults, setShowClientResults] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(clientId || null);
+
+  // Debounce search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchTerm.length >= 2 && !selectedClientId) {
+        setIsSearching(true);
+        try {
+          const response = await apiClient.get(
+            `/api/clients/entity/${entityId}/search`,
+            {
+              params: { q: searchTerm },
+            }
+          );
+          setSearchResults(Array.isArray(response.data) ? response.data : []);
+          setShowClientResults(true);
+        } catch (error) {
+          console.error("Error searching clients:", error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setShowClientResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, entityId, selectedClientId]);
+
+  // Fetch client details if clientId is provided
+  useEffect(() => {
+    if (clientId && open) {
+      const fetchClient = async () => {
+        try {
+          const response = await apiClient.get(`/api/clients/${clientId}`);
+          const client = response.data as any;
+          if (client) {
+            setClientName(`${client.firstName} ${client.lastName}`);
+            setClientPhone(client.phone || "");
+            setClientEmail(client.email || "");
+            setSelectedClientId(client._id || client.id);
+          }
+        } catch (error) {
+          console.error("Error fetching client details:", error);
+        }
+      };
+      fetchClient();
+    }
+  }, [clientId, open]);
+
+  const handleSelectClient = (client: any) => {
+    setClientName(`${client.firstName} ${client.lastName}`);
+    setClientPhone(client.phone);
+    setClientEmail(client.email || "");
+    setSelectedClientId(client._id || client.id);
+    setSearchTerm("");
+    setShowClientResults(false);
+
+    // If client has notes, maybe append them? For now let's just keep user entered notes
+    // setNotes(client.notes || "");
+  };
+
+  const handleClearClient = () => {
+    setClientName("");
+    setClientPhone("");
+    setClientEmail("");
+    setSelectedClientId(null);
+    setSearchTerm("");
+  };
 
   // Single booking fields (replaces bookingSlots array)
   const [serviceId, setServiceId] = useState("");
@@ -213,8 +290,8 @@ export function CreateBookingDialog({
   const serviceInPackage =
     usePackage && selectedSubscriptionData && serviceId
       ? selectedSubscriptionData.packageId.services.some(
-          (s) => s.id === serviceId
-        )
+        (s) => s.id === serviceId
+      )
       : true;
 
   // Calculate required sessions (always 1 for single booking)
@@ -398,6 +475,7 @@ export function CreateBookingDialog({
       } else {
         // Regular booking creation (non-recurring)
         await onSubmit({
+          clientId: selectedClientId, // Pass the linked client ID
           clientName,
           clientPhone,
           clientEmail,
@@ -409,14 +487,13 @@ export function CreateBookingDialog({
           // Package-related fields
           ...(usePackage &&
             selectedSubscription && {
-              isPackageBooking: true,
-              packageSubscriptionId: selectedSubscription,
-            }),
+            isPackageBooking: true,
+            packageSubscriptionId: selectedSubscription,
+          }),
         });
 
         toast.success(
-          `Booking created successfully!${
-            usePackage ? ` 1 session deducted from package.` : ""
+          `Booking created successfully!${usePackage ? ` 1 session deducted from package.` : ""
           }`
         );
       }
@@ -447,7 +524,69 @@ export function CreateBookingDialog({
         <div className="space-y-4 py-4">
           {/* Client Information */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold">Client Information</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Client Information</h3>
+              {selectedClientId && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Check className="h-3 w-3" />
+                  Linked to Client
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 ml-1 hover:bg-transparent"
+                    onClick={handleClearClient}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              )}
+            </div>
+
+            {/* Client Search */}
+            {!selectedClientId && (
+              <div className="relative">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search existing client..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      if (e.target.value.length < 2) {
+                        setShowClientResults(false);
+                      }
+                    }}
+                  />
+                  {isSearching && (
+                    <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Search Results Dropdown */}
+                {showClientResults && searchResults.length > 0 && (
+                  <Card className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto shadow-lg">
+                    <CardContent className="p-1">
+                      {searchResults.map((client) => (
+                        <div
+                          key={client._id || client.id}
+                          className="flex flex-col p-2 text-sm rounded-sm hover:bg-accent cursor-pointer"
+                          onClick={() => handleSelectClient(client)}
+                        >
+                          <span className="font-medium">
+                            {client.firstName} {client.lastName}
+                          </span>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{client.phone}</span>
+                            {client.email && <span>• {client.email}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="client-name">
@@ -458,6 +597,7 @@ export function CreateBookingDialog({
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   placeholder="Enter client name"
+                  disabled={!!selectedClientId}
                 />
               </div>
               <div className="space-y-2">
@@ -469,6 +609,7 @@ export function CreateBookingDialog({
                   value={clientPhone}
                   onChange={(e) => setClientPhone(e.target.value)}
                   placeholder="+351 XXX XXX XXX"
+                  disabled={!!selectedClientId}
                 />
               </div>
             </div>
@@ -480,6 +621,7 @@ export function CreateBookingDialog({
                 value={clientEmail}
                 onChange={(e) => setClientEmail(e.target.value)}
                 placeholder="client@example.com"
+                disabled={!!selectedClientId}
               />
             </div>
           </div>
@@ -690,11 +832,10 @@ export function CreateBookingDialog({
                     </Label>
                     <div className="grid grid-cols-2 gap-3">
                       <Card
-                        className={`cursor-pointer transition-all ${
-                          bookingMode === "time"
-                            ? "ring-2 ring-primary shadow-sm"
-                            : "hover:shadow-sm"
-                        }`}
+                        className={`cursor-pointer transition-all ${bookingMode === "time"
+                          ? "ring-2 ring-primary shadow-sm"
+                          : "hover:shadow-sm"
+                          }`}
                         onClick={() => {
                           setBookingMode("time");
                           setProfessionalId(undefined);
@@ -710,11 +851,10 @@ export function CreateBookingDialog({
                         </CardContent>
                       </Card>
                       <Card
-                        className={`cursor-pointer transition-all ${
-                          bookingMode === "professional"
-                            ? "ring-2 ring-primary shadow-sm"
-                            : "hover:shadow-sm"
-                        }`}
+                        className={`cursor-pointer transition-all ${bookingMode === "professional"
+                          ? "ring-2 ring-primary shadow-sm"
+                          : "hover:shadow-sm"
+                          }`}
                         onClick={() => {
                           setBookingMode("professional");
                           setProfessionalId(undefined);
@@ -1013,33 +1153,29 @@ export function CreateBookingDialog({
                     <AlertTitle>Preview</AlertTitle>
                     <AlertDescription>
                       {recurrenceFrequency === "daily" &&
-                        `Repeats every ${recurrenceInterval} day${
-                          recurrenceInterval > 1 ? "s" : ""
+                        `Repeats every ${recurrenceInterval} day${recurrenceInterval > 1 ? "s" : ""
                         }`}
                       {recurrenceFrequency === "weekly" &&
-                        `Repeats every ${recurrenceInterval} week${
-                          recurrenceInterval > 1 ? "s" : ""
-                        }${
-                          recurrenceDaysOfWeek.length > 0
-                            ? ` on ${recurrenceDaysOfWeek
-                                .map(
-                                  (d) =>
-                                    [
-                                      "Sun",
-                                      "Mon",
-                                      "Tue",
-                                      "Wed",
-                                      "Thu",
-                                      "Fri",
-                                      "Sat",
-                                    ][d]
-                                )
-                                .join(", ")}`
-                            : ""
+                        `Repeats every ${recurrenceInterval} week${recurrenceInterval > 1 ? "s" : ""
+                        }${recurrenceDaysOfWeek.length > 0
+                          ? ` on ${recurrenceDaysOfWeek
+                            .map(
+                              (d) =>
+                                [
+                                  "Sun",
+                                  "Mon",
+                                  "Tue",
+                                  "Wed",
+                                  "Thu",
+                                  "Fri",
+                                  "Sat",
+                                ][d]
+                            )
+                            .join(", ")}`
+                          : ""
                         }`}
                       {recurrenceFrequency === "monthly" &&
-                        `Repeats every ${recurrenceInterval} month${
-                          recurrenceInterval > 1 ? "s" : ""
+                        `Repeats every ${recurrenceInterval} month${recurrenceInterval > 1 ? "s" : ""
                         }`}
                       {recurrenceEndType === "occurrences" &&
                         `, ${recurrenceOccurrences} times`}
