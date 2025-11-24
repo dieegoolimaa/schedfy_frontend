@@ -164,17 +164,23 @@ const ConsolidatedDashboard = () => {
   const totalRevenue = bookings
     .filter((b) => b.status === "completed")
     .reduce(
-      (sum, booking) => sum + (booking.service?.pricing?.basePrice || 0),
+      (sum, booking) => sum + (booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0),
       0
     );
 
-  // Get upcoming bookings
+  // Get today's bookings (for Today's Schedule)
   const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+
   const upcomingBookings = bookings
     .filter(
       (b) =>
         (b.status === "confirmed" || b.status === "pending") &&
-        new Date(b.startTime) >= now
+        new Date(b.startTime) >= todayStart &&
+        new Date(b.startTime) <= todayEnd
     )
     .sort(
       (a, b) =>
@@ -251,7 +257,7 @@ const ConsolidatedDashboard = () => {
 
       const monthRevenue = monthBookings
         .filter((b) => b.status === "completed")
-        .reduce((sum, b) => sum + (b.service?.pricing?.basePrice || 0), 0);
+        .reduce((sum, b) => sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0), 0);
 
       monthlyData.push({
         month: month.month,
@@ -284,14 +290,14 @@ const ConsolidatedDashboard = () => {
         booking.status === "completed"
           ? "completion"
           : booking.status === "confirmed"
-          ? "booking"
-          : "cancellation",
+            ? "booking"
+            : "cancellation",
       message:
         booking.status === "completed"
           ? `Session completed with ${booking.client?.name || "client"}`
           : booking.status === "confirmed"
-          ? `New booking: ${booking.service?.name || "service"}`
-          : `Booking cancelled`,
+            ? `New booking: ${booking.service?.name || "service"}`
+            : `Booking cancelled`,
       time: new Date(booking.updatedAt).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -312,7 +318,6 @@ const ConsolidatedDashboard = () => {
     const route = plan === "business" ? "/entity/reports" : `/${plan}/reports`;
     navigate(route);
   };
-  const handleViewCalendar = () => setCalendarOpen(true);
   const handleTodayView = () => {
     const route =
       plan === "business"
@@ -385,18 +390,17 @@ const ConsolidatedDashboard = () => {
           totalBookings.toString(),
         subtitle:
           entityStats?.bookings.change !== undefined
-            ? `${
-                entityStats.bookings.change > 0 ? "+" : ""
-              }${entityStats.bookings.change.toFixed(1)}% vs last month`
+            ? `${entityStats.bookings.change > 0 ? "+" : ""
+            }${entityStats.bookings.change.toFixed(1)}% vs last month`
             : undefined,
         icon: CalendarDays,
         variant: "info" as const,
         trend:
           entityStats?.bookings.change !== undefined
             ? {
-                value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
-                isPositive: entityStats.bookings.change > 0,
-              }
+              value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
+              isPositive: entityStats.bookings.change > 0,
+            }
             : undefined,
       },
       {
@@ -406,16 +410,16 @@ const ConsolidatedDashboard = () => {
           completedChange > 0
             ? `+${completedChange} vs last month`
             : completedChange < 0
-            ? `${completedChange} vs last month`
-            : "This month",
+              ? `${completedChange} vs last month`
+              : "This month",
         icon: CheckCircle,
         variant: "success" as const,
         trend:
           completedChange !== 0
             ? {
-                value: `${Math.abs(completedChange)}`,
-                isPositive: completedChange > 0,
-              }
+              value: `${Math.abs(completedChange)}`,
+              isPositive: completedChange > 0,
+            }
             : undefined,
       },
     ];
@@ -449,9 +453,8 @@ const ConsolidatedDashboard = () => {
             }
             subtitle={
               entityStats?.revenue.change !== undefined
-                ? `${
-                    entityStats.revenue.change > 0 ? "+" : ""
-                  }${entityStats.revenue.change.toFixed(1)}% vs last month`
+                ? `${entityStats.revenue.change > 0 ? "+" : ""
+                }${entityStats.revenue.change.toFixed(1)}% vs last month`
                 : undefined
             }
             icon={DollarSign}
@@ -459,11 +462,11 @@ const ConsolidatedDashboard = () => {
             trend={
               entityStats?.revenue.change !== undefined
                 ? {
-                    value: `${Math.abs(entityStats.revenue.change).toFixed(
-                      1
-                    )}%`,
-                    isPositive: entityStats.revenue.change > 0,
-                  }
+                  value: `${Math.abs(entityStats.revenue.change).toFixed(
+                    1
+                  )}%`,
+                  isPositive: entityStats.revenue.change > 0,
+                }
                 : undefined
             }
           />
@@ -478,9 +481,8 @@ const ConsolidatedDashboard = () => {
             }
             subtitle={
               entityStats?.clients.change !== undefined
-                ? `${
-                    entityStats.clients.change > 0 ? "+" : ""
-                  }${entityStats.clients.change.toFixed(1)}% vs last month`
+                ? `${entityStats.clients.change > 0 ? "+" : ""
+                }${entityStats.clients.change.toFixed(1)}% vs last month`
                 : undefined
             }
             icon={Users}
@@ -488,11 +490,11 @@ const ConsolidatedDashboard = () => {
             trend={
               entityStats?.clients.change !== undefined
                 ? {
-                    value: `${Math.abs(entityStats.clients.change).toFixed(
-                      1
-                    )}%`,
-                    isPositive: entityStats.clients.change > 0,
-                  }
+                  value: `${Math.abs(entityStats.clients.change).toFixed(
+                    1
+                  )}%`,
+                  isPositive: entityStats.clients.change > 0,
+                }
                 : undefined
             }
           />
@@ -508,9 +510,8 @@ const ConsolidatedDashboard = () => {
           value={formatCurrency(entityStats?.revenue.thisMonth || totalRevenue)}
           subtitle={
             entityStats?.revenue.change !== undefined
-              ? `${
-                  entityStats.revenue.change > 0 ? "+" : ""
-                }${entityStats.revenue.change.toFixed(1)}% vs last month`
+              ? `${entityStats.revenue.change > 0 ? "+" : ""
+              }${entityStats.revenue.change.toFixed(1)}% vs last month`
               : undefined
           }
           icon={DollarSign}
@@ -518,9 +519,9 @@ const ConsolidatedDashboard = () => {
           trend={
             entityStats?.revenue.change !== undefined
               ? {
-                  value: `${Math.abs(entityStats.revenue.change).toFixed(1)}%`,
-                  isPositive: entityStats.revenue.change > 0,
-                }
+                value: `${Math.abs(entityStats.revenue.change).toFixed(1)}%`,
+                isPositive: entityStats.revenue.change > 0,
+              }
               : undefined
           }
         />
@@ -529,9 +530,8 @@ const ConsolidatedDashboard = () => {
           value={entityStats?.bookings.thisMonth || totalBookings}
           subtitle={
             entityStats?.bookings.change !== undefined
-              ? `${
-                  entityStats.bookings.change > 0 ? "+" : ""
-                }${entityStats.bookings.change.toFixed(1)}% vs last month`
+              ? `${entityStats.bookings.change > 0 ? "+" : ""
+              }${entityStats.bookings.change.toFixed(1)}% vs last month`
               : undefined
           }
           icon={CalendarDays}
@@ -539,9 +539,9 @@ const ConsolidatedDashboard = () => {
           trend={
             entityStats?.bookings.change !== undefined
               ? {
-                  value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
-                  isPositive: entityStats.bookings.change > 0,
-                }
+                value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
+                isPositive: entityStats.bookings.change > 0,
+              }
               : undefined
           }
         />
@@ -550,9 +550,8 @@ const ConsolidatedDashboard = () => {
           value={entityStats?.clients.newThisMonth || uniqueClients}
           subtitle={
             entityStats?.clients.change !== undefined
-              ? `${
-                  entityStats.clients.change > 0 ? "+" : ""
-                }${entityStats.clients.change.toFixed(1)}% vs last month`
+              ? `${entityStats.clients.change > 0 ? "+" : ""
+              }${entityStats.clients.change.toFixed(1)}% vs last month`
               : undefined
           }
           icon={Users}
@@ -560,18 +559,17 @@ const ConsolidatedDashboard = () => {
           trend={
             entityStats?.clients.change !== undefined
               ? {
-                  value: `${Math.abs(entityStats.clients.change).toFixed(1)}%`,
-                  isPositive: entityStats.clients.change > 0,
-                }
+                value: `${Math.abs(entityStats.clients.change).toFixed(1)}%`,
+                isPositive: entityStats.clients.change > 0,
+              }
               : undefined
           }
         />
         <StatCard
           title="Total Clients"
           value={entityStats?.users.total || uniqueClients}
-          subtitle={`${
-            entityStats?.users.active || uniqueClients
-          } active users`}
+          subtitle={`${entityStats?.users.active || uniqueClients
+            } active users`}
           icon={Users}
           variant="default"
         />
@@ -615,12 +613,6 @@ const ConsolidatedDashboard = () => {
             <Clock className="mr-2 h-4 w-4" />
             Today
           </Button>
-          {(plan === "individual" || plan === "business") && (
-            <Button variant="outline" size="sm" onClick={handleViewCalendar}>
-              <Calendar className="mr-2 h-4 w-4" />
-              Calendar
-            </Button>
-          )}
           <Button size="sm" onClick={handleNewBooking}>
             <Plus className="mr-2 h-4 w-4" />
             New Booking
@@ -885,11 +877,10 @@ const ConsolidatedDashboard = () => {
                     return (
                       <div
                         key={booking.id}
-                        className={`flex items-center ${
-                          currentPlan === "business"
-                            ? "items-start gap-3"
-                            : "justify-between"
-                        } p-3 sm:p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer`}
+                        className={`flex items-center ${currentPlan === "business"
+                          ? "items-start gap-3"
+                          : "justify-between"
+                          } p-3 sm:p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer`}
                         onClick={() =>
                           currentPlan === "business"
                             ? null
@@ -920,11 +911,10 @@ const ConsolidatedDashboard = () => {
                                     {formatTime(booking.startTime)}
                                   </div>
                                   <p
-                                    className={`text-xs mt-0.5 ${
-                                      booking.status === "confirmed"
-                                        ? "text-green-600"
-                                        : "text-amber-600"
-                                    }`}
+                                    className={`text-xs mt-0.5 ${booking.status === "confirmed"
+                                      ? "text-green-600"
+                                      : "text-amber-600"
+                                      }`}
                                   >
                                     {booking.status === "pending"
                                       ? "pending"
@@ -966,11 +956,10 @@ const ConsolidatedDashboard = () => {
                           <>
                             <div className="flex items-center space-x-4">
                               <div
-                                className={`w-2 h-8 rounded-full ${
-                                  booking.status === "confirmed"
-                                    ? "bg-blue-500"
-                                    : "bg-yellow-500"
-                                }`}
+                                className={`w-2 h-8 rounded-full ${booking.status === "confirmed"
+                                  ? "bg-blue-500"
+                                  : "bg-yellow-500"
+                                  }`}
                               />
                               <div>
                                 <p className="font-medium">
@@ -1095,8 +1084,8 @@ const ConsolidatedDashboard = () => {
                     const displayValue =
                       goal.type === "revenue"
                         ? `${formatCurrency(
-                            goal.currentValue
-                          )} / ${formatCurrency(goal.targetValue)}`
+                          goal.currentValue
+                        )} / ${formatCurrency(goal.targetValue)}`
                         : `${goal.currentValue} / ${goal.targetValue}`;
 
                     return (
@@ -1384,11 +1373,10 @@ const ConsolidatedDashboard = () => {
           </CardHeader>
           <CardContent>
             <div
-              className={`space-y-4 ${
-                plan === "business"
-                  ? "md:grid md:grid-cols-2 lg:grid-cols-3 md:space-y-0 md:gap-4"
-                  : ""
-              }`}
+              className={`space-y-4 ${plan === "business"
+                ? "md:grid md:grid-cols-2 lg:grid-cols-3 md:space-y-0 md:gap-4"
+                : ""
+                }`}
             >
               <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
                 <div className="flex items-start space-x-3">
@@ -1560,10 +1548,10 @@ const ConsolidatedDashboard = () => {
                           selectedBookingDetails.status === "confirmed"
                             ? "bg-green-50 text-green-700 border-green-200"
                             : selectedBookingDetails.status === "pending"
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : selectedBookingDetails.status === "completed"
-                            ? "bg-blue-50 text-blue-700 border-blue-200"
-                            : "bg-gray-50 text-gray-700 border-gray-200"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : selectedBookingDetails.status === "completed"
+                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                : "bg-gray-50 text-gray-700 border-gray-200"
                         }
                       >
                         {selectedBookingDetails.status}
@@ -1605,23 +1593,23 @@ const ConsolidatedDashboard = () => {
                     <p className="text-sm font-semibold mt-1">
                       {selectedBookingDetails.startTime
                         ? new Date(
-                            selectedBookingDetails.startTime
-                          ).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
+                          selectedBookingDetails.startTime
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
                         : "N/A"}
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center mt-1">
                       <Clock className="h-3 w-3 mr-1" />
                       {selectedBookingDetails.startTime
                         ? new Date(
-                            selectedBookingDetails.startTime
-                          ).toLocaleTimeString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          selectedBookingDetails.startTime
+                        ).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "N/A"}
                     </p>
                   </div>

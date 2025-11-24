@@ -153,7 +153,7 @@ export function EditBookingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] z-[120]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             {t("entity.bookings.editBooking", "Edit Booking")}
@@ -207,7 +207,7 @@ export function EditBookingDialog({
               <div className="grid gap-2">
                 <Label htmlFor="professionalName">Professional</Label>
                 {Array.isArray(professionalsList) &&
-                professionalsList.length > 0 ? (
+                  professionalsList.length > 0 ? (
                   <Select
                     value={formData.professionalId || ""}
                     onValueChange={(value) => {

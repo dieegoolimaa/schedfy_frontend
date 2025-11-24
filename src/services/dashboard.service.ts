@@ -31,7 +31,7 @@ export const dashboardService = {
      * Get entity statistics with period comparison
      */
     getEntityStats: async (entityId: string): Promise<EntityStats> => {
-        const response = await apiClient.get(`/api/dashboard/entity/${entityId}`);
+        const response = await apiClient.get(`/api/dashboard/entity/${entityId}/stats`);
         return (response.data as any).data || response.data;
     },
 };

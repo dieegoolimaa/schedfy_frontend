@@ -56,9 +56,7 @@ import {
   Search,
   CreditCard,
   Receipt,
-  Percent,
   Gift,
-  ArrowUpRight,
   ArrowDownRight,
   Eye,
   Target,
@@ -66,6 +64,9 @@ import {
   Calendar,
   Save,
 } from "lucide-react";
+import { usePromotions } from "../../hooks/usePromotions";
+import { PromotionImpactCard } from "../../components/reports/promotion-impact-card";
+import { Commission, Voucher, Discount } from "../../types/models/promotions.interface";
 
 export function FinancialReportsPage() {
   const { t } = useTranslation("financial");
@@ -93,6 +94,26 @@ export function FinancialReportsPage() {
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Promotions data
+  const { getActiveCommissions, getVouchers, getDiscounts } = usePromotions();
+  const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+
+  useEffect(() => {
+    if (entityId) {
+      Promise.all([
+        getActiveCommissions(entityId),
+        getVouchers(entityId),
+        getDiscounts(entityId)
+      ]).then(([c, v, d]) => {
+        setCommissions(c);
+        setVouchers(v);
+        setDiscounts(d);
+      });
+    }
+  }, [entityId]);
 
   // Goals form state
   const [goalFormData, setGoalFormData] = useState({
@@ -139,14 +160,14 @@ export function FinancialReportsPage() {
     );
 
     const totalRevenue = completedBookings.reduce(
-      (sum, b) => sum + (b.service?.pricing?.basePrice || 0),
+      (sum, b) => sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
       0
     );
 
-    // Platform commission (5% of revenue)
-    const totalCommissions = totalRevenue * 0.05;
+    // Platform commission (10% of revenue)
+    const totalCommissions = totalRevenue * 0.10;
 
-    // Mock vouchers for now (would come from voucher system)
+    // Vouchers (would come from voucher system when implemented)
     const totalVouchers = 0;
 
     const netRevenue = totalRevenue - totalCommissions - totalVouchers;
@@ -156,7 +177,49 @@ export function FinancialReportsPage() {
       totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
     // Calculate growth (comparing with previous period)
-    // For now, using mock growth percentages
+    const now = new Date();
+    const currentPeriodStart = getDateRangeFilter();
+    const periodDuration = now.getTime() - currentPeriodStart.getTime();
+    const previousPeriodStart = new Date(currentPeriodStart.getTime() - periodDuration);
+
+    const previousPeriodBookings = bookings.filter((b) => {
+      const bookingDate = new Date(b.createdAt);
+      return (
+        bookingDate >= previousPeriodStart &&
+        bookingDate < currentPeriodStart &&
+        b.status === "completed"
+      );
+    });
+
+    const previousRevenue = previousPeriodBookings.reduce(
+      (sum, b) => sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
+      0
+    );
+    const previousTransactions = previousPeriodBookings.length;
+    const previousAverage =
+      previousTransactions > 0 ? previousRevenue / previousTransactions : 0;
+
+    const revenueGrowth =
+      previousRevenue > 0
+        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
+        : totalRevenue > 0
+          ? 100
+          : 0;
+
+    const transactionsGrowth =
+      previousTransactions > 0
+        ? ((totalTransactions - previousTransactions) / previousTransactions) * 100
+        : totalTransactions > 0
+          ? 100
+          : 0;
+
+    const averageGrowth =
+      previousAverage > 0
+        ? ((averageTransaction - previousAverage) / previousAverage) * 100
+        : averageTransaction > 0
+          ? 100
+          : 0;
+
     return {
       totalRevenue,
       totalCommissions,
@@ -165,12 +228,12 @@ export function FinancialReportsPage() {
       totalTransactions,
       averageTransaction,
       growth: {
-        revenue: 12.5,
-        transactions: 8.3,
-        average: 3.8,
+        revenue: Math.round(revenueGrowth * 10) / 10,
+        transactions: Math.round(transactionsGrowth * 10) / 10,
+        average: Math.round(averageGrowth * 10) / 10,
       },
     };
-  }, [filteredBookings]);
+  }, [filteredBookings, bookings, getDateRangeFilter]);
 
   // Revenue breakdown by service category
   const revenueBreakdown = useMemo(() => {
@@ -185,7 +248,7 @@ export function FinancialReportsPage() {
 
     completedBookings.forEach((booking) => {
       const category = booking.service?.category || "Other";
-      const price = booking.service?.pricing?.basePrice || 0;
+      const price = booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
 
       const current = categoryMap.get(category) || {
         amount: 0,
@@ -220,7 +283,7 @@ export function FinancialReportsPage() {
 
     completedBookings.forEach((b) => {
       const name = b.professional?.name || "Unassigned";
-      const revenue = b.service?.pricing?.basePrice || 0;
+      const revenue = b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0;
 
       const current = map.get(name) || { revenue: 0, bookings: 0 };
       map.set(name, {
@@ -294,8 +357,8 @@ export function FinancialReportsPage() {
     return filteredBookings
       .filter((b) => b.status === "completed")
       .map((booking) => {
-        const gross = booking.service?.pricing?.basePrice || 0;
-        const commission = gross * 0.05; // 5% platform commission
+        const gross = booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
+        const commission = gross * 0.10; // 10% platform commission
         const voucher = 0; // Future: get from booking.voucher
         const net = gross - commission - voucher;
 
@@ -476,6 +539,9 @@ export function FinancialReportsPage() {
               </TabsTrigger>
               <TabsTrigger value="vouchers" className="whitespace-nowrap">
                 {t("tabs.vouchers", "Vouchers")}
+              </TabsTrigger>
+              <TabsTrigger value="promotions-impact" className="whitespace-nowrap">
+                Promotions Impact
               </TabsTrigger>
               <TabsTrigger value="transactions" className="whitespace-nowrap">
                 {t("tabs.transactions", "Transactions")}
@@ -1051,6 +1117,20 @@ export function FinancialReportsPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="promotions-impact" className="space-y-4">
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold tracking-tight">Promotions Impact Analysis</h2>
+              </div>
+              <PromotionImpactCard
+                bookings={filteredBookings}
+                commissions={commissions}
+                vouchers={vouchers}
+                discounts={discounts}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-4">

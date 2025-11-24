@@ -100,19 +100,22 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
           region,
           billingPeriod as "monthly" | "yearly"
         );
-        if (apiPrice) {
+        if (apiPrice && apiPrice.price) {
           const price = apiPrice.price[billingPeriod as "monthly" | "yearly"];
           const currency = apiPrice.currency;
 
-          // Format price using Intl.NumberFormat
-          try {
-            return new Intl.NumberFormat(regionConfig.locale, {
-              style: "currency",
-              currency: currency,
-            }).format(price);
-          } catch (e) {
-            // Fallback if formatting fails
-            return `${currency} ${price}`;
+          // Only proceed if price is defined
+          if (price !== undefined && currency) {
+            // Format price using Intl.NumberFormat
+            try {
+              return new Intl.NumberFormat(regionConfig.locale, {
+                style: "currency",
+                currency: currency,
+              }).format(price);
+            } catch (e) {
+              // Fallback if formatting fails
+              return `${currency} ${price}`;
+            }
           }
         }
       }

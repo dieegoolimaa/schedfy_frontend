@@ -16,11 +16,13 @@ export interface CreateCommissionDto {
     value: number;
     appliesTo: CommissionAppliesTo;
     serviceIds?: string[];
-    packageIds?: string[];
     professionalIds?: string[];
-    startDate?: string;
-    endDate?: string;
-    conditions?: Record<string, any>;
+    serviceCategoryIds?: string[];
+    validFrom?: string;
+    validUntil?: string;
+    isActive?: boolean;
+    entityId: string;
+    createdBy: string;
 }
 
 export interface UpdateCommissionDto {
@@ -30,12 +32,11 @@ export interface UpdateCommissionDto {
     value?: number;
     appliesTo?: CommissionAppliesTo;
     serviceIds?: string[];
-    packageIds?: string[];
     professionalIds?: string[];
-    startDate?: string;
-    endDate?: string;
+    serviceCategoryIds?: string[];
+    validFrom?: string;
+    validUntil?: string;
     isActive?: boolean;
-    conditions?: Record<string, any>;
 }
 
 export interface CreateVoucherDto {
@@ -44,41 +45,40 @@ export interface CreateVoucherDto {
     description?: string;
     type: DiscountType;
     value: number;
-    appliesTo: DiscountAppliesTo;
-    serviceIds?: string[];
-    packageIds?: string[];
-    usageLimit?: number;
-    startDate: string;
-    endDate: string;
-    minPurchaseAmount?: number;
-    maxDiscountAmount?: number;
-    conditions?: Record<string, any>;
+    minimumPurchase?: number;
+    maximumDiscount?: number;
+    maxUsageCount?: number;
+    maxUsagePerClient?: number;
+    validFrom: string;
+    validUntil: string;
+    applicableServiceIds?: string[];
+    applicableDays?: number[];
+    createdBy?: string;
+    entityId?: string;
 }
 
 export interface UpdateVoucherDto {
-    code?: string;
     name?: string;
     description?: string;
-    type?: DiscountType;
     value?: number;
-    appliesTo?: DiscountAppliesTo;
-    serviceIds?: string[];
-    packageIds?: string[];
-    usageLimit?: number;
-    startDate?: string;
-    endDate?: string;
-    status?: 'active' | 'inactive';
-    minPurchaseAmount?: number;
-    maxDiscountAmount?: number;
-    conditions?: Record<string, any>;
+    minimumPurchase?: number;
+    maximumDiscount?: number;
+    maxUsageCount?: number;
+    maxUsagePerClient?: number;
+    status?: 'active' | 'inactive' | 'expired' | 'depleted';
+    validFrom?: string;
+    validUntil?: string;
+    applicableServiceIds?: string[];
+    applicableDays?: number[];
 }
 
 export interface ValidateVoucherDto {
     code: string;
-    serviceIds?: string[];
-    packageIds?: string[];
-    amount: number;
+    bookingValue: number;
     clientId?: string;
+    serviceId?: string;
+    bookingDate?: string;
+    entityId: string;
 }
 
 export interface ValidateVoucherResponse {
@@ -86,6 +86,7 @@ export interface ValidateVoucherResponse {
     message?: string;
     discountAmount?: number;
     finalAmount?: number;
+    voucher?: any;
 }
 
 export interface CreateDiscountDto {
@@ -95,12 +96,18 @@ export interface CreateDiscountDto {
     value: number;
     appliesTo: DiscountAppliesTo;
     serviceIds?: string[];
-    packageIds?: string[];
-    clientIds?: string[];
-    startDate: string;
-    endDate: string;
-    isAutomated?: boolean;
-    conditions?: Record<string, any>;
+    serviceCategoryIds?: string[];
+    minimumPurchase?: number;
+    maximumDiscount?: number;
+    validFrom: string;
+    validUntil: string;
+    applicableDays?: number[];
+    applicableTimeStart?: string;
+    applicableTimeEnd?: string;
+    autoApply?: boolean;
+    priority?: number;
+    createdBy?: string;
+    entityId?: string;
 }
 
 export interface UpdateDiscountDto {
@@ -110,11 +117,15 @@ export interface UpdateDiscountDto {
     value?: number;
     appliesTo?: DiscountAppliesTo;
     serviceIds?: string[];
-    packageIds?: string[];
-    clientIds?: string[];
-    startDate?: string;
-    endDate?: string;
-    isActive?: boolean;
-    isAutomated?: boolean;
-    conditions?: Record<string, any>;
+    serviceCategoryIds?: string[];
+    minimumPurchase?: number;
+    maximumDiscount?: number;
+    status?: 'active' | 'inactive' | 'scheduled' | 'expired';
+    validFrom?: string;
+    validUntil?: string;
+    applicableDays?: number[];
+    applicableTimeStart?: string;
+    applicableTimeEnd?: string;
+    autoApply?: boolean;
+    priority?: number;
 }

@@ -9,8 +9,8 @@ export enum CommissionType {
 
 export enum CommissionAppliesTo {
     SERVICE = 'service',
-    PACKAGE = 'package',
-    ALL = 'all'
+    PROFESSIONAL = 'professional',
+    SERVICE_CATEGORY = 'service_category',
 }
 
 export enum DiscountType {
@@ -19,16 +19,18 @@ export enum DiscountType {
 }
 
 export enum DiscountAppliesTo {
-    SERVICE = 'service',
-    PACKAGE = 'package',
-    ALL = 'all'
+    ALL_SERVICES = 'all_services',
+    SPECIFIC_SERVICES = 'specific_services',
+    SERVICE_CATEGORY = 'service_category',
+    FIRST_TIME_CLIENTS = 'first_time_clients',
+    RETURNING_CLIENTS = 'returning_clients'
 }
 
 export enum VoucherStatus {
     ACTIVE = 'active',
     INACTIVE = 'inactive',
     EXPIRED = 'expired',
-    USED = 'used'
+    DEPLETED = 'depleted'
 }
 
 export interface Commission {
@@ -40,12 +42,11 @@ export interface Commission {
     value: number;
     appliesTo: CommissionAppliesTo;
     serviceIds?: string[];
-    packageIds?: string[];
     professionalIds?: string[];
-    startDate?: string;
-    endDate?: string;
+    serviceCategoryIds?: string[];
+    validFrom?: string;
+    validUntil?: string;
     isActive: boolean;
-    conditions?: Record<string, any>;
     createdAt: string;
     updatedAt: string;
 }
@@ -58,18 +59,16 @@ export interface Voucher {
     description?: string;
     type: DiscountType;
     value: number;
-    appliesTo: DiscountAppliesTo;
-    serviceIds?: string[];
-    packageIds?: string[];
-    usageLimit?: number;
-    usageCount: number;
-    usedBy?: string[];
-    startDate: string;
-    endDate: string;
+    minimumPurchase?: number;
+    maximumDiscount?: number;
+    maxUsageCount?: number;
+    maxUsagePerClient?: number;
+    currentUsageCount: number;
+    validFrom: string;
+    validUntil: string;
     status: VoucherStatus;
-    minPurchaseAmount?: number;
-    maxDiscountAmount?: number;
-    conditions?: Record<string, any>;
+    applicableServiceIds?: string[];
+    applicableDays?: number[];
     createdAt: string;
     updatedAt: string;
 }
@@ -83,13 +82,17 @@ export interface Discount {
     value: number;
     appliesTo: DiscountAppliesTo;
     serviceIds?: string[];
-    packageIds?: string[];
-    clientIds?: string[];
-    startDate: string;
-    endDate: string;
-    isActive: boolean;
-    isAutomated: boolean;
-    conditions?: Record<string, any>;
+    serviceCategoryIds?: string[];
+    minimumPurchase?: number;
+    maximumDiscount?: number;
+    validFrom: string;
+    validUntil: string;
+    status: string;
+    autoApply: boolean;
+    applicableDays?: number[];
+    applicableTimeStart?: string;
+    applicableTimeEnd?: string;
+    priority?: number;
     createdAt: string;
     updatedAt: string;
 }

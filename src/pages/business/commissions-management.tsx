@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { usePermissions } from "@/hooks/usePermissions";
 import { usePromotions } from "@/hooks/usePromotions";
@@ -48,6 +48,8 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
+import { ServiceBadgeList } from "../../components/ui/service-badge-list";
+import { ProfessionalBadgeList } from "../../components/ui/professional-badge-list";
 import {
   Plus,
   Percent,
@@ -62,53 +64,10 @@ import {
 import { toast } from "sonner";
 
 // Types
-interface Commission {
-  id: string;
-  name: string;
-  description?: string;
-  type: "percentage" | "fixed";
-  value: number;
-  appliesTo: "service" | "professional" | "service_category";
-  serviceIds?: string[];
-  professionalIds?: string[];
-  isActive: boolean;
-  validFrom?: string;
-  validUntil?: string;
-}
-
-interface Voucher {
-  id: string;
-  code: string;
-  name: string;
-  description?: string;
-  type: "percentage" | "fixed";
-  value: number;
-  applicableServiceIds?: string[];
-  minimumPurchase?: number;
-  maxUsageCount?: number;
-  currentUsageCount: number;
-  status: "active" | "inactive" | "expired" | "depleted";
-  validFrom: string;
-  validUntil: string;
-}
-
-interface Discount {
-  id: string;
-  name: string;
-  description?: string;
-  type: "percentage" | "fixed";
-  value: number;
-  appliesTo: "all_services" | "specific_services" | "first_time_clients";
-  serviceIds?: string[];
-  minimumPurchase?: number;
-  status: "active" | "inactive" | "scheduled" | "expired";
-  autoApply: boolean;
-  validFrom: string;
-  validUntil: string;
-}
+import { Commission, Voucher, Discount } from "@/types/models/promotions.interface";
 
 export function CommissionsManagementPage() {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
   const { userPackage } = usePermissions();
@@ -264,6 +223,27 @@ export function CommissionsManagementPage() {
   // Handlers
   const handleCreateCommission = async () => {
     try {
+      console.log('Creating commission payload:', {
+        entityId,
+        name: newCommission.name,
+        description: newCommission.description,
+        type: newCommission.type,
+        value: Number(newCommission.value) || 0,
+        appliesTo: newCommission.appliesTo,
+        serviceIds:
+          newCommission.serviceIds.length > 0
+            ? newCommission.serviceIds
+            : undefined,
+        professionalIds:
+          newCommission.professionalIds.length > 0
+            ? newCommission.professionalIds
+            : undefined,
+        isActive: true,
+        validFrom: newCommission.validFrom,
+        validUntil: newCommission.validUntil,
+        serviceCategoryIds: [],
+        createdBy: user?.id || "",
+      });
       const result = await createCommission({
         entityId,
         name: newCommission.name,
@@ -282,6 +262,7 @@ export function CommissionsManagementPage() {
         isActive: true,
         validFrom: newCommission.validFrom || undefined,
         validUntil: newCommission.validUntil || undefined,
+        serviceCategoryIds: [], // TODO: Add UI for this
         createdBy: user?.id || "",
       });
 
@@ -328,8 +309,10 @@ export function CommissionsManagementPage() {
           newVoucher.applicableServiceIds.length > 0
             ? newVoucher.applicableServiceIds
             : undefined,
+        applicableDays: [], // TODO: Add UI for this
       };
 
+      console.log('Creating voucher payload:', payload);
       const result = await createVoucher(payload);
 
       if (result) {
@@ -367,6 +350,10 @@ export function CommissionsManagementPage() {
           newDiscount.serviceIds.length > 0
             ? newDiscount.serviceIds
             : undefined,
+        serviceCategoryIds: [], // TODO: Add UI for this
+        applicableDays: [], // TODO: Add UI for this
+        applicableTimeStart: undefined,
+        applicableTimeEnd: undefined,
         autoApply: !!newDiscount.autoApply,
         validFrom: newDiscount.validFrom,
         validUntil: newDiscount.validUntil,
@@ -377,6 +364,7 @@ export function CommissionsManagementPage() {
         priority: 1,
       };
 
+      console.log('Creating discount payload:', payload);
       const result = await createDiscount(payload);
 
       if (result) {
@@ -456,7 +444,7 @@ export function CommissionsManagementPage() {
       description: commission.description || "",
       type: commission.type,
       value: commission.value.toString(),
-      appliesTo: commission.appliesTo,
+      appliesTo: commission.appliesTo as any,
       serviceIds: commission.serviceIds || [],
       professionalIds: commission.professionalIds || [],
       validFrom: formatDateForInput(commission.validFrom),
@@ -469,7 +457,25 @@ export function CommissionsManagementPage() {
     if (!editingCommission) return;
 
     try {
-      const result = await updateCommission(editingCommission.id, {
+      console.log('Updating commission payload:', {
+        id: editingCommission._id,
+        name: editCommissionForm.name,
+        description: editCommissionForm.description,
+        type: editCommissionForm.type,
+        value: Number(editCommissionForm.value) || 0,
+        appliesTo: editCommissionForm.appliesTo,
+        serviceIds:
+          editCommissionForm.serviceIds.length > 0
+            ? editCommissionForm.serviceIds
+            : undefined,
+        professionalIds:
+          editCommissionForm.professionalIds.length > 0
+            ? editCommissionForm.professionalIds
+            : undefined,
+        validFrom: editCommissionForm.validFrom,
+        validUntil: editCommissionForm.validUntil,
+      });
+      const result = await updateCommission(editingCommission._id, {
         name: editCommissionForm.name,
         description: editCommissionForm.description,
         type: editCommissionForm.type as any,
@@ -520,10 +526,29 @@ export function CommissionsManagementPage() {
     if (!editingVoucher) return;
 
     try {
-      const result = await updateVoucher(editingVoucher.id, {
+      console.log('Updating voucher payload:', {
+        id: editingVoucher._id,
         code: editVoucherForm.code,
         description: editVoucherForm.description,
-        discountType: editVoucherForm.type as any,
+        type: editVoucherForm.type,
+        value: Number(editVoucherForm.value) || 0,
+        minimumPurchase: editVoucherForm.minimumPurchase
+          ? Number(editVoucherForm.minimumPurchase)
+          : undefined,
+        maxUsageCount: editVoucherForm.maxUsageCount
+          ? Number(editVoucherForm.maxUsageCount)
+          : undefined,
+        applicableServiceIds:
+          editVoucherForm.applicableServiceIds.length > 0
+            ? editVoucherForm.applicableServiceIds
+            : undefined,
+        validFrom: editVoucherForm.validFrom,
+        validUntil: editVoucherForm.validUntil,
+      });
+      const result = await updateVoucher(editingVoucher._id, {
+        code: editVoucherForm.code,
+        description: editVoucherForm.description,
+        type: editVoucherForm.type as any, // Note: Backend might ignore this if type update is not supported
         value: Number(editVoucherForm.value) || 0,
         minimumPurchase: editVoucherForm.minimumPurchase
           ? Number(editVoucherForm.minimumPurchase)
@@ -572,10 +597,25 @@ export function CommissionsManagementPage() {
     if (!editingDiscount) return;
 
     try {
-      const result = await updateDiscount(editingDiscount.id, {
+      console.log('Updating discount payload:', {
+        id: editingDiscount._id,
         name: editDiscountForm.name,
         description: editDiscountForm.description,
-        discountType: editDiscountForm.type as any,
+        type: editDiscountForm.type,
+        value: Number(editDiscountForm.value) || 0,
+        appliesTo: editDiscountForm.appliesTo,
+        serviceIds:
+          editDiscountForm.serviceIds.length > 0
+            ? editDiscountForm.serviceIds
+            : undefined,
+        autoApply: editDiscountForm.autoApply,
+        validFrom: editDiscountForm.validFrom,
+        validUntil: editDiscountForm.validUntil,
+      });
+      const result = await updateDiscount(editingDiscount._id, {
+        name: editDiscountForm.name,
+        description: editDiscountForm.description,
+        type: editDiscountForm.type as any,
         value: Number(editDiscountForm.value) || 0,
         appliesTo: editDiscountForm.appliesTo as any,
         serviceIds:
@@ -603,63 +643,19 @@ export function CommissionsManagementPage() {
   const fetchCommissions = async () => {
     if (!hasFinancialAccess) return;
     const data = await getCommissions(entityId);
-    const dataArray = Array.isArray(data) ? data : [];
-    setCommissions(
-      dataArray.map((c) => ({
-        id: c._id,
-        name: c.name,
-        description: c.description,
-        type: c.type as any,
-        value: c.value,
-        appliesTo: c.appliesTo as any,
-        isActive: c.isActive,
-        validFrom: c.validFrom?.toString(),
-        validUntil: c.validUntil?.toString(),
-      }))
-    );
+    setCommissions(data || []);
   };
 
   const fetchVouchers = async () => {
     if (!hasFinancialAccess) return;
     const data = await getVouchers(entityId);
-    const dataArray = Array.isArray(data) ? data : [];
-    setVouchers(
-      dataArray.map((v: any) => ({
-        id: v._id,
-        code: v.code,
-        name: v.name || v.code, // Fallback to code if name doesn't exist
-        description: v.description,
-        type: (v.type || v.discountType) as any,
-        value: v.value,
-        minimumPurchase: v.minimumPurchase,
-        maxUsageCount: v.maxUsageCount,
-        currentUsageCount: v.currentUsageCount,
-        status: v.status as any,
-        validFrom: v.validFrom.toString(),
-        validUntil: v.validUntil.toString(),
-      }))
-    );
+    setVouchers(data || []);
   };
 
   const fetchDiscounts = async () => {
     if (!hasFinancialAccess) return;
     const data = await getDiscounts(entityId);
-    const dataArray = Array.isArray(data) ? data : [];
-    setDiscounts(
-      dataArray.map((d: any) => ({
-        id: d._id,
-        name: d.name,
-        description: d.description,
-        type: (d.type || d.discountType) as any,
-        value: d.value,
-        appliesTo: d.appliesTo as any,
-        minimumPurchase: d.minimumPurchase || 0,
-        status: d.status as any,
-        autoApply: d.autoApply,
-        validFrom: d.validFrom.toString(),
-        validUntil: d.validUntil.toString(),
-      }))
-    );
+    setDiscounts(data || []);
   };
 
   // Load data on mount
@@ -671,8 +667,7 @@ export function CommissionsManagementPage() {
 
       // Fetch professionals for commission assignment
       fetch(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:3173"
+        `${import.meta.env.VITE_API_URL || "http://localhost:3173"
         }/users?role=PROFESSIONAL&entityId=${entityId}`
       )
         .then((res) => res.json())
@@ -810,8 +805,8 @@ export function CommissionsManagementPage() {
                     );
                     const monthlyBookings = Array.isArray(bookings)
                       ? bookings.filter(
-                          (b) => new Date(b.createdAt) >= startOfMonth
-                        )
+                        (b) => new Date(b.createdAt) >= startOfMonth
+                      )
                       : [];
                     const totalSavings = monthlyBookings.reduce(
                       (sum, booking) => {
@@ -1204,7 +1199,7 @@ export function CommissionsManagementPage() {
                       </TableHeader>
                       <TableBody>
                         {commissions.map((commission) => (
-                          <TableRow key={commission.id}>
+                          <TableRow key={commission._id}>
                             <TableCell className="font-medium">
                               {commission.name}
                             </TableCell>
@@ -1220,37 +1215,33 @@ export function CommissionsManagementPage() {
                               {commission.appliesTo.replace("_", " ")}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="text-xs">
-                                {commission.appliesTo === "service" &&
-                                commission.serviceIds &&
-                                commission.serviceIds.length > 0
-                                  ? `${commission.serviceIds.length} service${
-                                      commission.serviceIds.length > 1
-                                        ? "s"
-                                        : ""
-                                    }`
-                                  : commission.appliesTo === "professional" &&
-                                    commission.professionalIds &&
-                                    commission.professionalIds.length > 0
-                                  ? `${
-                                      commission.professionalIds.length
-                                    } professional${
-                                      commission.professionalIds.length > 1
-                                        ? "s"
-                                        : ""
-                                    }`
-                                  : commission.appliesTo === "service_category"
-                                  ? "Category"
-                                  : "None"}
-                              </Badge>
+                              {commission.appliesTo === "service" && commission.serviceIds && commission.serviceIds.length > 0 ? (
+                                <ServiceBadgeList
+                                  serviceIds={commission.serviceIds}
+                                  services={servicesData}
+                                  maxDisplay={2}
+                                />
+                              ) : commission.appliesTo === "professional" && commission.professionalIds && commission.professionalIds.length > 0 ? (
+                                <ProfessionalBadgeList
+                                  professionalIds={commission.professionalIds}
+                                  professionals={professionals}
+                                  maxDisplay={2}
+                                />
+                              ) : commission.appliesTo === "service_category" ? (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                                  By Category
+                                </Badge>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">Not specified</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {commission.validFrom && commission.validUntil
                                 ? `${new Date(
-                                    commission.validFrom
-                                  ).toLocaleDateString()} - ${new Date(
-                                    commission.validUntil
-                                  ).toLocaleDateString()}`
+                                  commission.validFrom
+                                ).toLocaleDateString()} - ${new Date(
+                                  commission.validUntil
+                                ).toLocaleDateString()}`
                                 : "Permanent"}
                             </TableCell>
                             <TableCell>
@@ -1279,7 +1270,7 @@ export function CommissionsManagementPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    handleDeleteCommission(commission.id)
+                                    handleDeleteCommission(commission._id)
                                   }
                                   className="text-destructive hover:text-destructive"
                                 >
@@ -1666,7 +1657,7 @@ export function CommissionsManagementPage() {
                       </TableHeader>
                       <TableBody>
                         {vouchers.map((voucher) => (
-                          <TableRow key={voucher.id}>
+                          <TableRow key={voucher._id}>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
@@ -1706,18 +1697,11 @@ export function CommissionsManagementPage() {
                               ).toLocaleDateString()}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="text-xs">
-                                {voucher.applicableServiceIds &&
-                                voucher.applicableServiceIds.length > 0
-                                  ? `${
-                                      voucher.applicableServiceIds.length
-                                    } service${
-                                      voucher.applicableServiceIds.length > 1
-                                        ? "s"
-                                        : ""
-                                    }`
-                                  : "All services"}
-                              </Badge>
+                              <ServiceBadgeList
+                                serviceIds={voucher.applicableServiceIds || []}
+                                services={servicesData}
+                                maxDisplay={2}
+                              />
                             </TableCell>
                             <TableCell>
                               <Badge className={getStatusBadge(voucher.status)}>
@@ -1737,7 +1721,7 @@ export function CommissionsManagementPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    handleDeleteVoucher(voucher.id)
+                                    handleDeleteVoucher(voucher._id)
                                   }
                                   className="text-destructive hover:text-destructive"
                                 >
@@ -2068,7 +2052,7 @@ export function CommissionsManagementPage() {
                       </TableHeader>
                       <TableBody>
                         {discounts.map((discount) => (
-                          <TableRow key={discount.id}>
+                          <TableRow key={discount._id}>
                             <TableCell className="font-medium">
                               {discount.name}
                             </TableCell>
@@ -2084,17 +2068,17 @@ export function CommissionsManagementPage() {
                               {discount.appliesTo.replace(/_/g, " ")}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="text-xs">
-                                {discount.appliesTo === "specific_services" &&
-                                discount.serviceIds &&
-                                discount.serviceIds.length > 0
-                                  ? `${discount.serviceIds.length} service${
-                                      discount.serviceIds.length > 1 ? "s" : ""
-                                    }`
-                                  : discount.appliesTo === "specific_services"
-                                  ? "No services"
-                                  : "All services"}
-                              </Badge>
+                              {discount.appliesTo === "specific_services" ? (
+                                <ServiceBadgeList
+                                  serviceIds={discount.serviceIds || []}
+                                  services={servicesData}
+                                  maxDisplay={2}
+                                />
+                              ) : (
+                                <Badge variant="outline" className="text-xs">
+                                  All services
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell>
                               {discount.autoApply ? (
@@ -2136,7 +2120,7 @@ export function CommissionsManagementPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    handleDeleteDiscount(discount.id)
+                                    handleDeleteDiscount(discount._id)
                                   }
                                   className="text-destructive hover:text-destructive"
                                 >

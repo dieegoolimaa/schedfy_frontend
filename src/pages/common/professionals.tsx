@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import {
   professionalsService,
   Professional,
 } from "../../services/professionals.service";
+import { usePromotions } from "../../hooks/usePromotions";
 import {
   Card,
   CardContent,
@@ -67,6 +69,9 @@ import {
 export function ProfessionalsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { getActiveCommissions } = usePromotions();
+  const [activeCommissions, setActiveCommissions] = useState<any[]>([]); // Using any[] temporarily to avoid type issues, ideally import Commission type
 
   // For Simple and Individual plans, user might be the entity itself
   // For Business plan, user has entityId pointing to the business
@@ -136,6 +141,16 @@ export function ProfessionalsPage() {
   useEffect(() => {
     fetchProfessionals();
   }, [entityId]);
+
+  useEffect(() => {
+    if (isDialogOpen && entityId) {
+      const loadCommissions = async () => {
+        const data = await getActiveCommissions(entityId);
+        setActiveCommissions(data);
+      };
+      loadCommissions();
+    }
+  }, [isDialogOpen, entityId]);
 
   const handleSave = async () => {
     if (!formData.firstName || !formData.lastName) {
@@ -825,6 +840,74 @@ export function ProfessionalsPage() {
                     </div>
                   </>
                 )}
+
+                <div className="mt-6 pt-6 border-t">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="text-sm font-medium">Advanced Commission Rules</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Global rules applied via Promotions module
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsDialogOpen(false);
+                        navigate("/business/commissions");
+                      }}
+                    >
+                      Manage Rules
+                    </Button>
+                  </div>
+
+                  {editingProfessional && activeCommissions.length > 0 ? (
+                    <div className="space-y-2">
+                      {activeCommissions
+                        .filter(
+                          (c) =>
+                            c.appliesTo === "professional" &&
+                            (c.professionalIds?.includes(editingProfessional.id) ||
+                              c.professionalIds?.length === 0)
+                        )
+                        .map((commission) => (
+                          <div
+                            key={commission.id}
+                            className="flex items-center justify-between p-3 border rounded-md bg-muted/50"
+                          >
+                            <div>
+                              <p className="font-medium text-sm">{commission.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {commission.type === "percentage"
+                                  ? `${commission.value}%`
+                                  : `€${commission.value}`}{" "}
+                                commission
+                              </p>
+                            </div>
+                            <Badge variant="secondary" className="text-xs">
+                              Active
+                            </Badge>
+                          </div>
+                        ))}
+                      {activeCommissions.filter(
+                        (c) =>
+                          c.appliesTo === "professional" &&
+                          (c.professionalIds?.includes(editingProfessional.id) ||
+                            c.professionalIds?.length === 0)
+                      ).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            No specific commission rules for this professional.
+                          </p>
+                        )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {editingProfessional
+                        ? "No active commission rules found."
+                        : "Save the professional first to assign specific rules."}
+                    </p>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
 
@@ -836,8 +919,8 @@ export function ProfessionalsPage() {
                 {loading
                   ? "Saving..."
                   : editingProfessional
-                  ? "Update"
-                  : "Create & Send Invitation"}
+                    ? "Update"
+                    : "Create & Send Invitation"}
               </Button>
             </div>
           </DialogContent>
@@ -935,8 +1018,8 @@ export function ProfessionalsPage() {
                             Since{" "}
                             {professional.createdAt
                               ? new Date(
-                                  professional.createdAt
-                                ).toLocaleDateString()
+                                professional.createdAt
+                              ).toLocaleDateString()
                               : "Unknown"}
                           </div>
                         </div>
@@ -1004,6 +1087,6 @@ export function ProfessionalsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }

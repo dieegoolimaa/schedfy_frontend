@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
+import { useEntity } from "../../hooks/useEntity";
 import { useBookings } from "../../hooks/useBookings";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useClients } from "../../hooks/useClients";
@@ -85,9 +86,12 @@ export function BookingManagementPage() {
   const { t } = useTranslation("bookings");
   const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
   const { user } = useAuth();
+  const { entity: fullEntity } = useEntity({ autoFetch: true }); // Fetch full entity profile
   const { formatCurrency } = useCurrency();
   const entityId = user?.entityId || user?.id || "";
-  console.log("[BookingManagementPage] entityId from user context:", entityId);
+
+  console.log("[BookingManagementPage] Full Entity from hook:", fullEntity);
+  console.log("[BookingManagementPage] Working Hours from hook:", fullEntity?.workingHours);
 
   // Use the bookings hook with real API
   const {
@@ -282,12 +286,7 @@ export function BookingManagementPage() {
 
   const [professionalsList, setProfessionalsList] = useState<any[]>([]);
   useEffect(() => {
-    if (!entityId) {
-      console.log(
-        "[BookingManagement] No entityId, skipping professionals load"
-      );
-      return;
-    }
+
 
     let mounted = true;
     (async () => {
@@ -331,12 +330,7 @@ export function BookingManagementPage() {
 
     (async () => {
       try {
-        console.log(
-          "[BookingManagement] Loading entity data for ID:",
-          entityId
-        );
         const res = await apiClient.get(`/business/entity/${entityId}`);
-        console.log("[BookingManagement] Entity data loaded:", res.data);
         setEntityData(res.data);
       } catch (e) {
         console.error("[BookingManagement] Error loading entity:", e);
@@ -376,8 +370,8 @@ export function BookingManagementPage() {
 
     const dayOfWeek = selectedDate
       ? new Date(selectedDate)
-          .toLocaleDateString("en-US", { weekday: "long" })
-          .toLowerCase()
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase()
       : "monday";
 
     const daySchedule = workingHours[dayOfWeek];
@@ -441,7 +435,7 @@ export function BookingManagementPage() {
     }
   }, [clients]);
 
-  useEffect(() => {}, [bookings, loading, entityId]);
+  useEffect(() => { }, [bookings, loading, entityId]);
 
   // Derive bookings with populated client/service/professional objects when available
   const displayBookings = useMemo(() => {
@@ -451,31 +445,31 @@ export function BookingManagementPage() {
         b.client && typeof b.client === "object"
           ? b.client
           : clients.find((c: any) => String(c.id) === String(b.clientId)) ||
-            (b.client
-              ? { id: b.client, name: String(b.client), isFirstTime: false }
-              : undefined);
+          (b.client
+            ? { id: b.client, name: String(b.client), isFirstTime: false }
+            : undefined);
 
       // Resolve service
       const serviceObj =
         b.service && typeof b.service === "object"
           ? b.service
           : servicesFromApi.find(
-              (s: any) => String(s.id) === String(b.serviceId)
-            ) ||
-            (b.serviceId
-              ? { id: b.serviceId, name: String(b.serviceId), price: 0 }
-              : undefined);
+            (s: any) => String(s.id) === String(b.serviceId)
+          ) ||
+          (b.serviceId
+            ? { id: b.serviceId, name: String(b.serviceId), price: 0 }
+            : undefined);
 
       // Resolve professional
       const professionalObj =
         b.professional && typeof b.professional === "object"
           ? b.professional
           : professionalsList.find(
-              (p: any) => String(p.id) === String(b.professionalId)
-            ) ||
-            (b.professionalId
-              ? { id: b.professionalId, name: String(b.professionalId) }
-              : undefined);
+            (p: any) => String(p.id) === String(b.professionalId)
+          ) ||
+          (b.professionalId
+            ? { id: b.professionalId, name: String(b.professionalId) }
+            : undefined);
 
       return {
         ...b,
@@ -553,21 +547,6 @@ export function BookingManagementPage() {
       const dateB = new Date(b.startTime || 0).getTime();
       return dateA - dateB;
     });
-
-  console.log("[BookingManagement] Filtering:", {
-    totalBookings: displayBookings.length,
-    filteredBookings: filteredBookings.length,
-    dateFilter,
-    today: new Date().toISOString().split("T")[0],
-    bookings: displayBookings.map((b) => ({
-      id: b.id,
-      startTime: b.startTime,
-      bookingDate: b.startTime ? b.startTime.split("T")[0] : "",
-      client: b.client?.name,
-      service: b.service?.name,
-      professional: b.professional?.name,
-    })),
-  });
 
   const stats = {
     total: displayBookings.length,
@@ -820,14 +799,12 @@ export function BookingManagementPage() {
                         <SelectItem
                           key={professional.id || professional._id}
                           value={
-                            `${professional.firstName || ""} ${
-                              professional.lastName || ""
-                            }`.trim() || professional.name
+                            `${professional.firstName || ""} ${professional.lastName || ""
+                              }`.trim() || professional.name
                           }
                         >
-                          {`${professional.firstName || ""} ${
-                            professional.lastName || ""
-                          }`.trim() || professional.name}
+                          {`${professional.firstName || ""} ${professional.lastName || ""
+                            }`.trim() || professional.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -921,16 +898,16 @@ export function BookingManagementPage() {
                                   src={
                                     booking.client && "avatar" in booking.client
                                       ? (booking.client as { avatar?: string })
-                                          .avatar
+                                        .avatar
                                       : undefined
                                   }
                                 />
                                 <AvatarFallback className="text-xs">
                                   {booking.client?.name
                                     ? booking.client.name
-                                        .split(" ")
-                                        .map((n: string) => n[0])
-                                        .join("")
+                                      .split(" ")
+                                      .map((n: string) => n[0])
+                                      .join("")
                                     : ""}
                                 </AvatarFallback>
                               </Avatar>
@@ -941,8 +918,8 @@ export function BookingManagementPage() {
                                 <div className="text-sm text-muted-foreground flex items-center">
                                   <Phone className="h-3 w-3 mr-1" />
                                   {booking.client &&
-                                  "phone" in booking.client &&
-                                  booking.client.phone
+                                    "phone" in booking.client &&
+                                    booking.client.phone
                                     ? booking.client.phone
                                     : ""}
                                 </div>
@@ -988,13 +965,11 @@ export function BookingManagementPage() {
                                     </svg>
                                     {(booking as any).recurrence
                                       ?.currentOccurrence
-                                      ? `${
-                                          (booking as any).recurrence
-                                            .currentOccurrence
-                                        }/${
-                                          (booking as any).recurrence
-                                            .totalOccurrences || "?"
-                                        }`
+                                      ? `${(booking as any).recurrence
+                                        .currentOccurrence
+                                      }/${(booking as any).recurrence
+                                        .totalOccurrences || "?"
+                                      }`
                                       : "Recurring"}
                                   </Badge>
                                 )}
@@ -1018,23 +993,23 @@ export function BookingManagementPage() {
                               <div className="font-medium">
                                 {booking.startTime
                                   ? new Date(
-                                      booking.startTime
-                                    ).toLocaleDateString("en-US", {
-                                      year: "numeric",
-                                      month: "short",
-                                      day: "numeric",
-                                    })
+                                    booking.startTime
+                                  ).toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  })
                                   : "N/A"}
                               </div>
                               <div className="text-sm text-muted-foreground flex items-center">
                                 <Clock className="h-3 w-3 mr-1" />
                                 {booking.startTime
                                   ? new Date(
-                                      booking.startTime
-                                    ).toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })
+                                    booking.startTime
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
                                   : "N/A"}
                               </div>
                             </div>
@@ -1101,8 +1076,8 @@ export function BookingManagementPage() {
                                 {formatCurrency(
                                   (booking.service as any)?.pricing
                                     ?.basePrice ||
-                                    (booking.service as any)?.price ||
-                                    0
+                                  (booking.service as any)?.price ||
+                                  0
                                 )}
                               </div>
                             </TableCell>
@@ -1160,17 +1135,17 @@ export function BookingManagementPage() {
                                           booking.professionalId || "",
                                         date: booking.startTime
                                           ? new Date(booking.startTime)
-                                              .toISOString()
-                                              .split("T")[0]
+                                            .toISOString()
+                                            .split("T")[0]
                                           : "",
                                         time: booking.startTime
                                           ? new Date(
-                                              booking.startTime
-                                            ).toLocaleTimeString("en-US", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                              hour12: false,
-                                            })
+                                            booking.startTime
+                                          ).toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: false,
+                                          })
                                           : "",
                                         duration:
                                           (booking.service as any)?.duration
@@ -1364,9 +1339,32 @@ export function BookingManagementPage() {
           <CardContent className="p-0 sm:p-6">
             <CalendarView
               open={false}
-              onOpenChange={() => {}}
-              bookings={filteredBookings}
+              onOpenChange={() => { }}
+              bookings={displayBookings as any}
               asTab={true}
+              defaultView="week"
+              workingHours={fullEntity?.workingHours || { start: "08:00", end: "23:00" }}
+              onEditBooking={(booking) => {
+                // Map the booking object to the flat structure expected by EditBookingDialog
+                const mappedBooking: any = {
+                  id: booking.id,
+                  clientName: typeof booking.client === 'object' ? booking.client?.name : booking.client,
+                  clientEmail: typeof booking.client === 'object' ? booking.client?.email : '',
+                  serviceName: typeof booking.service === 'object' ? booking.service?.name : 'Service',
+                  professionalName: typeof booking.professional === 'object' ? booking.professional?.name : booking.professional,
+                  professionalId: typeof booking.professional === 'object' ? booking.professional?.id : undefined,
+                  date: new Date(booking.startTime).toISOString().split('T')[0],
+                  time: new Date(booking.startTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                  duration: typeof booking.service === 'object' ? booking.service?.duration : 60,
+                  price: typeof booking.service === 'object' ? booking.service?.price : 0,
+                  status: booking.status,
+                  notes: booking.notes
+                };
+
+                console.log("[BookingManagement] Mapped booking for edit:", mappedBooking);
+                setEditingBooking(mappedBooking);
+                setIsEditDialogOpen(true);
+              }}
             />
           </CardContent>
         </Card>
@@ -1456,21 +1454,21 @@ export function BookingManagementPage() {
                       <strong>Date:</strong>{" "}
                       {selectedBookingForPayment.startTime
                         ? new Date(
-                            selectedBookingForPayment.startTime
-                          ).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
+                          selectedBookingForPayment.startTime
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
                         : "N/A"}{" "}
                       at{" "}
                       {selectedBookingForPayment.startTime
                         ? new Date(
-                            selectedBookingForPayment.startTime
-                          ).toLocaleTimeString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          selectedBookingForPayment.startTime
+                        ).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "N/A"}
                     </p>
                     <p className="text-sm">
@@ -1694,23 +1692,23 @@ export function BookingManagementPage() {
                   <p className="text-sm font-medium">
                     {selectedBookingDetails.startTime
                       ? new Date(
-                          selectedBookingDetails.startTime
-                        ).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
+                        selectedBookingDetails.startTime
+                      ).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
                       : "N/A"}
                   </p>
                   <p className="text-xs text-muted-foreground flex items-center">
                     <Clock className="h-3 w-3 mr-1" />
                     {selectedBookingDetails.startTime
                       ? new Date(
-                          selectedBookingDetails.startTime
-                        ).toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                        selectedBookingDetails.startTime
+                      ).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : "N/A"}
                   </p>
                 </div>
@@ -1769,15 +1767,15 @@ export function BookingManagementPage() {
                         className="bg-blue-100 text-blue-800 border-blue-300"
                       >
                         {selectedBookingDetails.recurrence.frequency ===
-                        "weekly"
+                          "weekly"
                           ? "Weekly"
                           : selectedBookingDetails.recurrence.frequency ===
                             "daily"
-                          ? "Daily"
-                          : selectedBookingDetails.recurrence.frequency ===
-                            "monthly"
-                          ? "Monthly"
-                          : selectedBookingDetails.recurrence.frequency}
+                            ? "Daily"
+                            : selectedBookingDetails.recurrence.frequency ===
+                              "monthly"
+                              ? "Monthly"
+                              : selectedBookingDetails.recurrence.frequency}
                       </Badge>
                     </div>
                     {selectedBookingDetails.recurrence.interval &&
@@ -1789,18 +1787,18 @@ export function BookingManagementPage() {
                           <span className="font-medium">
                             Every {selectedBookingDetails.recurrence.interval}{" "}
                             {selectedBookingDetails.recurrence.frequency ===
-                            "weekly"
+                              "weekly"
                               ? "weeks"
                               : selectedBookingDetails.recurrence.frequency ===
                                 "daily"
-                              ? "days"
-                              : "months"}
+                                ? "days"
+                                : "months"}
                           </span>
                         </div>
                       )}
                     {selectedBookingDetails.recurrence.daysOfWeek &&
                       selectedBookingDetails.recurrence.daysOfWeek.length >
-                        0 && (
+                      0 && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Days:</span>
                           <span className="font-medium">
@@ -1860,7 +1858,7 @@ export function BookingManagementPage() {
                     {selectedBookingDetails.recurrence.parentBookingId &&
                       selectedBookingDetails.recurrence.currentOccurrence &&
                       selectedBookingDetails.recurrence.currentOccurrence >
-                        1 && (
+                      1 && (
                         <div className="text-xs text-blue-700 mt-2">
                           ℹ️ Part of recurring booking series
                         </div>
@@ -2011,25 +2009,25 @@ export function BookingManagementPage() {
                           <div className="font-medium">
                             {booking.startTime
                               ? new Date(booking.startTime).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  }
-                                )
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )
                               : "N/A"}
                           </div>
                           <div className="text-sm text-muted-foreground flex items-center">
                             <Clock className="h-3 w-3 mr-1" />
                             {booking.startTime
                               ? new Date(booking.startTime).toLocaleTimeString(
-                                  "en-US",
-                                  {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )
                               : "N/A"}
                           </div>
                         </div>

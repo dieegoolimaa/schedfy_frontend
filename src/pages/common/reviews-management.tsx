@@ -59,8 +59,8 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function ReviewsManagement() {
-  const { entity } = useAuth();
-  const entityId = entity?.id;
+  const { user } = useAuth();
+  const entityId = user?.entityId || user?.id || "";
   const { toast } = useToast();
 
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -369,8 +369,8 @@ export default function ReviewsManagement() {
               <p className="text-xs text-muted-foreground mt-1">
                 {stats.total > 0
                   ? Math.round(
-                      ((stats.distribution["5"] || 0) / stats.total) * 100
-                    )
+                    ((stats.distribution["5"] || 0) / stats.total) * 100
+                  )
                   : 0}
                 % of total
               </p>
@@ -393,7 +393,7 @@ export default function ReviewsManagement() {
               {[5, 4, 3, 2, 1].map((rating) => {
                 const count =
                   stats.distribution[
-                    rating as keyof typeof stats.distribution
+                  rating as keyof typeof stats.distribution
                   ] || 0;
                 const percentage =
                   stats.total > 0 ? (count / stats.total) * 100 : 0;
