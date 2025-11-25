@@ -36,7 +36,7 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { Switch } from "../../components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
+import { Avatar, Avatar Fallback } from "../../components/ui/avatar";
 import {
     Users,
     UserPlus,
@@ -49,6 +49,7 @@ import {
     CheckCircle2,
     XCircle,
     Clock,
+    Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
@@ -61,10 +62,13 @@ interface User {
     email: string;
     phone?: string;
     role: string;
-    isProfessional: boolean;
+    isProfessional?: boolean;
     status: string;
-    jobFunction?: string;
-    specialties?: string[];
+    professionalInfo?: {
+        jobFunction?: string;
+        specialties?: string[];
+        bio?: string;
+    };
     permissions?: string[];
     createdAt?: string;
 }
@@ -106,19 +110,18 @@ export default function TeamManagementPage() {
     const [activeTab, setActiveTab] = useState("team");
 
     const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     const [inviteForm, setInviteForm] = useState({
         firstName: "",
         lastName: "",
         email: "",
         phone: "",
-        role: "professional",
+        role: "professional" as string,
         isProfessional: true,
-        jobFunction: "",
-        specialties: [] as string[],
+        professionalInfo: {
+            jobFunction: "",
+            specialties: [] as string[],
+        },
     });
 
     useEffect(() => {
@@ -129,31 +132,53 @@ export default function TeamManagementPage() {
 
     const fetchUsers = async () => {
         if (!currentUser?.entityId) {
-            toast.error("No entity ID found");
+            toast.error("No entity ID found. Please log in again.");
+            setLoading(false);
             return;
         }
 
         try {
             setLoading(true);
-            const data = await usersService.getTeamMembers(currentUser.entityId as string);
-            setUsers(data as any);
-        } catch (error) {
-            console.error("Failed to fetch users:", error);
-            toast.error("Failed to load users");
+            console.log("[TeamManagement] Fetching users for entity:", currentUser.entityId);
+            const data = await usersService.getTeamMembers(currentUser.entityId);
+            console.log("[TeamManagement] Users loaded:", data);
+            setUsers(data as User[]);
+        } catch (error: any) {
+            console.error("[TeamManagement] Failed to fetch users:", error);
+            toast.error(error?.response?.data?.message || "Failed to load team members");
         } finally {
             setLoading(false);
         }
     };
 
     const handleInviteUser = async () => {
+        if (!currentUser?.entityId) {
+            toast.error("No entity ID found");
+            return;
+        }
+
         try {
             toast.loading("Sending invitation...", { id: "invite-user" });
 
-            await usersService.inviteUser({
-                ...inviteForm,
-                entityId: currentUser?.entityId as string,
-                createdBy: currentUser?.id,
-            } as any);
+            const payload = {
+                firstName: inviteForm.firstName,
+                lastName: inviteForm.lastName,
+                email: inviteForm.email,
+                phone: inviteForm.phone,
+                role: inviteForm.role,
+                isProfessional: inviteForm.isProfessional,
+                entityId: currentUser.entityId,
+                createdBy: currentUser.id,
+                professionalInfo: inviteForm.isProfessional ? {
+                    jobFunction: inviteForm.professionalInfo.jobFunction || undefined,
+                    specialties: inviteForm.professionalInfo.specialties.length > 0
+                        ? inviteForm.professionalInfo.specialties
+                        : undefined,
+                } : undefined,
+            };
+
+            console.log("[TeamManagement] Sending invite:", payload);
+            await usersService.inviteUser(payload as any);
 
             toast.success("Invitation sent successfully!", { id: "invite-user" });
             setIsInviteDialogOpen(false);
@@ -164,12 +189,18 @@ export default function TeamManagementPage() {
                 phone: "",
                 role: "professional",
                 isProfessional: true,
-                jobFunction: "",
-                specialties: [],
+                professionalInfo: {
+                    jobFunction: "",
+                    specialties: [],
+                },
             });
             fetchUsers();
-        } catch (error) {
-            toast.error("Failed to send invitation", { id: "invite-user" });
+        } catch (error: any) {
+            console.error("[TeamManagement] Invite failed:", error);
+            toast.error(
+                error?.response?.data?.message || "Failed to send invitation",
+                { id: "invite-user" }
+            );
         }
     };
 
@@ -189,30 +220,20 @@ export default function TeamManagementPage() {
 
             toast.success("User updated successfully!", { id: "update-user" });
             fetchUsers();
-        } catch (error) {
-            toast.error("Failed to update user", { id: "update-user" });
-        }
-    };
-
-    const handleUpdatePermissions = async (userId: string, permissions: string[]) => {
-        try {
-            toast.loading("Updating permissions...", { id: "update-perms" });
-
-            await usersService.updateUserPermissions(userId, permissions);
-
-            toast.success("Permissions updated!", { id: "update-perms" });
-            setIsPermissionsDialogOpen(false);
-            fetchUsers();
-        } catch (error) {
-            toast.error("Failed to update permissions", { id: "update-perms" });
+        } catch (error: any) {
+            console.error("[TeamManagement] Update failed:", error);
+            toast.error(
+                error?.response?.data?.message || "Failed to update user",
+                { id: "update-user" }
+            );
         }
     };
 
     const filteredUsers = users.filter((user) => {
         const matchesSearch =
-            user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase());
+            user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesRole = roleFilter === "all" || user.role === roleFilter;
         const matchesStatus = statusFilter === "all" || user.status === statusFilter;
 
@@ -225,7 +246,7 @@ export default function TeamManagementPage() {
         return (
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <Loader2 className="inline-block animate-spin h-8 w-8 border-b-2 border-primary" />
                     <p className="mt-2 text-muted-foreground">Loading team members...</p>
                 </div>
             </div>
@@ -328,89 +349,91 @@ export default function TeamManagementPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredUsers.map((user) => {
-                                        const StatusIcon = STATUS_CONFIG[user.status]?.icon || Clock;
-                                        return (
-                                            <TableRow key={user.id}>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-8 w-8">
-                                                            <AvatarFallback>
-                                                                {user.firstName[0]}{user.lastName[0]}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <p className="font-medium">
-                                                                {user.firstName} {user.lastName}
-                                                            </p>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                {user.jobFunction || "No job function"}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge className={ROLE_COLORS[user.role]}>
-                                                        {user.role}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2 text-sm">
-                                                            <Mail className="h-3 w-3 text-muted-foreground" />
-                                                            {user.email}
-                                                        </div>
-                                                        {user.phone && (
-                                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                                <Phone className="h-3 w-3" />
-                                                                {user.phone}
+                                    {filteredUsers.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                                No team members found
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        filteredUsers.map((user) => {
+                                            const StatusIcon = STATUS_CONFIG[user.status]?.icon || Clock;
+                                            return (
+                                                <TableRow key={user.id}>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-8 w-8">
+                                                                <AvatarFallback>
+                                                                    {user.firstName?.[0]}{user.lastName?.[0]}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-medium">
+                                                                    {user.firstName} {user.lastName}
+                                                                </p>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {user.professionalInfo?.jobFunction || "No job function"}
+                                                                </p>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Switch
-                                                        checked={user.isProfessional}
-                                                        onCheckedChange={(checked) =>
-                                                            handleUpdateUser(user.id, { isProfessional: checked })
-                                                        }
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <StatusIcon className={`h-4 w-4 ${STATUS_CONFIG[user.status]?.color}`} />
-                                                        <span className="text-sm">
-                                                            {STATUS_CONFIG[user.status]?.label || user.status}
-                                                        </span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                setSelectedUser(user);
-                                                                setIsEditDialogOpen(true);
-                                                            }}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                setSelectedUser(user);
-                                                                setIsPermissionsDialogOpen(true);
-                                                            }}
-                                                        >
-                                                            <Shield className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge className={ROLE_COLORS[user.role] || ""}>
+                                                            {user.role}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2 text-sm">
+                                                                <Mail className="h-3 w-3 text-muted-foreground" />
+                                                                {user.email}
+                                                            </div>
+                                                            {user.phone && (
+                                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                    <Phone className="h-3 w-3" />
+                                                                    {user.phone}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Switch
+                                                            checked={user.isProfessional || false}
+                                                            onCheckedChange={(checked) =>
+                                                                handleUpdateUser(user.id, { isProfessional: checked })
+                                                            }
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <StatusIcon className={`h-4 w-4 ${STATUS_CONFIG[user.status]?.color}`} />
+                                                            <span className="text-sm">
+                                                                {STATUS_CONFIG[user.status]?.label || user.status}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                title="Edit user"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                title="Manage permissions"
+                                                            >
+                                                                <Shield className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -434,7 +457,7 @@ export default function TeamManagementPage() {
                                             <div className="flex items-start gap-4">
                                                 <Avatar className="h-12 w-12">
                                                     <AvatarFallback>
-                                                        {professional.firstName[0]}{professional.lastName[0]}
+                                                        {professional.firstName?.[0]}{professional.lastName?.[0]}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 space-y-2">
@@ -443,18 +466,19 @@ export default function TeamManagementPage() {
                                                             {professional.firstName} {professional.lastName}
                                                         </h3>
                                                         <p className="text-sm text-muted-foreground">
-                                                            {professional.jobFunction || "Service Provider"}
+                                                            {professional.professionalInfo?.jobFunction || "Service Provider"}
                                                         </p>
                                                     </div>
-                                                    {professional.specialties && professional.specialties.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {professional.specialties.map((specialty, idx) => (
-                                                                <Badge key={idx} variant="secondary" className="text-xs">
-                                                                    {specialty}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                    {professional.professionalInfo?.specialties &&
+                                                        professional.professionalInfo.specialties.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {professional.professionalInfo.specialties.map((specialty, idx) => (
+                                                                    <Badge key={idx} variant="secondary" className="text-xs">
+                                                                        {specialty}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     <div className="space-y-1 text-sm">
                                                         <div className="flex items-center gap-2 text-muted-foreground">
                                                             <Mail className="h-3 w-3" />
@@ -499,30 +523,33 @@ export default function TeamManagementPage() {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="firstName">First Name</Label>
+                                <Label htmlFor="firstName">First Name *</Label>
                                 <Input
                                     id="firstName"
                                     value={inviteForm.firstName}
                                     onChange={(e) => setInviteForm({ ...inviteForm, firstName: e.target.value })}
+                                    required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="lastName">Last Name</Label>
+                                <Label htmlFor="lastName">Last Name *</Label>
                                 <Input
                                     id="lastName"
                                     value={inviteForm.lastName}
                                     onChange={(e) => setInviteForm({ ...inviteForm, lastName: e.target.value })}
+                                    required
                                 />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">Email *</Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     value={inviteForm.email}
                                     onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                                    required
                                 />
                             </div>
                             <div className="space-y-2">
@@ -536,7 +563,7 @@ export default function TeamManagementPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="role">Role</Label>
+                                <Label htmlFor="role">Role *</Label>
                                 <Select
                                     value={inviteForm.role}
                                     onValueChange={(value) => setInviteForm({ ...inviteForm, role: value })}
@@ -557,8 +584,14 @@ export default function TeamManagementPage() {
                                 <Label htmlFor="jobFunction">Job Function</Label>
                                 <Input
                                     id="jobFunction"
-                                    value={inviteForm.jobFunction}
-                                    onChange={(e) => setInviteForm({ ...inviteForm, jobFunction: e.target.value })}
+                                    value={inviteForm.professionalInfo.jobFunction}
+                                    onChange={(e) => setInviteForm({
+                                        ...inviteForm,
+                                        professionalInfo: {
+                                            ...inviteForm.professionalInfo,
+                                            jobFunction: e.target.value,
+                                        },
+                                    })}
                                     placeholder="e.g., Hairstylist, Barber"
                                 />
                             </div>
@@ -578,7 +611,10 @@ export default function TeamManagementPage() {
                         <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={handleInviteUser}>
+                        <Button
+                            onClick={handleInviteUser}
+                            disabled={!inviteForm.firstName || !inviteForm.lastName || !inviteForm.email}
+                        >
                             Send Invitation
                         </Button>
                     </DialogFooter>
