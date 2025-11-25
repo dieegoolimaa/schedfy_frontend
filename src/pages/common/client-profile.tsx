@@ -91,6 +91,8 @@ export function ClientProfilePage() {
   const [clientToDelete, setClientToDelete] = useState<any>(null);
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [preSelectedClientForBooking, setPreSelectedClientForBooking] = useState<any>(null);
+  const [duplicateClient, setDuplicateClient] = useState<any>(null);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
 
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
@@ -130,6 +132,34 @@ export function ClientProfilePage() {
       if (full && !full.name) {
         full.name = `${full.firstName || ""} ${full.lastName || ""} `.trim();
       }
+
+      // Calculate stats on the fly from bookings to ensure accuracy
+      if (full && full.bookings) {
+        const completedBookings = full.bookings.filter((b: any) => b.status === 'completed');
+        const totalSpent = completedBookings.reduce((sum: number, b: any) => {
+          // Check if price is available in serviceId (populated) or directly on booking
+          const price = (b.serviceId as any)?.price || b.price || 0;
+          return sum + Number(price);
+        }, 0);
+
+        const totalBookings = full.bookings.length;
+        const averageSpent = totalBookings > 0 ? totalSpent / totalBookings : 0;
+
+        // Update stats in the client object for display
+        full.totalSpent = totalSpent;
+        full.totalBookings = totalBookings;
+        full.averageSpent = averageSpent;
+
+        // Also update the nested stats object if it exists or create it
+        full.stats = {
+          ...full.stats,
+          totalSpent,
+          totalBookings,
+          averageBookingValue: averageSpent,
+          lastBookingDate: full.bookings.length > 0 ? full.bookings[0].startDateTime : null
+        };
+      }
+
       setSelectedClient(full);
       setShowClientDetails(true);
 
@@ -396,55 +426,52 @@ export function ClientProfilePage() {
     };
   }, [clients, getClientWithBookings, bookings]);
 
-  const handleAddClientSubmit = async () => {
-    // Validação de campos obrigatórios
-    if (!newClient.firstName.trim()) {
-      toast.error("First name is required");
-      return;
-    }
-    if (!newClient.lastName.trim()) {
-      toast.error("Last name is required");
-      return;
-    }
-    if (!newClient.email.trim()) {
-      toast.error("Email is required");
-      return;
-    }
-
-    // Validação de formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newClient.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    // Validação de duplicidade local (antes de enviar ao backend)
-    const emailExists = clientsArray.some(
-      (c) => c.email.toLowerCase() === newClient.email.toLowerCase()
-    );
-    if (emailExists) {
-      toast.error("❌ This email is already registered", {
-        duration: 5000,
-        description: `A client with the email ${newClient.email} already exists in your system.`,
-      });
-      return;
-    }
-
-    if (newClient.phone) {
-      const phoneExists = clientsArray.some((c) => c.phone === newClient.phone);
-      if (phoneExists) {
-        toast.error("❌ This phone number is already registered", {
-          duration: 5000,
-          description: `A client with the phone ${newClient.phone} already exists in your system.`,
-        });
-        return;
-      }
-    }
+  const handleUpdateDuplicate = async () => {
+    if (!duplicateClient || !duplicateClient.id) return;
 
     try {
-      toast.loading("Creating client...", { id: "create-client" });
+      toast.loading("Updating existing client...", { id: "update-duplicate" });
 
-      console.log("[Client Profile] Creating client with entityId:", entityId);
+      await updateClient(String(duplicateClient.id), {
+        firstName: newClient.firstName.trim(),
+        lastName: newClient.lastName.trim(),
+        email: newClient.email.toLowerCase().trim(),
+        phone: newClient.phone?.trim() || undefined,
+        notes: newClient.notes?.trim()
+          ? (duplicateClient.notes ? duplicateClient.notes + "\n" + newClient.notes : newClient.notes)
+          : duplicateClient.notes,
+        dateOfBirth: newClient.birthDate || duplicateClient.dateOfBirth,
+      });
+
+      setIsDuplicateDialogOpen(false);
+      setDuplicateClient(null);
+
+      // Reset form
+      setNewClient({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        birthDate: undefined,
+        notes: "",
+      });
+
+      await fetchClients();
+
+      toast.success(`Client ${duplicateClient.firstName} updated successfully`, {
+        id: "update-duplicate",
+      });
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to update client", { id: "update-duplicate" });
+    }
+  };
+
+  const forceCreateClient = async () => {
+    // This function attempts to create the client even if a duplicate was found locally.
+    // The backend might still reject it if it enforces uniqueness.
+    try {
+      toast.loading("Creating client...", { id: "create-client" });
 
       await createClient({
         entityId,
@@ -467,8 +494,6 @@ export function ClientProfilePage() {
         notes: "",
       });
 
-      // refresh list (createClient already appends but ensure consistency)
-      console.log("[Client Profile] Fetching updated client list...");
       await fetchClients();
 
       toast.success(
@@ -482,39 +507,52 @@ export function ClientProfilePage() {
         err?.message ||
         "Failed to create client";
 
-      // Tratamento específico de erros do backend com mensagens claras
-      if (
-        errorMessage.toLowerCase().includes("email") &&
-        errorMessage.toLowerCase().includes("already")
-      ) {
-        toast.error("❌ Client Already Exists", {
-          id: "create-client",
-          duration: 6000,
-          description: `A client with the email ${newClient.email} is already registered in your system.Please use a different email address.`,
-        });
-      } else if (
-        errorMessage.toLowerCase().includes("phone") &&
-        errorMessage.toLowerCase().includes("already")
-      ) {
-        toast.error("❌ Phone Number Already Registered", {
-          id: "create-client",
-          duration: 6000,
-          description: `A client with the phone number ${newClient.phone} is already registered in your system.Please use a different phone number.`,
-        });
-      } else if (errorMessage.toLowerCase().includes("duplicate")) {
-        toast.error("❌ Duplicate Client Information", {
-          id: "create-client",
-          duration: 6000,
-          description:
-            "This client information is already registered. Please check the email and phone number.",
-        });
-      } else {
-        toast.error(`Failed to create client: ${errorMessage} `, {
-          id: "create-client",
-          duration: 5000,
-        });
-      }
+      toast.error(`Failed to create client: ${errorMessage}`, {
+        id: "create-client",
+        duration: 5000,
+      });
     }
+  };
+
+  const handleAddClientSubmit = async () => {
+    // Validação de campos obrigatórios
+    if (!newClient.firstName.trim()) {
+      toast.error("First name is required");
+      return;
+    }
+    if (!newClient.lastName.trim()) {
+      toast.error("Last name is required");
+      return;
+    }
+    if (!newClient.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    // Validação de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newClient.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Validação de duplicidade local
+    const existingByEmail = clientsArray.find(
+      (c) => c.email.toLowerCase() === newClient.email.toLowerCase()
+    );
+
+    const existingByPhone = newClient.phone ? clientsArray.find(
+      (c) => c.phone === newClient.phone
+    ) : null;
+
+    if (existingByEmail || existingByPhone) {
+      setDuplicateClient(existingByEmail || existingByPhone);
+      setIsDuplicateDialogOpen(true);
+      return;
+    }
+
+    // If no duplicate found locally, proceed with creation
+    await forceCreateClient();
   };
 
   const getStatusColor = (status: string) => {
@@ -562,16 +600,16 @@ export function ClientProfilePage() {
     total: clientsArray.length,
     active: clientsArray.filter((c) => c.status === "active").length,
     totalRevenue: clientsArray.reduce(
-      (sum, c) => sum + (c.stats?.totalSpent || 0),
+      (sum, c) => sum + Number(c.stats?.totalSpent || 0),
       0
     ),
     averageSpent:
       clientsArray.length > 0
-        ? clientsArray.reduce((sum, c) => sum + (c.stats?.totalSpent || 0), 0) /
+        ? clientsArray.reduce((sum, c) => sum + Number(c.stats?.totalSpent || 0), 0) /
         clientsArray.length
         : 0,
     totalBookings: clientsArray.reduce(
-      (sum, c) => sum + (c.stats?.totalBookings || 0),
+      (sum, c) => sum + Number(c.stats?.totalBookings || 0),
       0
     ),
   };
@@ -953,9 +991,9 @@ export function ClientProfilePage() {
                                 </div>
                                 <div className="text-sm text-muted-foreground">
                                   Member since{" "}
-                                  {new Date(
-                                    client.createdAt
-                                  ).toLocaleDateString()}
+                                  {client.createdAt
+                                    ? new Date(client.createdAt).toLocaleDateString()
+                                    : "N/A"}
                                 </div>
                               </div>
                             </div>
@@ -982,7 +1020,9 @@ export function ClientProfilePage() {
                               {lastVisit && (
                                 <div className="text-sm text-muted-foreground">
                                   Last:{" "}
-                                  {new Date(lastVisit).toLocaleDateString()}
+                                  {lastVisit
+                                    ? new Date(lastVisit).toLocaleDateString()
+                                    : "N/A"}
                                 </div>
                               )}
                             </div>
@@ -1115,7 +1155,7 @@ export function ClientProfilePage() {
                           <div className="space-y-1">
                             <div className="flex items-center">
                               <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                              {new Date(booking.date).toLocaleDateString()}
+                              {booking.date ? new Date(booking.date).toLocaleDateString() : "N/A"}
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Clock className="h-3 w-3 mr-1" />
@@ -1291,11 +1331,11 @@ export function ClientProfilePage() {
                       <div className="text-2xl font-bold">
                         €
                         {(
-                          clients.reduce(
+                          Number(clients.reduce(
                             (sum: number, c: any) =>
                               sum + (c.stats?.totalSpent || 0),
                             0
-                          ) / (clients.length || 1)
+                          ) / (clients.length || 1)) || 0
                         ).toFixed(0)}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -1314,7 +1354,7 @@ export function ClientProfilePage() {
                         {clients
                           .reduce(
                             (sum: number, c: any) =>
-                              sum + (c.stats?.totalSpent || 0),
+                              sum + Number(c.stats?.totalSpent || 0),
                             0
                           )
                           .toFixed(2)}
@@ -1331,7 +1371,7 @@ export function ClientProfilePage() {
                       <div className="text-2xl font-bold">
                         {clients.reduce(
                           (sum: number, c: any) =>
-                            sum + (c.stats?.totalBookings || 0),
+                            sum + Number(c.stats?.totalBookings || 0),
                           0
                         )}
                       </div>
@@ -1339,7 +1379,7 @@ export function ClientProfilePage() {
                         {(
                           clients.reduce(
                             (sum: number, c: any) =>
-                              sum + (c.stats?.totalBookings || 0),
+                              sum + Number(c.stats?.totalBookings || 0),
                             0
                           ) / (clients.length || 1)
                         ).toFixed(1)}{" "}
@@ -1412,9 +1452,7 @@ export function ClientProfilePage() {
                       </div>
                       <p className="text-lg font-bold">
                         {selectedClient.createdAt
-                          ? new Date(
-                            selectedClient.createdAt
-                          ).toLocaleDateString("en-US", {
+                          ? new Date(selectedClient.createdAt).toLocaleDateString("en-US", {
                             month: "short",
                             year: "numeric",
                           })
@@ -1467,13 +1505,10 @@ export function ClientProfilePage() {
                               )[0]
                               : null;
                           return lastBooking
-                            ? new Date(lastBooking.date).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                              }
-                            )
+                            ? new Date(lastBooking.date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
                             : "Never";
                         })()}
                       </p>
@@ -1732,9 +1767,7 @@ export function ClientProfilePage() {
                                     <div className="space-y-1">
                                       <div className="flex items-center">
                                         <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                                        {new Date(
-                                          booking.date
-                                        ).toLocaleDateString()}
+                                        {booking.date ? new Date(booking.date).toLocaleDateString() : "N/A"}
                                       </div>
                                       <div className="flex items-center text-sm text-muted-foreground">
                                         <Clock className="h-3 w-3 mr-1" />
@@ -1831,9 +1864,9 @@ export function ClientProfilePage() {
                             Client Since
                           </Label>
                           <p className="text-sm mt-1">
-                            {new Date(
-                              selectedClient.joinDate
-                            ).toLocaleDateString()}
+                            {selectedClient.joinDate
+                              ? new Date(selectedClient.joinDate).toLocaleDateString()
+                              : "N/A"}
                           </p>
                         </div>
                         <div>
@@ -1841,9 +1874,9 @@ export function ClientProfilePage() {
                             Last Visit
                           </Label>
                           <p className="text-sm mt-1">
-                            {new Date(
-                              selectedClient.lastVisit
-                            ).toLocaleDateString()}
+                            {selectedClient.lastVisit
+                              ? new Date(selectedClient.lastVisit).toLocaleDateString()
+                              : "N/A"}
                           </p>
                         </div>
                         <div>
@@ -1992,6 +2025,61 @@ export function ClientProfilePage() {
               onClick={handleDeleteClient}
             >
               Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate Client Confirmation Dialog */}
+      <Dialog open={isDuplicateDialogOpen} onOpenChange={setIsDuplicateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Client Already Exists</DialogTitle>
+            <DialogDescription>
+              A client with this email or phone number already exists.
+              <br />
+              <strong>{duplicateClient?.firstName} {duplicateClient?.lastName}</strong>
+              <br />
+              Email: {duplicateClient?.email}
+              <br />
+              Phone: {duplicateClient?.phone || "N/A"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Do you want to update this existing client with the new information provided?
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDuplicateDialogOpen(false);
+                // User chose NOT to update. 
+                // "segue com a criação" - proceed with creation (which will fail if backend enforces unique).
+                // We will try to create, and let the backend error handle it (or show a toast saying creation failed).
+                // Actually, to respect "segue com a criação", we can just call createClient again but maybe force it? 
+                // But backend blocks it. So we will just try and let the error toast show.
+                // Or we can just close and let user change data.
+                // Let's try to create again to satisfy "proceed with creation" literal request, 
+                // knowing it will likely fail and show the error toast from the catch block in handleAddClientSubmit.
+                // BUT handleAddClientSubmit stops if I return.
+                // So I need to refactor handleAddClientSubmit.
+                // Instead, I will just call createClient here directly? No, I need the form data.
+                // Let's just close the dialog. The user can then click "Add Client" again? 
+                // No, the flow is: Click Add -> Detect Duplicate -> Popup -> No -> Proceed Create.
+                // So I should call createClient ignoring the local check?
+                // I will add a flag `ignoreLocalCheck` to handleAddClientSubmit?
+                // Or just call a separate `forceCreateClient` function.
+                forceCreateClient();
+              }}
+            >
+              No, Create New
+            </Button>
+            <Button
+              onClick={handleUpdateDuplicate}
+            >
+              Yes, Update Existing
             </Button>
           </div>
         </DialogContent>

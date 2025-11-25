@@ -9,4 +9,7 @@ export interface CreateContactData {
     message: string;
     subject?: string;
     type?: 'support' | 'sales' | 'general';
+    category?: string;
+    language?: string;
+    region?: string;
 }

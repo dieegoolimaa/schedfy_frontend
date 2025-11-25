@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import {
   DollarSign,
@@ -129,7 +128,6 @@ const PAYMENT_METHODS = [
  * Simple plan shows upgrade message
  */
 export default function UnifiedPaymentManagement() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const plan = user?.plan || "simple";
@@ -195,13 +193,13 @@ export default function UnifiedPaymentManagement() {
       const response =
         plan === "business"
           ? await paymentsService.getBusinessPayments(
-              user?.entityId || "",
-              Object.fromEntries(queryParams)
-            )
+            user?.entityId || "",
+            Object.fromEntries(queryParams)
+          )
           : await paymentsService.getIndividualPayments(
-              user?.entityId || "",
-              Object.fromEntries(queryParams)
-            );
+            user?.entityId || "",
+            Object.fromEntries(queryParams)
+          );
 
       setPayments((response.data as any).payments || []);
     } catch (error) {
@@ -225,13 +223,13 @@ export default function UnifiedPaymentManagement() {
       const response =
         plan === "business"
           ? await paymentsService.getBusinessSummary(
-              user?.entityId || "",
-              Object.fromEntries(queryParams)
-            )
+            user?.entityId || "",
+            Object.fromEntries(queryParams)
+          )
           : await paymentsService.getIndividualSummary(
-              user?.entityId || "",
-              Object.fromEntries(queryParams)
-            );
+            user?.entityId || "",
+            Object.fromEntries(queryParams)
+          );
 
       setSummary(response.data as any);
     } catch (error) {
@@ -329,15 +327,15 @@ export default function UnifiedPaymentManagement() {
     const headers =
       plan === "business"
         ? [
-            "Data",
-            "Cliente",
-            "Serviço",
-            "Profissional",
-            "Método",
-            "Valor",
-            "Taxa",
-            "Status",
-          ]
+          "Data",
+          "Cliente",
+          "Serviço",
+          "Profissional",
+          "Método",
+          "Valor",
+          "Taxa",
+          "Status",
+        ]
         : ["Data", "Método", "Valor", "Status", "Descrição"];
 
     const rows = payments.map((payment) => {
@@ -566,9 +564,9 @@ export default function UnifiedPaymentManagement() {
                   <p className="text-xs text-muted-foreground">
                     {summary.totalPaid > 0
                       ? `${(
-                          (stats.totalFees / summary.totalPaid) *
-                          100
-                        ).toFixed(1)}% da receita`
+                        (stats.totalFees / summary.totalPaid) *
+                        100
+                      ).toFixed(1)}% da receita`
                       : "0% da receita"}
                   </p>
                 </CardContent>

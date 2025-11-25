@@ -232,7 +232,7 @@ export function EditBookingDialog({
                         {formData.professionalName || "Select professional"}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[130]">
                       {professionalsList.map((prof) => {
                         const fullName =
                           `${prof.firstName} ${prof.lastName}`.trim();
@@ -315,9 +315,10 @@ export function EditBookingDialog({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[130]">
                   <SelectItem value="confirmed">Confirmed</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                   <SelectItem value="no_show">No Show</SelectItem>

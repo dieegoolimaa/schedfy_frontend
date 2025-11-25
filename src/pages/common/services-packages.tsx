@@ -190,7 +190,7 @@ const ServicesAndPackages: React.FC = () => {
 
         setActiveCommissions(commissionsData);
         setActiveVouchers(vouchersData.filter(v => v.status === 'active'));
-        setActiveDiscounts(discountsData.filter(d => d.isActive));
+        setActiveDiscounts(discountsData.filter(d => d.status === 'active'));
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -798,15 +798,15 @@ const ServicesAndPackages: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="haircut">Corte</SelectItem>
-                  <SelectItem value="color">Coloração</SelectItem>
-                  <SelectItem value="treatment">Tratamento</SelectItem>
-                  <SelectItem value="styling">Penteado</SelectItem>
-                  <SelectItem value="massage">Massagem</SelectItem>
-                  <SelectItem value="facial">Facial</SelectItem>
-                  <SelectItem value="manicure">Manicure</SelectItem>
-                  <SelectItem value="pedicure">Pedicure</SelectItem>
-                  <SelectItem value="other">Outro</SelectItem>
+                  {Array.from(
+                    new Set(services.map((s) => s.category).filter((c): c is string => !!c))
+                  )
+                    .sort()
+                    .map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
 
@@ -1420,7 +1420,7 @@ const ServicesAndPackages: React.FC = () => {
                       size="sm"
                       onClick={() => {
                         setIsServiceEditModalOpen(false);
-                        navigate("/business/commissions");
+                        navigate("/entity/commissions-management");
                       }}
                     >
                       Manage Promotions

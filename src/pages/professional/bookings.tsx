@@ -39,8 +39,12 @@ import {
   AlertCircle,
   Phone,
   Mail,
+  Play,
 } from "lucide-react";
 import { format } from "date-fns";
+import { apiClient } from "../../lib/api-client";
+import { toast } from "sonner";
+import { Button } from "../../components/ui/button";
 
 export default function ProfessionalBookingsPage() {
   const { t } = useTranslation("professional");
@@ -53,6 +57,18 @@ export default function ProfessionalBookingsPage() {
     autoFetch: true,
   });
 
+  const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
+    try {
+      await apiClient.patch(`/bookings/${bookingId}/status`, { status: newStatus });
+      toast.success(t('bookings.statusUpdated', 'Status updated successfully'));
+      // Refresh bookings
+      window.location.reload(); // Simple reload for now, or use refetch if available
+    } catch (error) {
+      console.error('Failed to update status', error);
+      toast.error(t('bookings.statusUpdateFailed', 'Failed to update status'));
+    }
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -62,7 +78,7 @@ export default function ProfessionalBookingsPage() {
     const profId =
       typeof b.professional === "string"
         ? b.professional
-        : b.professional?._id || b.professional?.id;
+        : (b.professional as any)?._id || b.professional?.id;
 
     return profId === professionalId || b.professionalId === professionalId;
   });
@@ -94,28 +110,34 @@ export default function ProfessionalBookingsPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; icon: any; label: string }> =
-      {
-        pending: {
-          variant: "secondary",
-          icon: AlertCircle,
-          label: "Pending",
-        },
-        confirmed: {
-          variant: "default",
-          icon: CheckCircle,
-          label: "Confirmed",
-        },
-        completed: {
-          variant: "outline",
-          icon: CheckCircle,
-          label: "Completed",
-        },
-        cancelled: {
-          variant: "destructive",
-          icon: XCircle,
-          label: "Cancelled",
-        },
-      };
+    {
+      pending: {
+        variant: "secondary",
+        icon: AlertCircle,
+        label: "Pending",
+      },
+      confirmed: {
+        variant: "default",
+        icon: CheckCircle,
+        label: "Confirmed",
+      },
+      completed: {
+        variant: "outline",
+        icon: CheckCircle,
+        label: "Completed",
+      },
+      cancelled: {
+        variant: "destructive",
+        icon: XCircle,
+        label: "Cancelled",
+      },
+
+      in_progress: {
+        variant: "default",
+        icon: Play,
+        label: "In Progress",
+      },
+    };
 
     const config = variants[status] || variants.pending;
     const Icon = config.icon;
@@ -145,7 +167,7 @@ export default function ProfessionalBookingsPage() {
     (b) =>
       b.startTime &&
       format(new Date(b.startTime), "yyyy-MM-dd") ===
-        format(new Date(), "yyyy-MM-dd")
+      format(new Date(), "yyyy-MM-dd")
   );
 
   const pastBookings = filteredBookings
@@ -172,15 +194,14 @@ export default function ProfessionalBookingsPage() {
       typeof client === "string"
         ? client
         : client?.name ||
-          `${client?.firstName || ""} ${client?.lastName || ""}`.trim() ||
-          "N/A";
+        `${client?.firstName || ""} ${client?.lastName || ""}`.trim() ||
+        "N/A";
 
     // Handle client initials for avatar
     const clientInitials =
       typeof client === "string"
         ? client.substring(0, 2).toUpperCase()
-        : `${client?.firstName?.[0] || ""}${
-            client?.lastName?.[0] || ""
+        : `${client?.firstName?.[0] || ""}${client?.lastName?.[0] || ""
           }`.toUpperCase() || "CL";
 
     return (
@@ -240,6 +261,33 @@ export default function ProfessionalBookingsPage() {
                   <div className="mt-2 p-3 bg-muted rounded-md text-sm">
                     <p className="font-medium mb-1">Notes:</p>
                     <p className="text-muted-foreground">{booking.notes}</p>
+                  </div>
+                )}
+
+                {booking.status === 'confirmed' && (
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleUpdateStatus(booking.id || booking._id, 'in_progress')}
+                    >
+                      <Play className="h-4 w-4" />
+                      Start Appointment
+                    </Button>
+                  </div>
+                )}
+
+                {booking.status === 'in_progress' && (
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 text-green-600 border-green-200 hover:bg-green-50"
+                      onClick={() => handleUpdateStatus(booking.id || booking._id, 'completed')}
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Complete Appointment
+                    </Button>
                   </div>
                 )}
               </div>

@@ -5,19 +5,11 @@ import type {
     Commission,
     Voucher,
     Discount,
-    CommissionType,
-    CommissionAppliesTo,
-    DiscountType,
-    DiscountAppliesTo,
-    VoucherStatus
 } from '../types/models/promotions.interface';
 import type {
     CreateCommissionDto,
     UpdateCommissionDto,
     CreateVoucherDto,
-    UpdateVoucherDto,
-    ValidateVoucherDto,
-    ValidateVoucherResponse,
     CreateDiscountDto,
     UpdateDiscountDto
 } from '../types/dto/promotions.dto';

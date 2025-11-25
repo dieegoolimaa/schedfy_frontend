@@ -85,17 +85,24 @@ export const publicService = {
     },
 
     /**
-     * Cancel booking with verification code
+     * Get booking by ID (public)
+     * Uses: GET /api/bookings/:id
+     */
+    getBookingById: async (bookingId: string) => {
+        return apiClient.get<any>(`/api/bookings/${bookingId}`);
+    },
+
+    /**
+     * Cancel booking
      * Uses: PATCH /api/bookings/:id/cancel
      */
     cancelBooking: async (
         _entityId: string,
         bookingId: string,
-        verificationCode: string,
+        _verificationCode?: string,
         reason?: string
     ) => {
         return apiClient.patch(`/api/bookings/${bookingId}/cancel`, {
-            verificationCode,
             reason,
         });
     },

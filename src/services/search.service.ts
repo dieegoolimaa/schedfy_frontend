@@ -36,7 +36,7 @@ class SearchService {
         const response = await apiClient.get('/api/search', {
             params: { q: query, limit },
         });
-        return response.data.results;
+        return (response.data as any).results;
     }
 }
 

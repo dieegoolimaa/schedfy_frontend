@@ -15,6 +15,7 @@ import {
 } from "../ui/dropdown-menu";
 import { ChevronDown, Menu } from "lucide-react";
 import { useState } from "react";
+import { usePermissions } from "../../hooks/use-permissions";
 
 export function Navigation() {
   const { t } = useTranslation();
@@ -69,11 +70,11 @@ export function Navigation() {
           },
           ...(features.aiPremiumEnabled
             ? [
-                {
-                  path: "/admin/ai-premium-management",
-                  label: t("nav.ai", "AI Premium"),
-                },
-              ]
+              {
+                path: "/admin/ai-premium-management",
+                label: t("nav.ai", "AI Premium"),
+              },
+            ]
             : []),
         ],
         settings: [
@@ -110,9 +111,10 @@ export function Navigation() {
             label: t("nav.servicesPackages", "Services & Packages"),
           },
           { path: "/entity/reviews", label: t("nav.reviews", "Reviews") },
+
           {
-            path: "/entity/professionals",
-            label: t("nav.professionals", "Professionals"),
+            path: "/entity/users",
+            label: t("nav.users", "Team & Roles"),
           },
           {
             path: "/entity/client-profile",
@@ -140,11 +142,11 @@ export function Navigation() {
           },
           ...(features.aiPremiumEnabled
             ? [
-                {
-                  path: "/entity/ai-premium",
-                  label: t("nav.ai", "AI Premium"),
-                },
-              ]
+              {
+                path: "/entity/ai-premium",
+                label: t("nav.ai", "AI Premium"),
+              },
+            ]
             : []),
           {
             path: "/entity/subscription-management",
@@ -238,16 +240,12 @@ export function Navigation() {
         ],
         operations: [
           {
-            path: "/simple/bookings",
-            label: t("nav.bookings", "Bookings"),
-          },
-          {
             path: "/entity/services-packages",
             label: t("nav.services", "Services"),
           },
           {
-            path: "/entity/professionals",
-            label: t("nav.professionals", "Professionals"),
+            path: "/entity/users",
+            label: t("nav.users", "Team & Roles"),
           },
           {
             path: "/simple/reports",
@@ -316,11 +314,10 @@ export function Navigation() {
             <Link
               key={item.path}
               to={item.path}
-              className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                location.pathname === item.path
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
+              className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${location.pathname === item.path
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}
             >
               {item.label}
             </Link>
@@ -342,9 +339,8 @@ export function Navigation() {
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={`cursor-pointer ${
-                      location.pathname === item.path ? "bg-accent" : ""
-                    }`}
+                    className={`cursor-pointer ${location.pathname === item.path ? "bg-accent" : ""
+                      }`}
                   >
                     {item.label}
                   </DropdownMenuItem>
@@ -367,9 +363,8 @@ export function Navigation() {
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={`cursor-pointer ${
-                      location.pathname === item.path ? "bg-accent" : ""
-                    }`}
+                    className={`cursor-pointer ${location.pathname === item.path ? "bg-accent" : ""
+                      }`}
                   >
                     {item.label}
                   </DropdownMenuItem>
@@ -392,9 +387,8 @@ export function Navigation() {
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={`cursor-pointer ${
-                      location.pathname === item.path ? "bg-accent" : ""
-                    }`}
+                    className={`cursor-pointer ${location.pathname === item.path ? "bg-accent" : ""
+                      }`}
                   >
                     {item.label}
                   </DropdownMenuItem>
@@ -417,9 +411,8 @@ export function Navigation() {
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={`cursor-pointer ${
-                      location.pathname === item.path ? "bg-accent" : ""
-                    }`}
+                    className={`cursor-pointer ${location.pathname === item.path ? "bg-accent" : ""
+                      }`}
                   >
                     {item.label}
                   </DropdownMenuItem>
@@ -454,11 +447,10 @@ export function Navigation() {
               key={item.path}
               to={item.path}
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-md text-base font-medium ${
-                location.pathname === item.path
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
+              className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === item.path
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}
             >
               {item.label}
             </Link>
@@ -477,9 +469,8 @@ export function Navigation() {
                     : t("nav.operations", "Operations")}
                 </span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    expandedSections.includes("management") ? "rotate-180" : ""
-                  }`}
+                  className={`h-4 w-4 transition-transform ${expandedSections.includes("management") ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {expandedSections.includes("management") && (
@@ -489,11 +480,10 @@ export function Navigation() {
                       key={item.path}
                       to={item.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`block px-6 py-2 rounded-md text-sm ${
-                        location.pathname === item.path
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                      }`}
+                      className={`block px-6 py-2 rounded-md text-sm ${location.pathname === item.path
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
                     >
                       {item.label}
                     </Link>
@@ -512,9 +502,8 @@ export function Navigation() {
               >
                 <span>{t("nav.financial", "Financial")}</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    expandedSections.includes("financial") ? "rotate-180" : ""
-                  }`}
+                  className={`h-4 w-4 transition-transform ${expandedSections.includes("financial") ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {expandedSections.includes("financial") && (
@@ -524,11 +513,10 @@ export function Navigation() {
                       key={item.path}
                       to={item.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`block px-6 py-2 rounded-md text-sm ${
-                        location.pathname === item.path
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                      }`}
+                      className={`block px-6 py-2 rounded-md text-sm ${location.pathname === item.path
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
                     >
                       {item.label}
                     </Link>
@@ -547,9 +535,8 @@ export function Navigation() {
               >
                 <span>{t("nav.features", "Features")}</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    expandedSections.includes("features") ? "rotate-180" : ""
-                  }`}
+                  className={`h-4 w-4 transition-transform ${expandedSections.includes("features") ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {expandedSections.includes("features") && (
@@ -559,11 +546,10 @@ export function Navigation() {
                       key={item.path}
                       to={item.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`block px-6 py-2 rounded-md text-sm ${
-                        location.pathname === item.path
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                      }`}
+                      className={`block px-6 py-2 rounded-md text-sm ${location.pathname === item.path
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
                     >
                       {item.label}
                     </Link>
@@ -582,9 +568,8 @@ export function Navigation() {
               >
                 <span>{t("nav.settings", "Settings")}</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    expandedSections.includes("settings") ? "rotate-180" : ""
-                  }`}
+                  className={`h-4 w-4 transition-transform ${expandedSections.includes("settings") ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {expandedSections.includes("settings") && (
@@ -594,11 +579,10 @@ export function Navigation() {
                       key={item.path}
                       to={item.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`block px-6 py-2 rounded-md text-sm ${
-                        location.pathname === item.path
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                      }`}
+                      className={`block px-6 py-2 rounded-md text-sm ${location.pathname === item.path
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
                     >
                       {item.label}
                     </Link>

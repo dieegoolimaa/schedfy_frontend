@@ -24,6 +24,23 @@ export interface Professional {
             breaks?: Array<{ start: string; end: string }>;
         };
     };
+    commission?: {
+        enabled: boolean;
+        percentage?: number;
+        fixedAmount?: number;
+    };
+    professionalInfo?: {
+        jobFunction?: string;
+        specialties?: string[];
+        bio?: string;
+        experience?: number;
+        certifications?: string[];
+        socialMedia?: {
+            instagram?: string;
+            linkedin?: string;
+            website?: string;
+        };
+    };
     createdAt: string;
     updatedAt: string;
 }

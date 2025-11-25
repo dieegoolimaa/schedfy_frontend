@@ -27,7 +27,7 @@ import { UpgradePage } from "./pages/upgrade";
 import { ClientProfilePage } from "./pages/common/client-profile";
 import { EntityProfilePage } from "./pages/common/entity-profile";
 import { BookingManagementPage } from "./pages/common/booking-management";
-import { ProfessionalsPage } from "./pages/common/professionals";
+
 import { OperationalReportsPage } from "./pages/common/operational-reports";
 import UnifiedSettingsPage from "./pages/common/settings";
 import UnifiedSubscriptionManagement from "./pages/common/subscription-management";
@@ -39,6 +39,7 @@ import { AIPremiumPage } from "./pages/business/ai-premium";
 import NotificationPreferences from "./pages/common/notification-preferences";
 import ServicesAndPackagesPage from "./pages/common/services-packages";
 import ReviewsManagementPage from "./pages/common/reviews-management";
+import UserManagementPage from "./pages/common/user-management";
 
 // Professional pages
 import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
@@ -49,6 +50,7 @@ import ProfessionalEarningsPage from "./pages/professional/earnings";
 
 // Public pages
 import { PublicEntityProfilePage } from "./pages/public/entity-profile";
+import { PublicBookingManagementPage } from "./pages/public/public-booking-management";
 
 // Legal and informational pages
 import { TermsPage } from "./pages/terms";
@@ -111,6 +113,10 @@ function App() {
                 <Route
                   path="/book/:slug"
                   element={<PublicEntityProfilePage />}
+                />
+                <Route
+                  path="/bookings/:id"
+                  element={<PublicBookingManagementPage />}
                 />
 
                 {/* Onboarding route - protected but without OnboardingGuard */}
@@ -431,12 +437,13 @@ function App() {
                     </EntityRoute>
                   }
                 />
+
                 <Route
-                  path="/entity/professionals"
+                  path="/entity/users"
                   element={
                     <ProtectedRoute allowedPlans={["simple", "business"]}>
                       <Layout>
-                        <ProfessionalsPage />
+                        <UserManagementPage />
                       </Layout>
                     </ProtectedRoute>
                   }

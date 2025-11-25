@@ -92,4 +92,25 @@ export const paymentsService = {
     }) => {
         return apiClient.post('/api/payments/individual', data);
     },
+    // Business plan payments
+    getBusinessPayments: async (entityId: string, params?: Record<string, string>) => {
+        return apiClient.get(`/api/payments/business/${entityId}`, params);
+    },
+
+    getBusinessSummary: async (entityId: string, params?: Record<string, string>) => {
+        return apiClient.get(`/api/payments/business/${entityId}/summary`, params);
+    },
+
+    createBusinessPayment: async (data: {
+        entityId: string;
+        amount: number;
+        currency: string;
+        paymentMethod: string;
+        description: string;
+        notes?: string;
+        paidAt: string;
+        bookingId?: string;
+    }) => {
+        return apiClient.post('/api/payments/business', data);
+    },
 };

@@ -854,12 +854,28 @@ export function ProfessionalsPage() {
                       size="sm"
                       onClick={() => {
                         setIsDialogOpen(false);
-                        navigate("/business/commissions");
+                        navigate("/entity/commissions-management");
                       }}
                     >
                       Manage Rules
                     </Button>
                   </div>
+
+                  {formData.commissionEnabled && (
+                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md flex gap-2 items-start">
+                      <div className="mt-0.5">
+                        <Award className="h-4 w-4 text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">
+                          Priority Override
+                        </p>
+                        <p className="text-xs text-yellow-700 mt-0.5">
+                          Enabling a specific commission for this professional will override any commission rules defined at the service level.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {editingProfessional && activeCommissions.length > 0 ? (
                     <div className="space-y-2">

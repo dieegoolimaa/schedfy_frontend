@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { FeatureGate } from "../../contexts/feature-flags-context";
 import {
@@ -44,7 +43,6 @@ import {
 } from "lucide-react";
 
 export function AIPremiumPage() {
-  const { t } = useTranslation();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const { formatCurrency } = useCurrency();
@@ -296,11 +294,9 @@ export function AIPremiumPage() {
                   {pricingPlans.map((plan) => (
                     <Card
                       key={plan.id}
-                      className={`relative cursor-pointer transition-all hover:shadow-lg ${
-                        plan.popular ? "ring-2 ring-purple-500" : ""
-                      } ${
-                        selectedPlan === plan.id ? "ring-2 ring-blue-500" : ""
-                      }`}
+                      className={`relative cursor-pointer transition-all hover:shadow-lg ${plan.popular ? "ring-2 ring-purple-500" : ""
+                        } ${selectedPlan === plan.id ? "ring-2 ring-blue-500" : ""
+                        }`}
                       onClick={() => setSelectedPlan(plan.id)}
                     >
                       {plan.popular && (

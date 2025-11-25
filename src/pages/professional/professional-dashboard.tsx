@@ -16,10 +16,8 @@ import {
 } from "../../services/dashboard.service";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import {
-  ResponsiveCardGrid,
-  MobileStatsCard,
-} from "../../components/ui/responsive-card";
+
+import { LiveActivityWidget } from "../../components/dashboard/LiveActivityWidget";
 import {
   Avatar,
   AvatarFallback,
@@ -100,20 +98,20 @@ const getLatestWorkingHour = (workingHours?: WorkingHours): string => {
 };
 
 export function ProfessionalDashboardPage() {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const { formatCurrency } = useCurrency();
   const [timeRange, setTimeRange] = useState("7d");
   const [showCalendar, setShowCalendar] = useState(false);
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
   const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(false);
+  const [, setStatsLoading] = useState(false);
   const { user } = useAuth();
 
   // Fetch entity profile to get working hours
   const { entity } = useEntity({ autoFetch: true });
 
   // Fetch real bookings
-  const { bookings, fetchBookings, createBooking } = useBookings({
+  const { bookings, fetchBookings } = useBookings({
     entityId: user?.entityId || "",
   });
 
@@ -187,10 +185,10 @@ export function ProfessionalDashboardPage() {
     role: user?.professionalInfo?.jobFunction || "Professional",
     avatar: user?.name
       ? user.name
-          .split(" ")
-          .map((n: string) => n[0])
-          .join("")
-          .toUpperCase()
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
       : "PR",
     email: user?.email || "",
     phone: user?.phone || "Not provided",
@@ -314,12 +312,12 @@ export function ProfessionalDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {entity?.slug && (
+          {(entity as any)?.slug && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
-                const url = `${window.location.origin}/book/${entity.slug}`;
+                const url = `${window.location.origin}/book/${(entity as any).slug}`;
                 window.open(url, "_blank");
               }}
             >
@@ -368,12 +366,15 @@ export function ProfessionalDashboardPage() {
         workingHours={
           entity?.workingHours
             ? {
-                start: getEarliestWorkingHour(entity.workingHours),
-                end: getLatestWorkingHour(entity.workingHours),
-              }
+              start: getEarliestWorkingHour(entity.workingHours),
+              end: getLatestWorkingHour(entity.workingHours),
+            }
             : { start: "09:00", end: "18:00" }
         }
       />
+
+      {/* Live Activity Widget */}
+      <LiveActivityWidget entityId={user?.entityId || ""} />
 
       {/* Quick Stats */}
       <StatsGrid columns={4}>
@@ -386,9 +387,8 @@ export function ProfessionalDashboardPage() {
           }
           subtitle={
             entityStats?.revenue.change !== undefined
-              ? `${
-                  entityStats.revenue.change > 0 ? "+" : ""
-                }${entityStats.revenue.change.toFixed(1)}% vs last month`
+              ? `${entityStats.revenue.change > 0 ? "+" : ""
+              }${entityStats.revenue.change.toFixed(1)}% vs last month`
               : undefined
           }
           icon={DollarSign}
@@ -396,9 +396,9 @@ export function ProfessionalDashboardPage() {
           trend={
             entityStats?.revenue.change !== undefined
               ? {
-                  value: `${Math.abs(entityStats.revenue.change).toFixed(1)}%`,
-                  isPositive: entityStats.revenue.change > 0,
-                }
+                value: `${Math.abs(entityStats.revenue.change).toFixed(1)}%`,
+                isPositive: entityStats.revenue.change > 0,
+              }
               : undefined
           }
         />
@@ -410,9 +410,8 @@ export function ProfessionalDashboardPage() {
           }
           subtitle={
             entityStats?.bookings.change !== undefined
-              ? `${
-                  entityStats.bookings.change > 0 ? "+" : ""
-                }${entityStats.bookings.change.toFixed(1)}% vs last month`
+              ? `${entityStats.bookings.change > 0 ? "+" : ""
+              }${entityStats.bookings.change.toFixed(1)}% vs last month`
               : undefined
           }
           icon={CalendarIcon}
@@ -420,20 +419,19 @@ export function ProfessionalDashboardPage() {
           trend={
             entityStats?.bookings.change !== undefined
               ? {
-                  value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
-                  isPositive: entityStats.bookings.change > 0,
-                }
+                value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
+                isPositive: entityStats.bookings.change > 0,
+              }
               : undefined
           }
         />
         <StatCard
           title="New Clients"
-          value={entityStats?.clients.thisMonth?.toString() || "0"}
+          value={entityStats?.clients.newThisMonth?.toString() || "0"}
           subtitle={
             entityStats?.clients.change !== undefined
-              ? `${
-                  entityStats.clients.change > 0 ? "+" : ""
-                }${entityStats.clients.change.toFixed(1)}% vs last month`
+              ? `${entityStats.clients.change > 0 ? "+" : ""
+              }${entityStats.clients.change.toFixed(1)}% vs last month`
               : undefined
           }
           icon={Users}
@@ -441,9 +439,9 @@ export function ProfessionalDashboardPage() {
           trend={
             entityStats?.clients.change !== undefined
               ? {
-                  value: `${Math.abs(entityStats.clients.change).toFixed(1)}%`,
-                  isPositive: entityStats.clients.change > 0,
-                }
+                value: `${Math.abs(entityStats.clients.change).toFixed(1)}%`,
+                isPositive: entityStats.clients.change > 0,
+              }
               : undefined
           }
         />
@@ -516,20 +514,20 @@ export function ProfessionalDashboardPage() {
                     </TableCell>
                     <TableCell>
                       {typeof appointment.service === "object" &&
-                      appointment.service?.duration
+                        appointment.service?.duration
                         ? `${appointment.service.duration}min`
                         : appointment.startTime && appointment.endTime
-                        ? `${Math.round(
+                          ? `${Math.round(
                             (new Date(appointment.endTime).getTime() -
                               new Date(appointment.startTime).getTime()) /
-                              60000
+                            60000
                           )}min`
-                        : "N/A"}
+                          : "N/A"}
                     </TableCell>
                     <TableCell>
                       €
                       {typeof appointment.service === "object" &&
-                      appointment.service?.price
+                        appointment.service?.price
                         ? appointment.service.price
                         : 0}
                     </TableCell>
@@ -595,7 +593,7 @@ export function ProfessionalDashboardPage() {
                     <p className="text-sm font-medium">
                       €
                       {typeof booking.service === "object" &&
-                      booking.service?.price
+                        booking.service?.price
                         ? booking.service.price
                         : 0}
                     </p>
@@ -732,7 +730,12 @@ export function ProfessionalDashboardPage() {
       <BookingCreator
         open={createBookingOpen}
         onOpenChange={setCreateBookingOpen}
-        services={services}
+        services={services.map(s => ({
+          ...s,
+          id: s.id || '',
+          duration: typeof s.duration === 'object' ? (s.duration as any).duration : s.duration,
+          price: (s as any).pricing?.basePrice || (s as any).price || 0
+        }))}
         planType="individual"
         onSuccess={async () => {
           await fetchBookings();

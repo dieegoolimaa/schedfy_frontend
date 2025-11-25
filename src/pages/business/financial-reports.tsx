@@ -66,7 +66,8 @@ import {
 } from "lucide-react";
 import { usePromotions } from "../../hooks/usePromotions";
 import { PromotionImpactCard } from "../../components/reports/promotion-impact-card";
-import { Commission, Voucher, Discount } from "../../types/models/promotions.interface";
+import { Commission } from "../../types/models/promotions.interface";
+import { professionalsService, Professional } from "../../services/professionals.service";
 
 export function FinancialReportsPage() {
   const { t } = useTranslation("financial");
@@ -96,21 +97,18 @@ export function FinancialReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Promotions data
-  const { getActiveCommissions, getVouchers, getDiscounts } = usePromotions();
+  const { getActiveCommissions } = usePromotions();
   const [commissions, setCommissions] = useState<Commission[]>([]);
-  const [vouchers, setVouchers] = useState<Voucher[]>([]);
-  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
 
   useEffect(() => {
     if (entityId) {
       Promise.all([
         getActiveCommissions(entityId),
-        getVouchers(entityId),
-        getDiscounts(entityId)
-      ]).then(([c, v, d]) => {
+        professionalsService.getAll({ entityId })
+      ]).then(([c, p]) => {
         setCommissions(c);
-        setVouchers(v);
-        setDiscounts(d);
+        setProfessionals(Array.isArray(p.data) ? p.data : []);
       });
     }
   }, [entityId]);
@@ -153,6 +151,63 @@ export function FinancialReportsPage() {
     });
   }, [bookings, dateRange]);
 
+  // Helper to calculate commission for a single booking
+  const calculateCommission = (booking: any, commissionsList: Commission[]) => {
+    const price =
+      booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
+
+    // 0. Professional Override (Highest Priority)
+    // Check if the professional has specific commission settings enabled
+    if (booking.professionalId) {
+      const professional = professionals.find(p => p.id === booking.professionalId);
+      if (professional?.commission?.enabled) {
+        if (professional.commission.fixedAmount) {
+          return professional.commission.fixedAmount;
+        }
+        if (professional.commission.percentage) {
+          return (price * professional.commission.percentage) / 100;
+        }
+      }
+    }
+
+    // 1. Service Specific
+    const serviceCommission = commissionsList.find(
+      (c) =>
+        c.appliesTo === "service" && c.serviceIds?.includes(booking.serviceId)
+    );
+    if (serviceCommission) {
+      return serviceCommission.type === "percentage"
+        ? (price * serviceCommission.value) / 100
+        : serviceCommission.value;
+    }
+
+    // 2. Professional Specific (Rule-based)
+    const profCommission = commissionsList.find(
+      (c) =>
+        c.appliesTo === "professional" &&
+        c.professionalIds?.includes(booking.professionalId)
+    );
+    if (profCommission) {
+      return profCommission.type === "percentage"
+        ? (price * profCommission.value) / 100
+        : profCommission.value;
+    }
+
+    // 3. Category Specific
+    const categoryCommission = commissionsList.find(
+      (c) =>
+        c.appliesTo === "service_category" &&
+        c.serviceCategoryIds?.includes(booking.service?.category)
+    );
+    if (categoryCommission) {
+      return categoryCommission.type === "percentage"
+        ? (price * categoryCommission.value) / 100
+        : categoryCommission.value;
+    }
+
+    return 0;
+  };
+
   // Calculate financial summary from real data
   const financialSummary = useMemo(() => {
     const completedBookings = filteredBookings.filter(
@@ -160,15 +215,20 @@ export function FinancialReportsPage() {
     );
 
     const totalRevenue = completedBookings.reduce(
-      (sum, b) => sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
+      (sum, b) =>
+        sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
       0
     );
 
-    // Platform commission (10% of revenue)
-    const totalCommissions = totalRevenue * 0.10;
+    // Calculate total commissions based on active rules
+    const totalCommissions = completedBookings.reduce((sum, b) => {
+      return sum + calculateCommission(b, commissions);
+    }, 0);
 
-    // Vouchers (would come from voucher system when implemented)
-    const totalVouchers = 0;
+    // Calculate total vouchers/discounts
+    const totalVouchers = completedBookings.reduce((sum, b) => {
+      return sum + (b.pricing?.discountAmount || 0);
+    }, 0);
 
     const netRevenue = totalRevenue - totalCommissions - totalVouchers;
 
@@ -180,7 +240,9 @@ export function FinancialReportsPage() {
     const now = new Date();
     const currentPeriodStart = getDateRangeFilter();
     const periodDuration = now.getTime() - currentPeriodStart.getTime();
-    const previousPeriodStart = new Date(currentPeriodStart.getTime() - periodDuration);
+    const previousPeriodStart = new Date(
+      currentPeriodStart.getTime() - periodDuration
+    );
 
     const previousPeriodBookings = bookings.filter((b) => {
       const bookingDate = new Date(b.createdAt);
@@ -192,7 +254,8 @@ export function FinancialReportsPage() {
     });
 
     const previousRevenue = previousPeriodBookings.reduce(
-      (sum, b) => sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
+      (sum, b) =>
+        sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
       0
     );
     const previousTransactions = previousPeriodBookings.length;
@@ -208,7 +271,8 @@ export function FinancialReportsPage() {
 
     const transactionsGrowth =
       previousTransactions > 0
-        ? ((totalTransactions - previousTransactions) / previousTransactions) * 100
+        ? ((totalTransactions - previousTransactions) / previousTransactions) *
+        100
         : totalTransactions > 0
           ? 100
           : 0;
@@ -233,7 +297,7 @@ export function FinancialReportsPage() {
         average: Math.round(averageGrowth * 10) / 10,
       },
     };
-  }, [filteredBookings, bookings, getDateRangeFilter]);
+  }, [filteredBookings, bookings, getDateRangeFilter, commissions]);
 
   // Revenue breakdown by service category
   const revenueBreakdown = useMemo(() => {
@@ -306,66 +370,168 @@ export function FinancialReportsPage() {
   }, [filteredBookings, financialSummary.totalRevenue]);
 
   // Commission details calculated from revenue
+  // Commission details calculated from revenue
   const commissionDetails = useMemo(() => {
-    const totalRevenue = financialSummary.totalRevenue;
-    return [
-      {
-        type: "Platform Commission",
-        rate: 5,
-        amount: totalRevenue * 0.05,
-        description: "Standard platform fee",
-      },
-      {
-        type: "Payment Processing",
-        rate: 2.9,
-        amount: totalRevenue * 0.029,
-        description: "Card processing fees",
-      },
-      {
-        type: "Premium Features",
-        rate: 2.1,
-        amount: totalRevenue * 0.021,
-        description: "Advanced booking features",
-      },
-    ];
-  }, [financialSummary.totalRevenue]);
+    const completedBookings = filteredBookings.filter(
+      (b) => b.status === "completed"
+    );
 
-  // Voucher breakdown (keeping as placeholder for future voucher system)
-  const voucherBreakdown = [
-    {
-      type: "New Client Discount",
-      amount: 0,
-      usage: 0,
-      description: "First-time client offers",
-    },
-    {
-      type: "Loyalty Rewards",
-      amount: 0,
-      usage: 0,
-      description: "Repeat customer discounts",
-    },
-    {
-      type: "Promotional Codes",
-      amount: 0,
-      usage: 0,
-      description: "Marketing campaign vouchers",
-    },
-  ];
+    const commissionMap = new Map<
+      string,
+      { amount: number; rate: number; description: string; type: string }
+    >();
+
+    completedBookings.forEach((booking) => {
+      const price =
+        booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
+
+      // Find applicable commission
+      let appliedCommission: Commission | undefined;
+      let commissionAmount = 0;
+      let overrideApplied = false;
+
+      // 0. Professional Override
+      if (booking.professionalId) {
+        const professional = professionals.find(p => p.id === booking.professionalId);
+        if (professional?.commission?.enabled) {
+          overrideApplied = true;
+          if (professional.commission.fixedAmount) {
+            commissionAmount = professional.commission.fixedAmount;
+          } else if (professional.commission.percentage) {
+            commissionAmount = (price * professional.commission.percentage) / 100;
+          }
+        }
+      }
+
+      if (overrideApplied) {
+        const current = commissionMap.get("Professional Override") || {
+          amount: 0,
+          rate: 0,
+          description: "Direct professional commission settings",
+          type: "mixed",
+        };
+
+        commissionMap.set("Professional Override", {
+          amount: current.amount + commissionAmount,
+          rate: 0,
+          description: current.description,
+          type: current.type,
+        });
+      } else {
+        // 1. Service Specific
+        const serviceCommission = commissions.find(
+          (c) =>
+            c.appliesTo === "service" && c.serviceIds?.includes(booking.serviceId)
+        );
+        if (serviceCommission) {
+          appliedCommission = serviceCommission;
+        } else {
+          // 2. Professional Specific
+          const profCommission = commissions.find(
+            (c) =>
+              c.appliesTo === "professional" &&
+              c.professionalIds?.includes(booking.professionalId || "")
+          );
+          if (profCommission) {
+            appliedCommission = profCommission;
+          } else {
+            // 3. Category Specific
+            const categoryCommission = commissions.find(
+              (c) =>
+                c.appliesTo === "service_category" &&
+                c.serviceCategoryIds?.includes(booking.service?.category || "")
+            );
+            if (categoryCommission) {
+              appliedCommission = categoryCommission;
+            }
+          }
+        }
+
+        if (appliedCommission) {
+          commissionAmount =
+            appliedCommission.type === "percentage"
+              ? (price * appliedCommission.value) / 100
+              : appliedCommission.value;
+
+          const current = commissionMap.get(appliedCommission.name) || {
+            amount: 0,
+            rate: appliedCommission.value,
+            description:
+              appliedCommission.description ||
+              `${appliedCommission.type} commission`,
+            type: appliedCommission.type,
+          };
+
+          commissionMap.set(appliedCommission.name, {
+            amount: current.amount + commissionAmount,
+            rate: appliedCommission.value,
+            description: current.description,
+            type: appliedCommission.type,
+          });
+        }
+      }
+    });
+
+    return Array.from(commissionMap.entries()).map(([name, data]) => ({
+      type: name,
+      rate: data.type === "percentage" ? `${data.rate}%` : `€${data.rate}`,
+      amount: data.amount,
+      description: data.description,
+    }));
+  }, [filteredBookings, commissions]);
+
+  // Voucher breakdown
+  const voucherBreakdown = useMemo(() => {
+    const completedBookings = filteredBookings.filter(
+      (b) => b.status === "completed" && (b.pricing?.discountAmount || 0) > 0
+    );
+
+    const breakdownMap = new Map<
+      string,
+      { amount: number; usage: number; description: string }
+    >();
+
+    completedBookings.forEach((booking) => {
+      const amount = booking.pricing?.discountAmount || 0;
+      const reason = booking.pricing?.discountReason || "General Discount";
+
+      const current = breakdownMap.get(reason) || {
+        amount: 0,
+        usage: 0,
+        description: "Applied discount",
+      };
+      breakdownMap.set(reason, {
+        amount: current.amount + amount,
+        usage: current.usage + 1,
+        description: current.description,
+      });
+    });
+
+    if (breakdownMap.size === 0) return [];
+
+    return Array.from(breakdownMap.entries()).map(([type, data]) => ({
+      type,
+      amount: data.amount,
+      usage: data.usage,
+      description: data.description,
+    }));
+  }, [filteredBookings]);
 
   // Transform bookings into transaction format
   const transactions = useMemo(() => {
     return filteredBookings
       .filter((b) => b.status === "completed")
       .map((booking) => {
-        const gross = booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
-        const commission = gross * 0.10; // 10% platform commission
-        const voucher = 0; // Future: get from booking.voucher
+        const gross =
+          booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
+        const commission = calculateCommission(booking, commissions);
+        const voucher = booking.pricing?.discountAmount || 0;
         const net = gross - commission - voucher;
 
         return {
           id: booking.id,
-          date: new Date(booking.startTime).toLocaleDateString(),
-          time: new Date(booking.startTime).toLocaleTimeString([], {
+          date: new Date(booking.createdAt).toLocaleDateString(),
+          time: new Date(booking.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
           }),
@@ -376,12 +542,12 @@ export function FinancialReportsPage() {
           voucher,
           net,
           status: booking.status,
-          paymentMethod: "card", // Default to card for now
+          paymentMethod: booking.payment?.method || "card",
           professional: booking.professional?.name || "N/A",
         };
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [filteredBookings]);
+  }, [filteredBookings, commissions]);
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
@@ -1127,8 +1293,6 @@ export function FinancialReportsPage() {
               <PromotionImpactCard
                 bookings={filteredBookings}
                 commissions={commissions}
-                vouchers={vouchers}
-                discounts={discounts}
               />
             </div>
           </TabsContent>

@@ -35,11 +35,8 @@ export function usePackages() {
                 setError(null);
 
                 const queryParams = new URLSearchParams();
-                if (filters?.status && filters.status !== "all") {
+                if (filters?.status && (filters.status as any) !== "all") {
                     queryParams.append("status", filters.status);
-                }
-                if (filters?.recurrence && filters.recurrence !== "all") {
-                    queryParams.append("recurrence", filters.recurrence);
                 }
 
                 const url = `/api/packages/entity/${entityId}${queryParams.toString() ? `?${queryParams.toString()}` : ""
@@ -384,7 +381,10 @@ export function usePackages() {
      */
     const isServiceInPackage = useCallback(
         (packageData: ServicePackage, serviceId: string): boolean => {
-            return packageData.services.some((s) => s._id === serviceId);
+            return packageData.services.some((s) => {
+                const id = typeof s.serviceId === 'string' ? s.serviceId : (s.serviceId as any)._id || (s.serviceId as any).id;
+                return id === serviceId;
+            });
         },
         []
     );

@@ -1,5 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import {
@@ -11,9 +10,7 @@ import {
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Navigation } from "../components/layout/navigation";
-import { useAuth } from "../contexts/auth-context";
 import { useRegion } from "../contexts/region-context";
-import { getDashboardRoute } from "../lib/utils";
 import {
   Calendar,
   Users,
@@ -29,9 +26,7 @@ import {
 
 export function HomePage() {
   const { t } = useTranslation("home");
-  const { user, isAuthenticated, isLoading } = useAuth();
   const { getPriceDisplay } = useRegion();
-  const navigate = useNavigate();
 
   // No automatic redirect - users can view the home page even when authenticated
 

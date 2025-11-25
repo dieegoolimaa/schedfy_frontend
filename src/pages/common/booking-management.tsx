@@ -76,9 +76,10 @@ import {
   Calendar as CalendarIcon,
   CreditCard,
   Eye,
-  DollarSign,
+
   Hourglass,
   LayoutList,
+  Play,
 } from "lucide-react";
 import PaymentForm from "../../components/payments/PaymentForm";
 
@@ -175,7 +176,21 @@ export function BookingManagementPage() {
       console.error("Failed to reject booking:", error);
       toast.error("Failed to reject booking");
     }
+  }
+
+
+  const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
+    try {
+      await apiClient.patch(`/api/bookings/${bookingId}/status`, { status: newStatus });
+      toast.success(t('bookings.statusUpdated', 'Status updated successfully'));
+      fetchBookings();
+    } catch (error) {
+      console.error('Failed to update status', error);
+      toast.error(t('bookings.statusUpdateFailed', 'Failed to update status'));
+    }
   };
+
+  // View booking details
 
   // View booking details
   const handleViewDetails = (booking: any) => {
@@ -241,6 +256,10 @@ export function BookingManagementPage() {
         return "bg-red-100 text-red-800 border-red-200";
       case "no-show":
         return "bg-gray-100 text-gray-800 border-gray-200";
+      case "no-show":
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800 border-blue-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -272,6 +291,11 @@ export function BookingManagementPage() {
       case "cancelled":
       case "no-show":
         return <XCircle className="h-4 w-4" />;
+      case "cancelled":
+      case "no-show":
+        return <XCircle className="h-4 w-4" />;
+      case "in_progress":
+        return <Play className="h-4 w-4" />;
       default:
         return <AlertCircle className="h-4 w-4" />;
     }
@@ -719,8 +743,9 @@ export function BookingManagementPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">⏳ Pending Confirmation</SelectItem>
+              <SelectItem value="pending">Pending Confirmation</SelectItem>
               <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
@@ -1232,6 +1257,18 @@ export function BookingManagementPage() {
                                       </>
                                     )}
 
+
+
+                                  {booking.status === 'confirmed' && (
+                                    <DropdownMenuItem
+                                      onClick={() => handleUpdateStatus(booking.id, 'in_progress')}
+                                      className="text-blue-600"
+                                    >
+                                      <Play className="mr-2 h-4 w-4" />
+                                      Start Appointment
+                                    </DropdownMenuItem>
+                                  )}
+
                                   <DropdownMenuItem
                                     onClick={async () => {
                                       if (
@@ -1340,7 +1377,7 @@ export function BookingManagementPage() {
             <CalendarView
               open={false}
               onOpenChange={() => { }}
-              bookings={displayBookings as any}
+              bookings={filteredBookings as any}
               asTab={true}
               defaultView="week"
               workingHours={fullEntity?.workingHours || { start: "08:00", end: "23:00" }}
@@ -1914,7 +1951,12 @@ export function BookingManagementPage() {
       <BookingCreator
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        services={services}
+        services={services.map(s => ({
+          ...s,
+          id: s.id || '',
+          duration: typeof s.duration === 'object' ? (s.duration as any).duration : s.duration,
+          price: (s as any).pricing?.basePrice || (s as any).price || 0
+        }))}
         planType="business"
         onSuccess={async () => {
           await fetchBookings();
@@ -2133,3 +2175,4 @@ export function BookingManagementPage() {
     </div>
   );
 }
+

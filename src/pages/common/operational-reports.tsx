@@ -80,7 +80,7 @@ export function OperationalReportsPage() {
   });
 
   // Filter bookings based on time range
-  const filteredBookings = useMemo(() => {
+  const { filteredBookings, growth } = useMemo(() => {
     const now = new Date();
     const rangeMap: Record<string, number> = {
       "7d": 7,
@@ -90,8 +90,22 @@ export function OperationalReportsPage() {
     };
     const days = rangeMap[timeRange] || 30;
     const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const previousStartDate = new Date(now.getTime() - days * 2 * 24 * 60 * 60 * 1000);
 
-    return bookings.filter((b) => new Date(b.startTime) >= startDate);
+    const currentPeriod = bookings.filter((b) => new Date(b.startTime) >= startDate);
+    const previousPeriod = bookings.filter((b) => {
+      const date = new Date(b.startTime);
+      return date >= previousStartDate && date < startDate;
+    });
+
+    const currentTotal = currentPeriod.length;
+    const previousTotal = previousPeriod.length;
+
+    const growthRate = previousTotal > 0
+      ? ((currentTotal - previousTotal) / previousTotal) * 100
+      : currentTotal > 0 ? 100 : 0;
+
+    return { filteredBookings: currentPeriod, growth: growthRate };
   }, [bookings, timeRange]);
 
   // Calculate Operational Stats
@@ -106,9 +120,6 @@ export function OperationalReportsPage() {
     const noShow = filteredBookings.filter(
       (b) => b.status === "no-show"
     ).length;
-
-    // Calculate growth (mock logic for now as we need previous period data)
-    const growth = 12.5;
 
     // New Clients (approximate based on creation date)
     const newClientsCount = clients.filter((c) => {
@@ -138,7 +149,7 @@ export function OperationalReportsPage() {
       newClients: newClientsCount,
       growth,
     };
-  }, [filteredBookings, clients, timeRange]);
+  }, [filteredBookings, clients, timeRange, growth]);
 
   // Bookings by Service
   const bookingsByService = useMemo(() => {
@@ -261,31 +272,66 @@ export function OperationalReportsPage() {
     ].filter((i) => i.value > 0);
   }, [stats]);
 
-  // AI Insights (Mocked for now, but could be calculated)
-  const aiInsights = [
-    {
-      type: "opportunity",
-      title: "Peak Time Optimization",
-      description:
-        "Consider adding availability during 15:00-16:00 peak hours to reduce wait times.",
-      impact: "high",
-    },
-    {
-      type: "warning",
-      title: "Cancellation Alert",
-      description:
-        "Monday mornings have a 15% higher cancellation rate than other times.",
-      impact: "medium",
-    },
-    {
-      type: "success",
-      title: "Service Performance",
-      description: `"${
-        bookingsByService[0]?.name || "Top Service"
-      }" is your most popular service this month.`,
-      impact: "high",
-    },
-  ];
+  // Dynamic AI Insights
+  const aiInsights = useMemo(() => {
+    const insights = [];
+
+    // 1. Peak Time Optimization
+    if (busyHours.length > 0) {
+      const peakHour = busyHours.reduce((max, curr) =>
+        curr.bookings > max.bookings ? curr : max
+        , busyHours[0]);
+
+      if (peakHour.bookings > 0) {
+        insights.push({
+          type: "opportunity",
+          title: "Peak Time Optimization",
+          description: `High demand observed around ${peakHour.hour}. Consider optimizing staff availability during this time.`,
+          impact: "high",
+        });
+      }
+    }
+
+    // 2. Cancellation Alert
+    if (stats.cancellationRate > 15) {
+      insights.push({
+        type: "warning",
+        title: "High Cancellation Rate",
+        description: `Cancellation rate is ${stats.cancellationRate.toFixed(1)}%. Consider sending reminders earlier or requiring deposits.`,
+        impact: "high",
+      });
+    } else if (stats.cancellationRate > 5) {
+      insights.push({
+        type: "warning",
+        title: "Cancellation Alert",
+        description: `Cancellation rate is ${stats.cancellationRate.toFixed(1)}%. Monitor this trend.`,
+        impact: "medium",
+      });
+    }
+
+    // 3. Service Performance
+    if (bookingsByService.length > 0) {
+      const topService = bookingsByService[0];
+      insights.push({
+        type: "success",
+        title: "Top Performing Service",
+        description: `"${topService.name}" is your most popular service with ${topService.value} bookings.`,
+        impact: "high",
+      });
+    }
+
+    // 4. Growth Insight (if we had previous data, but we can use total bookings as a proxy for activity)
+    if (stats.total > 0) {
+      insights.push({
+        type: "info",
+        title: "Booking Activity",
+        description: `You have managed ${stats.total} bookings in this period.`,
+        impact: "medium",
+      });
+    }
+
+    return insights.slice(0, 3); // Show top 3 insights
+  }, [busyHours, stats, bookingsByService]);
 
   const getInsightColor = (type: string) => {
     switch (type) {
@@ -350,7 +396,10 @@ export function OperationalReportsPage() {
           title="Total Bookings"
           value={stats.total}
           icon={Calendar}
-          trend={{ value: "+12%", isPositive: true }} // Mock trend
+          trend={{
+            value: `${stats.growth > 0 ? "+" : ""}${stats.growth.toFixed(1)}%`,
+            isPositive: stats.growth >= 0
+          }}
           subtitle="in selected period"
         />
         <StatCard
@@ -507,8 +556,8 @@ export function OperationalReportsPage() {
                       <TableCell className="text-right">
                         {service.total > 0
                           ? ((service.completed / service.total) * 100).toFixed(
-                              1
-                            )
+                            1
+                          )
                           : 0}
                         %
                       </TableCell>

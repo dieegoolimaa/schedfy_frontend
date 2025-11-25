@@ -997,6 +997,7 @@ export function CommissionsManagementPage() {
                                         >
                                           {service.name}
                                           <button
+                                            type="button"
                                             onClick={() => {
                                               setNewCommission({
                                                 ...newCommission,
@@ -1026,6 +1027,7 @@ export function CommissionsManagementPage() {
                                   .map((service: any) => (
                                     <Button
                                       key={service._id}
+                                      type="button"
                                       variant="outline"
                                       size="sm"
                                       onClick={() => {
@@ -1075,6 +1077,7 @@ export function CommissionsManagementPage() {
                                           {professional.name ||
                                             `${professional.firstName} ${professional.lastName}`}
                                           <button
+                                            type="button"
                                             onClick={() => {
                                               setNewCommission({
                                                 ...newCommission,
@@ -1106,6 +1109,7 @@ export function CommissionsManagementPage() {
                                   .map((professional: any) => (
                                     <Button
                                       key={professional._id}
+                                      type="button"
                                       variant="outline"
                                       size="sm"
                                       onClick={() => {
@@ -2261,6 +2265,7 @@ export function CommissionsManagementPage() {
                             <Badge key={service._id} variant="secondary">
                               {service.name}
                               <button
+                                type="button"
                                 onClick={() =>
                                   setEditCommissionForm({
                                     ...editCommissionForm,
@@ -2287,6 +2292,7 @@ export function CommissionsManagementPage() {
                         .map((service: any) => (
                           <Button
                             key={service._id}
+                            type="button"
                             variant="outline"
                             size="sm"
                             onClick={() =>
@@ -2321,6 +2327,7 @@ export function CommissionsManagementPage() {
                               {professional.name ||
                                 `${professional.firstName} ${professional.lastName}`}
                               <button
+                                type="button"
                                 onClick={() =>
                                   setEditCommissionForm({
                                     ...editCommissionForm,
@@ -2347,6 +2354,7 @@ export function CommissionsManagementPage() {
                         .map((professional: any) => (
                           <Button
                             key={professional._id}
+                            type="button"
                             variant="outline"
                             size="sm"
                             onClick={() =>
@@ -2400,11 +2408,12 @@ export function CommissionsManagementPage() {
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
+                    type="button"
                     onClick={() => setEditCommissionDialog(false)}
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleUpdateCommission}>
+                  <Button type="button" onClick={handleUpdateCommission}>
                     Update Commission
                   </Button>
                 </div>
@@ -2512,6 +2521,7 @@ export function CommissionsManagementPage() {
                           <Badge key={service._id} variant="secondary">
                             {service.name}
                             <button
+                              type="button"
                               onClick={() =>
                                 setEditVoucherForm({
                                   ...editVoucherForm,
@@ -2538,6 +2548,7 @@ export function CommissionsManagementPage() {
                       .map((service: any) => (
                         <Button
                           key={service._id}
+                          type="button"
                           variant="outline"
                           size="sm"
                           onClick={() =>
@@ -2617,11 +2628,12 @@ export function CommissionsManagementPage() {
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
+                    type="button"
                     onClick={() => setEditVoucherDialog(false)}
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleUpdateVoucher}>Update Voucher</Button>
+                  <Button type="button" onClick={handleUpdateVoucher}>Update Voucher</Button>
                 </div>
               </div>
             </DialogContent>
@@ -2741,6 +2753,7 @@ export function CommissionsManagementPage() {
                             <Badge key={service._id} variant="secondary">
                               {service.name}
                               <button
+                                type="button"
                                 onClick={() =>
                                   setEditDiscountForm({
                                     ...editDiscountForm,
@@ -2767,6 +2780,7 @@ export function CommissionsManagementPage() {
                         .map((service: any) => (
                           <Button
                             key={service._id}
+                            type="button"
                             variant="outline"
                             size="sm"
                             onClick={() =>
@@ -2846,11 +2860,12 @@ export function CommissionsManagementPage() {
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
+                    type="button"
                     onClick={() => setEditDiscountDialog(false)}
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleUpdateDiscount}>
+                  <Button type="button" onClick={handleUpdateDiscount}>
                     Update Discount
                   </Button>
                 </div>

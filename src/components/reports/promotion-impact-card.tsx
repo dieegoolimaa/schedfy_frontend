@@ -2,21 +2,17 @@ import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurrency } from "../../hooks/useCurrency";
 import { Booking } from "../../types/models/bookings.interface";
-import { Commission, Voucher, Discount } from "../../types/models/promotions.interface";
-import { TrendingUp, DollarSign, Tag, Percent } from "lucide-react";
+import { Commission } from "../../types/models/promotions.interface";
+import { DollarSign, Tag, Percent, TrendingUp } from "lucide-react";
 
 interface PromotionImpactCardProps {
     bookings: Booking[];
     commissions: Commission[];
-    vouchers: Voucher[];
-    discounts: Discount[];
 }
 
 export const PromotionImpactCard: React.FC<PromotionImpactCardProps> = ({
     bookings,
     commissions,
-    vouchers,
-    discounts,
 }) => {
     const { formatCurrency } = useCurrency();
 
