@@ -11,6 +11,10 @@ export interface User {
     timezone: string;
     locale: string;
     isEmailVerified: boolean;
+    firstName?: string;
+    lastName?: string;
+    status?: string;
+    isProfessional?: boolean;
     phone?: string;
     professionalInfo?: {
         jobFunction?: string;
