@@ -212,6 +212,17 @@ export default function TeamManagementPage() {
         try {
             toast.loading("Updating user...", { id: "update-user" });
 
+            const genericUpdates: any = {};
+            if (updates.firstName) genericUpdates.firstName = updates.firstName;
+            if (updates.lastName) genericUpdates.lastName = updates.lastName;
+            if (updates.email) genericUpdates.email = updates.email;
+            if (updates.phone) genericUpdates.phone = updates.phone;
+
+            // Call generic update if there are any generic fields
+            if (Object.keys(genericUpdates).length > 0) {
+                await usersService.updateUser(userId, genericUpdates);
+            }
+
             if (updates.role) {
                 await usersService.updateUserRole(userId, updates.role);
             }
@@ -221,9 +232,6 @@ export default function TeamManagementPage() {
             if (updates.status) {
                 await usersService.updateUserStatus(userId, updates.status);
             }
-            // Handle other updates if necessary (e.g., name, phone) via a generic update endpoint if it exists
-            // For now assuming role/status/professional are the main ones.
-            // If we need to update basic info, we might need a new service method.
 
             toast.success("User updated successfully!", { id: "update-user" });
             fetchUsers();
