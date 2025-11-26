@@ -36,7 +36,7 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { Switch } from "../../components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Avatar, Avatar Fallback } from "../../components/ui/avatar";
+import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 import {
     Users,
     UserPlus,
@@ -54,6 +54,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
 import { usersService } from "../../services/users.service";
+import { EditUserDialog, PermissionsDialog } from "../../components/dialogs/user-dialogs";
 
 interface User {
     id: string;
@@ -110,6 +111,9 @@ export default function TeamManagementPage() {
     const [activeTab, setActiveTab] = useState("team");
 
     const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
 
     const [inviteForm, setInviteForm] = useState({
         firstName: "",
@@ -217,6 +221,9 @@ export default function TeamManagementPage() {
             if (updates.status) {
                 await usersService.updateUserStatus(userId, updates.status);
             }
+            // Handle other updates if necessary (e.g., name, phone) via a generic update endpoint if it exists
+            // For now assuming role/status/professional are the main ones.
+            // If we need to update basic info, we might need a new service method.
 
             toast.success("User updated successfully!", { id: "update-user" });
             fetchUsers();
@@ -225,6 +232,35 @@ export default function TeamManagementPage() {
             toast.error(
                 error?.response?.data?.message || "Failed to update user",
                 { id: "update-user" }
+            );
+        }
+    };
+
+    const handleEditUser = (user: User) => {
+        setSelectedUser(user);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleManagePermissions = (user: User) => {
+        setSelectedUser(user);
+        setIsPermissionsDialogOpen(true);
+    };
+
+    const handleSaveUser = async (userId: string, updates: Partial<User>) => {
+        await handleUpdateUser(userId, updates);
+    };
+
+    const handleSavePermissions = async (userId: string, permissions: string[]) => {
+        try {
+            toast.loading("Updating permissions...", { id: "update-permissions" });
+            await usersService.updateUserPermissions(userId, permissions);
+            toast.success("Permissions updated successfully!", { id: "update-permissions" });
+            fetchUsers();
+        } catch (error: any) {
+            console.error("[TeamManagement] Permission update failed:", error);
+            toast.error(
+                error?.response?.data?.message || "Failed to update permissions",
+                { id: "update-permissions" }
             );
         }
     };
@@ -418,6 +454,7 @@ export default function TeamManagementPage() {
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 title="Edit user"
+                                                                onClick={() => handleEditUser(user)}
                                                             >
                                                                 <Edit className="h-4 w-4" />
                                                             </Button>
@@ -425,6 +462,7 @@ export default function TeamManagementPage() {
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 title="Manage permissions"
+                                                                onClick={() => handleManagePermissions(user)}
                                                             >
                                                                 <Shield className="h-4 w-4" />
                                                             </Button>
@@ -620,6 +658,20 @@ export default function TeamManagementPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <EditUserDialog
+                user={selectedUser}
+                isOpen={isEditDialogOpen}
+                onClose={() => setIsEditDialogOpen(false)}
+                onSave={handleSaveUser}
+            />
+
+            <PermissionsDialog
+                user={selectedUser}
+                isOpen={isPermissionsDialogOpen}
+                onClose={() => setIsPermissionsDialogOpen(false)}
+                onSave={handleSavePermissions}
+            />
         </div>
     );
 }
