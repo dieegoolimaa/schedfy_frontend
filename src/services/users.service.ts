@@ -45,8 +45,17 @@ export const usersService = {
         password: string;
         firstName: string;
         lastName: string;
+        professionalInfo?: { jobFunction?: string };
     }) => {
         return await apiClient.post('/api/users/accept-invitation', data);
+    },
+
+    /**
+     * Validate invitation token
+     */
+    validateInvitation: async (token: string): Promise<User & { entityId: { plan: string } }> => {
+        const response = await apiClient.get(`/api/users/validate-invitation/${token}`);
+        return response.data as User & { entityId: { plan: string } };
     },
 
     /**

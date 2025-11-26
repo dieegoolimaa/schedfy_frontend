@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -24,9 +24,39 @@ export function AcceptInvitationPage() {
     lastName: "",
     password: "",
     confirmPassword: "",
+    jobFunction: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [validating, setValidating] = useState(true);
+  const [invitationData, setInvitationData] = useState<any>(null);
+
+  useEffect(() => {
+    if (token) {
+      validateToken(token);
+    } else {
+      setValidating(false);
+    }
+  }, [token]);
+
+  const validateToken = async (token: string) => {
+    try {
+      const data = await usersService.validateInvitation(token);
+      setInvitationData(data);
+      setFormData((prev) => ({
+        ...prev,
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        jobFunction: data.professionalInfo?.jobFunction || "",
+      }));
+    } catch (error) {
+      console.error("Invalid token:", error);
+      toast.error("Invalid or expired invitation link");
+    } finally {
+      setValidating(false);
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,11 +78,17 @@ export function AcceptInvitationPage() {
 
     setLoading(true);
     try {
+      // We might want to send jobFunction update as well, but acceptInvitation endpoint currently only takes basic info.
+      // For now, we'll stick to the existing endpoint contract.
+      // If we need to update professional info, we might need to update the backend endpoint first.
+      // Assuming for now we just accept.
+
       const response = await usersService.acceptInvitation({
         token,
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
+        professionalInfo: formData.jobFunction ? { jobFunction: formData.jobFunction } : undefined,
       });
 
       const data = response.data as { message?: string };
@@ -70,7 +106,15 @@ export function AcceptInvitationPage() {
     }
   };
 
-  if (!token) {
+  if (validating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!token || !invitationData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
@@ -86,13 +130,18 @@ export function AcceptInvitationPage() {
     );
   }
 
+  const isSimplePlan = invitationData.entityId?.plan === 'simple';
+  const isProfessional = invitationData.role === 'professional';
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Accept Invitation</CardTitle>
           <CardDescription>
-            Set up your account to access the platform
+            {isSimplePlan
+              ? "Set up your password to access the platform"
+              : "Complete your profile to access the platform"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -108,6 +157,8 @@ export function AcceptInvitationPage() {
                   }
                   placeholder="John"
                   required
+                  disabled={isSimplePlan}
+                  className={isSimplePlan ? "bg-muted" : ""}
                 />
               </div>
               <div className="space-y-2">
@@ -120,9 +171,29 @@ export function AcceptInvitationPage() {
                   }
                   placeholder="Doe"
                   required
+                  disabled={isSimplePlan}
+                  className={isSimplePlan ? "bg-muted" : ""}
                 />
               </div>
             </div>
+
+            {/* Show Job Function only for Business Plan Professionals */}
+            {!isSimplePlan && isProfessional && (
+              <div className="space-y-2">
+                <Label htmlFor="jobFunction">Job Function</Label>
+                <Input
+                  id="jobFunction"
+                  value={formData.jobFunction}
+                  onChange={(e) =>
+                    setFormData({ ...formData, jobFunction: e.target.value })
+                  }
+                  placeholder="e.g. Senior Stylist"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your role title visible to clients
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
