@@ -59,6 +59,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs";
+import { AIOperationalInsights } from "../../components/reports/ai-operational-insights";
 
 export function OperationalReportsPage() {
   const { user } = useAuth();
@@ -455,6 +456,9 @@ export function OperationalReportsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* AI Operational Insights */}
+          <AIOperationalInsights bookings={filteredBookings} />
+
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Busy Hours */}
             <Card>

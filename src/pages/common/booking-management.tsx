@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
@@ -33,6 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -76,14 +78,24 @@ import {
   Calendar as CalendarIcon,
   CreditCard,
   Eye,
-
+  Banknote,
+  Smartphone,
+  Building2,
+  CheckCircle2,
+  FileText,
   Hourglass,
   LayoutList,
+  Mail,
   Play,
+  Loader2,
+  RotateCcw,
 } from "lucide-react";
-import PaymentForm from "../../components/payments/PaymentForm";
 
-export function BookingManagementPage() {
+interface BookingManagementPageProps {
+  forcedProfessionalId?: string;
+}
+
+export function BookingManagementPage({ forcedProfessionalId }: BookingManagementPageProps) {
   const { t } = useTranslation("bookings");
   const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
   const { user } = useAuth();
@@ -91,8 +103,7 @@ export function BookingManagementPage() {
   const { formatCurrency } = useCurrency();
   const entityId = user?.entityId || user?.id || "";
 
-  console.log("[BookingManagementPage] Full Entity from hook:", fullEntity);
-  console.log("[BookingManagementPage] Working Hours from hook:", fullEntity?.workingHours);
+
 
   // Use the bookings hook with real API
   const {
@@ -111,7 +122,8 @@ export function BookingManagementPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [clientSearchTerm, setClientSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
   const [dateFilter, setDateFilter] = useState("all");
   const [editingBooking, setEditingBooking] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -120,6 +132,10 @@ export function BookingManagementPage() {
   const [selectedBookingForPayment, setSelectedBookingForPayment] =
     useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
+  const [taxId, setTaxId] = useState<string>("");
+  const [customPaymentAmount, setCustomPaymentAmount] = useState<string>(""); // State for custom amount
+  const [isEditingAmount, setIsEditingAmount] = useState(false); // State for edit mode
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   // View mode state (list or calendar)
   const [viewMode, setViewMode] = useState<"list" | "calendar">(() => {
@@ -159,9 +175,33 @@ export function BookingManagementPage() {
       await apiClient.patch(`/api/bookings/${bookingId}/confirm`);
       toast.success("Booking confirmed successfully");
       fetchBookings();
+
+      // If filtering by pending, reset to show the confirmed booking
+      if (statusFilter === 'pending') {
+        setStatusFilter('all');
+        searchParams.delete('status');
+        setSearchParams(searchParams);
+      }
     } catch (error) {
       console.error("Failed to confirm booking:", error);
       toast.error("Failed to confirm booking");
+    }
+  };
+
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [bookingToReject, setBookingToReject] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const openRejectDialog = (bookingId: string) => {
+    setBookingToReject(bookingId);
+    setRejectReason("");
+    setRejectDialogOpen(true);
+  };
+
+  const confirmReject = () => {
+    if (bookingToReject) {
+      handleRejectBooking(bookingToReject, rejectReason);
+      setRejectDialogOpen(false);
     }
   };
 
@@ -184,6 +224,13 @@ export function BookingManagementPage() {
       await apiClient.patch(`/api/bookings/${bookingId}/status`, { status: newStatus });
       toast.success(t('bookings.statusUpdated', 'Status updated successfully'));
       fetchBookings();
+
+      // If filtering by pending and moving away from pending, reset filter
+      if (statusFilter === 'pending' && newStatus !== 'pending') {
+        setStatusFilter('all');
+        searchParams.delete('status');
+        setSearchParams(searchParams);
+      }
     } catch (error) {
       console.error('Failed to update status', error);
       toast.error(t('bookings.statusUpdateFailed', 'Failed to update status'));
@@ -214,11 +261,6 @@ export function BookingManagementPage() {
       return dateA.getTime() - dateB.getTime();
     });
 
-    console.log(
-      "[BookingManagement] Recurring series bookings:",
-      sortedSeries.length,
-      "bookings"
-    );
     setRecurringSeriesBookings(sortedSeries);
     setIsRecurringSeriesDialogOpen(true);
   };
@@ -256,8 +298,7 @@ export function BookingManagementPage() {
         return "bg-red-100 text-red-800 border-red-200";
       case "no-show":
         return "bg-gray-100 text-gray-800 border-gray-200";
-      case "no-show":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+
       case "in_progress":
         return "bg-blue-100 text-blue-800 border-blue-200";
       default:
@@ -291,9 +332,7 @@ export function BookingManagementPage() {
       case "cancelled":
       case "no-show":
         return <XCircle className="h-4 w-4" />;
-      case "cancelled":
-      case "no-show":
-        return <XCircle className="h-4 w-4" />;
+
       case "in_progress":
         return <Play className="h-4 w-4" />;
       default:
@@ -315,24 +354,14 @@ export function BookingManagementPage() {
     let mounted = true;
     (async () => {
       try {
-        console.log(
-          "[BookingManagement] Fetching professionals for entityId:",
-          entityId
-        );
-        // Correct endpoint: /api/users with role=professional
+        // Correct endpoint: /api/users with isProfessional=true
         const res: any = await apiClient.get("/api/users", {
           entityId,
-          role: "professional",
+          isProfessional: true,
         });
-        console.log("[BookingManagement] Full API response:", res);
+
 
         const data = res?.data || [];
-        console.log(
-          "[BookingManagement] Professionals loaded:",
-          data.length,
-          "items",
-          data
-        );
         if (mounted) setProfessionalsList(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error("[BookingManagement] Error loading professionals:", e);
@@ -442,10 +471,6 @@ export function BookingManagementPage() {
   // Debug: Log when real data loads
   useEffect(() => {
     if (servicesFromApi && servicesFromApi.length > 0) {
-      console.log(
-        "[BookingManagement] ✅ REAL SERVICES LOADED FROM API:",
-        servicesFromApi
-      );
     }
   }, [servicesFromApi]);
 
@@ -549,12 +574,13 @@ export function BookingManagementPage() {
       const matchesService =
         serviceFilter === "all" || booking.service?.name === serviceFilter;
 
-      const matchesProfessional =
-        professionalFilter === "all" ||
-        booking.professional?.name === professionalFilter;
+      const matchesProfessional = forcedProfessionalId
+        ? (String(booking.professional?.id) === String(forcedProfessionalId) || String(booking.professionalId) === String(forcedProfessionalId))
+        : (professionalFilter === "all" || booking.professional?.name === professionalFilter);
 
-      // Payment status removed as it's not in the Booking model
-      const matchesPayment = paymentFilter === "all"; // Placeholder
+      const matchesPayment =
+        paymentFilter === "all" ||
+        (booking.paymentStatus || "pending") === paymentFilter;
 
       return (
         matchesSearch &&
@@ -802,39 +828,41 @@ export function BookingManagementPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="professional-filter">Professional</Label>
-                  <Select
-                    value={professionalFilter}
-                    onValueChange={setProfessionalFilter}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={t(
-                          "filters.allProfessionals",
-                          "All Professionals"
-                        )}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {t("filters.allProfessionals", "All Professionals")}
-                      </SelectItem>
-                      {professionalsList.map((professional) => (
-                        <SelectItem
-                          key={professional.id || professional._id}
-                          value={
-                            `${professional.firstName || ""} ${professional.lastName || ""
-                              }`.trim() || professional.name
-                          }
-                        >
-                          {`${professional.firstName || ""} ${professional.lastName || ""
-                            }`.trim() || professional.name}
+                {!forcedProfessionalId && (
+                  <div>
+                    <Label htmlFor="professional-filter">Professional</Label>
+                    <Select
+                      value={professionalFilter}
+                      onValueChange={setProfessionalFilter}
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={t(
+                            "filters.allProfessionals",
+                            "All Professionals"
+                          )}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
+                          {t("filters.allProfessionals", "All Professionals")}
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                        {professionalsList.map((professional) => (
+                          <SelectItem
+                            key={professional.id || professional._id}
+                            value={
+                              `${professional.firstName || ""} ${professional.lastName || ""
+                                }`.trim() || professional.name
+                            }
+                          >
+                            {`${professional.firstName || ""} ${professional.lastName || ""
+                              }`.trim() || professional.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 {canViewPaymentDetails && (
                   <div>
                     <Label htmlFor="payment-filter">Payment Status</Label>
@@ -1186,16 +1214,6 @@ export function BookingManagementPage() {
                                         notes: booking.notes || "",
                                       };
 
-                                      console.log(
-                                        "[BookingManagement] Opening edit dialog with",
-                                        professionalsList.length,
-                                        "professionals:",
-                                        professionalsList
-                                      );
-                                      console.log(
-                                        "[BookingManagement] Edit data:",
-                                        editData
-                                      );
                                       setEditingBooking(editData);
                                       setIsEditDialogOpen(true);
                                     }}
@@ -1215,47 +1233,35 @@ export function BookingManagementPage() {
                                   <DropdownMenuSeparator />
 
                                   {/* Confirm/Reject actions for pending bookings */}
-                                  {booking.status === "pending" &&
-                                    (booking as any).service?.bookingSettings
-                                      ?.requireManualConfirmation && (
-                                      <>
-                                        <DropdownMenuItem
-                                          onClick={async () => {
-                                            if (
-                                              confirm(
-                                                "Confirm this booking? The client will be notified."
-                                              )
-                                            ) {
-                                              await handleConfirmBooking(
-                                                booking.id
-                                              );
-                                            }
-                                          }}
-                                          className="text-green-600"
-                                        >
-                                          <CheckCircle className="mr-2 h-4 w-4" />
-                                          Confirm Booking
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={async () => {
-                                            const reason = prompt(
-                                              "Reason for rejection (optional):"
+                                  {booking.status === "pending" && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={async () => {
+                                          if (
+                                            confirm(
+                                              "Confirm this booking? The client will be notified."
+                                            )
+                                          ) {
+                                            await handleConfirmBooking(
+                                              booking.id
                                             );
-                                            if (reason !== null) {
-                                              await handleRejectBooking(
-                                                booking.id,
-                                                reason
-                                              );
-                                            }
-                                          }}
-                                          className="text-red-600"
-                                        >
-                                          <XCircle className="mr-2 h-4 w-4" />
-                                          Reject Booking
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                      </>
-                                    )}
+                                          }
+                                        }}
+                                        className="text-green-600"
+                                      >
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Confirm Booking
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => openRejectDialog(booking.id)}
+                                        className="text-red-600"
+                                      >
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        Reject Booking
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                    </>
+                                  )}
 
 
 
@@ -1351,6 +1357,7 @@ export function BookingManagementPage() {
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     onClick={() => handlePaymentClick(booking)}
+                                    disabled={booking.status === 'cancelled' || booking.paymentStatus === 'paid'}
                                   >
                                     <CreditCard className="mr-2 h-4 w-4" />
                                     {t(
@@ -1398,7 +1405,7 @@ export function BookingManagementPage() {
                   notes: booking.notes
                 };
 
-                console.log("[BookingManagement] Mapped booking for edit:", mappedBooking);
+
                 setEditingBooking(mappedBooking);
                 setIsEditDialogOpen(true);
               }}
@@ -1414,7 +1421,7 @@ export function BookingManagementPage() {
         professionals={professionalsList}
         entityId={entityId}
         onClose={() => {
-          console.log("[BookingManagement] Closing edit dialog");
+
           setIsEditDialogOpen(false);
           setEditingBooking(null);
         }}
@@ -1465,191 +1472,385 @@ export function BookingManagementPage() {
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Payment Management</DialogTitle>
-            <DialogDescription>
-              Manage payment for{" "}
-              {selectedBookingForPayment?.client?.name || "client"}'s booking
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+          <div className="p-6 bg-primary/5 border-b">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-primary" />
+                Payment Management
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                Process payment for booking #{selectedBookingForPayment?.id?.slice(-6)}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
           {selectedBookingForPayment && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Booking Details</Label>
-                  <div className="mt-2 p-3 bg-muted rounded-lg">
-                    <p className="text-sm">
-                      <strong>Service:</strong>{" "}
-                      {selectedBookingForPayment.service?.name || "N/A"}
-                    </p>
-                    <p className="text-sm">
-                      <strong>Professional:</strong>{" "}
-                      {selectedBookingForPayment.professional?.name || "N/A"}
-                    </p>
-                    <p className="text-sm">
-                      <strong>Date:</strong>{" "}
-                      {selectedBookingForPayment.startTime
-                        ? new Date(
-                          selectedBookingForPayment.startTime
-                        ).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                        : "N/A"}{" "}
-                      at{" "}
-                      {selectedBookingForPayment.startTime
-                        ? new Date(
-                          selectedBookingForPayment.startTime
-                        ).toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                        : "N/A"}
-                    </p>
-                    <p className="text-sm">
-                      <strong>Duration:</strong>{" "}
-                      {selectedBookingForPayment.service?.duration || 0}min
-                    </p>
+            <div className="p-6 space-y-8">
+              {/* Booking Summary Card */}
+              <div className="bg-card border rounded-xl p-4 shadow-sm flex flex-col md:flex-row justify-between gap-4">
+                <div className="space-y-1">
+                  <h3 className="font-medium text-lg">{selectedBookingForPayment.service?.name || "Service"}</h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="w-4 h-4" />
+                    {selectedBookingForPayment.client?.name || "Client"}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CalendarIcon className="w-4 h-4" />
+                    {selectedBookingForPayment.startTime
+                      ? new Date(selectedBookingForPayment.startTime).toLocaleDateString()
+                      : "N/A"}
                   </div>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium">
-                    Payment Information
-                  </Label>
-                  <div className="mt-2 p-3 bg-muted rounded-lg">
-                    <p className="text-sm">
-                      <strong>Amount:</strong> €
-                      {selectedBookingForPayment.service?.price || 0}
-                    </p>
-                    <p className="text-sm">
-                      <strong>Status:</strong>
-                      <span
-                        className={`ml-2 px-2 py-1 rounded-md text-xs font-medium border ${getPaymentStatusColor(
-                          selectedBookingForPayment.paymentStatus || "pending"
-                        )}`}
-                      >
-                        {selectedBookingForPayment.paymentStatus || "pending"}
-                      </span>
-                    </p>
-                    {selectedBookingForPayment.paymentStatus === "paid" && (
-                      <p className="text-sm">
-                        <strong>Paid at:</strong>{" "}
-                        {new Date().toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
+                <div className="flex flex-col items-end justify-center border-l pl-4 min-w-[150px]">
+                  <span className="text-sm text-muted-foreground">Total Amount</span>
+                  {selectedBookingForPayment.paymentStatus === 'paid' ? (
+                    <span className="text-3xl font-bold text-primary">
+                      €{selectedBookingForPayment.payment?.paidAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
+                    </span>
+                  ) : (
+                    isEditingAmount ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xl font-bold text-primary">€</span>
+                        <Input
+                          type="number"
+                          className="w-24 text-right text-xl font-bold h-10"
+                          value={customPaymentAmount}
+                          onChange={(e) => setCustomPaymentAmount(e.target.value)}
+                          autoFocus
+                        />
+                        <div className="flex flex-col gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => setIsEditingAmount(false)}>✓</Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setIsEditingAmount(false); setCustomPaymentAmount(""); }}>✕</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative group">
+                        <span className="text-3xl font-bold text-primary">
+                          €{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -right-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                          onClick={() => {
+                            setCustomPaymentAmount((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0).toString());
+                            setIsEditingAmount(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    )
+                  )}
+                  <Badge variant={selectedBookingForPayment.paymentStatus === 'paid' ? 'success' : 'outline'} className="mt-1 capitalize">
+                    {selectedBookingForPayment.paymentStatus || "pending"}
+                  </Badge>
                 </div>
               </div>
 
-              {selectedBookingForPayment.paymentStatus === "pending" && (
-                <div className="space-y-4">
-                  <Label htmlFor="payment-method">
-                    {t("payment.paymentMethod", "Payment Method")}
-                  </Label>
-                  <Select
-                    value={paymentMethod}
-                    onValueChange={(v) => setPaymentMethod(v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={t(
-                          "payment.selectMethod",
-                          "Select payment method"
-                        )}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">
-                        {t("payment.methods.cash", "Cash")}
-                      </SelectItem>
-                      <SelectItem value="card">
-                        {t("payment.methods.card", "Credit/Debit Card")}
-                      </SelectItem>
-                      <SelectItem value="transfer">
-                        {t("payment.methods.transfer", "Bank Transfer")}
-                      </SelectItem>
-                      <SelectItem value="mbway">
-                        {t("payment.methods.mbway", "MB Way")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Cost Breakdown */}
+              {selectedBookingForPayment.paymentStatus !== 'paid' && (
+                <div className="bg-muted/30 p-4 rounded-lg border text-sm space-y-2 mb-4">
+                  <h4 className="font-semibold mb-2">Price Breakdown</h4>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Base Price</span>
+                    <span>€{selectedBookingForPayment.pricing?.basePrice || selectedBookingForPayment.service?.price || 0}</span>
+                  </div>
+                  {selectedBookingForPayment.pricing?.voucherDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Voucher Discount</span>
+                      <span>-€{selectedBookingForPayment.pricing.voucherDiscount}</span>
+                    </div>
+                  )}
+                  {selectedBookingForPayment.pricing?.discountAmount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>-€{selectedBookingForPayment.pricing.discountAmount}</span>
+                    </div>
+                  )}
+                  {selectedBookingForPayment.pricing?.commissionAmount > 0 && (
+                    <div className="flex justify-between text-blue-600">
+                      <span>Commission</span>
+                      <span>€{selectedBookingForPayment.pricing.commissionAmount}</span>
+                    </div>
+                  )}
+                  {selectedBookingForPayment.pricing?.additionalCharges > 0 && (
+                    <div className="flex justify-between text-orange-600">
+                      <span>Additional Charges</span>
+                      <span>+€{selectedBookingForPayment.pricing.additionalCharges}</span>
+                    </div>
+                  )}
+                  <div className="border-t pt-2 flex justify-between font-bold">
+                    <span>Total</span>
+                    <span>€{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}</span>
+                  </div>
+                </div>
+              )}
 
-                  {paymentMethod === "card" ? (
-                    // In-app card flow using Stripe Elements
-                    <PaymentForm
-                      bookingId={selectedBookingForPayment.id}
-                      clientName={selectedBookingForPayment.client?.name}
-                      onSuccess={async () => {
-                        try {
-                          await completeBooking(
-                            String(selectedBookingForPayment.id)
-                          );
-                        } catch (err) {
-                          console.error(err);
-                        } finally {
-                          await fetchBookings();
-                          setPaymentDialogOpen(false);
-                        }
-                      }}
-                      onCancel={() => setPaymentDialogOpen(false)}
-                    />
-                  ) : (
-                    <div>
+              {/* Payment Status Handling */}
+              {selectedBookingForPayment.paymentStatus === "paid" ? (
+                <div className="flex flex-col items-center justify-center py-8 space-y-6 text-center animate-in fade-in zoom-in duration-300">
+                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2 shadow-sm">
+                    <CheckCircle2 className="w-10 h-10" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-bold tracking-tight">Payment Completed</h3>
+                    <p className="text-muted-foreground max-w-xs mx-auto">
+                      This booking has been fully paid. You can now issue a receipt or invoice.
+                    </p>
+                  </div>
+
+                  {/* Payment Details Grid */}
+                  <div className="grid grid-cols-2 gap-4 w-full max-w-md bg-muted/30 p-4 rounded-lg border text-sm">
+                    <div className="flex flex-col items-start gap-1">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wider">Payment Date</span>
+                      <span className="font-medium">
+                        {selectedBookingForPayment.payment?.paidAmount
+                          ? new Date().toLocaleDateString() // Fallback if date not available
+                          : new Date().toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-start gap-1">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wider">Method</span>
+                      <span className="font-medium capitalize">
+                        {selectedBookingForPayment.payment?.method || "Card"}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-start gap-1 col-span-2">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wider">Transaction ID</span>
+                      <span className="font-mono text-xs text-muted-foreground break-all text-left">
+                        {selectedBookingForPayment.payment?.transactionIds?.[0] ||
+                          selectedBookingForPayment.payment?.stripePaymentIntentId ||
+                          "N/A"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap justify-center gap-3 pt-4 w-full">
+                    <Button variant="outline" className="gap-2 min-w-[140px]" onClick={async () => {
+                      try {
+                        toast.loading("Sending invoice...");
+                        await apiClient.post(`/api/payments/send-invoice-by-booking/${selectedBookingForPayment.id}`);
+                        toast.dismiss();
+                        toast.success("Invoice sent to client email");
+                      } catch (err) {
+                        toast.dismiss();
+                        toast.error("Failed to send invoice");
+                      }
+                    }}>
+                      <Mail className="w-4 h-4" />
+                      Send Invoice
+                    </Button>
+
+                    {/* View Receipt Button */}
+                    {selectedBookingForPayment.payment?.transactionIds?.[0] && (
+                      <Button variant="secondary" className="gap-2 min-w-[140px]" onClick={() => {
+                        const paymentId = selectedBookingForPayment.payment.transactionIds[0];
+                        window.open(`/payments/${paymentId}/receipt`, '_blank');
+                      }}>
+                        <FileText className="w-4 h-4" />
+                        View Receipt
+                      </Button>
+                    )}
+
+                    <Button variant="destructive" className="gap-2 min-w-[140px]" onClick={async () => {
+                      const paymentId = selectedBookingForPayment.payment?.transactionIds?.[0];
+
+                      if (!paymentId) {
+                        toast.error("Payment ID not found. Cannot refund.");
+                        return;
+                      }
+
+                      if (!confirm("Are you sure you want to refund this payment? This action cannot be undone.")) return;
+
+                      try {
+                        toast.loading("Processing refund...");
+                        await apiClient.patch(`/api/payments/${paymentId}/refund`, {
+                          reason: 'Requested by professional'
+                        });
+                        toast.dismiss();
+                        toast.success("Payment refunded successfully");
+                        await fetchBookings();
+                        setPaymentDialogOpen(false);
+                      } catch (err) {
+                        toast.dismiss();
+                        console.error(err);
+                        toast.error("Failed to refund payment");
+                      }
+                    }}>
+                      <RotateCcw className="w-4 h-4" />
+                      Refund
+                    </Button>
+
+                    <Button variant="ghost" className="min-w-[100px]" onClick={() => {
+                      setPaymentDialogOpen(false);
+                      setSelectedBookingForPayment(null);
+                      setTaxId("");
+                      setPaymentMethod("card");
+                    }}>
+                      Close
+                    </Button>
+                  </div>
+                </div>
+
+              ) : (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Select Payment Method</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { id: 'card', label: 'Card', icon: CreditCard },
+                        { id: 'cash', label: 'Cash', icon: Banknote },
+                        { id: 'mbway', label: 'MB Way', icon: Smartphone },
+                        { id: 'transfer', label: 'Transfer', icon: Building2 },
+                      ].map((method) => (
+                        <button
+                          key={method.id}
+                          onClick={() => setPaymentMethod(method.id)}
+                          className={`
+                            flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
+                            ${paymentMethod === method.id
+                              ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                              : 'border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 text-muted-foreground'}
+                          `}
+                        >
+                          <method.icon className="w-6 h-6 mb-2" />
+                          <span className="text-sm font-medium">{method.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
                       <div className="space-y-2">
-                        <Label htmlFor="payment-notes">
-                          {t("payment.notes", "Payment Notes")}
-                        </Label>
+                        <Label htmlFor="tax-id">NIF / Tax ID (Optional)</Label>
+                        <Input
+                          id="tax-id"
+                          placeholder="123 456 789"
+                          value={taxId}
+                          onChange={(e) => setTaxId(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="payment-notes">Payment Notes (Optional)</Label>
                         <Textarea
                           id="payment-notes"
-                          placeholder={t(
-                            "payment.notesPlaceholder",
-                            "Add any payment-related notes..."
-                          )}
+                          placeholder={`Add details about the ${paymentMethod} payment...`}
+                          className="resize-none"
                           rows={3}
                         />
                       </div>
-
-                      <div className="flex gap-2 pt-4">
+                      <div className="flex justify-end gap-3 pt-2">
+                        <Button variant="ghost" onClick={() => setPaymentDialogOpen(false)}>
+                          Cancel
+                        </Button>
                         <Button
+                          className="min-w-[140px]"
+                          disabled={paymentLoading}
                           onClick={async () => {
+                            setPaymentLoading(true);
+                            console.log('[Payment] Starting payment process...');
+                            console.log('[Payment] Booking ID:', selectedBookingForPayment.id);
+                            console.log('[Payment] Tax ID:', taxId);
+                            console.log('[Payment] Payment Method:', paymentMethod);
+
                             try {
-                              // For non-card methods we mark booking as completed.
-                              await completeBooking(
-                                String(selectedBookingForPayment.id)
-                              );
+                              const payload: any = {
+                                taxId,
+                                paymentMethod
+                              };
+
+                              // Only send custom amount if it was edited
+                              if (customPaymentAmount && parseFloat(customPaymentAmount) > 0) {
+                                payload.amount = parseFloat(customPaymentAmount);
+                              }
+                              // Call API to complete booking
+                              console.log('[Payment] Calling completeBooking API with payload:', payload);
+                              const response = await apiClient.patch(`/api/bookings/${selectedBookingForPayment.id}/complete`, payload);
+                              console.log('[Payment] API Response:', response);
+
+                              // Reload bookings
+                              console.log('[Payment] Fetching updated bookings...');
                               await fetchBookings();
-                              toast.success(
-                                t(
-                                  "messages.paymentRecorded",
-                                  "Booking completed and payment recorded"
-                                )
-                              );
-                            } catch (err) {
-                              console.error(err);
-                              toast.error(
-                                t(
-                                  "messages.failedComplete",
-                                  "Failed to complete booking"
-                                )
-                              );
+                              console.log('[Payment] Bookings refreshed successfully');
+
+                              // Show success
+                              toast.success("Payment recorded successfully");
+
+                              // Update local state to show success view instead of closing
+                              console.log('[Payment] Updating local state for success view...');
+
+                              if (response.data) {
+                                console.log('[Payment] Response data:', response.data);
+
+                                // Update the selected booking with fresh data from backend
+                                const responseData = response.data as any;
+                                const updatedData = {
+                                  ...selectedBookingForPayment,
+                                  paymentStatus: 'paid',
+                                  status: 'completed',
+                                  payment: {
+                                    status: 'paid',
+                                    paidAmount: parseFloat(customPaymentAmount) || responseData?.pricing?.totalPrice || selectedBookingForPayment.pricing?.totalPrice,
+                                    method: paymentMethod,
+                                    transactionIds: responseData?.payment?.transactionIds || [],
+                                    stripePaymentIntentId: responseData?.payment?.stripePaymentIntentId
+                                  }
+                                };
+
+                                setSelectedBookingForPayment(updatedData);
+                              } else {
+                                // Fallback if no data returned (shouldn't happen)
+                                setSelectedBookingForPayment({
+                                  ...selectedBookingForPayment,
+                                  paymentStatus: 'paid',
+                                  status: 'completed'
+                                });
+                              }
+
+                              // Don't close dialog
+                              // setPaymentDialogOpen(false); 
+                              console.log('[Payment] Payment process completed successfully');
+                            } catch (err: any) {
+                              console.error('[Payment] Payment process failed:', err);
+                              console.error('[Payment] Error details:', {
+                                message: err.message,
+                                response: err.response?.data,
+                                status: err.response?.status,
+                                stack: err.stack
+                              });
+
+                              // Show detailed error to user
+                              const errorMessage = err.response?.data?.message
+                                || err.message
+                                || "Failed to record payment. Please try again.";
+
+                              toast.error(`Payment Error: ${errorMessage}`);
+
+                              // Don't close dialog on error so user can retry
                             } finally {
-                              setPaymentDialogOpen(false);
+                              setPaymentLoading(false);
                             }
                           }}
                         >
-                          {t("actions.markPaid", "Mark as Paid")}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => setPaymentDialogOpen(false)}
-                        >
-                          {t("actions.close", "Close")}
+                          {paymentLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Mark as Paid
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1657,8 +1858,31 @@ export function BookingManagementPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Reject Dialog */}
+      < Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen} >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Booking</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this booking. This will be sent to the client.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Reason for rejection..."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmReject}>Reject Booking</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog >
+
       {/* Booking Details Dialog */}
-      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+      < Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen} >
         <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("details.title", "Booking Details")}</DialogTitle>
@@ -1945,18 +2169,20 @@ export function BookingManagementPage() {
             </div>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Create Booking Dialog */}
-      <BookingCreator
+      < BookingCreator
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        services={services.map(s => ({
-          ...s,
-          id: s.id || '',
-          duration: typeof s.duration === 'object' ? (s.duration as any).duration : s.duration,
-          price: (s as any).pricing?.basePrice || (s as any).price || 0
-        }))}
+        services={
+          services.map(s => ({
+            ...s,
+            id: s.id || '',
+            duration: typeof s.duration === 'object' ? (s.duration as any).duration : s.duration,
+            price: (s as any).pricing?.basePrice || (s as any).price || 0
+          }))
+        }
         planType="business"
         onSuccess={async () => {
           await fetchBookings();
@@ -2172,7 +2398,7 @@ export function BookingManagementPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }
 

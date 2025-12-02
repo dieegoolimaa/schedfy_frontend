@@ -404,27 +404,35 @@ export default function UnifiedSettingsPage() {
                       </div>
                       {hours.enabled && (
                         <div className="flex gap-2 flex-1">
-                          <Input
-                            type="time"
-                            value={hours.start}
-                            onChange={(e) =>
-                              setWorkingHours({
-                                ...workingHours,
-                                [day]: { ...hours, start: e.target.value },
-                              })
-                            }
-                          />
+                          <div className="relative flex-1">
+                            <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input
+                              type="time"
+                              value={hours.start}
+                              onChange={(e) =>
+                                setWorkingHours({
+                                  ...workingHours,
+                                  [day]: { ...hours, start: e.target.value },
+                                })
+                              }
+                              className="pl-10"
+                            />
+                          </div>
                           <span className="self-center">-</span>
-                          <Input
-                            type="time"
-                            value={hours.end}
-                            onChange={(e) =>
-                              setWorkingHours({
-                                ...workingHours,
-                                [day]: { ...hours, end: e.target.value },
-                              })
-                            }
-                          />
+                          <div className="relative flex-1">
+                            <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input
+                              type="time"
+                              value={hours.end}
+                              onChange={(e) =>
+                                setWorkingHours({
+                                  ...workingHours,
+                                  [day]: { ...hours, end: e.target.value },
+                                })
+                              }
+                              className="pl-10"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

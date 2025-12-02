@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useFeatureFlags } from "../../contexts/feature-flags-context";
+import { usePermissions } from "../../hooks/use-permissions";
 import { Button } from "../ui/button";
 import { useTheme } from "../theme-provider";
 import { LanguageSwitcher } from "../language-switcher";
@@ -12,10 +13,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
-import { ChevronDown, Menu } from "lucide-react";
+import { ChevronDown, Menu, User, LogOut } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useState } from "react";
-import { usePermissions } from "../../hooks/use-permissions";
 
 export function Navigation() {
   const { t } = useTranslation();
@@ -24,6 +27,7 @@ export function Navigation() {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const { canViewPage } = usePermissions();
 
   const handleLogout = () => {
     logout();
@@ -39,7 +43,7 @@ export function Navigation() {
     if (user?.role === "platform_admin") {
       return {
         main: [
-          { path: "/admin/dashboard", label: t("nav.dashboard", "Dashboard") },
+          { path: "/admin/dashboard", label: t("nav.commandCenter", "Command Center") },
         ],
         management: [
           {
@@ -99,7 +103,7 @@ export function Navigation() {
     ) {
       return {
         main: [
-          { path: "/entity/dashboard", label: t("nav.dashboard", "Dashboard") },
+          { path: "/entity/dashboard", label: t("nav.commandCenter", "Command Center") },
         ],
         operations: [
           {
@@ -152,7 +156,10 @@ export function Navigation() {
             path: "/entity/subscription-management",
             label: t("nav.subscription", "Subscription"),
           },
-          { path: "/entity/settings", label: t("nav.settings", "Settings") },
+          {
+            path: "/entity/settings",
+            label: t("nav.settings", "Settings"),
+          },
         ],
       };
     }
@@ -163,7 +170,7 @@ export function Navigation() {
         main: [
           {
             path: "/individual/dashboard",
-            label: t("nav.dashboard", "Dashboard"),
+            label: t("nav.commandCenter", "Command Center"),
           },
         ],
         operations: [
@@ -172,8 +179,18 @@ export function Navigation() {
             label: t("nav.bookings", "Bookings"),
           },
           {
-            path: "/entity/services-packages",
-            label: t("nav.servicesPackages", "Services & Packages"),
+            path: "/individual/services",
+            label: t("nav.services", "Services"),
+          },
+        ],
+        clients: [
+          {
+            path: "/individual/clients",
+            label: t("nav.clients", "Clients"),
+          },
+          {
+            path: "/individual/reviews",
+            label: t("nav.reviews", "Reviews"),
           },
           {
             path: "/individual/reports",
@@ -195,38 +212,50 @@ export function Navigation() {
       };
     }
 
-    // Professional users (employee)
+    // PROFESSIONAL users - DYNAMIC based on permissions
     if (user?.role === "professional") {
-      return {
+      const navItems: any = {
         main: [
           {
             path: "/professional/dashboard",
-            label: t("nav.dashboard", "Dashboard"),
+            label: t("nav.commandCenter", "Command Center"),
           },
         ],
-        operations: [
-          {
-            path: "/professional/bookings",
-            label: t("nav.bookings", "My Appointments"),
-          },
-          {
-            path: "/professional/schedule",
-            label: t("nav.schedule", "Schedule"),
-          },
-        ],
-        financial: [
-          {
-            path: "/professional/earnings",
-            label: t("nav.earnings", "Earnings"),
-          },
-        ],
-        settings: [
-          {
-            path: "/professional/profile",
-            label: t("nav.profile", "Profile"),
-          },
-        ],
+        operations: [],
+        financial: [],
+        settings: [],
       };
+
+      // Add pages based on permissions
+      if (canViewPage("bookings")) {
+        navItems.operations.push({
+          path: "/professional/bookings",
+          label: t("nav.bookings", "My Appointments"),
+        });
+      }
+
+      if (canViewPage("clients")) {
+        navItems.operations.push({
+          path: "/entity/client-profile",
+          label: t("nav.clients", "Clients"),
+        });
+      }
+
+      if (canViewPage("schedule")) {
+        navItems.operations.push({
+          path: "/professional/schedule",
+          label: t("nav.schedule", "Schedule"),
+        });
+      }
+
+      if (canViewPage("earnings") || canViewPage("reports")) {
+        navItems.financial.push({
+          path: "/professional/earnings",
+          label: t("nav.earnings", "Earnings"),
+        });
+      }
+
+      return navItems;
     }
 
     // Simple plan users (basic features)
@@ -235,7 +264,7 @@ export function Navigation() {
         main: [
           {
             path: "/simple/dashboard",
-            label: t("nav.dashboard", "Dashboard"),
+            label: t("nav.commandCenter", "Command Center"),
           },
         ],
         operations: [
@@ -264,7 +293,7 @@ export function Navigation() {
     // Fallback
     return {
       main: [
-        { path: "/simple/dashboard", label: t("nav.dashboard", "Dashboard") },
+        { path: "/simple/dashboard", label: t("nav.commandCenter", "Command Center") },
       ],
     };
   };
@@ -398,7 +427,7 @@ export function Navigation() {
           )}
 
           {/* Settings Dropdown */}
-          {navItems.settings && (
+          {navItems.settings && navItems.settings.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-sm font-medium h-10">
@@ -560,7 +589,7 @@ export function Navigation() {
           )}
 
           {/* Settings section - Collapsible */}
-          {navItems.settings && (
+          {navItems.settings && navItems.settings.length > 0 && (
             <div className="pt-1">
               <button
                 onClick={() => toggleSection("settings")}
@@ -663,22 +692,47 @@ export function Navigation() {
             >
               {theme === "light" ? "🌙" : "☀️"}
             </Button>
-            <div className="hidden xl:flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">
-                {t("nav.welcome", "Welcome")},
-              </span>
-              <span className="font-medium truncate max-w-[120px]">
-                {user.name}
-              </span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs sm:text-sm px-2 sm:px-4"
-              onClick={handleLogout}
-            >
-              {t("common.logout", "Logout")}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full ml-2"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => navigate("/profile")}
+                  className="cursor-pointer"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{t("nav.profile", "My Profile")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{t("common.logout", "Logout")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

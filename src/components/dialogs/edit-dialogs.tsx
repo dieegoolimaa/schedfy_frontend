@@ -92,11 +92,11 @@ export function EditBookingDialog({
         "[EditBookingDialog] Fetching professionals for entityId:",
         entityId
       );
-      // Correct endpoint: /api/users with role=professional
+      // Correct endpoint: /api/users with isProfessional=true
       apiClient
         .get("/api/users", {
           entityId,
-          role: "professional",
+          isProfessional: true,
         })
         .then((res: any) => {
           console.log("[EditBookingDialog] Full API Response:", res);

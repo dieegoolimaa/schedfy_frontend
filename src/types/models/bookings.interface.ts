@@ -13,7 +13,7 @@ export interface Booking {
     // Backend também pode retornar startDateTime/endDateTime
     startDateTime?: string;
     endDateTime?: string;
-    status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+    status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no-show';
     notes?: string;
     createdAt: string;
     updatedAt: string;

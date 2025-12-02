@@ -36,6 +36,12 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { Switch } from "../../components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 import {
     Users,
@@ -449,12 +455,30 @@ export default function TeamManagementPage() {
                                                         />
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="flex items-center gap-2">
-                                                            <StatusIcon className={`h-4 w-4 ${STATUS_CONFIG[user.status]?.color}`} />
-                                                            <span className="text-sm">
-                                                                {STATUS_CONFIG[user.status]?.label || user.status}
-                                                            </span>
-                                                        </div>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="sm" className="h-8 flex items-center gap-2 px-2">
+                                                                    <StatusIcon className={`h-4 w-4 ${STATUS_CONFIG[user.status]?.color}`} />
+                                                                    <span className="text-sm">
+                                                                        {STATUS_CONFIG[user.status]?.label || user.status}
+                                                                    </span>
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="start">
+                                                                <DropdownMenuItem onClick={() => handleUpdateUser(user.id, { status: "active" })}>
+                                                                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                                                                    Active
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem onClick={() => handleUpdateUser(user.id, { status: "absent" })}>
+                                                                    <Clock className="h-4 w-4 mr-2 text-orange-500" />
+                                                                    Absent
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem onClick={() => handleUpdateUser(user.id, { status: "inactive" })}>
+                                                                    <XCircle className="h-4 w-4 mr-2 text-gray-600" />
+                                                                    Inactive
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex justify-end gap-2">

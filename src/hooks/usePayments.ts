@@ -15,12 +15,10 @@ export function usePayments() {
     };
 
     const createPaymentIntent = async (data: {
-        amount: number;
-        currency?: string;
-        bookingId?: string;
-        clientId?: string;
-        entityId: string;
+        bookingId: string;
+        customerId?: string;
         description?: string;
+        metadata?: Record<string, string>;
     }) => {
         try {
             const res = await paymentsService.createPaymentIntent(data);

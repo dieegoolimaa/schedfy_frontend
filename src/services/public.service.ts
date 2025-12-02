@@ -104,17 +104,26 @@ export const publicService = {
     ) => {
         return apiClient.patch(`/api/bookings/${bookingId}/cancel`, {
             reason,
+            cancelledBy: 'client'
         });
     },
 
     /**
+     * Update booking (public/client)
+     * Uses: PATCH /api/bookings/:id
+     */
+    updateBooking: async (bookingId: string, data: any) => {
+        return apiClient.patch(`/api/bookings/${bookingId}`, data);
+    },
+
+    /**
      * Get professionals for an entity (public)
-     * Uses: GET /api/users?entityId=...&role=professional&status=active
+     * Uses: GET /api/users?entityId=...&isProfessional=true&status=active
      */
     getEntityProfessionals: async (entityId: string, _serviceId?: string) => {
         const params: any = {
             entityId,
-            role: 'professional',
+            isProfessional: true,
             status: 'active',
         };
 

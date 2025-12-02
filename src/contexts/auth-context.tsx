@@ -18,7 +18,7 @@ import { storage } from "../lib/storage";
 type Entity = AuthEntity;
 
 // Transform backend user response to frontend User type
-function transformBackendUser(backendUser: any): User {
+export function transformBackendUser(backendUser: any): User {
   // Normalize plan names from backend
   const normalizePlan = (
     plan: string
@@ -67,6 +67,8 @@ function transformBackendUser(backendUser: any): User {
     email: backendUser.email,
     name:
       backendUser.name || `${backendUser.firstName} ${backendUser.lastName}`,
+    firstName: backendUser.firstName,
+    lastName: backendUser.lastName,
     avatar: backendUser.avatar,
     plan: normalizedPlan,
     role: backendUser.role,
@@ -76,6 +78,9 @@ function transformBackendUser(backendUser: any): User {
     timezone: backendUser.timezone || "Europe/Lisbon",
     locale: backendUser.locale || "en",
     isEmailVerified: backendUser.isEmailVerified || false,
+    phone: backendUser.phone,
+    isProfessional: backendUser.isProfessional,
+    professionalInfo: backendUser.professionalInfo,
     createdAt: backendUser.createdAt || new Date().toISOString(),
     updatedAt: backendUser.updatedAt || new Date().toISOString(),
   };
@@ -89,6 +94,7 @@ interface AuthContextType extends AuthState {
   requires2FA?: boolean;
   tempToken?: string | null;
   verify2FA: (code: string) => Promise<User>;
+  updateUser: (user: User) => void;
 }
 
 type AuthAction =
@@ -96,7 +102,8 @@ type AuthAction =
   | { type: "AUTH_SUCCESS"; payload: { user: User; entity: Entity | null } }
   | { type: "AUTH_ERROR"; payload: string }
   | { type: "AUTH_LOGOUT" }
-  | { type: "CLEAR_ERROR" };
+  | { type: "CLEAR_ERROR" }
+  | { type: "UPDATE_USER"; payload: User };
 
 const initialState: AuthState & {
   requires2FA?: boolean;
@@ -145,6 +152,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return {
         ...state,
         error: null,
+      };
+    case "UPDATE_USER":
+      return {
+        ...state,
+        user: action.payload,
       };
     default:
       return state;
@@ -356,6 +368,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     }
   };
 
+  const updateUser = (user: User) => {
+    dispatch({ type: "UPDATE_USER", payload: user });
+  };
+
   const value = useMemo(
     () => ({
       ...state,
@@ -366,6 +382,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       verify2FA,
       requires2FA,
       tempToken,
+      updateUser,
     }),
     [state, requires2FA, tempToken]
   );

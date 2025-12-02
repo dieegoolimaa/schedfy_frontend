@@ -95,8 +95,8 @@ export const bookingsService = {
         return apiClient.patch<Booking>(`/api/bookings/${id}/confirm`, {});
     },
 
-    complete: async (id: string) => {
-        return apiClient.patch<Booking>(`/api/bookings/${id}/complete`, {});
+    complete: async (id: string, data?: { taxId?: string; paymentMethod?: string }) => {
+        return apiClient.patch<Booking>(`/api/bookings/${id}/complete`, data || {});
     },
 
     markNoShow: async (id: string) => {

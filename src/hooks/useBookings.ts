@@ -261,12 +261,12 @@ export function useBookings(options: UseBookingsOptions = {}) {
     }, []);
 
     // Complete a booking
-    const completeBooking = useCallback(async (id: string) => {
+    const completeBooking = useCallback(async (id: string, data?: { taxId?: string; paymentMethod?: string }) => {
         try {
             setLoading(true);
             setError(null);
 
-            const response = await bookingsService.complete(id);
+            const response = await bookingsService.complete(id, data);
             if (response.data) {
                 setBookings(prev => prev.map(booking =>
                     booking.id === id ? response.data! : booking

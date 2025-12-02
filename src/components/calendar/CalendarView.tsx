@@ -345,8 +345,8 @@ export function CalendarView({
                         "en-US",
                         { hour: "2-digit", minute: "2-digit" }
                       )} - ${typeof booking.service === "object"
-                          ? booking.service?.name
-                          : "Service"
+                        ? booking.service?.name
+                        : "Service"
                         }`}
                     >
                       {new Date(booking.startTime).toLocaleTimeString("en-US", {
@@ -1301,6 +1301,95 @@ export function CalendarView({
                 )}
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Grouped Bookings Dialog */}
+        <Dialog
+          open={showBookingsGroupDialog}
+          onOpenChange={setShowBookingsGroupDialog}
+        >
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto z-[110]">
+            <DialogHeader>
+              <DialogTitle>Bookings in this slot</DialogTitle>
+              <DialogDescription>
+                {selectedBookingsGroup && selectedBookingsGroup.length > 0
+                  ? `${new Date(
+                    selectedBookingsGroup[0].startTime
+                  ).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })} at ${new Date(
+                    selectedBookingsGroup[0].startTime
+                  ).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+                  : "Selected bookings"}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 mt-2">
+              {selectedBookingsGroup?.map((booking) => (
+                <div
+                  key={booking.id}
+                  onClick={() => {
+                    handleBookingClick(booking);
+                    setShowBookingsGroupDialog(false);
+                  }}
+                  className={cn(
+                    "p-3 rounded-lg border cursor-pointer hover:shadow-md transition-all",
+                    booking.status === "confirmed" &&
+                    "bg-blue-50 border-blue-200",
+                    booking.status === "completed" &&
+                    "bg-green-50 border-green-200",
+                    booking.status === "pending" &&
+                    "bg-yellow-50 border-yellow-200",
+                    booking.status === "cancelled" && "bg-red-50 border-red-200"
+                  )}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-semibold">
+                        {typeof booking.service === "object"
+                          ? booking.service?.name
+                          : "Service"}
+                      </div>
+                      <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                        <User className="h-3 w-3" />
+                        {typeof booking.client === "object"
+                          ? booking.client?.name
+                          : booking.client || "Client"}
+                      </div>
+                      {booking.professional && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          with{" "}
+                          {typeof booking.professional === "object"
+                            ? booking.professional?.name
+                            : booking.professional}
+                        </div>
+                      )}
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        booking.status === "confirmed" &&
+                        "bg-blue-100 text-blue-800 border-blue-200",
+                        booking.status === "completed" &&
+                        "bg-green-100 text-green-800 border-green-200",
+                        booking.status === "pending" &&
+                        "bg-yellow-100 text-yellow-800 border-yellow-200",
+                        booking.status === "cancelled" &&
+                        "bg-red-100 text-red-800 border-red-200"
+                      )}
+                    >
+                      {booking.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
           </DialogContent>
         </Dialog>
       </>

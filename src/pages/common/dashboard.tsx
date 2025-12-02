@@ -60,6 +60,7 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { Label } from "../../components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import {
   CalendarDays,
   Users,
@@ -162,6 +163,9 @@ const ConsolidatedDashboard = () => {
     (b) => b.status === "confirmed"
   ).length;
   const uniqueClients = new Set(bookings.map((b) => b.clientId)).size;
+  const pendingBookingsCount = bookings.filter(
+    (b) => b.status === "pending"
+  ).length;
 
   const totalRevenue = bookings
     .filter((b) => b.status === "completed")
@@ -621,6 +625,28 @@ const ConsolidatedDashboard = () => {
           </Button>
         </div>
       </div>
+      {/* Pending Bookings Alert */}
+      {
+        pendingBookingsCount > 0 && (
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">Action Required</AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-amber-700">
+              <span>
+                You have {pendingBookingsCount} pending booking{pendingBookingsCount > 1 ? 's' : ''} that require confirmation.
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-amber-300 hover:bg-amber-100 text-amber-900 w-full sm:w-auto"
+                onClick={() => navigate(plan === "business" ? "/entity/bookings?status=pending" : `/${plan}/bookings?status=pending`)}
+              >
+                Review Pending
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )
+      }
 
       {/* Stats */}
       {renderStats()}

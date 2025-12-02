@@ -27,21 +27,19 @@ export const paymentsService = {
             id: string;
             url: string;
             sessionId: string;
-        }>('/api/payments/create-checkout-session', data);
+        }>('/api/payments/checkout-session', data);
     },
 
     createPaymentIntent: async (data: {
-        amount: number;
-        currency?: string;
-        bookingId?: string;
-        clientId?: string;
-        entityId: string;
+        bookingId: string;
+        customerId?: string;
         description?: string;
+        metadata?: Record<string, string>;
     }) => {
         return apiClient.post<{
             clientSecret: string;
             paymentIntentId: string;
-        }>('/api/payments/create-payment-intent', data);
+        }>('/api/payments/create-intent', data);
     },
 
     confirmPayment: async (paymentIntentId: string) => {
@@ -112,5 +110,9 @@ export const paymentsService = {
         bookingId?: string;
     }) => {
         return apiClient.post('/api/payments/business', data);
+    },
+
+    update: async (id: string, data: Partial<Payment>) => {
+        return apiClient.patch<Payment>(`/api/payments/${id}`, data);
     },
 };

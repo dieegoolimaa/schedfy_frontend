@@ -5,7 +5,7 @@ import { useCurrency } from "@/hooks/useCurrency";
 import { publicService } from "@/services/public.service";
 import { toast } from "sonner";
 import {
-    Calendar,
+    Calendar as CalendarIcon,
     Clock,
     MapPin,
     User,
@@ -18,6 +18,7 @@ import {
     Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
     Card,
     CardContent,
@@ -49,6 +50,77 @@ export function PublicBookingManagementPage() {
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
     const [cancelling, setCancelling] = useState(false);
+
+    // Reschedule State
+    const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [rescheduling, setRescheduling] = useState(false);
+
+    useEffect(() => {
+        if (selectedDate && booking) {
+            fetchSlots(selectedDate);
+        }
+    }, [selectedDate, booking]);
+
+    const fetchSlots = async (date: Date) => {
+        if (!booking) return;
+        setLoadingSlots(true);
+        try {
+            const dateStr = format(date, 'yyyy-MM-dd');
+            const response = await publicService.getAvailableSlots(booking.entityId._id || booking.entityId, {
+                serviceId: booking.serviceId._id || booking.serviceId,
+                date: dateStr,
+                professionalId: booking.professionalId?._id || booking.professionalId,
+            });
+            setAvailableSlots(response.data);
+        } catch (error) {
+            console.error("Failed to fetch slots:", error);
+            toast.error("Failed to load available times");
+        } finally {
+            setLoadingSlots(false);
+        }
+    };
+
+    const handleReschedule = async () => {
+        if (!selectedSlot || !selectedDate) return;
+        setRescheduling(true);
+        try {
+            const [time, professionalId] = selectedSlot.split('|');
+            const [hours, minutes] = time.split(':').map(Number);
+
+            const startDateTime = new Date(selectedDate);
+            startDateTime.setHours(hours, minutes, 0, 0);
+
+            // Calculate end time based on service duration (assuming 60 mins if not available, or fetch service details)
+            // Ideally we should have service duration. For now, let's assume the backend handles duration or we use a default.
+            // Better: The backend update usually takes startDateTime and calculates endDateTime if not provided, or we need to provide it.
+            // Let's try to calculate it if we have service duration in booking object.
+            const duration = booking.serviceId?.duration?.duration || 60;
+            const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
+
+            await publicService.updateBooking(id!, {
+                startDateTime: startDateTime.toISOString(),
+                endDateTime: endDateTime.toISOString(),
+                professionalId: professionalId || booking.professionalId?._id,
+                status: 'pending' // Reset to pending or keep confirmed? Usually reschedule requires re-confirmation or stays confirmed if simple.
+                // Let's keep status as is or let backend decide.
+            });
+
+            toast.success("Booking rescheduled successfully");
+            setRescheduleDialogOpen(false);
+            // Refresh booking
+            const response = await publicService.getBookingById(id!);
+            setBooking(response.data);
+        } catch (error) {
+            console.error("Failed to reschedule:", error);
+            toast.error("Failed to reschedule booking");
+        } finally {
+            setRescheduling(false);
+        }
+    };
 
     useEffect(() => {
         const fetchBooking = async () => {
@@ -181,7 +253,7 @@ export function PublicBookingManagementPage() {
                                     Date & Time
                                 </Label>
                                 <div className="flex items-center gap-2 font-medium">
-                                    <Calendar className="w-4 h-4 text-primary" />
+                                    <CalendarIcon className="w-4 h-4 text-primary" />
                                     {format(new Date(booking.startDateTime), "EEEE, MMMM d, yyyy")}
                                 </div>
                                 <div className="flex items-center gap-2 font-medium pl-6">
@@ -240,9 +312,97 @@ export function PublicBookingManagementPage() {
                         )}
                     </CardContent>
                     <CardFooter className="bg-gray-50/50 dark:bg-gray-800/50 border-t p-6 flex justify-between items-center">
-                        <Button variant="outline" onClick={() => navigate(-1)}>
-                            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => {
+                                const slug = booking.entityId?.publicProfile?.slug || booking.entityId?.slug || booking.entityId?.username;
+                                if (slug) {
+                                    navigate(`/book/${slug}`);
+                                } else {
+                                    navigate(-1);
+                                }
+                            }}>
+                                <ArrowLeft className="w-4 h-4 mr-2" /> Back to {booking.entityId?.name || "Business"}
+                            </Button>
+                            {canCancel && (
+                                <Dialog open={rescheduleDialogOpen} onOpenChange={setRescheduleDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="secondary">
+                                            Reschedule
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[500px]">
+                                        <DialogHeader>
+                                            <DialogTitle>Reschedule Appointment</DialogTitle>
+                                            <DialogDescription>
+                                                Select a new date and time for your appointment.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4 space-y-4">
+                                            <div className="flex justify-center border rounded-md p-2">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={selectedDate}
+                                                    onSelect={setSelectedDate as any}
+                                                    className="rounded-md border shadow-sm"
+                                                    disabled={(date: Date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                />
+                                            </div>
+
+                                            {selectedDate && (
+                                                <div className="space-y-2">
+                                                    <Label>Available Times for {format(selectedDate, 'MMMM d, yyyy')}</Label>
+                                                    {loadingSlots ? (
+                                                        <div className="flex justify-center py-4">
+                                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                                        </div>
+                                                    ) : availableSlots.length > 0 ? (
+                                                        <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
+                                                            {availableSlots.map((slot: any) => (
+                                                                <Button
+                                                                    key={`${slot.time}-${slot.professionalId || 'any'}`}
+                                                                    variant={selectedSlot === `${slot.time}|${slot.professionalId || ''}` ? "default" : "outline"}
+                                                                    size="sm"
+                                                                    onClick={() => setSelectedSlot(`${slot.time}|${slot.professionalId || ''}`)}
+                                                                    className="w-full"
+                                                                >
+                                                                    {slot.time}
+                                                                </Button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm text-muted-foreground text-center py-2">
+                                                            No slots available for this date.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <DialogFooter>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setRescheduleDialogOpen(false)}
+                                                disabled={rescheduling}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                onClick={handleReschedule}
+                                                disabled={!selectedSlot || rescheduling}
+                                            >
+                                                {rescheduling ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                        Confirming...
+                                                    </>
+                                                ) : (
+                                                    "Confirm Reschedule"
+                                                )}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                        </div>
 
                         {canCancel && (
                             <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>

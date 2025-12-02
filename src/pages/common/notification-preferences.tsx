@@ -316,7 +316,7 @@ const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
 ];
 
 export default function NotificationPreferencesPage() {
-  const { entity } = useAuth();
+  const { user, entity } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -335,15 +335,18 @@ export default function NotificationPreferencesPage() {
   });
 
   useEffect(() => {
-    loadPreferences();
-  }, [entity?.id]);
+    if (entity?.id || user?.entityId) {
+      loadPreferences();
+    }
+  }, [entity?.id, user?.entityId]);
 
   const loadPreferences = async () => {
-    if (!entity?.id) return;
+    const entityId = entity?.id || user?.entityId;
+    if (!entityId) return;
 
     try {
       setLoading(true);
-      const response = await entitiesService.getById(entity.id);
+      const response = await entitiesService.getById(entityId);
       const entityData = response.data;
 
       if (
@@ -368,7 +371,12 @@ export default function NotificationPreferencesPage() {
   };
 
   const savePreferences = async () => {
-    if (!entity?.id) return;
+    const entityId = entity?.id || user?.entityId;
+
+    if (!entityId) {
+      toast.error("Entity ID not found. Cannot save preferences.");
+      return;
+    }
 
     try {
       setSaving(true);

@@ -1,4 +1,6 @@
+
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -7,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { StatCard } from "../../components/ui/stat-card";
 import { StatsGrid } from "../../components/ui/stats-grid";
 import { useCurrency } from "../../hooks/useCurrency";
@@ -23,21 +26,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
+
 import {
   Clock,
   Star,
@@ -46,11 +35,9 @@ import {
   AlertCircle,
   XCircle,
   Plus,
-  Filter,
   RefreshCw,
   Phone,
   Mail,
-  Calendar,
   DollarSign,
   Users,
   Calendar as CalendarIcon,
@@ -59,7 +46,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
-import { CalendarView } from "../../components/calendar/CalendarView";
 import { useEntity } from "../../hooks/useEntity";
 import { WorkingHours } from "../../types/models/entities.interface";
 import { BookingCreator } from "../../components/booking";
@@ -99,9 +85,8 @@ const getLatestWorkingHour = (workingHours?: WorkingHours): string => {
 
 export function ProfessionalDashboardPage() {
   const { t: _t } = useTranslation();
+  const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
-  const [timeRange, setTimeRange] = useState("7d");
-  const [showCalendar, setShowCalendar] = useState(false);
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
   const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
   const [, setStatsLoading] = useState(false);
@@ -145,13 +130,17 @@ export function ProfessionalDashboardPage() {
     return bookings.filter((b) => b.professionalId === user.id);
   }, [bookings, user?.id]);
 
+  const pendingBookingsCount = myBookings.filter(
+    (b) => b.status === "pending"
+  ).length;
+
   // Calculate stats from real bookings
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  // All bookings for today (including past ones for stats)
+  // TODAY'S SCHEDULE - Only bookings for today
   const todaySchedule = myBookings
     .filter((booking) => {
       const bookingDate = new Date(booking.startTime);
@@ -179,6 +168,45 @@ export function ProfessionalDashboardPage() {
     return bookingDate >= thisMonthStart && bookingDate <= new Date();
   });
 
+  // Calculate correct revenue using pricing.basePrice or price
+  const getBookingPrice = (booking: any) => {
+    if (typeof booking.service === "object") {
+      return (booking.service as any)?.pricing?.basePrice || booking.service?.price || 0;
+    }
+    return 0;
+  };
+
+  // Calculate completion rate
+  const completedBookings = monthlyBookings.filter(b => b.status === "completed").length;
+  const calculatedCompletionRate = monthlyBookings.length > 0
+    ? Math.round((completedBookings / monthlyBookings.length) * 100)
+    : 0;
+
+  // Calculate working hours from entity
+  const workingHoursDisplay = entity?.workingHours
+    ? `${getEarliestWorkingHour(entity.workingHours)} - ${getLatestWorkingHour(entity.workingHours)}`
+    : "09:00 - 18:00";
+
+  // Calculate next break time
+  const calculateNextBreak = () => {
+    if (!entity?.workingHours) return "Not configured";
+
+    const now = new Date();
+    const currentDay = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][now.getDay()];
+    const daySchedule = (entity.workingHours as any)[currentDay];
+
+    if (daySchedule?.breakStart && daySchedule?.breakEnd) {
+      const [breakHour, breakMin] = daySchedule.breakStart.split(":");
+      const breakTime = new Date();
+      breakTime.setHours(parseInt(breakHour), parseInt(breakMin), 0);
+
+      if (breakTime > now) {
+        return `${daySchedule.breakStart} - ${daySchedule.breakEnd}`;
+      }
+    }
+    return "No break scheduled";
+  };
+
   // Professional data from user context
   const professional = {
     name: user?.name || "Professional",
@@ -196,40 +224,31 @@ export function ProfessionalDashboardPage() {
     totalReviews: 0,
     joinDate: user?.createdAt || new Date().toISOString(),
     specialties: user?.professionalInfo?.specialties || [],
-    workingHours: "09:00 - 18:00",
-    nextBreak: "13:00 - 14:00",
+    workingHours: workingHoursDisplay,
+    nextBreak: calculateNextBreak(),
   };
 
   const stats = {
     todayBookings: todaySchedule.length,
     weeklyBookings: weeklyBookings.length,
     monthlyBookings: monthlyBookings.length,
-    todayRevenue: todaySchedule.reduce((sum, b) => {
-      const price =
-        typeof b.service === "object" && b.service?.price ? b.service.price : 0;
-      return sum + price;
-    }, 0),
-    weeklyRevenue: weeklyBookings.reduce((sum, b) => {
-      const price =
-        typeof b.service === "object" && b.service?.price ? b.service.price : 0;
-      return sum + price;
-    }, 0),
-    monthlyRevenue: monthlyBookings.reduce((sum, b) => {
-      const price =
-        typeof b.service === "object" && b.service?.price ? b.service.price : 0;
-      return sum + price;
-    }, 0),
-    completionRate: 0,
+    todayRevenue: todaySchedule.reduce((sum, b) => sum + getBookingPrice(b), 0),
+    weeklyRevenue: weeklyBookings.reduce((sum, b) => sum + getBookingPrice(b), 0),
+    monthlyRevenue: monthlyBookings.reduce((sum, b) => sum + getBookingPrice(b), 0),
+    completionRate: calculatedCompletionRate,
     clientSatisfaction: 0,
     averageSessionTime: 45,
-    noShowRate: 0,
+    noShowRate: monthlyBookings.length > 0
+      ? Math.round((monthlyBookings.filter(b => b.status === "no-show").length / monthlyBookings.length) * 100)
+      : 0,
   };
 
-  // Get upcoming bookings (future bookings only)
+  // UPCOMING BOOKINGS - Only FUTURE bookings (exclude today)
   const upcomingBookings = myBookings
     .filter((booking) => {
       const bookingDate = new Date(booking.startTime);
-      return bookingDate > new Date();
+      // Only bookings AFTER today (tomorrow onwards)
+      return bookingDate >= tomorrow;
     })
     .sort(
       (a, b) =>
@@ -327,51 +346,44 @@ export function ProfessionalDashboardPage() {
             </Button>
           )}
           <Button
-            variant="default"
+            variant="outline"
             size="sm"
-            onClick={() => setShowCalendar(true)}
+            onClick={() => window.location.href = "/professional/bookings"}
           >
-            <Calendar className="h-4 w-4 mr-2" />
-            Calendar View
-          </Button>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1d">Today</SelectItem>
-              <SelectItem value="7d">This Week</SelectItem>
-              <SelectItem value="30d">This Month</SelectItem>
-              <SelectItem value="90d">3 Months</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            All Bookings
           </Button>
           <Button variant="outline" size="sm" onClick={() => fetchBookings()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
+          <Button onClick={() => setCreateBookingOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Booking
+          </Button>
         </div>
       </div>
 
-      {/* Calendar View Dialog */}
-      <CalendarView
-        open={showCalendar}
-        onOpenChange={setShowCalendar}
-        bookings={myBookings}
-        title="My Calendar"
-        description="View and manage your appointments"
-        workingHours={
-          entity?.workingHours
-            ? {
-              start: getEarliestWorkingHour(entity.workingHours),
-              end: getLatestWorkingHour(entity.workingHours),
-            }
-            : { start: "09:00", end: "18:00" }
-        }
-      />
+      {/* Pending Bookings Alert */}
+      {pendingBookingsCount > 0 && (
+        <Alert className="bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800">Action Required</AlertTitle>
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-amber-700">
+            <span>
+              You have {pendingBookingsCount} pending booking{pendingBookingsCount > 1 ? 's' : ''} that require confirmation.
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-amber-300 hover:bg-amber-100 text-amber-900 w-full sm:w-auto"
+              onClick={() => navigate("/professional/bookings?status=pending")}
+            >
+              Review Pending
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Live Activity Widget */}
       <LiveActivityWidget entityId={user?.entityId || ""} />
@@ -396,7 +408,7 @@ export function ProfessionalDashboardPage() {
           trend={
             entityStats?.revenue.change !== undefined
               ? {
-                value: `${Math.abs(entityStats.revenue.change).toFixed(1)}%`,
+                value: `${Math.abs(entityStats.revenue.change).toFixed(1)}% `,
                 isPositive: entityStats.revenue.change > 0,
               }
               : undefined
@@ -419,7 +431,7 @@ export function ProfessionalDashboardPage() {
           trend={
             entityStats?.bookings.change !== undefined
               ? {
-                value: `${Math.abs(entityStats.bookings.change).toFixed(1)}%`,
+                value: `${Math.abs(entityStats.bookings.change).toFixed(1)}% `,
                 isPositive: entityStats.bookings.change > 0,
               }
               : undefined
@@ -439,7 +451,7 @@ export function ProfessionalDashboardPage() {
           trend={
             entityStats?.clients.change !== undefined
               ? {
-                value: `${Math.abs(entityStats.clients.change).toFixed(1)}%`,
+                value: `${Math.abs(entityStats.clients.change).toFixed(1)}% `,
                 isPositive: entityStats.clients.change > 0,
               }
               : undefined
@@ -447,120 +459,21 @@ export function ProfessionalDashboardPage() {
         />
         <StatCard
           title="Completion Rate"
-          value={`${stats.completionRate}%`}
+          value={`${stats.completionRate}% `}
           subtitle="This month"
           icon={CheckCircle}
           variant="success"
         />
       </StatsGrid>
 
-      {/* Today's Schedule */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Today's Schedule</CardTitle>
-              <CardDescription>
-                Your appointments for {new Date().toLocaleDateString()}
-              </CardDescription>
-            </div>
-            <Button onClick={() => setCreateBookingOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Booking
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {todaySchedule.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center text-muted-foreground"
-                  >
-                    No appointments scheduled for today
-                  </TableCell>
-                </TableRow>
-              ) : (
-                todaySchedule.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {formatTime(appointment.startTime)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {typeof appointment.client === "string"
-                        ? appointment.client
-                        : appointment.client?.name || "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      {typeof appointment.service === "string"
-                        ? appointment.service
-                        : appointment.service?.name || "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      {typeof appointment.service === "object" &&
-                        appointment.service?.duration
-                        ? `${appointment.service.duration}min`
-                        : appointment.startTime && appointment.endTime
-                          ? `${Math.round(
-                            (new Date(appointment.endTime).getTime() -
-                              new Date(appointment.startTime).getTime()) /
-                            60000
-                          )}min`
-                          : "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      €
-                      {typeof appointment.service === "object" &&
-                        appointment.service?.price
-                        ? appointment.service.price
-                        : 0}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        {getStatusIcon(appointment.status)}
-                        <Badge
-                          variant="outline"
-                          className={`ml-2 ${getStatusColor(
-                            appointment.status
-                          )}`}
-                        >
-                          {appointment.status}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
-                      {appointment.notes || "-"}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Upcoming Bookings */}
         <Card>
           <CardHeader>
             <CardTitle>Upcoming Bookings</CardTitle>
-            <CardDescription>Your next appointments</CardDescription>
+            <CardDescription>Your next appointments (starting tomorrow)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {upcomingBookings.length === 0 ? (

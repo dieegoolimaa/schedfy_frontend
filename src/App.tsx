@@ -31,7 +31,7 @@ import { BookingManagementPage } from "./pages/common/booking-management";
 import { OperationalReportsPage } from "./pages/common/operational-reports";
 import UnifiedSettingsPage from "./pages/common/settings";
 import UnifiedSubscriptionManagement from "./pages/common/subscription-management";
-import UnifiedDashboard from "./pages/common/dashboard";
+import CommandCenter from "./pages/common/command-center";
 import UnifiedPaymentManagement from "./pages/common/payment-management";
 import { CommissionsManagementPage } from "./pages/business/commissions-management";
 import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
@@ -61,6 +61,7 @@ import PricingPage from "./pages/pricing";
 import IntegrationsPage from "./pages/integrations";
 import AboutPage from "./pages/about";
 import PaymentsSuccessPage from "./pages/payments/success";
+import ReceiptPage from "./pages/payments/receipt";
 
 // Test/Demo pages
 import { TestPagesPage } from "./pages/test-pages";
@@ -156,7 +157,7 @@ function App() {
                     <ProtectedRoute allowedPlans={["simple"]}>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedDashboard />
+                          <CommandCenter planType="simple" />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -254,7 +255,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedDashboard />
+                          <CommandCenter planType="individual" />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -353,7 +354,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedDashboard />
+                          <CommandCenter planType="business" />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
@@ -426,6 +427,10 @@ function App() {
                 <Route
                   path="/payments/success"
                   element={<PaymentsSuccessPage />}
+                />
+                <Route
+                  path="/payments/:id/receipt"
+                  element={<ReceiptPage />}
                 />
                 <Route
                   path="/entity/commissions-management"
@@ -642,6 +647,18 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <UnifiedSettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Generic Profile Route - Accessible to ALL authenticated users */}
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ProfessionalProfilePage />
                       </Layout>
                     </ProtectedRoute>
                   }

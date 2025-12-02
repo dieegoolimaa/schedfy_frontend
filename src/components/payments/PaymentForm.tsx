@@ -38,16 +38,13 @@ function InnerPaymentForm({
     (async () => {
       try {
         const res = await createPaymentIntent({
-          amount: amount || 0,
-          currency: currency || "BRL",
           bookingId: String(bookingId),
-          entityId: String(entityId),
           description: description || "Booking payment",
         });
         if (mounted) setClientSecret(res?.clientSecret || null);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to initiate payment");
+      } catch (err: any) {
+        console.error("Error creating payment intent:", err);
+        toast.error(`Failed to initiate payment: ${err?.message || 'Unknown error'}`);
       }
     })();
     return () => {
@@ -71,11 +68,13 @@ function InnerPaymentForm({
         },
       });
 
+      console.log("Stripe confirm result:", result);
+
       if (result.error) {
         toast.error(result.error.message || "Payment failed");
       } else if (
         result.paymentIntent &&
-        result.paymentIntent.status === "succeeded"
+        (result.paymentIntent.status === "succeeded" || result.paymentIntent.status === "processing")
       ) {
         toast.success("Payment successful");
         if (onSuccess) await onSuccess();
@@ -112,6 +111,11 @@ function InnerPaymentForm({
         <Button onClick={handleSubmit} disabled={!clientSecret || processing}>
           {processing ? "Processing…" : "Pay now"}
         </Button>
+        {!clientSecret && (
+          <p className="text-xs text-red-500 mt-2">
+            Unable to initialize payment. Please try again.
+          </p>
+        )}
       </div>
     </div>
   );

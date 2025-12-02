@@ -28,15 +28,6 @@ function transformService(service: any): Service {
 
     const professionalIds = service.assignedProfessionals || service.professionalIds || [];
 
-    // Debug: Log assigned professionals
-    console.log('[transformService]', {
-        serviceName: service.name,
-        assignedProfessionals: service.assignedProfessionals,
-        professionalIds: service.professionalIds,
-        finalProfessionalIds: professionalIds,
-        types: professionalIds.map((id: any) => typeof id),
-    });
-
     return {
         ...service,
         id: service._id || service.id, // Map MongoDB _id to id

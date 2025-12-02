@@ -16,7 +16,7 @@ export const professionalsService = {
     getAll: async (params?: { entityId?: string; active?: boolean }) => {
         return apiClient.get<Professional[]>('/api/users', {
             ...params,
-            role: 'professional',
+            isProfessional: true,
         });
     },
 
@@ -28,7 +28,7 @@ export const professionalsService = {
     getByEntity: async (entityId: string) => {
         return apiClient.get<Professional[]>('/api/users', {
             entityId,
-            role: 'professional',
+            isProfessional: true,
         });
     },
 

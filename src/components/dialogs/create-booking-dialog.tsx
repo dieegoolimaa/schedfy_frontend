@@ -207,7 +207,7 @@ export function CreateBookingDialog({
       const loadProfessionals = async () => {
         try {
           const response = await apiClient.get(`/api/users`, {
-            role: "professional",
+            isProfessional: true,
             entityId,
           });
           console.log(
@@ -1013,7 +1013,7 @@ export function CreateBookingDialog({
 
               {isRecurring && (
                 <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Frequency */}
                     <div className="space-y-2">
                       <Label>Repeat</Label>
@@ -1064,7 +1064,7 @@ export function CreateBookingDialog({
                   {recurrenceFrequency === "weekly" && (
                     <div className="space-y-2">
                       <Label>Repeat on</Label>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
                         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
                           (day, index) => (
                             <Button
@@ -1076,7 +1076,7 @@ export function CreateBookingDialog({
                                   : "outline"
                               }
                               size="sm"
-                              className="w-12 h-12"
+                              className="w-full h-10 sm:h-12 p-0"
                               onClick={() => toggleDayOfWeek(index)}
                             >
                               {day}
@@ -1091,7 +1091,7 @@ export function CreateBookingDialog({
                   <div className="space-y-3">
                     <Label>Ends</Label>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="radio"
                           id="end-occurrences"
@@ -1101,7 +1101,7 @@ export function CreateBookingDialog({
                         />
                         <Label
                           htmlFor="end-occurrences"
-                          className="cursor-pointer flex items-center gap-2"
+                          className="cursor-pointer flex items-center gap-2 whitespace-nowrap"
                         >
                           After
                           <Input
@@ -1119,7 +1119,7 @@ export function CreateBookingDialog({
                         </Label>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="radio"
                           id="end-date"
@@ -1129,7 +1129,7 @@ export function CreateBookingDialog({
                         />
                         <Label
                           htmlFor="end-date"
-                          className="cursor-pointer flex items-center gap-2"
+                          className="cursor-pointer flex items-center gap-2 whitespace-nowrap"
                         >
                           On date
                           <Input

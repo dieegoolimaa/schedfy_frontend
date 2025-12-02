@@ -248,6 +248,33 @@ export function PublicEntityProfilePage() {
     });
   }, [selectedService, services, professionals]);
 
+  // Fetch available slots when dependencies change
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!selectedDate || !entity?.id || !selectedService) {
+        setAvailableSlots([]);
+        return;
+      }
+
+      try {
+        const response = await publicService.getAvailableSlots(
+          entity.id,
+          {
+            serviceId: selectedService,
+            date: format(selectedDate, "yyyy-MM-dd"),
+            professionalId: selectedProfessional,
+          }
+        );
+        setAvailableSlots(response.data);
+      } catch (error) {
+        console.error("Failed to fetch slots:", error);
+        toast.error("Failed to load available times");
+      }
+    };
+
+    fetchSlots();
+  }, [selectedDate, selectedService, selectedProfessional, entity?.id]);
+
   const handleBooking = async () => {
     if (!clientData.name || !clientData.email || !clientData.phone) {
       toast.error("Please fill in all required information");
@@ -1274,35 +1301,13 @@ export function PublicEntityProfilePage() {
                                 ? format(selectedDate, "yyyy-MM-dd")
                                 : ""
                             }
-                            onChange={async (e) => {
+                            onChange={(e) => {
                               const date = e.target.value
                                 ? new Date(e.target.value)
                                 : undefined;
                               setSelectedDate(date);
                               setSelectedSlot(null);
-                              setAvailableSlots([]);
-
-                              // Fetch available slots
-                              if (date && entity?.id && selectedService) {
-                                try {
-                                  const response =
-                                    await publicService.getAvailableSlots(
-                                      entity.id,
-                                      {
-                                        serviceId: selectedService,
-                                        date: format(date, "yyyy-MM-dd"),
-                                        professionalId: selectedProfessional,
-                                      }
-                                    );
-                                  setAvailableSlots(response.data);
-                                } catch (error) {
-                                  console.error(
-                                    "Failed to fetch slots:",
-                                    error
-                                  );
-                                  toast.error("Failed to load available times");
-                                }
-                              }
+                              // Slots will be fetched by the useEffect
                             }}
                           />
                         </div>

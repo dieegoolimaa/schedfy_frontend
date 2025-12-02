@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/auth-context";
+import { useAuth, transformBackendUser } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import {
   Card,
@@ -25,6 +25,7 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import { Badge } from "../../components/ui/badge";
+import { Switch } from "../../components/ui/switch";
 import {
   User,
   MapPin,
@@ -34,13 +35,12 @@ import {
   Save,
   Camera,
 } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
+import { toast } from "sonner";
 import { apiClient } from "../../lib/api-client";
 
 export default function ProfessionalProfilePage() {
   const { t } = useTranslation("professional");
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const { user, updateUser } = useAuth();
   const entityId = user?.entityId || "";
   const professionalId = user?.id || "";
 
@@ -67,6 +67,12 @@ export default function ProfessionalProfilePage() {
   const [instagram, setInstagram] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [website, setWebsite] = useState("");
+
+  // Working Hours State
+  const [workingHours, setWorkingHours] = useState<any[]>([]);
+  const [entityWorkingHours, setEntityWorkingHours] = useState<any>(null);
+  const [entityPlan, setEntityPlan] = useState<string>("");
+  const [entityOwnerId, setEntityOwnerId] = useState<string>("");
 
   // Calculate stats from bookings
   const myBookings = useMemo(() => {
@@ -98,15 +104,60 @@ export default function ProfessionalProfilePage() {
     };
   }, [myBookings]);
 
+  // Calculate if the user can edit the profile
+  const canEdit = useMemo(() => {
+    if (!user || !entityOwnerId) return true; // Default to true while loading or if data missing
+
+    const isOwner = user.id === entityOwnerId;
+    const isSimplePlan = entityPlan === 'simple';
+
+    // Owner can always edit
+    if (isOwner) return true;
+
+    // If Simple plan and not owner, cannot edit
+    if (isSimplePlan) return false;
+
+    // Default (e.g. Business plan) can edit
+    return true;
+  }, [user, entityOwnerId, entityPlan]);
+
   useEffect(() => {
-    fetchProfileData();
-  }, []);
+    if (user?.id) {
+      fetchProfileData();
+    }
+  }, [user?.id]);
+
+  const DAYS = [
+    t("days.sunday", "Sunday"),
+    t("days.monday", "Monday"),
+    t("days.tuesday", "Tuesday"),
+    t("days.wednesday", "Wednesday"),
+    t("days.thursday", "Thursday"),
+    t("days.friday", "Friday"),
+    t("days.saturday", "Saturday"),
+  ];
+
   const fetchProfileData = async () => {
     try {
       setLoading(true);
+
+      // Fetch user profile
       const response = await apiClient.get(`/api/users/${user?.id}`);
       const data = (response.data as any).data || response.data;
       setProfileData(data);
+
+      // Fetch entity details for working hours validation and plan check
+      if (entityId) {
+        try {
+          const entityResponse = await apiClient.get(`/api/entities/${entityId}`);
+          const entityData = (entityResponse.data as any).data || entityResponse.data;
+          setEntityWorkingHours(entityData.workingHours);
+          setEntityPlan(entityData.plan);
+          setEntityOwnerId(entityData.ownerId);
+        } catch (err) {
+          console.error("Failed to fetch entity details:", err);
+        }
+      }
 
       // Populate form
       setFirstName(data.firstName || "");
@@ -123,23 +174,72 @@ export default function ProfessionalProfilePage() {
       setInstagram(data.professionalInfo?.socialMedia?.instagram || "");
       setLinkedin(data.professionalInfo?.socialMedia?.linkedin || "");
       setWebsite(data.professionalInfo?.socialMedia?.website || "");
+
+      // Initialize working hours if not present
+      if (data.workingHours && data.workingHours.length > 0) {
+        setWorkingHours(data.workingHours);
+      } else {
+        // Default to Mon-Fri 9-5
+        const defaultHours = Array.from({ length: 7 }, (_, i) => ({
+          day: i,
+          isAvailable: i >= 1 && i <= 5,
+          startTime: "09:00",
+          endTime: "17:00",
+          breaks: [],
+        }));
+        setWorkingHours(defaultHours);
+      }
     } catch (error) {
       console.error("Failed to fetch profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load profile data",
-        variant: "destructive",
-      });
+      toast.error("Failed to load profile data");
     } finally {
       setLoading(false);
     }
   };
 
+  // Validate working hours against entity hours when entity data loads
+  useEffect(() => {
+    if (entityWorkingHours && workingHours.length > 0) {
+      const validatedHours = workingHours.map((daySchedule) => {
+        const daysMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const entitySchedule = entityWorkingHours[daysMap[daySchedule.day]];
+
+        // Force isAvailable=false if entity is closed that day
+        if (!entitySchedule || !entitySchedule.enabled) {
+          return {
+            ...daySchedule,
+            isAvailable: false, // Force toggle off when company closed
+          };
+        }
+
+        return daySchedule;
+      });
+
+      // Only update if there are actual changes
+      const hasChanges = validatedHours.some((validated, index) =>
+        validated.isAvailable !== workingHours[index].isAvailable
+      );
+
+      if (hasChanges) {
+        setWorkingHours(validatedHours);
+      }
+    }
+  }, [entityWorkingHours, workingHours]); // Run when entity working hours load or professional working hours change
+
   const handleSaveProfile = async () => {
     try {
       setLoading(true);
 
-      await apiClient.patch(`/api/users/${user?.id}`, {
+      // Sanitize working hours to remove _id and other backend-only fields
+      const sanitizedWorkingHours = workingHours.map(({ day, startTime, endTime, isAvailable, breaks }) => ({
+        day,
+        startTime,
+        endTime,
+        isAvailable,
+        breaks: breaks || []
+      }));
+
+      const updatePayload = {
         firstName,
         lastName,
         phone,
@@ -155,26 +255,81 @@ export default function ProfessionalProfilePage() {
             website: website || undefined,
           },
         },
-      });
+        workingHours: sanitizedWorkingHours,
+      };
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
+      const response = await apiClient.patch(`/api/users/${user?.id}`, updatePayload);
+      const updatedData = (response as any).data?.data || (response as any).data;
 
-      fetchProfileData();
+      // Update local user context
+      await updateUser(transformBackendUser(updatedData));
+
+      // Refresh profile data to ensure UI is in sync
+      await fetchProfileData();
+
+      toast.success("Profile updated successfully");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile",
-        variant: "destructive",
-      });
+      console.error("[Profile] Error updating profile:", error);
+      console.error("[Profile] Error response:", error.response?.data);
+
+      const errorMessage = error.response?.data?.message
+        || error.message
+        || "Failed to update profile";
+
+      toast.error(`Update failed: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   };
 
+  const getEntityDaySchedule = (dayIndex: number) => {
+    if (!entityWorkingHours) return null;
+    const daysMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayName = daysMap[dayIndex];
+    return entityWorkingHours[dayName];
+  };
+
+  const handleWorkingHourChange = (
+    index: number,
+    field: string,
+    value: any
+  ) => {
+    if (!canEdit) return; // Prevent changes if not allowed
+
+    const newHours = [...workingHours];
+    const currentDay = newHours[index];
+    const entitySchedule = getEntityDaySchedule(currentDay.day);
+
+    // Validation logic
+    if (entitySchedule) {
+      // Check if trying to enable a day when entity is closed
+      if (field === "isAvailable" && value === true) {
+        if (!entitySchedule.enabled) {
+          return; // Prevent change
+        }
+      }
+
+      // Check time limits
+      if (field === "startTime" || field === "endTime") {
+        const startTime = field === "startTime" ? value : currentDay.startTime;
+        const endTime = field === "endTime" ? value : currentDay.endTime;
+
+        if (startTime && entitySchedule.start && startTime < entitySchedule.start) {
+          return;
+        }
+
+        if (endTime && entitySchedule.end && endTime > entitySchedule.end) {
+          return;
+        }
+      }
+    }
+
+    newHours[index] = { ...newHours[index], [field]: value };
+    setWorkingHours(newHours);
+  };
+
   const handleAddSpecialty = () => {
+    if (!canEdit) return;
     if (newSpecialty.trim() && !specialties.includes(newSpecialty.trim())) {
       setSpecialties([...specialties, newSpecialty.trim()]);
       setNewSpecialty("");
@@ -182,10 +337,12 @@ export default function ProfessionalProfilePage() {
   };
 
   const handleRemoveSpecialty = (specialty: string) => {
+    if (!canEdit) return;
     setSpecialties(specialties.filter((s) => s !== specialty));
   };
 
   const handleAddCertification = () => {
+    if (!canEdit) return;
     if (
       newCertification.trim() &&
       !certifications.includes(newCertification.trim())
@@ -196,6 +353,7 @@ export default function ProfessionalProfilePage() {
   };
 
   const handleRemoveCertification = (certification: string) => {
+    if (!canEdit) return;
     setCertifications(certifications.filter((c) => c !== certification));
   };
 
@@ -217,10 +375,33 @@ export default function ProfessionalProfilePage() {
         </p>
       </div>
 
+      {!canEdit && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              {/* Warning Icon */}
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                Your profile is managed by the account owner. You cannot make changes directly.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="personal" className="space-y-6">
         <TabsList>
           <TabsTrigger value="personal">Personal Information</TabsTrigger>
-          <TabsTrigger value="professional">Professional Details</TabsTrigger>
+          {profileData?.isProfessional && (
+            <>
+              <TabsTrigger value="professional">Professional Details</TabsTrigger>
+              <TabsTrigger value="schedule">Schedule & Availability</TabsTrigger>
+            </>
+          )}
           <TabsTrigger value="stats">Statistics</TabsTrigger>
         </TabsList>
 
@@ -240,7 +421,7 @@ export default function ProfessionalProfilePage() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" disabled={!canEdit}>
                   <Camera className="h-4 w-4 mr-2" />
                   Change Photo
                 </Button>
@@ -267,6 +448,7 @@ export default function ProfessionalProfilePage() {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder={t("profile.firstNamePlaceholder", "John")}
+                    disabled={!canEdit}
                   />
                 </div>
                 <div className="space-y-2">
@@ -278,6 +460,7 @@ export default function ProfessionalProfilePage() {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder={t("profile.lastNamePlaceholder", "Doe")}
+                    disabled={!canEdit}
                   />
                 </div>
               </div>
@@ -303,6 +486,7 @@ export default function ProfessionalProfilePage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+1 (555) 000-0000"
+                  disabled={!canEdit}
                 />
               </div>
             </CardContent>
@@ -310,183 +494,289 @@ export default function ProfessionalProfilePage() {
         </TabsContent>
 
         {/* Professional Details Tab */}
-        <TabsContent value="professional" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Job Information</CardTitle>
-              <CardDescription>
-                Your professional role and experience
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="jobFunction">Job Function</Label>
+        {profileData?.isProfessional && (
+          <TabsContent value="professional" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Job Information</CardTitle>
+                <CardDescription>
+                  Your professional role and experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="jobFunction">Job Function</Label>
+                    <Input
+                      id="jobFunction"
+                      value={jobFunction}
+                      onChange={(e) => setJobFunction(e.target.value)}
+                      placeholder="e.g., Hair Stylist, Massage Therapist"
+                      disabled={!canEdit}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Set by your employer:{" "}
+                      {profileData?.professionalInfo?.jobFunction || "Not set"}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="experience">Years of Experience</Label>
+                    <Input
+                      id="experience"
+                      type="number"
+                      min="0"
+                      value={experience}
+                      onChange={(e) => setExperience(e.target.value)}
+                      placeholder="e.g., 5"
+                      disabled={!canEdit}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Bio</CardTitle>
+                <CardDescription>
+                  Tell clients about your experience and expertise
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder={t(
+                    "profile.bioPlaceholder",
+                    "I am a professional with expertise in..."
+                  )}
+                  rows={6}
+                  className="resize-none"
+                  disabled={!canEdit}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Specialties</CardTitle>
+                <CardDescription>Add your areas of expertise</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
                   <Input
-                    id="jobFunction"
-                    value={jobFunction}
-                    onChange={(e) => setJobFunction(e.target.value)}
-                    placeholder="e.g., Hair Stylist, Massage Therapist"
+                    value={newSpecialty}
+                    onChange={(e) => setNewSpecialty(e.target.value)}
+                    placeholder="e.g., Haircut, Massage, Consulting"
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && handleAddSpecialty()
+                    }
+                    disabled={!canEdit}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Set by your employer:{" "}
-                    {profileData?.professionalInfo?.jobFunction || "Not set"}
-                  </p>
+                  <Button onClick={handleAddSpecialty} variant="outline" disabled={!canEdit}>
+                    Add
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {specialties.map((specialty) => (
+                    <Badge
+                      key={specialty}
+                      variant="secondary"
+                      className={`cursor-pointer ${canEdit ? 'hover:bg-destructive hover:text-destructive-foreground' : ''}`}
+                      onClick={() => handleRemoveSpecialty(specialty)}
+                    >
+                      {specialty} {canEdit && '×'}
+                    </Badge>
+                  ))}
+                  {specialties.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      No specialties added yet
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Certifications</CardTitle>
+                <CardDescription>
+                  Add your professional certifications
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    value={newCertification}
+                    onChange={(e) => setNewCertification(e.target.value)}
+                    placeholder="e.g., Licensed Cosmetologist, Certified Massage Therapist"
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && handleAddCertification()
+                    }
+                    disabled={!canEdit}
+                  />
+                  <Button onClick={handleAddCertification} variant="outline" disabled={!canEdit}>
+                    Add
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {certifications.map((cert) => (
+                    <Badge
+                      key={cert}
+                      variant="secondary"
+                      className={`cursor-pointer ${canEdit ? 'hover:bg-destructive hover:text-destructive-foreground' : ''}`}
+                      onClick={() => handleRemoveCertification(cert)}
+                    >
+                      {cert} {canEdit && '×'}
+                    </Badge>
+                  ))}
+                  {certifications.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      No certifications added yet
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Social Media</CardTitle>
+                <CardDescription>
+                  Connect your professional profiles
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value)}
+                    placeholder="@yourhandle"
+                    disabled={!canEdit}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="experience">Years of Experience</Label>
+                  <Label htmlFor="linkedin">LinkedIn</Label>
                   <Input
-                    id="experience"
-                    type="number"
-                    min="0"
-                    value={experience}
-                    onChange={(e) => setExperience(e.target.value)}
-                    placeholder="e.g., 5"
+                    id="linkedin"
+                    value={linkedin}
+                    onChange={(e) => setLinkedin(e.target.value)}
+                    placeholder="linkedin.com/in/yourprofile"
+                    disabled={!canEdit}
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="www.yourwebsite.com"
+                    disabled={!canEdit}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Bio</CardTitle>
-              <CardDescription>
-                Tell clients about your experience and expertise
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder={t(
-                  "profile.bioPlaceholder",
-                  "I am a professional with expertise in..."
-                )}
-                rows={6}
-                className="resize-none"
-              />
-            </CardContent>
-          </Card>
+        {/* Schedule & Availability Tab */}
+        {
+          profileData?.isProfessional && (
+            <TabsContent value="schedule" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Working Hours</CardTitle>
+                  <CardDescription>
+                    Set your availability schedule. Note: You can only set hours within the company's operating hours.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {workingHours.map((daySchedule, index) => {
+                    const entitySchedule = getEntityDaySchedule(daySchedule.day);
+                    // Treat as closed if no schedule found or explicitly disabled
+                    const isEntityClosed = !entitySchedule || !entitySchedule.enabled;
+                    const companyHoursText = entitySchedule && entitySchedule.enabled
+                      ? `${entitySchedule.start} - ${entitySchedule.end}`
+                      : "Closed";
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Specialties</CardTitle>
-              <CardDescription>Add your areas of expertise</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={newSpecialty}
-                  onChange={(e) => setNewSpecialty(e.target.value)}
-                  placeholder="e.g., Haircut, Massage, Consulting"
-                  onKeyPress={(e) => e.key === "Enter" && handleAddSpecialty()}
-                />
-                <Button onClick={handleAddSpecialty} variant="outline">
-                  Add
-                </Button>
-              </div>
+                    return (
+                      <div
+                        key={daySchedule.day}
+                        className={`flex flex-col gap-2 p-4 border rounded-lg ${isEntityClosed ? 'bg-muted/50' : ''}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 w-32">
+                              <Switch
+                                id={`day-${index}`}
+                                checked={daySchedule.isAvailable}
+                                onCheckedChange={(checked: boolean) =>
+                                  handleWorkingHourChange(index, "isAvailable", checked)
+                                }
+                                disabled={isEntityClosed || !canEdit}
+                              />
+                              <Label htmlFor={`day-${index}`} className="capitalize">
+                                {DAYS[daySchedule.day]}
+                              </Label>
+                            </div>
 
-              <div className="flex flex-wrap gap-2">
-                {specialties.map((specialty) => (
-                  <Badge
-                    key={specialty}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => handleRemoveSpecialty(specialty)}
-                  >
-                    {specialty} ×
-                  </Badge>
-                ))}
-                {specialties.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No specialties added yet
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                            {/* Company Hours Badge */}
+                            <Badge variant="outline" className="text-xs text-muted-foreground font-normal">
+                              Company: {companyHoursText}
+                            </Badge>
+                          </div>
+                        </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Certifications</CardTitle>
-              <CardDescription>
-                Add your professional certifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={newCertification}
-                  onChange={(e) => setNewCertification(e.target.value)}
-                  placeholder="e.g., Licensed Cosmetologist, Certified Massage Therapist"
-                  onKeyPress={(e) =>
-                    e.key === "Enter" && handleAddCertification()
-                  }
-                />
-                <Button onClick={handleAddCertification} variant="outline">
-                  Add
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {certifications.map((cert) => (
-                  <Badge
-                    key={cert}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => handleRemoveCertification(cert)}
-                  >
-                    {cert} ×
-                  </Badge>
-                ))}
-                {certifications.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No certifications added yet
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Social Media</CardTitle>
-              <CardDescription>
-                Connect your professional profiles
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="instagram">Instagram</Label>
-                <Input
-                  id="instagram"
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="@yourhandle"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="linkedin">LinkedIn</Label>
-                <Input
-                  id="linkedin"
-                  value={linkedin}
-                  onChange={(e) => setLinkedin(e.target.value)}
-                  placeholder="linkedin.com/in/yourprofile"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  placeholder="www.yourwebsite.com"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                        {daySchedule.isAvailable && (
+                          <div className="flex gap-2 items-center mt-2 pl-32">
+                            <div className="relative w-32">
+                              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                              <Input
+                                type="time"
+                                value={daySchedule.startTime}
+                                onChange={(e) =>
+                                  handleWorkingHourChange(
+                                    index,
+                                    "startTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="pl-10"
+                                disabled={!canEdit}
+                              />
+                            </div>
+                            <span className="text-muted-foreground">-</span>
+                            <div className="relative w-32">
+                              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                              <Input
+                                type="time"
+                                value={daySchedule.endTime}
+                                onChange={(e) =>
+                                  handleWorkingHourChange(
+                                    index,
+                                    "endTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="pl-10"
+                                disabled={!canEdit}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )
+        }
 
         {/* Statistics Tab */}
         <TabsContent value="stats" className="space-y-6">
@@ -578,15 +868,15 @@ export default function ProfessionalProfilePage() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </Tabs >
 
       {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSaveProfile} disabled={loading} size="lg">
+      <div className="flex justify-end" >
+        <Button onClick={handleSaveProfile} disabled={loading || !canEdit} size="lg">
           <Save className="h-4 w-4 mr-2" />
           {loading ? "Saving..." : "Save Changes"}
         </Button>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

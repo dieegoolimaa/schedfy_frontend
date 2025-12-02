@@ -66,6 +66,7 @@ import {
 } from "lucide-react";
 import { usePromotions } from "../../hooks/usePromotions";
 import { PromotionImpactCard } from "../../components/reports/promotion-impact-card";
+import { AIFinancialInsights } from "../../components/reports/ai-financial-insights";
 import { Commission } from "../../types/models/promotions.interface";
 import { professionalsService, Professional } from "../../services/professionals.service";
 
@@ -716,6 +717,12 @@ export function FinancialReportsPage() {
           </div>
 
           <TabsContent value="overview" className="space-y-4">
+            {/* AI Financial Insights */}
+            <AIFinancialInsights
+              revenue={financialSummary.totalRevenue}
+              bookings={filteredBookings}
+            />
+
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
                 <CardHeader>
