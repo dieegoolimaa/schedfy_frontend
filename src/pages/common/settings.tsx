@@ -35,7 +35,7 @@ export default function UnifiedSettingsPage() {
   const isOwnerOrManager = user?.role === "owner" || user?.role === "manager" || user?.role === "admin";
 
   const [activeTab, setActiveTab] = useState(
-    plan === "business" ? "business" : "profile"
+    (plan === "business" || plan === "individual" || plan === "simple") ? "business" : "profile"
   );
   const [entity, setEntity] = useState<Entity | null>(null);
   const [loadingEntity, setLoadingEntity] = useState(true);
@@ -191,7 +191,7 @@ export default function UnifiedSettingsPage() {
       setSaving(true);
 
       // Save Working Hours if applicable
-      if (plan === "business" || plan === "individual") {
+      if (plan === "business" || plan === "individual" || plan === "simple") {
         await entitiesService.updateWorkingHours(workingHours);
       }
 
@@ -231,7 +231,7 @@ export default function UnifiedSettingsPage() {
         className="space-y-6"
       >
         <TabsList>
-          {plan === "business" && (
+          {(plan === "business" || plan === "individual" || plan === "simple") && (
             <TabsTrigger value="business" className="gap-2">
               <Building2 className="w-4 h-4" />
               {t("tabs.business")}
@@ -253,8 +253,8 @@ export default function UnifiedSettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Business Profile Tab (Business Plan Only) */}
-        {plan === "business" && (
+        {/* Business Profile Tab (All Plans) */}
+        {(plan === "business" || plan === "individual" || plan === "simple") && (
           <TabsContent value="business" className="space-y-6">
             <Card>
               <CardContent className="pt-6">
