@@ -32,6 +32,8 @@ export default function UnifiedSettingsPage() {
   const { t } = useTranslation("settings");
   const { user } = useAuth();
   const plan = user?.plan || "simple";
+  const isOwnerOrManager = user?.role === "owner" || user?.role === "manager" || user?.role === "admin";
+
   const [activeTab, setActiveTab] = useState(
     plan === "business" ? "business" : "profile"
   );
@@ -155,6 +157,10 @@ export default function UnifiedSettingsPage() {
 
   const handleSaveProfile = async () => {
     if (!user?.entityId) return;
+    if (!isOwnerOrManager) {
+      toast.error(t("errors.unauthorized", "Only owners can modify settings"));
+      return;
+    }
 
     try {
       setSaving(true);
@@ -176,6 +182,11 @@ export default function UnifiedSettingsPage() {
   };
 
   const handleSaveSettings = async () => {
+    if (!isOwnerOrManager) {
+      toast.error(t("errors.unauthorized", "Only owners can modify settings"));
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -230,7 +241,7 @@ export default function UnifiedSettingsPage() {
             <User className="w-4 h-4" />
             {t("tabs.profile")}
           </TabsTrigger>
-          {(plan === "business" || plan === "individual") && (
+          {(plan === "business" || plan === "individual" || plan === "simple") && (
             <TabsTrigger value="hours" className="gap-2">
               <Clock className="w-4 h-4" />
               {t("tabs.workingHours")}
@@ -353,7 +364,7 @@ export default function UnifiedSettingsPage() {
               </div>
 
               <div className="flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={saving}>
+                <Button onClick={handleSaveProfile} disabled={saving || !isOwnerOrManager}>
                   <Save className="w-4 h-4 mr-2" />
                   {saving ? t("actions.saving") : t("actions.save")}
                 </Button>
@@ -362,8 +373,8 @@ export default function UnifiedSettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Working Hours Tab (Business/Individual Only) */}
-        {(plan === "business" || plan === "individual") && (
+        {/* Working Hours Tab (Business/Individual/Simple) */}
+        {(plan === "business" || plan === "individual" || plan === "simple") && (
           <TabsContent value="hours" className="space-y-6">
             <Card>
               <CardHeader>
@@ -393,6 +404,7 @@ export default function UnifiedSettingsPage() {
                       <div className="flex items-center gap-2 w-32">
                         <Switch
                           checked={hours.enabled}
+                          disabled={!isOwnerOrManager}
                           onCheckedChange={(checked) =>
                             setWorkingHours({
                               ...workingHours,
@@ -408,6 +420,7 @@ export default function UnifiedSettingsPage() {
                             <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                             <Input
                               type="time"
+                              disabled={!isOwnerOrManager}
                               value={hours.start}
                               onChange={(e) =>
                                 setWorkingHours({
@@ -423,6 +436,7 @@ export default function UnifiedSettingsPage() {
                             <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                             <Input
                               type="time"
+                              disabled={!isOwnerOrManager}
                               value={hours.end}
                               onChange={(e) =>
                                 setWorkingHours({
@@ -438,7 +452,7 @@ export default function UnifiedSettingsPage() {
                     </div>
                   ))}
                 <div className="flex justify-end">
-                  <Button onClick={handleSaveSettings} disabled={saving}>
+                  <Button onClick={handleSaveSettings} disabled={saving || !isOwnerOrManager}>
                     <Save className="w-4 h-4 mr-2" />
                     {saving ? t("actions.saving") : t("actions.save")}
                   </Button>
@@ -465,6 +479,7 @@ export default function UnifiedSettingsPage() {
                 </div>
                 <Switch
                   checked={privacySettings.profileVisible}
+                  disabled={!isOwnerOrManager}
                   onCheckedChange={(checked) =>
                     setPrivacySettings({
                       ...privacySettings,
@@ -474,7 +489,7 @@ export default function UnifiedSettingsPage() {
                 />
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSaveSettings}>
+                <Button onClick={handleSaveSettings} disabled={!isOwnerOrManager}>
                   <Save className="w-4 h-4 mr-2" />
                   {t("actions.save")}
                 </Button>

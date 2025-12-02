@@ -99,6 +99,7 @@ const ServicesAndPackages: React.FC = () => {
   // Check user plan
   const userPlan = user?.plan || "simple";
   const hasPackageAccess = userPlan === "individual" || userPlan === "business";
+  const isOwnerOrManager = user?.role === "owner" || user?.role === "manager" || user?.role === "admin";
 
   // Form state for packages
   const [formData, setFormData] = useState({
@@ -201,6 +202,10 @@ const ServicesAndPackages: React.FC = () => {
   };
 
   const handleCreatePackage = async () => {
+    if (!isOwnerOrManager) {
+      toast.error("Apenas proprietários ou gerentes podem criar pacotes");
+      return;
+    }
     try {
       if (!formData.name || formData.services.length === 0) {
         toast.error("Preencha nome e selecione pelo menos um serviço");
@@ -263,6 +268,10 @@ const ServicesAndPackages: React.FC = () => {
   };
 
   const handleUpdatePackage = async () => {
+    if (!isOwnerOrManager) {
+      toast.error("Apenas proprietários ou gerentes podem atualizar pacotes");
+      return;
+    }
     if (!selectedPackage) return;
 
     try {
@@ -326,6 +335,10 @@ const ServicesAndPackages: React.FC = () => {
   };
 
   const handleToggleStatus = async (packageId: string) => {
+    if (!isOwnerOrManager) {
+      toast.error("Apenas proprietários ou gerentes podem alterar status");
+      return;
+    }
     try {
       console.log("[DEBUG] Toggling status for package ID:", packageId);
       console.log(
@@ -352,6 +365,10 @@ const ServicesAndPackages: React.FC = () => {
   };
 
   const handleDeletePackage = async (packageId: string) => {
+    if (!isOwnerOrManager) {
+      toast.error("Apenas proprietários ou gerentes podem excluir pacotes");
+      return;
+    }
     try {
       if (!confirm("Tem certeza que deseja excluir este pacote?")) return;
 
@@ -485,6 +502,10 @@ const ServicesAndPackages: React.FC = () => {
 
   // Service CRUD Functions
   const handleCreateService = async () => {
+    if (!isOwnerOrManager) {
+      toast.error("Apenas proprietários ou gerentes podem criar serviços");
+      return;
+    }
     try {
       if (
         !serviceFormData.name ||
@@ -535,6 +556,10 @@ const ServicesAndPackages: React.FC = () => {
   };
 
   const handleUpdateService = async () => {
+    if (!isOwnerOrManager) {
+      toast.error("Apenas proprietários ou gerentes podem atualizar serviços");
+      return;
+    }
     try {
       if (!editingService) return;
 
@@ -582,6 +607,10 @@ const ServicesAndPackages: React.FC = () => {
   };
 
   const handleDeleteService = async (serviceId: string) => {
+    if (!isOwnerOrManager) {
+      toast.error("Apenas proprietários ou gerentes podem excluir serviços");
+      return;
+    }
     try {
       if (!confirm("Tem certeza que deseja excluir este serviço?")) return;
 
@@ -840,231 +869,233 @@ const ServicesAndPackages: React.FC = () => {
 
           {/* Create Service Button */}
           <div className="flex justify-end">
-            <Dialog
-              open={isServiceCreateModalOpen}
-              onOpenChange={setIsServiceCreateModalOpen}
-            >
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar Serviço
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Criar Novo Serviço</DialogTitle>
-                  <DialogDescription>
-                    Adicione um novo serviço ao seu catálogo
-                  </DialogDescription>
-                </DialogHeader>
+            {isOwnerOrManager && (
+              <Dialog
+                open={isServiceCreateModalOpen}
+                onOpenChange={setIsServiceCreateModalOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Serviço
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Criar Novo Serviço</DialogTitle>
+                    <DialogDescription>
+                      Adicione um novo serviço ao seu catálogo
+                    </DialogDescription>
+                  </DialogHeader>
 
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="service-name">Nome do Serviço *</Label>
-                      <Input
-                        id="service-name"
-                        value={serviceFormData.name}
-                        onChange={(e) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            name: e.target.value,
-                          })
-                        }
-                        placeholder="Ex: Corte de Cabelo"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="service-category">Categoria *</Label>
-                      <Select
-                        value={
-                          showCustomCategory
-                            ? "custom"
-                            : serviceFormData.category
-                        }
-                        onValueChange={(value) => {
-                          if (value === "custom") {
-                            setShowCustomCategory(true);
-                            setServiceFormData({
-                              ...serviceFormData,
-                              category: "",
-                            });
-                          } else {
-                            setShowCustomCategory(false);
-                            setServiceFormData({
-                              ...serviceFormData,
-                              category: value,
-                              customCategory: "",
-                            });
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="haircut">
-                            Corte de Cabelo
-                          </SelectItem>
-                          <SelectItem value="color">Coloração</SelectItem>
-                          <SelectItem value="treatment">Tratamento</SelectItem>
-                          <SelectItem value="styling">Penteado</SelectItem>
-                          <SelectItem value="massage">Massagem</SelectItem>
-                          <SelectItem value="facial">Facial</SelectItem>
-                          <SelectItem value="manicure">Manicure</SelectItem>
-                          <SelectItem value="pedicure">Pedicure</SelectItem>
-                          <SelectItem value="other">Outro</SelectItem>
-                          <SelectItem value="custom">
-                            ➕ Create Custom Category
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {showCustomCategory && (
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="service-name">Nome do Serviço *</Label>
                         <Input
-                          placeholder="Enter custom category name"
-                          value={serviceFormData.customCategory}
+                          id="service-name"
+                          value={serviceFormData.name}
                           onChange={(e) =>
                             setServiceFormData({
                               ...serviceFormData,
-                              customCategory: e.target.value,
-                              category: e.target.value,
+                              name: e.target.value,
+                            })
+                          }
+                          placeholder="Ex: Corte de Cabelo"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="service-category">Categoria *</Label>
+                        <Select
+                          value={
+                            showCustomCategory
+                              ? "custom"
+                              : serviceFormData.category
+                          }
+                          onValueChange={(value) => {
+                            if (value === "custom") {
+                              setShowCustomCategory(true);
+                              setServiceFormData({
+                                ...serviceFormData,
+                                category: "",
+                              });
+                            } else {
+                              setShowCustomCategory(false);
+                              setServiceFormData({
+                                ...serviceFormData,
+                                category: value,
+                                customCategory: "",
+                              });
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="haircut">
+                              Corte de Cabelo
+                            </SelectItem>
+                            <SelectItem value="color">Coloração</SelectItem>
+                            <SelectItem value="treatment">Tratamento</SelectItem>
+                            <SelectItem value="styling">Penteado</SelectItem>
+                            <SelectItem value="massage">Massagem</SelectItem>
+                            <SelectItem value="facial">Facial</SelectItem>
+                            <SelectItem value="manicure">Manicure</SelectItem>
+                            <SelectItem value="pedicure">Pedicure</SelectItem>
+                            <SelectItem value="other">Outro</SelectItem>
+                            <SelectItem value="custom">
+                              ➕ Create Custom Category
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {showCustomCategory && (
+                          <Input
+                            placeholder="Enter custom category name"
+                            value={serviceFormData.customCategory}
+                            onChange={(e) =>
+                              setServiceFormData({
+                                ...serviceFormData,
+                                customCategory: e.target.value,
+                                category: e.target.value,
+                              })
+                            }
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="service-description">Descrição</Label>
+                      <Textarea
+                        id="service-description"
+                        value={serviceFormData.description}
+                        onChange={(e) =>
+                          setServiceFormData({
+                            ...serviceFormData,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="Descreva o serviço..."
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="service-duration">
+                          Duração (minutos) *
+                        </Label>
+                        <Input
+                          id="service-duration"
+                          type="number"
+                          min="5"
+                          value={serviceFormData.duration}
+                          onChange={(e) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              duration: e.target.value,
+                            })
+                          }
+                          placeholder="Ex: 60"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="service-price">Preço (€) *</Label>
+                        <Input
+                          id="service-price"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={serviceFormData.price}
+                          onChange={(e) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              price: e.target.value,
+                            })
+                          }
+                          placeholder="Ex: 25.00"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="service-active"
+                          checked={serviceFormData.isActive}
+                          onCheckedChange={(checked) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              isActive: checked as boolean,
                             })
                           }
                         />
-                      )}
+                        <Label
+                          htmlFor="service-active"
+                          className="cursor-pointer"
+                        >
+                          Ativo
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="service-public"
+                          checked={serviceFormData.isPublic}
+                          onCheckedChange={(checked) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              isPublic: checked as boolean,
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor="service-public"
+                          className="cursor-pointer"
+                        >
+                          Visível publicamente
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="service-manual-confirm"
+                          checked={serviceFormData.requireManualConfirmation}
+                          onCheckedChange={(checked) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              requireManualConfirmation: checked as boolean,
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor="service-manual-confirm"
+                          className="cursor-pointer"
+                        >
+                          Confirmação manual
+                        </Label>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="service-description">Descrição</Label>
-                    <Textarea
-                      id="service-description"
-                      value={serviceFormData.description}
-                      onChange={(e) =>
-                        setServiceFormData({
-                          ...serviceFormData,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="Descreva o serviço..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="service-duration">
-                        Duração (minutos) *
-                      </Label>
-                      <Input
-                        id="service-duration"
-                        type="number"
-                        min="5"
-                        value={serviceFormData.duration}
-                        onChange={(e) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            duration: e.target.value,
-                          })
-                        }
-                        placeholder="Ex: 60"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="service-price">Preço (€) *</Label>
-                      <Input
-                        id="service-price"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={serviceFormData.price}
-                        onChange={(e) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            price: e.target.value,
-                          })
-                        }
-                        placeholder="Ex: 25.00"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="service-active"
-                        checked={serviceFormData.isActive}
-                        onCheckedChange={(checked) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            isActive: checked as boolean,
-                          })
-                        }
-                      />
-                      <Label
-                        htmlFor="service-active"
-                        className="cursor-pointer"
-                      >
-                        Ativo
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="service-public"
-                        checked={serviceFormData.isPublic}
-                        onCheckedChange={(checked) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            isPublic: checked as boolean,
-                          })
-                        }
-                      />
-                      <Label
-                        htmlFor="service-public"
-                        className="cursor-pointer"
-                      >
-                        Visível publicamente
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="service-manual-confirm"
-                        checked={serviceFormData.requireManualConfirmation}
-                        onCheckedChange={(checked) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            requireManualConfirmation: checked as boolean,
-                          })
-                        }
-                      />
-                      <Label
-                        htmlFor="service-manual-confirm"
-                        className="cursor-pointer"
-                      >
-                        Confirmação manual
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsServiceCreateModalOpen(false);
-                      resetServiceForm();
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleCreateService}>Criar Serviço</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsServiceCreateModalOpen(false);
+                        resetServiceForm();
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleCreateService}>Criar Serviço</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <Card>
@@ -1543,792 +1574,807 @@ const ServicesAndPackages: React.FC = () => {
         </TabsContent>
 
         {/* Packages Tab - Only for Individual/Business */}
-        {hasPackageAccess && (
-          <TabsContent value="packages" className="space-y-4">
-            {/* Filters and Create Button */}
-            <div className="flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex gap-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativos</SelectItem>
-                    <SelectItem value="inactive">Inativos</SelectItem>
-                    <SelectItem value="draft">Rascunho</SelectItem>
-                  </SelectContent>
-                </Select>
+        {
+          hasPackageAccess && (
+            <TabsContent value="packages" className="space-y-4">
+              {/* Filters and Create Button */}
+              <div className="flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="active">Ativos</SelectItem>
+                      <SelectItem value="inactive">Inativos</SelectItem>
+                      <SelectItem value="draft">Rascunho</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                <Select
-                  value={recurrenceFilter}
-                  onValueChange={setRecurrenceFilter}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Recorrência" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="one_time">Pagamento Único</SelectItem>
-                    <SelectItem value="monthly">Mensal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <Select
+                    value={recurrenceFilter}
+                    onValueChange={setRecurrenceFilter}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Recorrência" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="one_time">Pagamento Único</SelectItem>
+                      <SelectItem value="monthly">Mensal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <Dialog
-                open={isCreateModalOpen}
-                onOpenChange={setIsCreateModalOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button onClick={() => resetForm()}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Criar Pacote
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Criar Novo Pacote</DialogTitle>
-                    <DialogDescription>
-                      Crie um pacote combinando múltiplos serviços com desconto
-                      especial
-                    </DialogDescription>
-                  </DialogHeader>
+                <div className="flex items-center gap-2">
 
-                  <div className="space-y-4 py-4">
-                    {/* Name */}
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome do Pacote *</Label>
-                      <Input
-                        id="name"
-                        placeholder="Ex: Pacote Wellness"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    {/* Description */}
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Descrição</Label>
-                      <Textarea
-                        id="description"
-                        placeholder="Descreva o que está incluso neste pacote..."
-                        value={formData.description}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            description: e.target.value,
-                          })
-                        }
-                        rows={3}
-                      />
-                    </div>
-
-                    {/* Services with Quantities */}
-                    <div className="space-y-2">
-                      <Label>Serviços Inclusos *</Label>
-                      <div className="border rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
-                        {services.map((service) => {
-                          const serviceInPackage = formData.services.find(
-                            (s) => s.serviceId === service._id
-                          );
-                          const isSelected = !!serviceInPackage;
-
-                          return (
-                            <div
-                              key={service._id}
-                              className="flex items-center gap-3 p-2 rounded hover:bg-muted/50"
-                            >
-                              <input
-                                type="checkbox"
-                                id={`service-${service._id}`}
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setFormData({
-                                      ...formData,
-                                      services: [
-                                        ...formData.services,
-                                        { serviceId: service._id, quantity: 1 },
-                                      ],
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      services: formData.services.filter(
-                                        (s) => s.serviceId !== service._id
-                                      ),
-                                    });
-                                  }
-                                }}
-                                className="rounded"
-                              />
-                              <label
-                                htmlFor={`service-${service._id}`}
-                                className="flex-1 cursor-pointer"
-                              >
-                                {service.name} -{" "}
-                                {formatCurrency(service.pricing.basePrice)}
-                              </label>
-                              {isSelected && (
-                                <div className="flex items-center gap-2">
-                                  <Label
-                                    htmlFor={`qty-${service._id}`}
-                                    className="text-xs text-muted-foreground"
-                                  >
-                                    Qty:
-                                  </Label>
-                                  <Input
-                                    id={`qty-${service._id}`}
-                                    type="number"
-                                    min="1"
-                                    value={serviceInPackage.quantity}
-                                    onChange={(e) => {
-                                      const newQty =
-                                        parseInt(e.target.value) || 1;
-                                      setFormData({
-                                        ...formData,
-                                        services: formData.services.map((s) =>
-                                          s.serviceId === service._id
-                                            ? { ...s, quantity: newQty }
-                                            : s
-                                        ),
-                                      });
-                                    }}
-                                    className="w-20 h-8"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {formData.services.length > 0 && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                          <strong>Preço original:</strong>{" "}
-                          {formatCurrency(calculateOriginalPrice())}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Pricing */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="packagePrice">Preço do Pacote *</Label>
-                        <Input
-                          id="packagePrice"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formData.packagePrice || ""}
-                          onChange={(e) => {
-                            const value =
-                              e.target.value === ""
-                                ? 0
-                                : parseFloat(e.target.value);
-                            setFormData({
-                              ...formData,
-                              packagePrice: isNaN(value) ? 0 : value,
-                            });
-                          }}
-                        />
-                        {formData.services.length > 0 &&
-                          formData.packagePrice > 0 && (
-                            <p className="text-sm text-green-600">
-                              Desconto: {calculateDiscount().toFixed(1)}%
-                            </p>
-                          )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="validity">Validade (dias)</Label>
-                        <Input
-                          id="validity"
-                          type="number"
-                          min="7"
-                          value={formData.validity || ""}
-                          onChange={(e) => {
-                            const value =
-                              e.target.value === ""
-                                ? 30
-                                : parseInt(e.target.value);
-                            setFormData({
-                              ...formData,
-                              validity: isNaN(value) ? 30 : value,
-                            });
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Recurrence and Sessions */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Recorrência</Label>
-                        <Select
-                          value={formData.recurrence}
-                          onValueChange={(value) =>
-                            setFormData({
-                              ...formData,
-                              recurrence: value as PackageRecurrence,
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={PackageRecurrence.ONE_TIME}>
-                              Pagamento Único
-                            </SelectItem>
-                            <SelectItem value={PackageRecurrence.MONTHLY}>
-                              Mensal
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="sessionsIncluded">
-                          Sessões Incluídas *
-                        </Label>
-                        <Input
-                          id="sessionsIncluded"
-                          type="number"
-                          min="1"
-                          value={formData.sessionsIncluded}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              sessionsIncluded: parseInt(e.target.value) || 1,
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsCreateModalOpen(false)}
+                  {isOwnerOrManager && (
+                    <Dialog
+                      open={isCreateModalOpen}
+                      onOpenChange={setIsCreateModalOpen}
                     >
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleCreatePackage}>Criar Pacote</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
+                      <DialogTrigger asChild>
+                        <Button onClick={() => resetForm()}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Criar Pacote
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Criar Novo Pacote</DialogTitle>
+                          <DialogDescription>
+                            Crie um pacote combinando múltiplos serviços com desconto
+                            especial
+                          </DialogDescription>
+                        </DialogHeader>
 
-            {/* Packages Table */}
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Pacote</TableHead>
-                      <TableHead>Serviços</TableHead>
-                      <TableHead>Preço</TableHead>
-                      <TableHead>Desconto</TableHead>
-                      <TableHead>Recorrência</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {packages.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={7}
-                          className="text-center py-8 text-muted-foreground"
-                        >
-                          Nenhum pacote encontrado. Crie seu primeiro pacote!
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      packages.map((pkg) => (
-                        <TableRow key={pkg._id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{pkg.name}</div>
-                              {pkg.description && (
-                                <div className="text-sm text-muted-foreground line-clamp-1">
-                                  {pkg.description}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm space-y-1">
-                              {pkg.services.map((svc, idx) => {
-                                // Safely extract service name
-                                let serviceName = "Serviço Desconhecido";
-                                let serviceId = "";
+                        <div className="space-y-4 py-4">
+                          {/* Name */}
+                          <div className="space-y-2">
+                            <Label htmlFor="name">Nome do Pacote *</Label>
+                            <Input
+                              id="name"
+                              placeholder="Ex: Pacote Wellness"
+                              value={formData.name}
+                              onChange={(e) =>
+                                setFormData({ ...formData, name: e.target.value })
+                              }
+                            />
+                          </div>
 
-                                // Check if serviceId is populated (object)
-                                if (
-                                  svc.serviceId &&
-                                  typeof svc.serviceId === "object" &&
-                                  "name" in svc.serviceId
-                                ) {
-                                  serviceName = svc.serviceId.name;
-                                  serviceId =
-                                    (svc.serviceId as any)._id ||
-                                    (svc.serviceId as any).id ||
-                                    "";
-                                }
-                                // If serviceId is a string, try to find in local services array
-                                else if (typeof svc.serviceId === "string") {
-                                  serviceId = svc.serviceId;
-                                  const service = services.find(
-                                    (s) =>
-                                      s._id === svc.serviceId ||
-                                      s.id === svc.serviceId
-                                  );
-                                  serviceName =
-                                    service?.name ||
-                                    `Serviço (${svc.serviceId.slice(0, 8)}...)`;
-                                }
+                          {/* Description */}
+                          <div className="space-y-2">
+                            <Label htmlFor="description">Descrição</Label>
+                            <Textarea
+                              id="description"
+                              placeholder="Descreva o que está incluso neste pacote..."
+                              value={formData.description}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  description: e.target.value,
+                                })
+                              }
+                              rows={3}
+                            />
+                          </div>
 
-                                const quantity = svc.quantity || 1;
+                          {/* Services with Quantities */}
+                          <div className="space-y-2">
+                            <Label>Serviços Inclusos *</Label>
+                            <div className="border rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
+                              {services.map((service) => {
+                                const serviceInPackage = formData.services.find(
+                                  (s) => s.serviceId === service._id
+                                );
+                                const isSelected = !!serviceInPackage;
+
                                 return (
                                   <div
-                                    key={serviceId || idx}
-                                    className="flex items-center gap-1"
+                                    key={service._id}
+                                    className="flex items-center gap-3 p-2 rounded hover:bg-muted/50"
                                   >
-                                    <span>{serviceName}</span>
-                                    {quantity > 1 && (
-                                      <Badge
-                                        variant="secondary"
-                                        className="text-xs px-1 py-0"
-                                      >
-                                        x{quantity}
-                                      </Badge>
+                                    <input
+                                      type="checkbox"
+                                      id={`service-${service._id}`}
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setFormData({
+                                            ...formData,
+                                            services: [
+                                              ...formData.services,
+                                              { serviceId: service._id, quantity: 1 },
+                                            ],
+                                          });
+                                        } else {
+                                          setFormData({
+                                            ...formData,
+                                            services: formData.services.filter(
+                                              (s) => s.serviceId !== service._id
+                                            ),
+                                          });
+                                        }
+                                      }}
+                                      className="rounded"
+                                    />
+                                    <label
+                                      htmlFor={`service-${service._id}`}
+                                      className="flex-1 cursor-pointer"
+                                    >
+                                      {service.name} -{" "}
+                                      {formatCurrency(service.pricing.basePrice)}
+                                    </label>
+                                    {isSelected && (
+                                      <div className="flex items-center gap-2">
+                                        <Label
+                                          htmlFor={`qty-${service._id}`}
+                                          className="text-xs text-muted-foreground"
+                                        >
+                                          Qty:
+                                        </Label>
+                                        <Input
+                                          id={`qty-${service._id}`}
+                                          type="number"
+                                          min="1"
+                                          value={serviceInPackage.quantity}
+                                          onChange={(e) => {
+                                            const newQty =
+                                              parseInt(e.target.value) || 1;
+                                            setFormData({
+                                              ...formData,
+                                              services: formData.services.map((s) =>
+                                                s.serviceId === service._id
+                                                  ? { ...s, quantity: newQty }
+                                                  : s
+                                              ),
+                                            });
+                                          }}
+                                          className="w-20 h-8"
+                                        />
+                                      </div>
                                     )}
                                   </div>
                                 );
                               })}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {formatCurrency(pkg.pricing.packagePrice)}
-                              </div>
-                              <div className="text-xs text-muted-foreground line-through">
-                                {formatCurrency(pkg.pricing.originalPrice)}
-                              </div>
+                            {formData.services.length > 0 && (
+                              <p className="text-sm text-muted-foreground mt-2">
+                                <strong>Preço original:</strong>{" "}
+                                {formatCurrency(calculateOriginalPrice())}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Pricing */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="packagePrice">Preço do Pacote *</Label>
+                              <Input
+                                id="packagePrice"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={formData.packagePrice || ""}
+                                onChange={(e) => {
+                                  const value =
+                                    e.target.value === ""
+                                      ? 0
+                                      : parseFloat(e.target.value);
+                                  setFormData({
+                                    ...formData,
+                                    packagePrice: isNaN(value) ? 0 : value,
+                                  });
+                                }}
+                              />
+                              {formData.services.length > 0 &&
+                                formData.packagePrice > 0 && (
+                                  <p className="text-sm text-green-600">
+                                    Desconto: {calculateDiscount().toFixed(1)}%
+                                  </p>
+                                )}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">
-                              {pkg.pricing.discount.toFixed(1)}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {getRecurrenceBadge(pkg.recurrence)}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(pkg.status)}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEditModal(pkg)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleToggleStatus(pkg._id)}
-                                className={
-                                  pkg.status === "active"
-                                    ? "text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    : "text-green-600 hover:text-green-700 hover:bg-green-50"
+
+                            <div className="space-y-2">
+                              <Label htmlFor="validity">Validade (dias)</Label>
+                              <Input
+                                id="validity"
+                                type="number"
+                                min="7"
+                                value={formData.validity || ""}
+                                onChange={(e) => {
+                                  const value =
+                                    e.target.value === ""
+                                      ? 30
+                                      : parseInt(e.target.value);
+                                  setFormData({
+                                    ...formData,
+                                    validity: isNaN(value) ? 30 : value,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Recurrence and Sessions */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Recorrência</Label>
+                              <Select
+                                value={formData.recurrence}
+                                onValueChange={(value) =>
+                                  setFormData({
+                                    ...formData,
+                                    recurrence: value as PackageRecurrence,
+                                  })
                                 }
                               >
-                                {pkg.status === "active"
-                                  ? "Desativar"
-                                  : "Ativar"}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeletePackage(pkg._id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value={PackageRecurrence.ONE_TIME}>
+                                    Pagamento Único
+                                  </SelectItem>
+                                  <SelectItem value={PackageRecurrence.MONTHLY}>
+                                    Mensal
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="sessionsIncluded">
+                                Sessões Incluídas *
+                              </Label>
+                              <Input
+                                id="sessionsIncluded"
+                                type="number"
+                                min="1"
+                                value={formData.sessionsIncluded}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    sessionsIncluded: parseInt(e.target.value) || 1,
+                                  })
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <DialogFooter>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsCreateModalOpen(false)}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button onClick={handleCreatePackage}>Criar Pacote</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+              </div>
+
+              {/* Packages Table */}
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Pacote</TableHead>
+                        <TableHead>Serviços</TableHead>
+                        <TableHead>Preço</TableHead>
+                        <TableHead>Desconto</TableHead>
+                        <TableHead>Recorrência</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {packages.length === 0 ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            className="text-center py-8 text-muted-foreground"
+                          >
+                            Nenhum pacote encontrado. Crie seu primeiro pacote!
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        {/* Subscriptions Tab - Only for Individual/Business */}
-        {hasPackageAccess && (
-          <TabsContent value="subscriptions" className="space-y-4">
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Pacote</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Sessões</TableHead>
-                      <TableHead>Validade</TableHead>
-                      <TableHead>Criado em</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {subscriptions.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          className="text-center py-8 text-muted-foreground"
-                        >
-                          Nenhuma assinatura encontrada
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      subscriptions.map((sub) => {
-                        const clientName =
-                          typeof sub.clientId === "object" && sub.clientId
-                            ? sub.clientId.name
-                            : "Unknown";
-                        const clientEmail =
-                          typeof sub.clientId === "object" && sub.clientId
-                            ? sub.clientId.email
-                            : "";
-                        const packageName =
-                          typeof sub.packageId === "object" && sub.packageId
-                            ? sub.packageId.name
-                            : "Unknown";
-
-                        return (
-                          <TableRow key={sub._id}>
+                      ) : (
+                        packages.map((pkg) => (
+                          <TableRow key={pkg._id}>
                             <TableCell>
                               <div>
-                                <div className="font-medium">{clientName}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {clientEmail}
+                                <div className="font-medium">{pkg.name}</div>
+                                {pkg.description && (
+                                  <div className="text-sm text-muted-foreground line-clamp-1">
+                                    {pkg.description}
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm space-y-1">
+                                {pkg.services.map((svc, idx) => {
+                                  // Safely extract service name
+                                  let serviceName = "Serviço Desconhecido";
+                                  let serviceId = "";
+
+                                  // Check if serviceId is populated (object)
+                                  if (
+                                    svc.serviceId &&
+                                    typeof svc.serviceId === "object" &&
+                                    "name" in svc.serviceId
+                                  ) {
+                                    serviceName = svc.serviceId.name;
+                                    serviceId =
+                                      (svc.serviceId as any)._id ||
+                                      (svc.serviceId as any).id ||
+                                      "";
+                                  }
+                                  // If serviceId is a string, try to find in local services array
+                                  else if (typeof svc.serviceId === "string") {
+                                    serviceId = svc.serviceId;
+                                    const service = services.find(
+                                      (s) =>
+                                        s._id === svc.serviceId ||
+                                        s.id === svc.serviceId
+                                    );
+                                    serviceName =
+                                      service?.name ||
+                                      `Serviço (${svc.serviceId.slice(0, 8)}...)`;
+                                  }
+
+                                  const quantity = svc.quantity || 1;
+                                  return (
+                                    <div
+                                      key={serviceId || idx}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <span>{serviceName}</span>
+                                      {quantity > 1 && (
+                                        <Badge
+                                          variant="secondary"
+                                          className="text-xs px-1 py-0"
+                                        >
+                                          x{quantity}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">
+                                  {formatCurrency(pkg.pricing.packagePrice)}
+                                </div>
+                                <div className="text-xs text-muted-foreground line-through">
+                                  {formatCurrency(pkg.pricing.originalPrice)}
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>{packageName}</TableCell>
-                            <TableCell>{getStatusBadge(sub.status)}</TableCell>
                             <TableCell>
-                              {sub.sessionsUsed} / {sub.sessionsTotal}
+                              <Badge variant="secondary">
+                                {pkg.pricing.discount.toFixed(1)}%
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              {format(new Date(sub.expiryDate), "dd/MM/yyyy")}
+                              {getRecurrenceBadge(pkg.recurrence)}
                             </TableCell>
-                            <TableCell>
-                              {format(new Date(sub.createdAt), "dd/MM/yyyy")}
+                            <TableCell>{getStatusBadge(pkg.status)}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditModal(pkg)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleToggleStatus(pkg._id)}
+                                  className={
+                                    pkg.status === "active"
+                                      ? "text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  }
+                                >
+                                  {pkg.status === "active"
+                                    ? "Desativar"
+                                    : "Ativar"}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeletePackage(pkg._id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-      </Tabs>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent >
+          )
+        }
+
+        {/* Subscriptions Tab - Only for Individual/Business */}
+        {
+          hasPackageAccess && (
+            <TabsContent value="subscriptions" className="space-y-4">
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Pacote</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Sessões</TableHead>
+                        <TableHead>Validade</TableHead>
+                        <TableHead>Criado em</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {subscriptions.length === 0 ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={6}
+                            className="text-center py-8 text-muted-foreground"
+                          >
+                            Nenhuma assinatura encontrada
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        subscriptions.map((sub) => {
+                          const clientName =
+                            typeof sub.clientId === "object" && sub.clientId
+                              ? sub.clientId.name
+                              : "Unknown";
+                          const clientEmail =
+                            typeof sub.clientId === "object" && sub.clientId
+                              ? sub.clientId.email
+                              : "";
+                          const packageName =
+                            typeof sub.packageId === "object" && sub.packageId
+                              ? sub.packageId.name
+                              : "Unknown";
+
+                          return (
+                            <TableRow key={sub._id}>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">{clientName}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {clientEmail}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>{packageName}</TableCell>
+                              <TableCell>{getStatusBadge(sub.status)}</TableCell>
+                              <TableCell>
+                                {sub.sessionsUsed} / {sub.sessionsTotal}
+                              </TableCell>
+                              <TableCell>
+                                {format(new Date(sub.expiryDate), "dd/MM/yyyy")}
+                              </TableCell>
+                              <TableCell>
+                                {format(new Date(sub.createdAt), "dd/MM/yyyy")}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )
+        }
+      </Tabs >
 
       {/* Edit Modal */}
-      {hasPackageAccess && (
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Editar Pacote</DialogTitle>
-              <DialogDescription>
-                Atualize as informações do pacote
-              </DialogDescription>
-            </DialogHeader>
+      {
+        hasPackageAccess && (
+          <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Editar Pacote</DialogTitle>
+                <DialogDescription>
+                  Atualize as informações do pacote
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="space-y-4 py-4">
-              {/* Name */}
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Nome do Pacote *</Label>
-                <Input
-                  id="edit-name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                />
-              </div>
+              <div className="space-y-4 py-4">
+                {/* Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Nome do Pacote *</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </div>
 
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Descrição</Label>
-                <Textarea
-                  id="edit-description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  rows={3}
-                />
-              </div>
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">Descrição</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    rows={3}
+                  />
+                </div>
 
-              {/* Services with Quantities */}
-              <div className="space-y-2">
-                <Label>Serviços Inclusos *</Label>
-                <div className="border rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
-                  {services.map((service) => {
-                    const serviceInPackage = formData.services.find(
-                      (s) => s.serviceId === service._id
-                    );
-                    const isSelected = !!serviceInPackage;
+                {/* Services with Quantities */}
+                <div className="space-y-2">
+                  <Label>Serviços Inclusos *</Label>
+                  <div className="border rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
+                    {services.map((service) => {
+                      const serviceInPackage = formData.services.find(
+                        (s) => s.serviceId === service._id
+                      );
+                      const isSelected = !!serviceInPackage;
 
-                    return (
-                      <div
-                        key={service._id}
-                        className="flex items-center gap-3 p-2 rounded hover:bg-muted/50"
-                      >
-                        <input
-                          type="checkbox"
-                          id={`edit-service-${service._id}`}
-                          checked={isSelected}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({
-                                ...formData,
-                                services: [
-                                  ...formData.services,
-                                  { serviceId: service._id, quantity: 1 },
-                                ],
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                services: formData.services.filter(
-                                  (s) => s.serviceId !== service._id
-                                ),
-                              });
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <label
-                          htmlFor={`edit-service-${service._id}`}
-                          className="flex-1 cursor-pointer"
+                      return (
+                        <div
+                          key={service._id}
+                          className="flex items-center gap-3 p-2 rounded hover:bg-muted/50"
                         >
-                          <div className="font-medium">{service.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {formatCurrency(service.pricing.basePrice)}
-                          </div>
-                        </label>
-                        {isSelected && (
-                          <div className="flex items-center gap-2">
-                            <Label
-                              htmlFor={`edit-qty-${service._id}`}
-                              className="text-sm text-muted-foreground"
-                            >
-                              Qtd:
-                            </Label>
-                            <Input
-                              id={`edit-qty-${service._id}`}
-                              type="number"
-                              min="1"
-                              value={serviceInPackage?.quantity || 1}
-                              onChange={(e) => {
-                                const qty = parseInt(e.target.value) || 1;
+                          <input
+                            type="checkbox"
+                            id={`edit-service-${service._id}`}
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
                                 setFormData({
                                   ...formData,
-                                  services: formData.services.map((s) =>
-                                    s.serviceId === service._id
-                                      ? { ...s, quantity: qty }
-                                      : s
+                                  services: [
+                                    ...formData.services,
+                                    { serviceId: service._id, quantity: 1 },
+                                  ],
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  services: formData.services.filter(
+                                    (s) => s.serviceId !== service._id
                                   ),
                                 });
-                              }}
-                              className="w-20"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <label
+                            htmlFor={`edit-service-${service._id}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            <div className="font-medium">{service.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {formatCurrency(service.pricing.basePrice)}
+                            </div>
+                          </label>
+                          {isSelected && (
+                            <div className="flex items-center gap-2">
+                              <Label
+                                htmlFor={`edit-qty-${service._id}`}
+                                className="text-sm text-muted-foreground"
+                              >
+                                Qtd:
+                              </Label>
+                              <Input
+                                id={`edit-qty-${service._id}`}
+                                type="number"
+                                min="1"
+                                value={serviceInPackage?.quantity || 1}
+                                onChange={(e) => {
+                                  const qty = parseInt(e.target.value) || 1;
+                                  setFormData({
+                                    ...formData,
+                                    services: formData.services.map((s) =>
+                                      s.serviceId === service._id
+                                        ? { ...s, quantity: qty }
+                                        : s
+                                    ),
+                                  });
+                                }}
+                                className="w-20"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {formData.services.length > 0 && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      <strong>Preço original:</strong>{" "}
+                      {formatCurrency(calculateOriginalPrice())}
+                    </p>
+                  )}
                 </div>
-                {formData.services.length > 0 && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    <strong>Preço original:</strong>{" "}
-                    {formatCurrency(calculateOriginalPrice())}
-                  </p>
-                )}
-              </div>
 
-              {/* Pricing */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-packagePrice">Preço do Pacote *</Label>
-                  <Input
-                    id="edit-packagePrice"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.packagePrice || ""}
-                    onChange={(e) => {
-                      const value =
-                        e.target.value === "" ? 0 : parseFloat(e.target.value);
-                      setFormData({
-                        ...formData,
-                        packagePrice: isNaN(value) ? 0 : value,
-                      });
-                    }}
-                  />
-                  {formData.services.length > 0 &&
-                    formData.packagePrice > 0 && (
-                      <p className="text-sm text-green-600">
-                        Desconto: {calculateDiscount().toFixed(1)}%
-                      </p>
-                    )}
+                {/* Pricing */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-packagePrice">Preço do Pacote *</Label>
+                    <Input
+                      id="edit-packagePrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.packagePrice || ""}
+                      onChange={(e) => {
+                        const value =
+                          e.target.value === "" ? 0 : parseFloat(e.target.value);
+                        setFormData({
+                          ...formData,
+                          packagePrice: isNaN(value) ? 0 : value,
+                        });
+                      }}
+                    />
+                    {formData.services.length > 0 &&
+                      formData.packagePrice > 0 && (
+                        <p className="text-sm text-green-600">
+                          Desconto: {calculateDiscount().toFixed(1)}%
+                        </p>
+                      )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-validity">Validade (dias)</Label>
+                    <Input
+                      id="edit-validity"
+                      type="number"
+                      min="7"
+                      value={formData.validity || ""}
+                      onChange={(e) => {
+                        const value =
+                          e.target.value === "" ? 30 : parseInt(e.target.value);
+                        setFormData({
+                          ...formData,
+                          validity: isNaN(value) ? 30 : value,
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-validity">Validade (dias)</Label>
-                  <Input
-                    id="edit-validity"
-                    type="number"
-                    min="7"
-                    value={formData.validity || ""}
-                    onChange={(e) => {
-                      const value =
-                        e.target.value === "" ? 30 : parseInt(e.target.value);
-                      setFormData({
-                        ...formData,
-                        validity: isNaN(value) ? 30 : value,
-                      });
-                    }}
-                  />
-                </div>
-              </div>
+                {/* Recurrence and Sessions */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-recurrence">Recorrência</Label>
+                    <Select
+                      value={formData.recurrence}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          recurrence: value as PackageRecurrence,
+                        })
+                      }
+                    >
+                      <SelectTrigger id="edit-recurrence">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={PackageRecurrence.ONE_TIME}>
+                          Pagamento Único
+                        </SelectItem>
+                        <SelectItem value={PackageRecurrence.MONTHLY}>
+                          Mensal
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Recurrence and Sessions */}
-              <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-sessions">Sessões Incluídas</Label>
+                    <Input
+                      id="edit-sessions"
+                      type="number"
+                      min="1"
+                      value={formData.sessionsIncluded}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          sessionsIncluded: parseInt(e.target.value) || 1,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Status */}
                 <div className="space-y-2">
-                  <Label htmlFor="edit-recurrence">Recorrência</Label>
+                  <Label htmlFor="edit-status">Status</Label>
                   <Select
-                    value={formData.recurrence}
-                    onValueChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        recurrence: value as PackageRecurrence,
-                      })
+                    value={formData.status}
+                    onValueChange={(value: "active" | "inactive" | "draft") =>
+                      setFormData({ ...formData, status: value })
                     }
                   >
-                    <SelectTrigger id="edit-recurrence">
+                    <SelectTrigger id="edit-status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={PackageRecurrence.ONE_TIME}>
-                        Pagamento Único
-                      </SelectItem>
-                      <SelectItem value={PackageRecurrence.MONTHLY}>
-                        Mensal
-                      </SelectItem>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="inactive">Inativo</SelectItem>
+                      <SelectItem value="draft">Rascunho</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="edit-sessions">Sessões Incluídas</Label>
-                  <Input
-                    id="edit-sessions"
-                    type="number"
-                    min="1"
-                    value={formData.sessionsIncluded}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        sessionsIncluded: parseInt(e.target.value) || 1,
-                      })
-                    }
-                  />
-                </div>
               </div>
 
-              {/* Status */}
-              <div className="space-y-2">
-                <Label htmlFor="edit-status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: "active" | "inactive" | "draft") =>
-                    setFormData({ ...formData, status: value })
-                  }
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    resetForm();
+                  }}
                 >
-                  <SelectTrigger id="edit-status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                    <SelectItem value="draft">Rascunho</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                  Cancelar
+                </Button>
+                <Button onClick={handleUpdatePackage}>Salvar Alterações</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  resetForm();
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={handleUpdatePackage}>Salvar Alterações</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+        )
+      }
 
       {/* Upgrade Notice for Simple Plan */}
-      {!hasPackageAccess && activeTab !== "services" && (
-        <Card className="border-2 border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-orange-100 dark:bg-orange-900/30 p-3">
-                <Lock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+      {
+        !hasPackageAccess && activeTab !== "services" && (
+          <Card className="border-2 border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="rounded-full bg-orange-100 dark:bg-orange-900/30 p-3">
+                  <Lock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
+                    Pacotes Disponíveis no Plano Individual/Business
+                  </h3>
+                  <p className="text-sm text-orange-800 dark:text-orange-200 mb-4">
+                    Faça upgrade para criar pacotes de serviços com descontos e
+                    gerenciar assinaturas.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      window.location.href = "/entity/subscriptions-board";
+                    }}
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    Fazer Upgrade
+                  </Button>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                  Pacotes Disponíveis no Plano Individual/Business
-                </h3>
-                <p className="text-sm text-orange-800 dark:text-orange-200 mb-4">
-                  Faça upgrade para criar pacotes de serviços com descontos e
-                  gerenciar assinaturas.
-                </p>
-                <Button
-                  onClick={() => {
-                    window.location.href = "/entity/subscriptions-board";
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  Fazer Upgrade
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+            </CardContent>
+          </Card>
+        )
+      }
+
+    </div >
   );
 };
 
