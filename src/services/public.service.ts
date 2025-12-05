@@ -141,4 +141,24 @@ export const publicService = {
             status: 'active',
         });
     },
+
+    /**
+     * Validate voucher code
+     * Uses: POST /api/promotions/validate-voucher
+     */
+    validateVoucher: async (data: {
+        entityId: string;
+        code: string;
+        bookingValue: number;
+        serviceId?: string;
+        clientId?: string;
+        bookingDate?: string;
+    }) => {
+        return apiClient.post<{
+            valid: boolean;
+            voucher?: any;
+            discountAmount?: number;
+            reason?: string;
+        }>(`/api/promotions/validate-voucher`, data);
+    },
 };

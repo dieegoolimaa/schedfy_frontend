@@ -141,3 +141,17 @@ export enum NotificationEvent {
     SECURITY_ALERT = 'security_alert',
 }
 
+export const BOOKING_NOTIFICATION_EVENTS = [
+    NotificationEvent.BOOKING_CREATED,
+    NotificationEvent.BOOKING_CONFIRMED,
+    NotificationEvent.BOOKING_RESCHEDULED,
+    NotificationEvent.BOOKING_CANCELLED_BY_CLIENT,
+    NotificationEvent.BOOKING_CANCELLED_BY_PROFESSIONAL,
+    NotificationEvent.BOOKING_CANCELLED_BY_OWNER,
+    NotificationEvent.BOOKING_COMPLETED,
+    NotificationEvent.BOOKING_NO_SHOW,
+    NotificationEvent.BOOKING_REMINDER_24H,
+    NotificationEvent.BOOKING_REMINDER_2H,
+    NotificationEvent.BOOKING_REMINDER_30MIN,
+    NotificationEvent.CLIENT_FIRST_BOOKING,
+];

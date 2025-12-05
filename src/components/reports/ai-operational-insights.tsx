@@ -3,44 +3,50 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import {
-    Sparkles,
     Clock,
-    AlertCircle,
-    Zap,
     TrendingUp,
-    Brain,
     Lightbulb,
-    ArrowRight,
-    Calendar,
-    Users,
+    Zap,
     Activity,
-    Target,
-    BarChart3
-} from "lucide-react";
+    BarChart3,
+    Brain,
+    ArrowRight
+} from 'lucide-react';
 import { cn } from "../../lib/utils";
 
-interface AIOperationalInsight {
-    type: 'optimization' | 'efficiency' | 'capacity' | 'trend';
-    title: string;
-    description: string;
-    priority: 'high' | 'medium' | 'low';
-    action?: {
-        label: string;
-        onClick: () => void;
-    };
-    metric?: {
-        value: string | number;
-        target?: string | number;
-        percentage?: number;
-    };
-}
+
 
 interface AIOperationalInsightsProps {
     bookings?: any[];
     dateRange?: { start: Date; end: Date };
 }
 
-export function AIOperationalInsights({ bookings = [], dateRange }: AIOperationalInsightsProps) {
+import { useQuery } from "@tanstack/react-query";
+import { reportsService } from "../../services/reports.service";
+import { useAIFeatures } from "../../hooks/useAIFeatures";
+
+export function AIOperationalInsights({ bookings = [] }: AIOperationalInsightsProps) {
+    const { canUse } = useAIFeatures();
+
+    // Fetch AI insights from backend
+    const { data: insightsData, isLoading } = useQuery({
+        queryKey: ['ai-operational-insights'],
+        queryFn: reportsService.getOperationalInsights,
+        enabled: canUse,
+    });
+
+    if (!canUse) {
+        return null;
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
     // Calculate operational metrics
     const totalBookings = bookings.length;
     const completedBookings = bookings.filter(b => b.status === 'completed').length;
@@ -48,61 +54,9 @@ export function AIOperationalInsights({ bookings = [], dateRange }: AIOperationa
     const completionRate = totalBookings > 0 ? (completedBookings / totalBookings * 100).toFixed(1) : 0;
     const cancellationRate = totalBookings > 0 ? (cancelledBookings / totalBookings * 100).toFixed(1) : 0;
 
-    // Generate AI insights
-    const insights: AIOperationalInsight[] = [
-        {
-            type: 'optimization',
-            title: 'Peak Hours Optimization',
-            description: '60% of bookings occur between 2-5 PM. Consider adding staff during these hours.',
-            priority: 'high',
-            action: {
-                label: 'View Schedule',
-                onClick: () => console.log('View schedule')
-            },
-            metric: {
-                value: '2-5 PM',
-                percentage: 60
-            }
-        },
-        {
-            type: 'efficiency',
-            title: 'Service Duration',
-            description: 'Average service time is 15% longer than estimated. Update duration or improve workflow.',
-            priority: 'medium',
-            metric: {
-                value: '52 min',
-                target: '45 min',
-                percentage: 115
-            }
-        },
-        {
-            type: 'capacity',
-            title: 'Capacity Utilization',
-            description: 'You\'re at 78% capacity. This is optimal - room for growth without overloading.',
-            priority: 'low',
-            metric: {
-                value: 78,
-                target: 85,
-                percentage: 78
-            }
-        },
-        {
-            type: 'trend',
-            title: 'Booking Patterns',
-            description: 'Mondays show 40% lower bookings. Consider targeted promotions or adjust availability.',
-            priority: 'medium',
-            action: {
-                label: 'Create Promotion',
-                onClick: () => console.log('Create promotion')
-            },
-            metric: {
-                value: '-40%',
-                percentage: 60
-            }
-        }
-    ];
+    const insights = insightsData?.insights || [];
 
-    const getPriorityColor = (priority: string) => {
+    const getPriorityColor = (priority: string = 'medium') => {
         switch (priority) {
             case 'high': return 'destructive';
             case 'medium': return 'default';
@@ -232,7 +186,7 @@ export function AIOperationalInsights({ bookings = [], dateRange }: AIOperationa
                                                 <h4 className="font-semibold text-sm flex items-center gap-2">
                                                     {insight.title}
                                                     <Badge variant={getPriorityColor(insight.priority)} className="text-xs">
-                                                        {insight.priority}
+                                                        {insight.priority || 'medium'}
                                                     </Badge>
                                                 </h4>
                                             </div>

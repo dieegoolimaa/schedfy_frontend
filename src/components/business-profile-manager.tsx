@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -63,6 +64,7 @@ export function BusinessProfileManager({
   initialData,
   onSave,
 }: BusinessProfileManagerProps) {
+  const { t } = useTranslation("settings");
   const [profileData, setProfileData] = useState<BusinessProfileData>({
     businessName: initialData?.businessName || "",
     username: initialData?.username || "",
@@ -107,7 +109,7 @@ export function BusinessProfileManager({
       setIsQrDialogOpen(true);
     } catch (error) {
       console.error("Error generating QR code:", error);
-      toast.error("Failed to generate QR code");
+      toast.error(t("success.checkUsernameFailed", "Failed to generate QR code")); // Reusing failure msg or add new one
     }
   };
 
@@ -247,9 +249,9 @@ export function BusinessProfileManager({
       {/* Header with Preview & Share */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Business Profile</h2>
+          <h2 className="text-2xl font-bold">{t("business.title")}</h2>
           <p className="text-muted-foreground">
-            Configure your business information and public page settings
+            {t("business.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -258,11 +260,11 @@ export function BusinessProfileManager({
             onClick={() => window.open(publicUrl, "_blank")}
           >
             <Eye className="h-4 w-4 mr-2" />
-            Preview
+            {t("business.publicPage.preview")}
           </Button>
           <Button variant="outline" onClick={generateQRCode}>
             <QrCode className="h-4 w-4 mr-2" />
-            QR Code
+            {t("business.publicPage.qrCode")}
           </Button>
         </div>
       </div>
@@ -274,9 +276,9 @@ export function BusinessProfileManager({
           {/* Logo Upload */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Logo</CardTitle>
+              <CardTitle className="text-base">{t("business.logo.title")}</CardTitle>
               <CardDescription>
-                Your business logo (recommended: 200x200px)
+                {t("business.logo.description")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -296,7 +298,7 @@ export function BusinessProfileManager({
                     onClick={() => logoInputRef.current?.click()}
                   >
                     <Camera className="h-4 w-4 mr-2" />
-                    Upload Logo
+                    {t("business.logo.upload")}
                   </Button>
                   {profileData.logo && (
                     <Button
@@ -318,7 +320,7 @@ export function BusinessProfileManager({
                   onChange={(e) => handleImageUpload(e, "logo")}
                 />
                 <p className="text-xs text-muted-foreground mt-2">
-                  JPG, PNG or GIF. Max 5MB
+                  {t("business.logo.format")}
                 </p>
               </div>
             </CardContent>
@@ -327,9 +329,9 @@ export function BusinessProfileManager({
           {/* Banner Upload */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Cover Banner</CardTitle>
+              <CardTitle className="text-base">{t("business.banner.title")}</CardTitle>
               <CardDescription>
-                Header image for your public page (recommended: 1200x400px)
+                {t("business.banner.description")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -360,7 +362,7 @@ export function BusinessProfileManager({
                     <div className="text-center">
                       <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                       <p className="text-sm text-muted-foreground">
-                        No banner uploaded
+                        {t("business.banner.noBanner")}
                       </p>
                     </div>
                   </div>
@@ -371,7 +373,7 @@ export function BusinessProfileManager({
                   onClick={() => bannerInputRef.current?.click()}
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  {profileData.banner ? "Change Banner" : "Upload Banner"}
+                  {profileData.banner ? t("business.banner.change") : t("business.banner.upload")}
                 </Button>
                 <input
                   ref={bannerInputRef}
@@ -381,7 +383,7 @@ export function BusinessProfileManager({
                   onChange={(e) => handleImageUpload(e, "banner")}
                 />
                 <p className="text-xs text-muted-foreground mt-2">
-                  JPG, PNG or GIF. Max 5MB
+                  {t("business.logo.format")}
                 </p>
               </div>
             </CardContent>
@@ -393,16 +395,16 @@ export function BusinessProfileManager({
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>{t("business.basicInfo.title")}</CardTitle>
               <CardDescription>
-                Essential details about your business
+                {t("business.basicInfo.description")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="businessName">
-                    Business Name <span className="text-red-500">*</span>
+                    {t("business.basicInfo.businessName")} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="businessName"
@@ -413,13 +415,13 @@ export function BusinessProfileManager({
                         businessName: e.target.value,
                       }))
                     }
-                    placeholder="Your Business Name"
+                    placeholder={t("business.basicInfo.businessNamePlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="username">
-                    Username <span className="text-red-500">*</span>
+                    {t("business.basicInfo.username")} <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-muted-foreground">
@@ -429,7 +431,7 @@ export function BusinessProfileManager({
                       id="username"
                       value={profileData.username}
                       onChange={(e) => handleUsernameChange(e.target.value)}
-                      placeholder="yourbusiness"
+                      placeholder={t("business.basicInfo.usernamePlaceholder")}
                       className="pl-8"
                     />
                     {checkingUsername && (
@@ -441,22 +443,22 @@ export function BusinessProfileManager({
                   {usernameAvailable === true && (
                     <p className="text-xs text-green-600 flex items-center">
                       <Check className="h-3 w-3 mr-1" />
-                      Username available
+                      {t("business.basicInfo.usernameAvailable")}
                     </p>
                   )}
                   {usernameAvailable === false && (
                     <p className="text-xs text-red-600">
-                      Username already taken
+                      {t("business.basicInfo.usernameTaken")}
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Your unique identifier (3-30 characters)
+                    {t("business.basicInfo.usernameHint")}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Business Description</Label>
+                <Label htmlFor="description">{t("business.basicInfo.businessDescription")}</Label>
                 <Textarea
                   id="description"
                   value={profileData.description}
@@ -466,14 +468,14 @@ export function BusinessProfileManager({
                       description: e.target.value,
                     }))
                   }
-                  placeholder="Describe your business and services..."
+                  placeholder={t("business.basicInfo.descriptionPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">{t("business.basicInfo.address")}</Label>
                   <Input
                     id="address"
                     value={profileData.address}
@@ -483,12 +485,12 @@ export function BusinessProfileManager({
                         address: e.target.value,
                       }))
                     }
-                    placeholder="123 Main Street, City"
+                    placeholder={t("business.basicInfo.addressPlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">{t("business.basicInfo.phone")}</Label>
                   <Input
                     id="phone"
                     value={profileData.phone}
@@ -498,14 +500,14 @@ export function BusinessProfileManager({
                         phone: e.target.value,
                       }))
                     }
-                    placeholder="+351 123 456 789"
+                    placeholder={t("business.basicInfo.phonePlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Business Email</Label>
+                  <Label htmlFor="email">{t("business.basicInfo.email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -516,12 +518,12 @@ export function BusinessProfileManager({
                         email: e.target.value,
                       }))
                     }
-                    placeholder="contact@yourbusiness.com"
+                    placeholder={t("business.basicInfo.emailPlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
+                  <Label htmlFor="website">{t("business.basicInfo.website")}</Label>
                   <Input
                     id="website"
                     value={profileData.website}
@@ -531,7 +533,7 @@ export function BusinessProfileManager({
                         website: e.target.value,
                       }))
                     }
-                    placeholder="https://www.yourbusiness.com"
+                    placeholder={t("business.basicInfo.websitePlaceholder")}
                   />
                 </div>
               </div>
@@ -543,11 +545,10 @@ export function BusinessProfileManager({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Share2 className="h-5 w-5 mr-2" />
-                Public Page URL
+                {t("business.publicPage.title")}
               </CardTitle>
               <CardDescription>
-                Share this link with your customers to let them book
-                appointments
+                {t("business.publicPage.description")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -615,9 +616,9 @@ export function BusinessProfileManager({
       <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>QR Code for Your Business</DialogTitle>
+            <DialogTitle>{t("business.publicPage.qrDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Customers can scan this QR code to access your booking page
+              {t("business.publicPage.qrDialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center space-y-4">

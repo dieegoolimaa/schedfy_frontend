@@ -1,27 +1,26 @@
 {
   "appName": "Schedfy",
-  "navigation": {
-    "dashboard": "Dashboard",
-    "bookings": "Bookings",
-    "services": "Services",
-    "reports": "Reports",
-    "settings": "Settings",
-    "profile": "Profile",
-    "notifications": "Notifications",
-    "financialReports": "Financial Reports",
-    "ai": "AI Premium",
-    "loyalty": "Loyalty",
-    "featureManagement": "Feature Management",
-    "communications": "Communications",
-    "subscriptions": "Subscriptions",
-    "support": "Support",
-    "entities": "Entities",
-    "users": "Users",
-    "management": "Management",
-    "operations": "Operations",
-    "financial": "Financial",
-    "features": "Features"
-  },
+  "loading": "Loading...",
+  "logout": "Logout",
+  "and": "and",
+  "back": "Back",
+  "next": "Next",
+  "previous": "Previous",
+  "of": "of",
+  "complete": "complete",
+  "step": "Step",
+  "getStarted": "Get Started",
+  "signIn": "Sign In",
+  "viewAll": "View All",
+  "welcome": "Welcome",
+  "title": "Title",
+  "subtitle": "Subtitle",
+  "description": "Description",
+  "status": "Status",
+  "state": "State",
+  "plan": "Plan",
+  "token": "Token",
+  "redirect": "Redirect",
   "actions": {
     "save": "Save",
     "cancel": "Cancel",
@@ -35,15 +34,13 @@
     "search": "Search",
     "filter": "Filter",
     "export": "Export",
-    "import": "Import"
-  },
-  "status": {
-    "pending": "Pending",
-    "confirmed": "Confirmed",
-    "completed": "Completed",
-    "cancelled": "Cancelled",
-    "active": "Active",
-    "inactive": "Inactive"
+    "import": "Import",
+    "download": "Download",
+    "downloadInvoice": "Download Invoice",
+    "updatePayment": "Update Payment",
+    "applyFilters": "Apply Filters",
+    "clearFilters": "Clear Filters",
+    "markCompleted": "Mark as Completed"
   },
   "time": {
     "today": "Today",
@@ -51,24 +48,278 @@
     "tomorrow": "Tomorrow",
     "thisWeek": "This Week",
     "thisMonth": "This Month",
-    "lastMonth": "Last Month"
+    "lastMonth": "Last Month",
+    "last7Days": "Last 7 Days",
+    "last30Days": "Last 30 Days",
+    "last90Days": "Last 90 Days",
+    "lastYear": "Last Year",
+    "customRange": "Custom Range"
   },
+
   "messages": {
     "loading": "Loading...",
     "noData": "No data available",
     "error": "An error occurred",
     "success": "Operation completed successfully",
     "confirmDelete": "Are you sure you want to delete this item?",
-    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?"
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
+    "bookingCompleted": "Booking marked as completed",
+    "failedComplete": "Failed to complete booking"
   },
-  "currency": {
-    "brl": "R$",
-    "usd": "$",
-    "eur": "€"
+  "confirmations": {
+    "markCompleted": "Are you sure you want to mark this booking as completed?"
   },
-  "theme": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "System"
+  "stats": {
+    "total": "Total",
+    "totalSub": "registered",
+    "active": "Active",
+    "activeclients": "Active Clients",
+    "clients": "Clients",
+    "bookings": "Bookings",
+    "revenue": "Revenue",
+    "avgSpent": "Avg. Spent",
+    "perClient": "per client",
+    "engaged": "Engaged",
+    "totalBookings": "Total Bookings",
+    "totalbookings": "Total Bookings",
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "awaitingConfirmation": "Awaiting Confirmation",
+    "completedSessions": "Completed Sessions",
+    "thismonthrevenue": "This Month Revenue",
+    "revenueThisMonth": "Revenue This Month",
+    "bookingsThisMonth": "Bookings This Month",
+    "newClients": "New Clients"
+  },
+  "filters": {
+    "all": "All",
+    "allStatus": "All Status",
+    "allPayments": "All Payments",
+    "allProfessionals": "All Professionals",
+    "allServices": "All Services",
+    "allMethods": "All Methods",
+    "active": "Active",
+    "inactive": "Inactive",
+    "paid": "Paid",
+    "partial": "Partial",
+    "pending": "Pending",
+    "more": "More",
+    "serviceType": "Service Type",
+    "hairServices": "Hair Services",
+    "nailCare": "Nail Care",
+    "facial": "Facial Treatments",
+    "massage": "Massage",
+    "cash": "Cash",
+    "card": "Card"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "bookingsPlaceholder": "Search bookings..."
+  },
+  "table": {
+    "client": "Client",
+    "contact": "Contact",
+    "activity": "Activity",
+    "spending": "Spending",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "allClients": "All Clients",
+    "analytics": "Analytics",
+    "recentActivity": "Recent Activity",
+    "billing": "Billing",
+    "changePlan": "Change Plan",
+    "addOns": "Add-ons",
+    "invoices": "Invoices",
+    "profile": "Profile",
+    "business": "Business",
+    "privacy": "Privacy",
+    "workingHours": "Working Hours",
+    "transactions": "Transactions",
+    "commissions": "Commissions",
+    "vouchers": "Vouchers",
+    "professionals": "Professionals",
+    "goals": "Goals"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go back home"
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "integrations": "Integrations",
+    "company": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "careers": "Careers",
+    "help": "Help",
+    "support": "Support",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "rights": "All rights reserved"
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "form": {
+    "addTitle": "Add New",
+    "addDescription": "Create a new record",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "birthDate": "Birth Date",
+    "notes": "Notes",
+    "optional": "Optional",
+    "additionalInfo": "Additional Information",
+    "addClientButton": "Add Client"
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your profile information",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "Enter your first name",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Enter your last name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "website": "Website",
+    "name": "Name"
+  },
+  "privacy": {
+    "title": "Privacy Settings",
+    "description": "Control your visibility and data sharing",
+    "profileVisible": "Profile Visible",
+    "profileVisibleDesc": "Allow your profile to be publicly visible"
+  },
+  "workingHours": {
+    "title": "Working Hours",
+    "description": "Set your weekly working hours"
+  },
+  "success": {
+    "profileSaved": "Profile saved successfully",
+    "settingsSaved": "Settings saved successfully"
+  },
+  "summary": {
+    "totalRevenue": "Total Revenue",
+    "netRevenue": "Net Revenue",
+    "totalCommissions": "Total Commissions",
+    "vouchersUsed": "Vouchers Used",
+    "afterDeductions": "After Deductions",
+    "ofRevenue": "of revenue",
+    "vsLastPeriod": "vs last period"
+  },
+  "transactions": {
+    "history": "Transaction History"
+  },
+  "vouchers": {
+    "usage": "Voucher Usage"
+  },
+  "invoices": {
+    "title": "Invoice History",
+    "description": "View and download your invoices",
+    "invoice": "Invoice"
+  },
+  "goals": {
+    "goalsProgress": "Goals Progress",
+    "setMonthlyGoals": "Set Monthly Goals"
+  },
+  "professionals": {
+    "title": "Professionals"
+  },
+  "planDetails": {
+    "plan": "Plan",
+    "activeSince": "Active since",
+    "includedFeatures": "Included Features",
+    "activeAddOns": "Active Add-ons"
+  },
+  "plans": {
+    "title": "Available Plans",
+    "currentPlan": "Current Plan",
+    "mostPopular": "Most Popular",
+    "upgrade": "Upgrade",
+    "simple": { 
+      "name": "Simple",
+      "features": {
+        "email": "Email notifications",
+        "mobile": "Mobile app"
+      }
+    },
+    "individual": { "name": "Individual" },
+    "business": { 
+      "name": "Business", 
+      "description": "Complete solution for teams", 
+      "features": { 
+        "team": "Team management", 
+        "support": "Priority support" 
+      } 
+    }
+  },
+  "usage": {
+    "title": "Usage",
+    "description": "Your current plan usage",
+    "bookings": "Bookings",
+    "professionals": "Professionals",
+    "storage": "Storage",
+    "aiInsights": "AI Insights"
+  },
+  "teamManagement": {
+    "title": "Team Management",
+    "description": "Manage your team members",
+    "inviteUser": "Invite User",
+    "searchPlaceholder": "Search team members..."
+  },
+  "quickActions": {
+    "title": "Quick Actions"
+  },
+  "recentActivity": {
+    "title": "Recent Activity",
+    "description": "Latest updates",
+    "newBookingConfirmed": "New booking confirmed",
+    "sessionCompleted": "Session completed",
+    "minutesAgo": "{{count}} minutes ago",
+    "hourAgo": "1 hour ago"
+  },
+  "upcomingBookings": {
+    "title": "Upcoming Bookings",
+    "description": "Your next appointments",
+    "noBookings": "No upcoming bookings",
+    "createBooking": "Create Booking",
+    "unknownClient": "Unknown Client",
+    "unknownService": "Unknown Service"
+  },
+  "passwordStrength": {
+    "label": "Password strength",
+    "weak": "Weak",
+    "fair": "Fair",
+    "good": "Good",
+    "strong": "Strong",
+    "requirements": {
+      "minLength": "At least 8 characters",
+      "uppercase": "One uppercase letter",
+      "number": "One number",
+      "special": "One special character"
+    }
+  },
+  "unauthorized": {
+    "title": "Access Denied",
+    "description": "You don't have permission to access this page. Please contact your administrator if you believe this is an error.",
+    "goHome": "Go to Home",
+    "goBack": "Go Back"
   }
 }
+

@@ -1,10 +1,5 @@
 
 import {
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
   useState,
   useEffect,
 } from "react";
@@ -327,9 +322,7 @@ export function ClientProfilePage() {
     }
   };
 
-  const getClientBookings = (clientId: string | number) => {
-    return recentBookings.filter((booking) => String(booking.clientId) === String(clientId));
-  };
+
 
   // Build a small recent bookings feed by fetching bookings for the first
   // few clients (kept lightweight). This populates the "Recent Activity" tab.
@@ -1398,519 +1391,229 @@ export function ClientProfilePage() {
       <Dialog open={showClientDetails} onOpenChange={setShowClientDetails}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 border-2 border-primary/10">
                   <AvatarImage src="" />
-                  <AvatarFallback>{selectedClient?.avatar}</AvatarFallback>
+                  <AvatarFallback className="text-xl bg-primary/5 text-primary">
+                    {selectedClient?.firstName?.[0]}
+                    {selectedClient?.lastName?.[0]}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div>{selectedClient?.name}</div>
-                  <div className="text-sm text-muted-foreground font-normal">
-                    Client Profile & Booking History
+                  <DialogTitle className="text-2xl font-bold">
+                    {selectedClient?.firstName} {selectedClient?.lastName}
+                  </DialogTitle>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
+                    <div className="flex items-center gap-1">
+                      <Mail className="h-3.5 w-3.5" />
+                      <span>{selectedClient?.email}</span>
+                    </div>
+                    {selectedClient?.phone && (
+                      <>
+                        <span className="hidden md:inline">•</span>
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3.5 w-3.5" />
+                          <span>{selectedClient?.phone}</span>
+                        </div>
+                      </>
+                    )}
+                    <Badge variant={selectedClient?.status === 'active' ? 'default' : 'secondary'} className="ml-2 capitalize">
+                      {selectedClient?.status || 'active'}
+                    </Badge>
                   </div>
                 </div>
-              </DialogTitle>
+              </div>
               <Button
                 onClick={() => {
                   setPreSelectedClientForBooking(selectedClient);
                   setIsBookingDialogOpen(true);
                 }}
+                className="shrink-0"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 New Booking
               </Button>
             </div>
-            <DialogDescription>
-              View complete client information, booking history, and business
-              insights
-            </DialogDescription>
           </DialogHeader>
 
           {selectedClient && (
-            <>
-              {/* Executive Summary Card */}
-              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Client Summary
-                  </CardTitle>
-                  <CardDescription>
-                    Key metrics and insights for business decisions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {/* Member Since */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">
-                          Member Since
-                        </span>
+            <Tabs defaultValue="overview" className="mt-6">
+              <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="bookings">Bookings</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-6 mt-6">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="p-4 pt-6">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <Calendar className="h-4 w-4" />
+                        <span className="text-xs font-medium uppercase">Total Bookings</span>
                       </div>
-                      <p className="text-lg font-bold">
-                        {selectedClient.createdAt
-                          ? new Date(selectedClient.createdAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            year: "numeric",
-                          })
-                          : "N/A"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedClient.createdAt
-                          ? Math.floor(
-                            (Date.now() -
-                              new Date(selectedClient.createdAt).getTime()) /
-                            (1000 * 60 * 60 * 24 * 30)
-                          )
-                          : 0}{" "}
-                        months ago
-                      </p>
-                    </div>
-
-                    {/* Total Appointments */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">
-                          Total Bookings
-                        </span>
+                      <div className="text-2xl font-bold">
+                        {selectedClient.stats?.totalBookings || selectedClient.totalBookings || selectedClient.bookings?.length || 0}
                       </div>
-                      <p className="text-lg font-bold">
-                        {selectedClient.stats?.totalBookings ||
-                          selectedClient.totalBookings ||
-                          getClientBookings(selectedClient.id).length ||
-                          0}
-                      </p>
-                      <p className="text-xs text-muted-foreground">All time</p>
-                    </div>
-
-                    {/* Last Visit */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Last Visit</span>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 pt-6">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <Euro className="h-4 w-4" />
+                        <span className="text-xs font-medium uppercase">Total Spent</span>
                       </div>
-                      <p className="text-lg font-bold">
-                        {(() => {
-                          const bookings = getClientBookings(selectedClient.id);
-                          const lastBooking =
-                            bookings.length > 0
-                              ? bookings.sort(
-                                (a, b) =>
-                                  new Date(b.date).getTime() -
-                                  new Date(a.date).getTime()
-                              )[0]
-                              : null;
-                          return lastBooking
-                            ? new Date(lastBooking.date).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })
-                            : "Never";
-                        })()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {(() => {
-                          const bookings = getClientBookings(selectedClient.id);
-                          const lastBooking =
-                            bookings.length > 0
-                              ? bookings.sort(
-                                (a, b) =>
-                                  new Date(b.date).getTime() -
-                                  new Date(a.date).getTime()
-                              )[0]
-                              : null;
-                          if (!lastBooking) return "No visits";
-                          const daysAgo = Math.floor(
-                            (Date.now() -
-                              new Date(lastBooking.date).getTime()) /
-                            (1000 * 60 * 60 * 24)
-                          );
-                          return daysAgo === 0
-                            ? "Today"
-                            : `${daysAgo} days ago`;
-                        })()}
-                      </p>
-                    </div>
-
-                    {/* Total Revenue */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Euro className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Total Spent</span>
+                      <div className="text-2xl font-bold text-green-600">
+                        {formatCurrency(selectedClient.stats?.totalSpent || selectedClient.totalSpent || 0)}
                       </div>
-                      <p className="text-lg font-bold text-green-600">
-                        €
-                        {(
-                          selectedClient.stats?.totalSpent ||
-                          selectedClient.totalSpent ||
-                          0
-                        ).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Lifetime value
-                      </p>
-                    </div>
-
-                    {/* Average Booking Value */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <TrendingUp className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">
-                          Avg. Booking
-                        </span>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 pt-6">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <TrendingUp className="h-4 w-4" />
+                        <span className="text-xs font-medium uppercase">Avg. Value</span>
                       </div>
-                      <p className="text-lg font-bold">
-                        €
-                        {(() => {
-                          const totalSpent =
-                            selectedClient.stats?.totalSpent ||
-                            selectedClient.totalSpent ||
-                            0;
-                          const totalBookings =
-                            selectedClient.stats?.totalBookings ||
-                            selectedClient.totalBookings ||
-                            getClientBookings(selectedClient.id).length ||
-                            1;
-                          return (totalSpent / totalBookings).toFixed(2);
-                        })()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Per appointment
-                      </p>
-                    </div>
-
-                    {/* Status */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Users className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Status</span>
+                      <div className="text-2xl font-bold">
+                        {formatCurrency(selectedClient.stats?.averageBookingValue || selectedClient.averageSpent || 0)}
                       </div>
-                      <Badge
-                        variant="outline"
-                        className={`${getStatusColor(
-                          selectedClient.status
-                        )
-                          } mt - 1`}
-                      >
-                        {selectedClient.status || "active"}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">
-                        Current state
-                      </p>
-                    </div>
-
-                    {/* Visit Frequency */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Frequency</span>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 pt-6">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <Clock className="h-4 w-4" />
+                        <span className="text-xs font-medium uppercase">Last Visit</span>
                       </div>
-                      <p className="text-lg font-bold">
-                        {(() => {
-                          const bookings = getClientBookings(selectedClient.id);
-                          if (bookings.length < 2) return "New";
-
-                          const memberSince = selectedClient.createdAt
-                            ? new Date(selectedClient.createdAt)
-                            : new Date();
-                          const monthsSince = Math.max(
-                            1,
-                            Math.floor(
-                              (Date.now() - memberSince.getTime()) /
-                              (1000 * 60 * 60 * 24 * 30)
-                            )
-                          );
-                          const visitsPerMonth = (
-                            bookings.length / monthsSince
-                          ).toFixed(1);
-
-                          return `${visitsPerMonth} x / mo`;
-                        })()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Visit rate
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Tabs defaultValue="profile" className="space-y-4">
-                <div className="border-b overflow-x-auto">
-                  <TabsList className="w-full justify-start flex-nowrap h-auto p-0 bg-transparent inline-flex min-w-full">
-                    <TabsTrigger value="profile" className="whitespace-nowrap">
-                      Profile
-                    </TabsTrigger>
-                    <TabsTrigger value="bookings" className="whitespace-nowrap">
-                      Booking History
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="preferences"
-                      className="whitespace-nowrap"
-                    >
-                      Preferences
-                    </TabsTrigger>
-                  </TabsList>
+                      <div className="text-lg font-bold truncate">
+                        {selectedClient.stats?.lastBookingDate
+                          ? new Date(selectedClient.stats.lastBookingDate).toLocaleDateString()
+                          : (selectedClient.bookings?.length > 0
+                            ? new Date(selectedClient.bookings[0].startDateTime || selectedClient.bookings[0].date).toLocaleDateString()
+                            : "Never")}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                {/* Profile Tab */}
-                <TabsContent value="profile" className="space-y-4">
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Contact Information</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span>{selectedClient.email}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{selectedClient.phone}</span>
-                        </div>
-                        {(selectedClient.dateOfBirth ||
-                          selectedClient.birthDate) && (
-                            <div className="flex items-center gap-3">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span>
-                                Born:{" "}
-                                {new Date(
-                                  selectedClient.dateOfBirth ||
-                                  selectedClient.birthDate
-                                ).toLocaleDateString()}
-                              </span>
+                {/* Recent Activity Preview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Recent Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedClient.bookings && selectedClient.bookings.length > 0 ? (
+                      <div className="space-y-4">
+                        {selectedClient.bookings.slice(0, 3).map((booking: any) => (
+                          <div key={booking.id || booking._id} className="flex items-center justify-between border-b last:border-0 pb-4 last:pb-0">
+                            <div className="flex items-start gap-3">
+                              <div className="bg-primary/10 p-2 rounded-full">
+                                <Calendar className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{booking.service?.name || "Service"}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(booking.startDateTime || booking.date).toLocaleDateString()} at {new Date(booking.startDateTime || booking.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
                             </div>
-                          )}
-                        <div className="pt-2">
-                          <Label className="text-sm font-medium">Address</Label>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {selectedClient.address}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Client Statistics</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-sm">Total Bookings</Label>
-                            <p className="text-2xl font-bold">
-                              {selectedClient.totalBookings}
-                            </p>
+                            <Badge variant="outline" className={getStatusColor(booking.status)}>{booking.status}</Badge>
                           </div>
-                          <div>
-                            <Label className="text-sm">Total Spent</Label>
-                            <p className="text-2xl font-bold">
-                              {formatCurrency(selectedClient.totalSpent)}
-                            </p>
-                          </div>
-                          <div>
-                            <Label className="text-sm">Average Spent</Label>
-                            <p className="text-xl font-semibold">
-                              {formatCurrency(selectedClient.averageSpent)}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-muted-foreground text-sm">No recent activity</div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Notes</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">{selectedClient.notes}</p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Booking History Tab */}
-                <TabsContent value="bookings" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Booking History</CardTitle>
-                      <CardDescription>
-                        Complete history of {selectedClient.name}'s appointments
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Service</TableHead>
-                            <TableHead>Professional</TableHead>
-                            <TableHead>Date & Time</TableHead>
-                            <TableHead>Amount</TableHead>
-                            <TableHead>Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {getClientBookings(selectedClient.id).length > 0 ? (
-                            getClientBookings(selectedClient.id).map(
-                              (booking) => (
-                                <TableRow key={booking.id}>
-                                  <TableCell className="font-medium">
-                                    {booking.service}
-                                  </TableCell>
-                                  <TableCell>{booking.professional}</TableCell>
-                                  <TableCell>
-                                    <div className="space-y-1">
-                                      <div className="flex items-center">
-                                        <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                                        {booking.date ? new Date(booking.date).toLocaleDateString() : "N/A"}
-                                      </div>
-                                      <div className="flex items-center text-sm text-muted-foreground">
-                                        <Clock className="h-3 w-3 mr-1" />
-                                        {booking.time}
-                                      </div>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <span className="font-medium">
-                                      {formatCurrency(booking.amount)}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge
-                                      variant="outline"
-                                      className={
-                                        booking.status === "completed"
-                                          ? "bg-green-100 text-green-800 border-green-200"
-                                          : "bg-blue-100 text-blue-800 border-blue-200"
-                                      }
-                                    >
-                                      {booking.status}
-                                    </Badge>
-                                  </TableCell>
-                                </TableRow>
-                              )
-                            )
-                          ) : (
-                            <TableRow>
-                              <TableCell
-                                colSpan={5}
-                                className="text-center py-8 text-muted-foreground"
-                              >
-                                No bookings found for this client
+              <TabsContent value="bookings" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Booking History</CardTitle>
+                    <CardDescription>Complete history of appointments</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Service</TableHead>
+                          <TableHead>Professional</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedClient.bookings && selectedClient.bookings.length > 0 ? (
+                          selectedClient.bookings.map((booking: any) => (
+                            <TableRow key={booking.id || booking._id}>
+                              <TableCell>
+                                <div className="font-medium">
+                                  {new Date(booking.startDateTime || booking.date).toLocaleDateString()}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {new Date(booking.startDateTime || booking.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                              </TableCell>
+                              <TableCell>{booking.service?.name || booking.serviceName || 'Unknown'}</TableCell>
+                              <TableCell>
+                                {booking.professional?.firstName
+                                  ? `${booking.professional.firstName} ${booking.professional.lastName}`
+                                  : 'Unknown'}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={getStatusColor(booking.status)}>
+                                  {booking.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatCurrency(booking.totalPrice || booking.price || 0)}
                               </TableCell>
                             </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                              No bookings found for this client.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                {/* Preferences Tab */}
-                <TabsContent value="preferences" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Service Preferences</CardTitle>
-                      <CardDescription>
-                        {selectedClient.name}'s preferred services and
-                        professionals
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <Label className="text-sm font-medium">
-                          Preferred Services
-                        </Label>
-                        <div className="flex gap-2 mt-2">
-                          {selectedClient.preferredServices &&
-                            selectedClient.preferredServices.length > 0 ? (
-                            selectedClient.preferredServices.map(
-                              (
-                                service:
-                                  | string
-                                  | number
-                                  | boolean
-                                  | ReactElement<
-                                    any,
-                                    string | JSXElementConstructor<any>
-                                  >
-                                  | Iterable<ReactNode>
-                                  | ReactPortal
-                                  | Iterable<ReactNode>
-                                  | null
-                                  | undefined,
-                                index: Key | null | undefined
-                              ) => (
-                                <Badge key={index} variant="outline">
-                                  {service}
-                                </Badge>
-                              )
-                            )
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              No preferred services
-                            </p>
-                          )}
-                        </div>
+              <TabsContent value="notes" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Client Notes</CardTitle>
+                    <CardDescription>Private notes about preferences and history</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedClient.notes ? (
+                      <div className="bg-muted/30 p-4 rounded-lg text-sm whitespace-pre-wrap leading-relaxed">
+                        {selectedClient.notes}
                       </div>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                          <Label className="text-sm font-medium">
-                            Client Since
-                          </Label>
-                          <p className="text-sm mt-1">
-                            {selectedClient.joinDate
-                              ? new Date(selectedClient.joinDate).toLocaleDateString()
-                              : "N/A"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">
-                            Last Visit
-                          </Label>
-                          <p className="text-sm mt-1">
-                            {selectedClient.lastVisit
-                              ? new Date(selectedClient.lastVisit).toLocaleDateString()
-                              : "N/A"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">
-                            Referrals Made
-                          </Label>
-                          <p className="text-sm mt-1">
-                            {selectedClient.referrals} clients
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">Status</Label>
-                          <Badge
-                            variant="outline"
-                            className={`mt - 1 ${getStatusColor(
-                              selectedClient.status
-                            )
-                              } `}
-                          >
-                            {selectedClient.status}
-                          </Badge>
-                        </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground italic">
+                        No notes added for this client.
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Edit Client Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      < Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Client</DialogTitle>
@@ -2001,10 +1704,10 @@ export function ClientProfilePage() {
             </div>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      < Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Client</DialogTitle>
@@ -2028,10 +1731,10 @@ export function ClientProfilePage() {
             </Button>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Duplicate Client Confirmation Dialog */}
-      <Dialog open={isDuplicateDialogOpen} onOpenChange={setIsDuplicateDialogOpen}>
+      < Dialog open={isDuplicateDialogOpen} onOpenChange={setIsDuplicateDialogOpen} >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Client Already Exists</DialogTitle>
@@ -2083,25 +1786,27 @@ export function ClientProfilePage() {
             </Button>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Create Booking Dialog */}
-      {isBookingDialogOpen && (
-        <CreateBookingDialog
-          open={isBookingDialogOpen}
-          onOpenChange={setIsBookingDialogOpen}
-          entityId={entityId}
-          services={[]} // Services will be loaded by the dialog or hook if not passed, but better to pass if available
-          onSubmit={async (data) => {
-            console.log("Booking created from profile:", data);
-            setIsBookingDialogOpen(false);
-            toast.success("Booking created successfully");
-            // Refresh bookings
-            // fetchBookings(); // If available
-          }}
-          clientId={preSelectedClientForBooking?.id || preSelectedClientForBooking?._id}
-        />
-      )}
-    </div>
+      {
+        isBookingDialogOpen && (
+          <CreateBookingDialog
+            open={isBookingDialogOpen}
+            onOpenChange={setIsBookingDialogOpen}
+            entityId={entityId}
+            services={[]} // Services will be loaded by the dialog or hook if not passed, but better to pass if available
+            onSubmit={async (data) => {
+              console.log("Booking created from profile:", data);
+              setIsBookingDialogOpen(false);
+              toast.success("Booking created successfully");
+              // Refresh bookings
+              // fetchBookings(); // If available
+            }}
+            clientId={preSelectedClientForBooking?.id || preSelectedClientForBooking?._id}
+          />
+        )
+      }
+    </div >
   );
 }

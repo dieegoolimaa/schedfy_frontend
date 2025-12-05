@@ -1,39 +1,65 @@
 {
-  "title": "Data Analytics",
-  "description": "Comprehensive insights into your business",
-  "overview": {
-    "title": "Overview",
-    "totalRevenue": "Total Revenue",
+  "title": "Operational Analysis",
+  "subtitle": "360° view of your business operations and performance",
+  "refresh": "Refresh",
+  "last7days": "Last 7 days",
+  "last30days": "Last 30 days",
+  "last3months": "Last 3 months",
+  "last12months": "Last 12 months",
+  "thisMonth": "This month",
+  "lastMonth": "Last month",
+  "stats": {
     "totalBookings": "Total Bookings",
-    "activeClients": "Active Clients",
-    "avgBookingValue": "Avg. Booking Value"
-  },
-  "timeRange": {
-    "7days": "Last 7 days",
-    "30days": "Last 30 days",
-    "90days": "Last 90 days",
-    "year": "This year"
-  },
-  "services": {
-    "title": "Service Performance",
-    "topServices": "Top Services",
-    "revenue": "Revenue",
-    "bookings": "Bookings"
-  },
-  "professionals": {
-    "title": "Professional Performance",
-    "topProfessionals": "Top Professionals"
-  },
-  "clients": {
-    "title": "Client Analysis",
-    "segments": "Client Segments",
+    "completionRate": "Completion Rate",
+    "cancellationRate": "Cancellation Rate",
     "newClients": "New Clients",
-    "returningClients": "Returning Clients"
+    "inSelectedPeriod": "in selected period",
+    "completed": "completed",
+    "cancelled": "cancelled"
   },
-  "trends": {
-    "title": "Trends",
-    "hourly": "Hourly Analysis",
-    "daily": "Daily Analysis",
-    "monthly": "Monthly Analysis"
-  }
+  "tabs": {
+    "overview": "Overview",
+    "services": "Services Performance",
+    "professionals": "Professionals"
+  },
+  "charts": {
+    "busyHours": "Busy Hours",
+    "busyHoursDesc": "Booking distribution by hour of day",
+    "bookingStatus": "Booking Status",
+    "bookingStatusDesc": "Distribution of booking outcomes",
+    "servicesBreakdown": "Service Performance",
+    "professionalPerformance": "Professional Performance"
+  },
+  "servicePerformance": {
+    "title": "Service Performance",
+    "description": "Detailed breakdown of service metrics"
+  },
+  "professionalPerformance": {
+    "title": "Professional Performance",
+    "description": "Operational metrics per professional"
+  },
+  "insights": {
+    "peakTime": "Peak Time Optimization",
+    "peakTimeDesc": "High demand observed around {{time}}. Consider optimizing staff availability during this time.",
+    "highCancellation": "High Cancellation Rate",
+    "highCancellationDesc": "Cancellation rate is {{rate}}%. Consider sending reminders earlier or requiring deposits.",
+    "cancellationAlert": "Cancellation Alert",
+    "cancellationAlertDesc": "Cancellation rate is {{rate}}%. Monitor this trend.",
+    "topService": "Top Performing Service",
+    "topServiceDesc": "\"{{service}}\" is your most popular service with {{count}} bookings.",
+    "activity": "Booking Activity",
+    "activityDesc": "You have managed {{count}} bookings in this period."
+  },
+  "table": {
+    "serviceName": "Service Name",
+    "category": "Category",
+    "totalBookings": "Total Bookings",
+    "completed": "Completed",
+    "completionRate": "Completion Rate",
+    "avgDuration": "Avg Duration",
+    "professional": "Professional",
+    "cancelled": "Cancelled"
+  },
+  "noData": "No data for the selected period",
+  "viewFinancialPerformance": "View Financial Performance"
 }

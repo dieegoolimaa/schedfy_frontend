@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import {
   DollarSign,
@@ -128,6 +129,7 @@ const PAYMENT_METHODS = [
  * Simple plan shows upgrade message
  */
 export default function UnifiedPaymentManagement() {
+  const { t } = useTranslation("payments");
   const { user } = useAuth();
   const { toast } = useToast();
   const plan = user?.plan || "simple";
@@ -160,11 +162,9 @@ export default function UnifiedPaymentManagement() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4 max-w-md">
           <div className="text-6xl">💳</div>
-          <h2 className="text-2xl font-bold">Gestão de Pagamentos</h2>
+          <h2 className="text-2xl font-bold">{t("upgrade.title")}</h2>
           <p className="text-muted-foreground">
-            A gestão avançada de pagamentos está disponível nos planos
-            Individual e Business. Faça upgrade do seu plano para rastrear e
-            gerenciar transações de pagamento.
+            {t("upgrade.description")}
           </p>
         </div>
       </div>
@@ -400,38 +400,37 @@ export default function UnifiedPaymentManagement() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Gestão de Pagamentos</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="text-muted-foreground">
             {plan === "business"
-              ? "Rastreie e gerencie todas as transações de pagamento"
-              : "Gerencie e registre pagamentos manuais"}
+              ? t("subtitle.business")
+              : t("subtitle.individual")}
           </p>
         </div>
         <div className="flex gap-2">
           {plan === "business" && (
             <Button variant="outline" onClick={loadPayments}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Sincronizar
+              {t("actions.sync")}
             </Button>
           )}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Registrar Pagamento
+                {t("actions.registerPayment")}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Registrar Novo Pagamento</DialogTitle>
+                <DialogTitle>{t("dialog.title")}</DialogTitle>
                 <DialogDescription>
-                  Registre pagamentos feitos em dinheiro, PIX ou outras formas
-                  offline
+                  {t("dialog.description")}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="amount">Valor *</Label>
+                  <Label htmlFor="amount">{t("form.amount")} *</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -444,7 +443,7 @@ export default function UnifiedPaymentManagement() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="paymentMethod">Método de Pagamento *</Label>
+                  <Label htmlFor="paymentMethod">{t("form.paymentMethod")} *</Label>
                   <Select
                     value={formData.paymentMethod}
                     onValueChange={(value) =>
@@ -459,7 +458,7 @@ export default function UnifiedPaymentManagement() {
                         <SelectItem key={method.value} value={method.value}>
                           <div className="flex items-center gap-2">
                             <method.icon className="h-4 w-4" />
-                            {method.label}
+                            {t(`paymentMethods.${method.value.replace("_", "")}`)}
                           </div>
                         </SelectItem>
                       ))}
@@ -467,7 +466,7 @@ export default function UnifiedPaymentManagement() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="paidAt">Data do Pagamento</Label>
+                  <Label htmlFor="paidAt">{t("form.paymentDate")}</Label>
                   <Input
                     id="paidAt"
                     type="date"
@@ -478,10 +477,10 @@ export default function UnifiedPaymentManagement() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Descrição</Label>
+                  <Label htmlFor="description">{t("form.description")}</Label>
                   <Input
                     id="description"
-                    placeholder="Ex: Consulta com Dr. João"
+                    placeholder={t("form.descriptionPlaceholder")}
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
@@ -489,10 +488,10 @@ export default function UnifiedPaymentManagement() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="notes">Observações</Label>
+                  <Label htmlFor="notes">{t("form.notes")}</Label>
                   <Textarea
                     id="notes"
-                    placeholder="Observações adicionais..."
+                    placeholder={t("form.notesPlaceholder")}
                     value={formData.notes}
                     onChange={(e) =>
                       setFormData({ ...formData, notes: e.target.value })
@@ -506,9 +505,9 @@ export default function UnifiedPaymentManagement() {
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                 >
-                  Cancelar
+                  {t("actions.cancel")}
                 </Button>
-                <Button onClick={handleCreatePayment}>Registrar</Button>
+                <Button onClick={handleCreatePayment}>{t("actions.register")}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -521,7 +520,7 @@ export default function UnifiedPaymentManagement() {
           <Card className="p-3 sm:p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
               <CardTitle className="text-sm font-medium">
-                {plan === "business" ? "Receita Total" : "Receita Total"}
+                {t("stats.totalRevenue")}
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -530,21 +529,21 @@ export default function UnifiedPaymentManagement() {
                 {formatCurrency(summary.totalPaid, defaultCurrency)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {summary.totalTransactions} transações
+                {summary.totalTransactions} {t("stats.transactions")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pendente</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("stats.pending")}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {formatCurrency(summary.totalPending, defaultCurrency)}
               </div>
-              <p className="text-xs text-muted-foreground">A receber</p>
+              <p className="text-xs text-muted-foreground">{t("stats.toReceive")}</p>
             </CardContent>
           </Card>
 
@@ -553,7 +552,7 @@ export default function UnifiedPaymentManagement() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Taxas de Processamento
+                    {t("stats.processingFees")}
                   </CardTitle>
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -566,8 +565,8 @@ export default function UnifiedPaymentManagement() {
                       ? `${(
                         (stats.totalFees / summary.totalPaid) *
                         100
-                      ).toFixed(1)}% da receita`
-                      : "0% da receita"}
+                      ).toFixed(1)}% ${t("stats.ofRevenue")}`
+                      : `0% ${t("stats.ofRevenue")}`}
                   </p>
                 </CardContent>
               </Card>
@@ -575,14 +574,14 @@ export default function UnifiedPaymentManagement() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Pagamentos Falhados
+                    {t("stats.failedPayments")}
                   </CardTitle>
                   <TrendingDown className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.failedCount}</div>
                   <p className="text-xs text-muted-foreground">
-                    Requerem atenção
+                    {t("stats.requireAttention")}
                   </p>
                 </CardContent>
               </Card>
@@ -616,18 +615,18 @@ export default function UnifiedPaymentManagement() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              <CardTitle>Filtros</CardTitle>
+              <CardTitle>{t("filters.title")}</CardTitle>
             </div>
             <Button variant="outline" size="sm" onClick={exportToCSV}>
               <Download className="h-4 w-4 mr-2" />
-              Exportar
+              {t("actions.export")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>{t("filters.status")}</Label>
               <Select
                 value={filters.status}
                 onValueChange={(value) =>
@@ -638,17 +637,17 @@ export default function UnifiedPaymentManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="succeeded">Pago</SelectItem>
-                  <SelectItem value="completed">Completo</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="failed">Falhou</SelectItem>
-                  <SelectItem value="refunded">Reembolsado</SelectItem>
+                  <SelectItem value="all">{t("filters.all")}</SelectItem>
+                  <SelectItem value="succeeded">{t("status.paid")}</SelectItem>
+                  <SelectItem value="completed">{t("status.completed")}</SelectItem>
+                  <SelectItem value="pending">{t("status.pending")}</SelectItem>
+                  <SelectItem value="failed">{t("status.failed")}</SelectItem>
+                  <SelectItem value="refunded">{t("status.refunded")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Método</Label>
+              <Label>{t("filters.method")}</Label>
               <Select
                 value={filters.paymentSource}
                 onValueChange={(value) =>
@@ -659,17 +658,17 @@ export default function UnifiedPaymentManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="all">{t("filters.all")}</SelectItem>
                   {PAYMENT_METHODS.map((method) => (
                     <SelectItem key={method.value} value={method.value}>
-                      {method.label}
+                      {t(`paymentMethods.${method.value.replace("_", "")}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Data Inicial</Label>
+              <Label>{t("filters.startDate")}</Label>
               <Input
                 type="date"
                 value={filters.startDate}
@@ -679,7 +678,7 @@ export default function UnifiedPaymentManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Data Final</Label>
+              <Label>{t("filters.endDate")}</Label>
               <Input
                 type="date"
                 value={filters.endDate}
@@ -695,9 +694,9 @@ export default function UnifiedPaymentManagement() {
       {/* Payments Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de Pagamentos</CardTitle>
+          <CardTitle>{t("table.title")}</CardTitle>
           <CardDescription>
-            {payments.length} pagamento(s) encontrado(s)
+            {payments.length} {t("table.paymentsFound")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -705,25 +704,25 @@ export default function UnifiedPaymentManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead>
-                  {plan === "business" ? "ID / Reserva" : "Data"}
+                  {plan === "business" ? t("table.id") : t("table.date")}
                 </TableHead>
                 {plan === "business" && (
                   <>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Serviço</TableHead>
+                    <TableHead>{t("table.client")}</TableHead>
+                    <TableHead>{t("table.service")}</TableHead>
                   </>
                 )}
                 <TableHead>
-                  {plan === "business" ? "Valor" : "Método"}
+                  {plan === "business" ? t("table.amount") : t("table.method")}
                 </TableHead>
                 <TableHead>
-                  {plan === "business" ? "Método" : "Descrição"}
+                  {plan === "business" ? t("table.method") : t("table.description")}
                 </TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("table.status")}</TableHead>
                 <TableHead className="text-right">
-                  {plan === "business" ? "Data" : "Valor"}
+                  {plan === "business" ? t("table.date") : t("table.amount")}
                 </TableHead>
-                {plan === "business" && <TableHead>Ações</TableHead>}
+                {plan === "business" && <TableHead>{t("table.actions")}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -733,7 +732,7 @@ export default function UnifiedPaymentManagement() {
                     colSpan={plan === "business" ? 8 : 5}
                     className="text-center text-muted-foreground"
                   >
-                    Nenhum pagamento encontrado
+                    {t("table.noPayments")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -745,7 +744,7 @@ export default function UnifiedPaymentManagement() {
                           <div className="font-medium">{payment.id}</div>
                           {payment.bookingId && (
                             <div className="text-sm text-muted-foreground">
-                              Reserva: {payment.bookingId}
+                              {t("table.booking")}: {payment.bookingId}
                             </div>
                           )}
                         </TableCell>

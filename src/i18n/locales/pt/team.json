@@ -1,0 +1,89 @@
+{
+  "title": "Gestão de Equipa",
+  "subtitle": "Gerir membros da equipa, profissionais, funções e permissões",
+  "inviteUser": "Convidar Membro",
+  "searchPlaceholder": "Pesquisar membros da equipa...",
+  "tabs": {
+    "allTeam": "Toda a Equipa",
+    "serviceProviders": "Prestadores de Serviço"
+  },
+  "filters": {
+    "allRoles": "Todas as Funções",
+    "allStatus": "Todos os Estados"
+  },
+  "table": {
+    "title": "Membros da Equipa",
+    "subtitle": "Todos os membros da equipa com as suas funções e estado",
+    "member": "Membro",
+    "role": "Função",
+    "contact": "Contacto",
+    "professional": "Profissional",
+    "status": "Estado",
+    "actions": "Ações"
+  },
+  "roles": {
+    "owner": "Proprietário",
+    "admin": "Administrador",
+    "manager": "Gestor",
+    "hr": "RH",
+    "attendant": "Atendente",
+    "professional": "Profissional"
+  },
+  "status": {
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "pending": "Pendente",
+    "suspended": "Suspenso",
+    "absent": "Ausente"
+  },
+  "loading": {
+    "team": "A carregar membros da equipa...",
+    "invite": "A enviar convite...",
+    "update": "A atualizar utilizador...",
+    "permissions": "A atualizar permissões..."
+  },
+  "errors": {
+    "noEntityId": "ID de entidade não encontrado",
+    "loginAgain": "ID de entidade não encontrado. Por favor inicie sessão novamente.",
+    "loadFailed": "Falha ao carregar membros da equipa",
+    "inviteFailed": "Falha ao enviar convite",
+    "updateFailed": "Falha ao atualizar utilizador",
+    "permissionsFailed": "Falha ao atualizar permissões"
+  },
+  "placeholders": {
+    "jobFunction": "ex: Cabeleireiro, Barbeiro"
+  },
+  "noJobFunction": "Sem função definida",
+  "noTeamMembers": "Nenhum membro da equipa encontrado",
+  "noServiceProviders": "Nenhum prestador de serviço encontrado",
+  "enableProfessionalToggle": "Ative o interruptor \"Profissional\" para marcar membros da equipa como prestadores de serviço",
+  "actions": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "deactivate": "Desativar",
+    "activate": "Ativar",
+    "resendInvite": "Reenviar Convite",
+    "managePermissions": "Gerir Permissões"
+  },
+  "invite": {
+    "title": "Convidar Membro da Equipa",
+    "description": "Enviar um convite para juntar-se à sua equipa",
+    "firstName": "Primeiro Nome",
+    "lastName": "Apelido",
+    "email": "Email",
+    "phone": "Telefone",
+    "role": "Função",
+    "jobFunction": "Função Profissional",
+    "serviceProvider": "Prestador de Serviço",
+    "cancel": "Cancelar",
+    "sendInvitation": "Enviar Convite"
+  },
+  "messages": {
+    "invitationSent": "Convite enviado com sucesso!",
+    "invitationFailed": "Falha ao enviar convite",
+    "userUpdated": "Utilizador atualizado com sucesso!",
+    "updateFailed": "Falha ao atualizar utilizador",
+    "permissionsUpdated": "Permissões atualizadas com sucesso!",
+    "permissionsFailed": "Falha ao atualizar permissões"
+  }
+}

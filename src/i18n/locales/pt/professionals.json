@@ -1,0 +1,93 @@
+{
+  "title": "Profissionais",
+  "subtitle": "Gerencie profissionais e atendentes",
+  "addProfessional": "Adicionar Profissional",
+  "editProfessional": "Editar Profissional",
+  "deleteProfessional": "Eliminar Profissional",
+  "searchPlaceholder": "Pesquisar profissionais...",
+  "noProfessionals": "Nenhum profissional encontrado",
+  "stats": {
+    "total": "Total de Profissionais",
+    "active": "Ativos",
+    "pending": "Pendentes",
+    "avgBookings": "Média de Agendamentos"
+  },
+  "status": {
+    "active": "Ativo",
+    "pending": "Pendente",
+    "inactive": "Inativo"
+  },
+  "tabs": {
+    "basic": "Informações Básicas",
+    "professional": "Profissional",
+    "social": "Redes Sociais",
+    "commission": "Comissão"
+  },
+  "form": {
+    "firstName": "Primeiro Nome",
+    "firstNamePlaceholder": "João",
+    "lastName": "Apelido",
+    "lastNamePlaceholder": "Silva",
+    "email": "Email",
+    "emailPlaceholder": "joao.silva@exemplo.com",
+    "invitationNote": "Um convite será enviado para este email",
+    "phone": "Telefone",
+    "phonePlaceholder": "+351 123 456 789",
+    "jobFunction": "Função / Título",
+    "jobFunctionPlaceholder": "Ex: Barbeiro, Cabeleireiro, Massagista",
+    "bio": "Bio / Descrição",
+    "bioPlaceholder": "Conte-nos sobre a sua experiência profissional...",
+    "experience": "Anos de Experiência",
+    "experiencePlaceholder": "5",
+    "specialties": "Especialidades",
+    "addSpecialty": "Adicionar especialidade...",
+    "certifications": "Certificações",
+    "addCertification": "Adicionar certificação...",
+    "instagram": "Instagram",
+    "linkedin": "LinkedIn",
+    "website": "Website Pessoal",
+    "commissionEnabled": "Ativar Comissão",
+    "commissionEnabledDesc": "Definir taxas de comissão para este profissional",
+    "commissionPercentage": "Percentagem de Comissão (%)",
+    "commissionFixed": "Valor Fixo de Comissão"
+  },
+  "dialog": {
+    "addTitle": "Adicionar Novo Profissional",
+    "addDescription": "Criar conta de profissional e enviar convite",
+    "editTitle": "Editar Profissional",
+    "editDescription": "Atualizar informações do profissional"
+  },
+  "table": {
+    "name": "Nome",
+    "contact": "Contacto",
+    "function": "Função",
+    "status": "Estado",
+    "actions": "Ações"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "resendInvite": "Reenviar Convite",
+    "viewProfile": "Ver Perfil",
+    "add": "Adicionar",
+    "copyLink": "Copiar Link"
+  },
+  "messages": {
+    "created": "Profissional criado com sucesso!",
+    "updated": "Profissional atualizado com sucesso!",
+    "deleted": "Profissional eliminado com sucesso!",
+    "invitationSent": "Convite do profissional enviado!",
+    "invitationResent": "Convite reenviado!",
+    "emailSentTo": "Email enviado para",
+    "invitationLink": "Link do convite",
+    "linkCopied": "Link copiado!",
+    "error": "Ocorreu um erro",
+    "fillRequiredFields": "Preencha os campos obrigatórios",
+    "emailRequired": "Email é obrigatório para novos profissionais",
+    "entityNotFound": "ID da entidade não encontrado. Certifique-se de que está autenticado corretamente.",
+    "loadError": "Falha ao carregar profissionais para esta entidade",
+    "confirmDelete": "Eliminar este profissional?"
+  }
+}

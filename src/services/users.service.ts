@@ -150,7 +150,16 @@ export const usersService = {
         if (startDate) params.append('startDate', startDate.toISOString());
         if (endDate) params.append('endDate', endDate.toISOString());
 
-        const response = await apiClient.get(`/api/users/${userId}/metrics?${params.toString()}`);
+        const response = await apiClient.get<{
+            userId: string;
+            isProfessional: boolean;
+            role: string;
+            totalBookings: number;
+            completedBookings: number;
+            cancelledBookings: number;
+            revenue: number;
+            averageRating?: number;
+        }>(`/api/users/${userId}/metrics?${params.toString()}`);
         return response.data;
     },
 };

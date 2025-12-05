@@ -1,0 +1,154 @@
+{
+  "title": "Commissions & Promotions",
+  "subtitle": "Manage commissions, voucher codes, and automatic discounts",
+  "access": {
+    "title": "Financial Features Not Available",
+    "description": "Commissions, vouchers, and discounts are available for Individual and Business plans only. Your Simple plan is focused on appointment management.",
+    "upgrade": "Upgrade to Individual or Business Plan"
+  },
+  "stats": {
+    "activeCommissions": "Active Commissions",
+    "activeVouchers": "Active Vouchers",
+    "activeDiscounts": "Active Discounts",
+    "totalSavings": "Total Savings",
+    "total": "Total",
+    "autoApply": "Auto-apply",
+    "thisMonth": "This month"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "tabs": {
+    "yes": "Yes",
+    "no": "No",
+    "active": "Active",
+    "inactive": "Inactive",
+    "commissions": "Commissions",
+    "vouchers": "Vouchers",
+    "discounts": "Discounts"
+  },
+  "commissions": {
+    "title": "Commissions",
+    "description": "Set up commission rules for your staff and services",
+    "add": "Add Commission",
+    "table": {
+      "name": "Rule Name",
+      "type": "Type",
+      "appliesTo": "Applies To",
+      "value": "Value",
+      "validity": "Validity",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Rule Name",
+      "namePlaceholder": "e.g. Haircut Commission",
+      "description": "Description",
+      "descriptionPlaceholder": "Internal description for this rule",
+      "type": "Commission Type",
+      "value": "Value",
+      "appliesTo": "Applies To",
+      "validFrom": "Valid From",
+      "validUntil": "Valid Until",
+      "services": "Select Services",
+      "professionals": "Select Professionals",
+      "percentage": "Percentage (%)",
+      "fixed": "Fixed Amount (€)",
+      "service": "Specific Service",
+      "professional": "Specific Professional",
+      "category": "Service Category",
+      "update": "Update Commission"
+    }
+  },
+  "vouchers": {
+    "title": "Vouchers",
+    "description": "Create discount codes for your clients",
+    "add": "Create Voucher",
+    "table": {
+      "code": "Code",
+      "name": "Name",
+      "discount": "Discount",
+      "usage": "Usage",
+      "validity": "Validity",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "code": "Voucher Code",
+      "codePlaceholder": "e.g. SUMMER2024",
+      "name": "Name",
+      "description": "Description",
+      "type": "Discount Type",
+      "value": "Value",
+      "minPurchase": "Minimum Purchase",
+      "maxUsage": "Max Usage Count",
+      "applicableServices": "Applicable Services",
+      "applicableServicesOptional": "Applicable Services (Optional)",
+      "leaveEmpty": "Leave empty to apply to all services",
+      "update": "Update Voucher",
+      "namePlaceholder": "e.g. Summer Promotion 2025",
+      "unlimited": "Unlimited"
+    }
+  },
+  "discounts": {
+    "title": "Automatic Discounts",
+    "description": "Set up rules for automatic discounts",
+    "add": "Add Discount",
+    "table": {
+      "name": "Name",
+      "discount": "Discount",
+      "appliesTo": "Applies To",
+      "conditions": "Conditions",
+      "validity": "Validity",
+      "status": "Status",
+      "actions": "Actions",
+      "type": "Type",
+      "value": "Value",
+      "services": "Services",
+      "autoApply": "Auto Apply"
+    },
+    "form": {
+      "name": "Discount Name",
+      "namePlaceholder": "e.g. First Time Client Discount",
+      "description": "Description",
+      "type": "Discount Type",
+      "value": "Value",
+      "appliesTo": "Applies To",
+      "autoApply": "Auto-apply at checkout",
+      "allServices": "All Services",
+      "specificServices": "Specific Services",
+      "firstTime": "First Time Clients",
+      "update": "Update Discount"
+    }
+  },
+  "dialog": {
+    "createCommission": "Create Commission Rule",
+    "editCommission": "Edit Commission Rule",
+    "editCommissionDesc": "Update commission settings",
+    "createVoucher": "Create Voucher",
+    "editVoucher": "Edit Voucher",
+    "editVoucherDesc": "Update voucher settings",
+    "createDiscount": "Create Discount Rule",
+    "editDiscount": "Edit Discount Rule",
+    "editDiscountDesc": "Update discount settings",
+    "save": "Save Rule",
+    "update": "Update",
+    "create": "Create",
+    "cancel": "Cancel",
+    "messages": {
+        "commissionCreated": "Commission created successfully",
+        "commissionUpdated": "Commission updated successfully",
+        "commissionDeleted": "Commission deleted successfully",
+        "voucherCreated": "Voucher created successfully",
+        "voucherUpdated": "Voucher updated successfully",
+        "voucherDeleted": "Voucher deleted successfully",
+        "discountCreated": "Discount created successfully",
+        "discountUpdated": "Discount updated successfully",
+        "discountDeleted": "Discount deleted successfully",
+        "deleteConfirm": "Are you sure you want to delete this rule?"
+    }
+  }
+}

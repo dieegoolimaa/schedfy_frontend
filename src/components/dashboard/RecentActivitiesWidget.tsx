@@ -4,11 +4,9 @@ import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import {
     Calendar,
-    CreditCard,
     CheckCircle,
     XCircle,
     Clock,
-    User,
     DollarSign,
     AlertCircle
 } from 'lucide-react';

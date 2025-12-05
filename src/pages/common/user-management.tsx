@@ -98,15 +98,16 @@ const ROLE_COLORS: Record<string, string> = {
     professional: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
 };
 
-const STATUS_CONFIG: Record<string, { icon: any; color: string; label: string }> = {
-    active: { icon: CheckCircle2, color: "text-green-600", label: "Active" },
-    pending: { icon: Clock, color: "text-yellow-600", label: "Pending" },
-    inactive: { icon: XCircle, color: "text-gray-600", label: "Inactive" },
-    suspended: { icon: XCircle, color: "text-red-600", label: "Suspended" },
+const STATUS_CONFIG: Record<string, { icon: any; color: string }> = {
+    active: { icon: CheckCircle2, color: "text-green-600" },
+    pending: { icon: Clock, color: "text-yellow-600" },
+    inactive: { icon: XCircle, color: "text-gray-600" },
+    suspended: { icon: XCircle, color: "text-red-600" },
+    absent: { icon: Clock, color: "text-orange-500" },
 };
 
 export default function TeamManagementPage() {
-    const { t } = useTranslation();
+    const { t } = useTranslation("team");
     const { user: currentUser } = useAuth();
 
     const [users, setUsers] = useState<User[]>([]);
@@ -142,7 +143,7 @@ export default function TeamManagementPage() {
 
     const fetchUsers = async () => {
         if (!currentUser?.entityId) {
-            toast.error("No entity ID found. Please log in again.");
+            toast.error(t("errors.loginAgain"));
             setLoading(false);
             return;
         }
@@ -155,7 +156,7 @@ export default function TeamManagementPage() {
             setUsers(data as User[]);
         } catch (error: any) {
             console.error("[TeamManagement] Failed to fetch users:", error);
-            toast.error(error?.response?.data?.message || "Failed to load team members");
+            toast.error(error?.response?.data?.message || t("errors.loadFailed"));
         } finally {
             setLoading(false);
         }
@@ -168,7 +169,7 @@ export default function TeamManagementPage() {
         }
 
         try {
-            toast.loading("Sending invitation...", { id: "invite-user" });
+            toast.loading(t("loading.invite"), { id: "invite-user" });
 
             const payload = {
                 firstName: inviteForm.firstName,
@@ -190,7 +191,7 @@ export default function TeamManagementPage() {
             console.log("[TeamManagement] Sending invite:", payload);
             await usersService.inviteUser(payload as any);
 
-            toast.success("Invitation sent successfully!", { id: "invite-user" });
+            toast.success(t("messages.invitationSent"), { id: "invite-user" });
             setIsInviteDialogOpen(false);
             setInviteForm({
                 firstName: "",
@@ -208,7 +209,7 @@ export default function TeamManagementPage() {
         } catch (error: any) {
             console.error("[TeamManagement] Invite failed:", error);
             toast.error(
-                error?.response?.data?.message || "Failed to send invitation",
+                error?.response?.data?.message || t("errors.inviteFailed"),
                 { id: "invite-user" }
             );
         }
@@ -239,12 +240,12 @@ export default function TeamManagementPage() {
                 await usersService.updateUserStatus(userId, updates.status);
             }
 
-            toast.success("User updated successfully!", { id: "update-user" });
+            toast.success(t("messages.userUpdated"), { id: "update-user" });
             fetchUsers();
         } catch (error: any) {
             console.error("[TeamManagement] Update failed:", error);
             toast.error(
-                error?.response?.data?.message || "Failed to update user",
+                error?.response?.data?.message || t("errors.updateFailed"),
                 { id: "update-user" }
             );
         }
@@ -266,14 +267,14 @@ export default function TeamManagementPage() {
 
     const handleSavePermissions = async (userId: string, permissions: string[]) => {
         try {
-            toast.loading("Updating permissions...", { id: "update-permissions" });
+            toast.loading(t("loading.permissions"), { id: "update-permissions" });
             await usersService.updateUserPermissions(userId, permissions);
-            toast.success("Permissions updated successfully!", { id: "update-permissions" });
+            toast.success(t("messages.permissionsUpdated"), { id: "update-permissions" });
             fetchUsers();
         } catch (error: any) {
             console.error("[TeamManagement] Permission update failed:", error);
             toast.error(
-                error?.response?.data?.message || "Failed to update permissions",
+                error?.response?.data?.message || t("errors.permissionsFailed"),
                 { id: "update-permissions" }
             );
         }
@@ -297,7 +298,7 @@ export default function TeamManagementPage() {
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
                     <Loader2 className="inline-block animate-spin h-8 w-8 border-b-2 border-primary" />
-                    <p className="mt-2 text-muted-foreground">Loading team members...</p>
+                    <p className="mt-2 text-muted-foreground">{t("loading.team")}</p>
                 </div>
             </div>
         );
@@ -309,15 +310,15 @@ export default function TeamManagementPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
-                        {t("teamManagement.title", "Team Management")}
+                        {t("title")}
                     </h1>
                     <p className="text-muted-foreground mt-2">
-                        {t("teamManagement.description", "Manage team members, professionals, roles, and permissions")}
+                        {t("subtitle")}
                     </p>
                 </div>
                 <Button onClick={() => setIsInviteDialogOpen(true)}>
                     <UserPlus className="h-4 w-4 mr-2" />
-                    {t("teamManagement.inviteUser", "Invite Team Member")}
+                    {t("inviteUser")}
                 </Button>
             </div>
 
@@ -326,11 +327,11 @@ export default function TeamManagementPage() {
                 <TabsList>
                     <TabsTrigger value="team">
                         <Users className="h-4 w-4 mr-2" />
-                        All Team ({users.length})
+                        {t("tabs.allTeam")} ({users.length})
                     </TabsTrigger>
                     <TabsTrigger value="professionals">
                         <Briefcase className="h-4 w-4 mr-2" />
-                        Service Providers ({professionals.length})
+                        {t("tabs.serviceProviders")} ({professionals.length})
                     </TabsTrigger>
                 </TabsList>
 
@@ -351,27 +352,27 @@ export default function TeamManagementPage() {
                                 </div>
                                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                                     <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="All Roles" />
+                                        <SelectValue placeholder={t("filters.allRoles")} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All Roles</SelectItem>
+                                        <SelectItem value="all">{t("filters.allRoles")}</SelectItem>
                                         {ROLES.map((role) => (
                                             <SelectItem key={role.value} value={role.value}>
-                                                {role.label}
+                                                {t(`roles.${role.value}`, role.label)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                                     <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="All Status" />
+                                        <SelectValue placeholder={t("filters.allStatus")} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All Status</SelectItem>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="inactive">Inactive</SelectItem>
-                                        <SelectItem value="suspended">Suspended</SelectItem>
+                                        <SelectItem value="all">{t("filters.allStatus")}</SelectItem>
+                                        <SelectItem value="active">{t("status.active")}</SelectItem>
+                                        <SelectItem value="pending">{t("status.pending")}</SelectItem>
+                                        <SelectItem value="inactive">{t("status.inactive")}</SelectItem>
+                                        <SelectItem value="suspended">{t("status.suspended", "Suspended")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -381,28 +382,28 @@ export default function TeamManagementPage() {
                     {/* Team Members Table */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Team Members</CardTitle>
+                            <CardTitle>{t("table.title")}</CardTitle>
                             <CardDescription>
-                                All team members with their roles and status
+                                {t("table.subtitle")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Member</TableHead>
-                                        <TableHead>Role</TableHead>
-                                        <TableHead>Contact</TableHead>
-                                        <TableHead>Professional</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        <TableHead>{t("table.member")}</TableHead>
+                                        <TableHead>{t("table.role")}</TableHead>
+                                        <TableHead>{t("table.contact")}</TableHead>
+                                        <TableHead>{t("table.professional")}</TableHead>
+                                        <TableHead>{t("table.status")}</TableHead>
+                                        <TableHead className="text-right">{t("table.actions")}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {filteredUsers.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                                No team members found
+                                                {t("noTeamMembers")}
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -422,7 +423,7 @@ export default function TeamManagementPage() {
                                                                     {user.firstName} {user.lastName}
                                                                 </p>
                                                                 <p className="text-sm text-muted-foreground">
-                                                                    {user.professionalInfo?.jobFunction || "No job function"}
+                                                                    {user.professionalInfo?.jobFunction || t("noJobFunction")}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -460,22 +461,22 @@ export default function TeamManagementPage() {
                                                                 <Button variant="ghost" size="sm" className="h-8 flex items-center gap-2 px-2">
                                                                     <StatusIcon className={`h-4 w-4 ${STATUS_CONFIG[user.status]?.color}`} />
                                                                     <span className="text-sm">
-                                                                        {STATUS_CONFIG[user.status]?.label || user.status}
+                                                                        {t(`status.${user.status}`)}
                                                                     </span>
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="start">
                                                                 <DropdownMenuItem onClick={() => handleUpdateUser(user.id, { status: "active" })}>
                                                                     <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-                                                                    Active
+                                                                    {t("status.active")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem onClick={() => handleUpdateUser(user.id, { status: "absent" })}>
                                                                     <Clock className="h-4 w-4 mr-2 text-orange-500" />
-                                                                    Absent
+                                                                    {t("status.absent")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem onClick={() => handleUpdateUser(user.id, { status: "inactive" })}>
                                                                     <XCircle className="h-4 w-4 mr-2 text-gray-600" />
-                                                                    Inactive
+                                                                    {t("status.inactive")}
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
@@ -536,7 +537,7 @@ export default function TeamManagementPage() {
                                                             {professional.firstName} {professional.lastName}
                                                         </h3>
                                                         <p className="text-sm text-muted-foreground">
-                                                            {professional.professionalInfo?.jobFunction || "Service Provider"}
+                                                            {professional.professionalInfo?.jobFunction || t("roles.professional")}
                                                         </p>
                                                     </div>
                                                     {professional.professionalInfo?.specialties &&
@@ -570,9 +571,9 @@ export default function TeamManagementPage() {
                             {professionals.length === 0 && (
                                 <div className="text-center py-12 text-muted-foreground">
                                     <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                                    <p>No service providers found</p>
+                                    <p>{t("noServiceProviders")}</p>
                                     <p className="text-sm mt-2">
-                                        Enable the "Professional" toggle for team members to mark them as service providers
+                                        {t("enableProfessionalToggle")}
                                     </p>
                                 </div>
                             )}
@@ -585,15 +586,15 @@ export default function TeamManagementPage() {
             <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Invite Team Member</DialogTitle>
+                        <DialogTitle>{t("invite.title")}</DialogTitle>
                         <DialogDescription>
-                            Send an invitation to join your team
+                            {t("invite.description")}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="firstName">First Name *</Label>
+                                <Label htmlFor="firstName">{t("invite.firstName")} *</Label>
                                 <Input
                                     id="firstName"
                                     value={inviteForm.firstName}
@@ -602,7 +603,7 @@ export default function TeamManagementPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="lastName">Last Name *</Label>
+                                <Label htmlFor="lastName">{t("invite.lastName")} *</Label>
                                 <Input
                                     id="lastName"
                                     value={inviteForm.lastName}
@@ -613,7 +614,7 @@ export default function TeamManagementPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email *</Label>
+                                <Label htmlFor="email">{t("invite.email")} *</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -623,7 +624,7 @@ export default function TeamManagementPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="phone">Phone</Label>
+                                <Label htmlFor="phone">{t("invite.phone")}</Label>
                                 <Input
                                     id="phone"
                                     value={inviteForm.phone}
@@ -633,7 +634,7 @@ export default function TeamManagementPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="role">Role *</Label>
+                                <Label htmlFor="role">{t("invite.role")} *</Label>
                                 <Select
                                     value={inviteForm.role}
                                     onValueChange={(value) => setInviteForm({ ...inviteForm, role: value })}
@@ -644,14 +645,14 @@ export default function TeamManagementPage() {
                                     <SelectContent>
                                         {ROLES.map((role) => (
                                             <SelectItem key={role.value} value={role.value}>
-                                                {role.label}
+                                                {t(`roles.${role.value}`)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="jobFunction">Job Function</Label>
+                                <Label htmlFor="jobFunction">{t("invite.jobFunction")}</Label>
                                 <Input
                                     id="jobFunction"
                                     value={inviteForm.professionalInfo.jobFunction}
@@ -662,12 +663,12 @@ export default function TeamManagementPage() {
                                             jobFunction: e.target.value,
                                         },
                                     })}
-                                    placeholder="e.g., Hairstylist, Barber"
+                                    placeholder={t("placeholders.jobFunction")}
                                 />
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="isProfessional">Service Provider</Label>
+                            <Label htmlFor="isProfessional">{t("invite.serviceProvider")}</Label>
                             <Switch
                                 id="isProfessional"
                                 checked={inviteForm.isProfessional}
@@ -679,13 +680,13 @@ export default function TeamManagementPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
-                            Cancel
+                            {t("invite.cancel")}
                         </Button>
                         <Button
                             onClick={handleInviteUser}
                             disabled={!inviteForm.firstName || !inviteForm.lastName || !inviteForm.email}
                         >
-                            Send Invitation
+                            {t("invite.sendInvitation")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -703,6 +704,7 @@ export default function TeamManagementPage() {
                 isOpen={isPermissionsDialogOpen}
                 onClose={() => setIsPermissionsDialogOpen(false)}
                 onSave={handleSavePermissions}
+                planType={currentUser?.plan || 'simple'}
             />
         </div>
     );

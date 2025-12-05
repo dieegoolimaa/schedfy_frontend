@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { toast } from "sonner";
 import { entitiesService } from "../../services/entities.service";
@@ -13,26 +14,29 @@ import { Button } from "../../components/ui/button";
 import { Switch } from "../../components/ui/switch";
 import { Label } from "../../components/ui/label";
 import {
-  Mail,
   MessageSquare,
   Smartphone,
   Bell,
   Save,
-  CheckCircle,
   Info,
   Calendar,
-  DollarSign,
-  CreditCard,
   Users,
-  Star,
-  FileText,
-  Shield,
-  Settings,
   ChevronDown,
   ChevronRight,
+  AlertTriangle,
+  Mail,
+  CheckCircle,
+  DollarSign,
+  CreditCard,
+  Star,
+  FileText,
+  Settings,
+  Shield,
 } from "lucide-react";
-import { Alert, AlertDescription } from "../../components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { Separator } from "../../components/ui/separator";
+import { BOOKING_NOTIFICATION_EVENTS, NotificationEvent } from "../../types/enums/notification-event.enum";
+import { Badge } from "../../components/ui/badge";
 
 interface NotificationChannels {
   email: boolean;
@@ -45,51 +49,12 @@ interface NotificationPreferences {
   smsEnabled: boolean;
   whatsappEnabled: boolean;
   notifications: {
-    // Booking lifecycle
-    bookingCreated?: NotificationChannels;
-    bookingConfirmed?: NotificationChannels;
-    bookingRescheduled?: NotificationChannels;
-    bookingCancelled?: NotificationChannels;
-    bookingCompleted?: NotificationChannels;
-    bookingNoShow?: NotificationChannels;
-    // Reminders
-    bookingReminder24h?: NotificationChannels;
-    bookingReminder2h?: NotificationChannels;
-    bookingReminder30min?: NotificationChannels;
-    // Client management
-    clientWelcome?: NotificationChannels;
-    clientFirstBooking?: NotificationChannels;
-    // Payments
-    paymentReceived?: NotificationChannels;
-    paymentFailed?: NotificationChannels;
-    paymentRefunded?: NotificationChannels;
-    invoiceGenerated?: NotificationChannels;
-    // Subscriptions
-    subscriptionExpiring?: NotificationChannels;
-    subscriptionExpired?: NotificationChannels;
-    subscriptionRenewed?: NotificationChannels;
-    // Professional management
-    professionalInvitation?: NotificationChannels;
-    professionalAccountActivated?: NotificationChannels;
-    professionalRemoved?: NotificationChannels;
-    // Reviews
-    newReviewReceived?: NotificationChannels;
-    // Reports
-    weeklyReport?: NotificationChannels;
-    monthlyReport?: NotificationChannels;
-    professionalCommissionReport?: NotificationChannels;
-    // Entity management
-    entityProfileApproved?: NotificationChannels;
-    entityProfileRejected?: NotificationChannels;
-    entityMaintenanceScheduled?: NotificationChannels;
-    serviceAvailabilityUpdated?: NotificationChannels;
-    // Security
-    userLoginNewDevice?: NotificationChannels;
+    [key: string]: NotificationChannels | undefined;
   };
 }
 
 interface NotificationTypeConfig {
-  key: keyof NotificationPreferences["notifications"];
+  key: string;
   label: string;
   description: string;
 }
@@ -101,7 +66,8 @@ interface NotificationCategory {
   defaultExpanded?: boolean;
 }
 
-const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
+// Full list of categories, we will filter this for display
+const ALL_NOTIFICATION_CATEGORIES: NotificationCategory[] = [
   {
     title: "Bookings & Appointments",
     icon: Calendar,
@@ -142,6 +108,7 @@ const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
   {
     title: "Appointment Reminders",
     icon: Bell,
+    defaultExpanded: true,
     notifications: [
       {
         key: "bookingReminder24h",
@@ -163,6 +130,7 @@ const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
   {
     title: "Client Management",
     icon: Users,
+    defaultExpanded: true,
     notifications: [
       {
         key: "clientWelcome",
@@ -316,15 +284,26 @@ const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
 ];
 
 export default function NotificationPreferencesPage() {
+  const { t } = useTranslation("notifications");
   const { user, entity } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<string>("");
+
+  // Helper to check if a notification key corresponds to a booking event
+  const isBookingEvent = (key: string): boolean => {
+    const snakeCaseKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+    return BOOKING_NOTIFICATION_EVENTS.includes(snakeCaseKey as NotificationEvent);
+  };
+
+  // Filter categories to only include booking events
+  const filteredCategories = ALL_NOTIFICATION_CATEGORIES.map(category => ({
+    ...category,
+    notifications: category.notifications.filter(n => isBookingEvent(n.key))
+  })).filter(category => category.notifications.length > 0);
+
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(
-      NOTIFICATION_CATEGORIES.filter((c) => c.defaultExpanded).map(
-        (c) => c.title
-      )
-    )
+    new Set(filteredCategories.map((c) => c.title))
   );
 
   const [preferences, setPreferences] = useState<NotificationPreferences>({
@@ -349,18 +328,35 @@ export default function NotificationPreferencesPage() {
       const response = await entitiesService.getById(entityId);
       const entityData = response.data;
 
-      if (
-        entityData &&
-        "notificationSettings" in entityData &&
-        entityData.notificationSettings
-      ) {
-        setPreferences({
-          emailEnabled: true, // Always enabled
-          smsEnabled: entityData.notificationSettings.smsEnabled || false,
-          whatsappEnabled:
-            entityData.notificationSettings.whatsappEnabled || false,
-          notifications: entityData.notificationSettings.notifications || {},
-        });
+      if (entityData) {
+        setCurrentPlan(entityData.plan || "");
+
+        if (entityData.notificationSettings) {
+          const mappedNotifications: { [key: string]: NotificationChannels } = {};
+
+          if (entityData.notificationSettings.notifications) {
+            Object.entries(entityData.notificationSettings.notifications).forEach(([key, value]: [string, any]) => {
+              // Skip internal keys
+              if (key === '_id' || key === 'id') return;
+
+              if (value) {
+                mappedNotifications[key] = {
+                  email: value.email ?? true,
+                  sms: value.sms ?? false,
+                  whatsapp: value.whatsapp ?? false,
+                };
+              }
+            });
+          }
+
+          setPreferences({
+            emailEnabled: true, // Always enabled
+            smsEnabled: entityData.notificationSettings.smsEnabled || false,
+            whatsappEnabled:
+              entityData.notificationSettings.whatsappEnabled || false,
+            notifications: mappedNotifications,
+          });
+        }
       }
     } catch (error: any) {
       console.error("Error loading preferences:", error);
@@ -380,8 +376,22 @@ export default function NotificationPreferencesPage() {
 
     try {
       setSaving(true);
-      console.log("Saving preferences:", preferences);
-      await entitiesService.updateNotificationSettings(preferences);
+
+      // Clean notifications object to remove undefined values
+      const cleanNotifications: { [key: string]: { email?: boolean; sms?: boolean; whatsapp?: boolean } } = {};
+      Object.entries(preferences.notifications).forEach(([key, value]) => {
+        if (value) {
+          cleanNotifications[key] = value;
+        }
+      });
+
+      const payload = {
+        ...preferences,
+        notifications: cleanNotifications
+      };
+
+      console.log("Saving preferences:", payload);
+      await entitiesService.updateNotificationSettings(payload);
       toast.success("Notification preferences saved successfully");
     } catch (error: any) {
       console.error("Error saving preferences:", error);
@@ -407,7 +417,7 @@ export default function NotificationPreferencesPage() {
   };
 
   const updateNotificationChannel = (
-    notificationKey: keyof NotificationPreferences["notifications"],
+    notificationKey: string,
     channel: keyof NotificationChannels,
     value: boolean
   ) => {
@@ -426,7 +436,7 @@ export default function NotificationPreferencesPage() {
   };
 
   const getNotificationChannels = (
-    notificationKey: keyof NotificationPreferences["notifications"]
+    notificationKey: string
   ): NotificationChannels => {
     return (
       preferences.notifications[notificationKey] || {
@@ -437,6 +447,76 @@ export default function NotificationPreferencesPage() {
     );
   };
 
+  const isSimplePlan = (currentPlan || "").toLowerCase() === 'simple';
+
+  console.log("Current Plan:", currentPlan, "Is Simple Plan:", isSimplePlan);
+
+  if (isSimplePlan) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto p-4 md:p-6">
+        <div className="px-2 sm:px-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+            {t("subtitle")}
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-600" />
+              {t("simplePlan.title")}
+            </CardTitle>
+            <CardDescription>
+              {t("simplePlan.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Mail className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <Label className="text-base font-semibold">{t("channels.email.title")}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t("channels.email.description")}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-medium text-green-600">
+                  {t("channels.email.enabled")}
+                </span>
+              </div>
+            </div>
+
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>{t("upgrade.title")}</AlertTitle>
+              <AlertDescription className="mt-2">
+                <p className="mb-3">
+                  {t("upgrade.description")}
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground mb-4">
+                  <li>{t("upgrade.features.sms")}</li>
+                  <li>{t("upgrade.features.whatsapp")}</li>
+                  <li>{t("upgrade.features.firstBooking")}</li>
+                </ul>
+                <Button variant="outline" onClick={() => window.location.href = '/subscription'}>
+                  {t("upgrade.button")}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto p-2 sm:p-4 md:p-6">
       {/* Header */}
@@ -445,8 +525,7 @@ export default function NotificationPreferencesPage() {
           Notification Preferences
         </h1>
         <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-          Configure individual notification settings for each event type across
-          all channels
+          Configure optional notification channels (SMS & WhatsApp) for your booking events.
         </p>
       </div>
 
@@ -458,43 +537,20 @@ export default function NotificationPreferencesPage() {
             Global Channel Settings
           </CardTitle>
           <CardDescription>
-            Enable or disable notification channels globally. Individual
-            notifications can override these settings.
+            Enable or disable optional notification channels globally.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Email notifications are always enabled and cannot be disabled. SMS
-              and WhatsApp are optional channels.
+              Email notifications are mandatory and always sent for all events to ensure you never miss important updates.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-4">
-            {/* Email - Always enabled */}
-            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Mail className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <Label className="text-base font-semibold">Email</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Required - All notifications are sent via email
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-medium text-green-600">
-                  Always Active
-                </span>
-              </div>
-            </div>
-
             {/* SMS - Optional */}
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className={`flex items-center justify-between p-4 border rounded-lg`}>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <Smartphone className="h-5 w-5 text-blue-600" />
@@ -504,10 +560,10 @@ export default function NotificationPreferencesPage() {
                     htmlFor="sms-enabled"
                     className="text-base font-semibold cursor-pointer"
                   >
-                    SMS
+                    SMS Notifications
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Send text messages to clients' mobile phones
+                    Send text messages to clients' mobile phones for booking events
                   </p>
                 </div>
               </div>
@@ -521,7 +577,7 @@ export default function NotificationPreferencesPage() {
             </div>
 
             {/* WhatsApp - Optional */}
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className={`flex items-center justify-between p-4 border rounded-lg`}>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
                   <MessageSquare className="h-5 w-5 text-green-600" />
@@ -531,10 +587,10 @@ export default function NotificationPreferencesPage() {
                     htmlFor="whatsapp-enabled"
                     className="text-base font-semibold cursor-pointer"
                   >
-                    WhatsApp
+                    WhatsApp Notifications
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Send messages via WhatsApp Business
+                    Send messages via WhatsApp Business for booking events
                   </p>
                 </div>
               </div>
@@ -551,7 +607,7 @@ export default function NotificationPreferencesPage() {
       </Card>
 
       {/* Individual Notification Settings */}
-      {NOTIFICATION_CATEGORIES.map((category) => {
+      {filteredCategories.map((category) => {
         const Icon = category.icon;
         const isExpanded = expandedCategories.has(category.title);
 
@@ -580,9 +636,8 @@ export default function NotificationPreferencesPage() {
             {isExpanded && (
               <CardContent className="space-y-1 px-2 sm:px-6">
                 {/* Table Header - Hidden on mobile, shown on desktop */}
-                <div className="hidden md:grid grid-cols-[1fr,80px,80px,100px] gap-4 pb-3 border-b font-semibold text-sm">
+                <div className="hidden md:grid grid-cols-[1fr,100px,100px] gap-4 pb-3 border-b font-semibold text-sm">
                   <div>Notification</div>
-                  <div className="text-center">Email</div>
                   <div className="text-center">SMS</div>
                   <div className="text-center">WhatsApp</div>
                 </div>
@@ -590,39 +645,32 @@ export default function NotificationPreferencesPage() {
                 {/* Notification Rows */}
                 {category.notifications.map((notification, index) => {
                   const channels = getNotificationChannels(notification.key);
+                  const canUseSms = preferences.smsEnabled;
+                  const canUseWhatsapp = preferences.whatsappEnabled;
 
                   return (
                     <div key={notification.key}>
                       {/* Desktop Layout */}
-                      <div className="hidden md:grid grid-cols-[1fr,80px,80px,100px] gap-4 py-4 items-center">
+                      <div className="hidden md:grid grid-cols-[1fr,100px,100px] gap-4 py-4 items-center">
                         <div>
-                          <Label className="text-base font-medium">
-                            {notification.label}
-                          </Label>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Label className="text-base font-medium">
+                              {notification.label}
+                            </Label>
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
+                              <Mail className="h-3 w-3" /> Email
+                            </Badge>
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             {notification.description}
                           </p>
-                        </div>
-
-                        {/* Email Toggle */}
-                        <div className="flex justify-center">
-                          <Switch
-                            checked={channels.email}
-                            onCheckedChange={(checked) =>
-                              updateNotificationChannel(
-                                notification.key,
-                                "email",
-                                checked
-                              )
-                            }
-                          />
                         </div>
 
                         {/* SMS Toggle */}
                         <div className="flex justify-center">
                           <Switch
                             checked={channels.sms}
-                            disabled={!preferences.smsEnabled}
+                            disabled={!canUseSms}
                             onCheckedChange={(checked) =>
                               updateNotificationChannel(
                                 notification.key,
@@ -637,7 +685,7 @@ export default function NotificationPreferencesPage() {
                         <div className="flex justify-center">
                           <Switch
                             checked={channels.whatsapp}
-                            disabled={!preferences.whatsappEnabled}
+                            disabled={!canUseWhatsapp}
                             onCheckedChange={(checked) =>
                               updateNotificationChannel(
                                 notification.key,
@@ -652,29 +700,17 @@ export default function NotificationPreferencesPage() {
                       {/* Mobile Layout */}
                       <div className="md:hidden py-3 space-y-3">
                         <div>
-                          <Label className="text-sm font-medium">
-                            {notification.label}
-                          </Label>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Label className="text-sm font-medium">
+                              {notification.label}
+                            </Label>
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
+                              <Mail className="h-3 w-3" /> Email
+                            </Badge>
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {notification.description}
                           </p>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">Email</span>
-                          </div>
-                          <Switch
-                            checked={channels.email}
-                            onCheckedChange={(checked) =>
-                              updateNotificationChannel(
-                                notification.key,
-                                "email",
-                                checked
-                              )
-                            }
-                          />
                         </div>
 
                         <div className="flex items-center justify-between gap-2">
@@ -684,7 +720,7 @@ export default function NotificationPreferencesPage() {
                           </div>
                           <Switch
                             checked={channels.sms}
-                            disabled={!preferences.smsEnabled}
+                            disabled={!canUseSms}
                             onCheckedChange={(checked) =>
                               updateNotificationChannel(
                                 notification.key,
@@ -702,7 +738,7 @@ export default function NotificationPreferencesPage() {
                           </div>
                           <Switch
                             checked={channels.whatsapp}
-                            disabled={!preferences.whatsappEnabled}
+                            disabled={!canUseWhatsapp}
                             onCheckedChange={(checked) =>
                               updateNotificationChannel(
                                 notification.key,

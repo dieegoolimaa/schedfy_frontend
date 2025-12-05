@@ -69,13 +69,15 @@ import { PromotionImpactCard } from "../../components/reports/promotion-impact-c
 import { AIFinancialInsights } from "../../components/reports/ai-financial-insights";
 import { Commission } from "../../types/models/promotions.interface";
 import { professionalsService, Professional } from "../../services/professionals.service";
+import { useAIFeatures } from "../../hooks/useAIFeatures";
 
 export function FinancialReportsPage() {
-  const { t } = useTranslation("financial");
+  const { t } = useTranslation(["financial", "common"]);
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const navigate = useNavigate();
   const entityId = user?.entityId || user?.id || "";
+  const { isEnabled: isAIEnabled } = useAIFeatures();
 
   // Fetch bookings data from API
   const { bookings } = useBookings({
@@ -157,10 +159,19 @@ export function FinancialReportsPage() {
     const price =
       booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
 
+    const getId = (id: any): string | undefined => {
+      if (!id) return undefined;
+      if (typeof id === 'string') return id;
+      return id._id;
+    };
+
+    const professionalId = getId(booking.professionalId);
+    const serviceId = getId(booking.serviceId);
+
     // 0. Professional Override (Highest Priority)
     // Check if the professional has specific commission settings enabled
-    if (booking.professionalId) {
-      const professional = professionals.find(p => p.id === booking.professionalId);
+    if (professionalId) {
+      const professional = professionals.find(p => p.id === professionalId);
       if (professional?.commission?.enabled) {
         if (professional.commission.fixedAmount) {
           return professional.commission.fixedAmount;
@@ -174,7 +185,7 @@ export function FinancialReportsPage() {
     // 1. Service Specific
     const serviceCommission = commissionsList.find(
       (c) =>
-        c.appliesTo === "service" && c.serviceIds?.includes(booking.serviceId)
+        c.appliesTo === "service" && serviceId && c.serviceIds?.includes(serviceId)
     );
     if (serviceCommission) {
       return serviceCommission.type === "percentage"
@@ -186,7 +197,8 @@ export function FinancialReportsPage() {
     const profCommission = commissionsList.find(
       (c) =>
         c.appliesTo === "professional" &&
-        c.professionalIds?.includes(booking.professionalId)
+        professionalId &&
+        c.professionalIds?.includes(professionalId)
     );
     if (profCommission) {
       return profCommission.type === "percentage"
@@ -391,9 +403,18 @@ export function FinancialReportsPage() {
       let commissionAmount = 0;
       let overrideApplied = false;
 
+      const getId = (id: any): string | undefined => {
+        if (!id) return undefined;
+        if (typeof id === 'string') return id;
+        return id._id;
+      };
+
+      const professionalId = getId(booking.professionalId);
+      const serviceId = getId(booking.serviceId);
+
       // 0. Professional Override
-      if (booking.professionalId) {
-        const professional = professionals.find(p => p.id === booking.professionalId);
+      if (professionalId) {
+        const professional = professionals.find(p => p.id === professionalId);
         if (professional?.commission?.enabled) {
           overrideApplied = true;
           if (professional.commission.fixedAmount) {
@@ -422,7 +443,7 @@ export function FinancialReportsPage() {
         // 1. Service Specific
         const serviceCommission = commissions.find(
           (c) =>
-            c.appliesTo === "service" && c.serviceIds?.includes(booking.serviceId)
+            c.appliesTo === "service" && serviceId && c.serviceIds?.includes(serviceId)
         );
         if (serviceCommission) {
           appliedCommission = serviceCommission;
@@ -431,7 +452,8 @@ export function FinancialReportsPage() {
           const profCommission = commissions.find(
             (c) =>
               c.appliesTo === "professional" &&
-              c.professionalIds?.includes(booking.professionalId || "")
+              professionalId &&
+              c.professionalIds?.includes(professionalId)
           );
           if (profCommission) {
             appliedCommission = profCommission;
@@ -573,13 +595,13 @@ export function FinancialReportsPage() {
             variant="default"
             className="bg-green-100 text-green-800 border-green-200"
           >
-            Completed
+            {t("status.completed")}
           </Badge>
         );
       case "pending":
-        return <Badge variant="secondary">Pending</Badge>;
+        return <Badge variant="secondary">{t("status.pending")}</Badge>;
       case "refunded":
-        return <Badge variant="destructive">Refunded</Badge>;
+        return <Badge variant="destructive">{t("status.refunded")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -602,7 +624,7 @@ export function FinancialReportsPage() {
       fallback={
         <div className="container mx-auto p-6">
           <div className="text-center py-12">
-            <h1 className="text-3xl font-bold mb-4">Financial Reports</h1>
+            <h1 className="text-3xl font-bold mb-4">{t("title")}</h1>
             <UpgradePrompt feature="financial" className="max-w-md mx-auto" />
           </div>
         </div>
@@ -612,9 +634,9 @@ export function FinancialReportsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Financial Reports</h1>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
             <p className="text-muted-foreground">
-              Track your revenue, commissions, and payment analytics
+              {t("subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -708,7 +730,7 @@ export function FinancialReportsPage() {
                 {t("tabs.vouchers", "Vouchers")}
               </TabsTrigger>
               <TabsTrigger value="promotions-impact" className="whitespace-nowrap">
-                Promotions Impact
+                {t("tabs.impact")}
               </TabsTrigger>
               <TabsTrigger value="transactions" className="whitespace-nowrap">
                 {t("tabs.transactions", "Transactions")}
@@ -718,10 +740,12 @@ export function FinancialReportsPage() {
 
           <TabsContent value="overview" className="space-y-4">
             {/* AI Financial Insights */}
-            <AIFinancialInsights
-              revenue={financialSummary.totalRevenue}
-              bookings={filteredBookings}
-            />
+            {isAIEnabled && (
+              <AIFinancialInsights
+                revenue={financialSummary.totalRevenue}
+                bookings={filteredBookings}
+              />
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
@@ -777,19 +801,16 @@ export function FinancialReportsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {t("breakdown.transactionSummary", "Transaction Summary")}
+                    {t("breakdown.transactionSummary")}
                   </CardTitle>
                   <CardDescription>
-                    {t(
-                      "breakdown.transactionSummaryDesc",
-                      "Key transaction metrics for the selected period"
-                    )}
+                    {t("breakdown.transactionSummaryDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <span className="text-sm font-medium">
-                      Total Transactions
+                      {t("metrics.totalTransactions")}
                     </span>
                     <span className="text-lg font-bold">
                       {financialSummary.totalTransactions}
@@ -797,7 +818,7 @@ export function FinancialReportsPage() {
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <span className="text-sm font-medium">
-                      Average Transaction
+                      {t("metrics.averageTransaction")}
                     </span>
                     <span className="text-lg font-bold">
                       {formatCurrency(financialSummary.averageTransaction)}
@@ -805,7 +826,7 @@ export function FinancialReportsPage() {
                   </div>
                   <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                     <span className="text-sm font-medium text-green-800">
-                      Transaction Growth
+                      {t("metrics.transactionGrowth")}
                     </span>
                     <span className="text-lg font-bold text-green-600">
                       +{financialSummary.growth.transactions}%
@@ -820,9 +841,9 @@ export function FinancialReportsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Revenue by Professional</CardTitle>
+                  <CardTitle>{t("professionals.title")}</CardTitle>
                   <CardDescription>
-                    Financial performance per professional
+                    {t("professionals.description")}
                   </CardDescription>
                 </div>
                 <Button
@@ -830,18 +851,18 @@ export function FinancialReportsPage() {
                   size="sm"
                   onClick={() => navigate("/operational-reports")}
                 >
-                  View Operational Performance
+                  {t("professionals.viewOperational")}
                 </Button>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Professional</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                      <TableHead className="text-right">% of Total</TableHead>
-                      <TableHead className="text-right">Bookings</TableHead>
-                      <TableHead className="text-right">Avg. Ticket</TableHead>
+                      <TableHead>{t("professionals.table.professional")}</TableHead>
+                      <TableHead className="text-right">{t("professionals.table.revenue")}</TableHead>
+                      <TableHead className="text-right">{t("professionals.table.percentOfTotal")}</TableHead>
+                      <TableHead className="text-right">{t("professionals.table.bookings")}</TableHead>
+                      <TableHead className="text-right">{t("professionals.table.avgTicket")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -888,21 +909,20 @@ export function FinancialReportsPage() {
                   <div className="flex items-center gap-2">
                     <Target className="h-5 w-5 text-blue-600" />
                     <CardTitle>
-                      {t("goals.setMonthlyGoals", "Set Monthly Goals")}
+                      {t("goals.setMonthlyGoals")}
                     </CardTitle>
                   </div>
                   <CardDescription>
-                    Define your business targets for revenue, bookings, and new
-                    clients
+                    {t("goals.description")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="revenueTarget">Revenue Target (€)</Label>
+                    <Label htmlFor="revenueTarget">{t("goals.form.revenueTarget")}</Label>
                     <Input
                       id="revenueTarget"
                       type="number"
-                      placeholder="e.g., 5000"
+                      placeholder={t("goals.form.placeholders.revenue")}
                       value={goalFormData.revenueTarget}
                       onChange={(e) =>
                         setGoalFormData({
@@ -914,11 +934,11 @@ export function FinancialReportsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="bookingsTarget">Bookings Target</Label>
+                    <Label htmlFor="bookingsTarget">{t("goals.form.bookingsTarget")}</Label>
                     <Input
                       id="bookingsTarget"
                       type="number"
-                      placeholder="e.g., 100"
+                      placeholder={t("goals.form.placeholders.bookings")}
                       value={goalFormData.bookingsTarget}
                       onChange={(e) =>
                         setGoalFormData({
@@ -930,11 +950,11 @@ export function FinancialReportsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="newClientsTarget">New Clients Target</Label>
+                    <Label htmlFor="newClientsTarget">{t("goals.form.newClientsTarget")}</Label>
                     <Input
                       id="newClientsTarget"
                       type="number"
-                      placeholder="e.g., 20"
+                      placeholder={t("goals.form.placeholders.newClients")}
                       value={goalFormData.newClientsTarget}
                       onChange={(e) =>
                         setGoalFormData({
@@ -946,7 +966,7 @@ export function FinancialReportsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="period">Period</Label>
+                    <Label htmlFor="period">{t("goals.form.period")}</Label>
                     <Select
                       value={goalFormData.period}
                       onValueChange={(value: any) =>
@@ -957,9 +977,9 @@ export function FinancialReportsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
+                        <SelectItem value="monthly">{t("goals.form.periods.monthly")}</SelectItem>
+                        <SelectItem value="quarterly">{t("goals.form.periods.quarterly")}</SelectItem>
+                        <SelectItem value="yearly">{t("goals.form.periods.yearly")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1036,7 +1056,7 @@ export function FinancialReportsPage() {
                     }}
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    Save Goals
+                    {t("goals.form.save")}
                   </Button>
                 </CardContent>
               </Card>
@@ -1045,10 +1065,10 @@ export function FinancialReportsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {t("goals.goalsProgress", "Goals Progress")}
+                    {t("goals.goalsProgress")}
                   </CardTitle>
                   <CardDescription>
-                    Track your current performance vs. targets
+                    {t("goals.trackPerformance")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -1079,7 +1099,7 @@ export function FinancialReportsPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Euro className="h-4 w-4 text-green-600" />
-                            <span className="font-medium">Revenue</span>
+                            <span className="font-medium">{t("goals.metrics.revenue")}</span>
                           </div>
                           <span className="text-sm text-muted-foreground">
                             {formatCurrency(currentRevenue)} /{" "}
@@ -1097,8 +1117,8 @@ export function FinancialReportsPage() {
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {revenueProgress.toFixed(0)}% of target
-                          {revenueProgress >= 100 && " 🎉 Goal achieved!"}
+                          {revenueProgress.toFixed(0)}% {t("goals.status.ofTarget")}
+                          {revenueProgress >= 100 && ` ${t("goals.status.achieved")}`}
                         </p>
                       </div>
                     );
@@ -1121,7 +1141,7 @@ export function FinancialReportsPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-blue-600" />
-                            <span className="font-medium">Bookings</span>
+                            <span className="font-medium">{t("goals.metrics.bookings")}</span>
                           </div>
                           <span className="text-sm text-muted-foreground">
                             {currentBookings} / {bookingsTarget}
@@ -1138,8 +1158,8 @@ export function FinancialReportsPage() {
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {bookingsProgress.toFixed(0)}% of target
-                          {bookingsProgress >= 100 && " 🎉 Goal achieved!"}
+                          {bookingsProgress.toFixed(0)}% {t("goals.status.ofTarget")}
+                          {bookingsProgress >= 100 && ` ${t("goals.status.achieved")}`}
                         </p>
                       </div>
                     );
@@ -1162,7 +1182,7 @@ export function FinancialReportsPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 text-purple-600" />
-                            <span className="font-medium">New Clients</span>
+                            <span className="font-medium">{t("goals.metrics.newClients")}</span>
                           </div>
                           <span className="text-sm text-muted-foreground">
                             {currentClients} / {clientsTarget}
@@ -1179,8 +1199,8 @@ export function FinancialReportsPage() {
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {clientsProgress.toFixed(0)}% of target
-                          {clientsProgress >= 100 && " 🎉 Goal achieved!"}
+                          {clientsProgress.toFixed(0)}% {t("goals.status.ofTarget")}
+                          {clientsProgress >= 100 && ` ${t("goals.status.achieved")}`}
                         </p>
                       </div>
                     );
@@ -1189,9 +1209,9 @@ export function FinancialReportsPage() {
                   {(!Array.isArray(goals) || goals.length === 0) && (
                     <div className="text-center py-8 text-muted-foreground">
                       <Target className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No goals set yet</p>
+                      <p className="text-sm">{t("goals.status.noGoals")}</p>
                       <p className="text-xs">
-                        Set your targets to track progress
+                        {t("goals.status.setTargets")}
                       </p>
                     </div>
                   )}
@@ -1204,10 +1224,10 @@ export function FinancialReportsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {t("commissions.breakdown", "Commission Breakdown")}
+                  {t("commissions.breakdown")}
                 </CardTitle>
                 <CardDescription>
-                  Detailed breakdown of all commission charges
+                  {t("commissions.description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1235,7 +1255,7 @@ export function FinancialReportsPage() {
                   ))}
                   <div className="border-t pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold">Total Commissions</span>
+                      <span className="font-semibold">{t("summary.totalCommissions")}</span>
                       <span className="font-bold text-lg text-red-600">
                         {formatCurrency(financialSummary.totalCommissions)}
                       </span>
@@ -1249,9 +1269,9 @@ export function FinancialReportsPage() {
           <TabsContent value="vouchers" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>{t("vouchers.usage", "Voucher Usage")}</CardTitle>
+                <CardTitle>{t("vouchers.usage")}</CardTitle>
                 <CardDescription>
-                  Detailed breakdown of vouchers and discounts applied
+                  {t("vouchers.description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1281,7 +1301,7 @@ export function FinancialReportsPage() {
                   ))}
                   <div className="border-t pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold">Total Vouchers</span>
+                      <span className="font-semibold">{t("summary.totalVouchers")}</span>
                       <span className="font-bold text-lg text-orange-600">
                         {formatCurrency(financialSummary.totalVouchers)}
                       </span>
@@ -1295,7 +1315,7 @@ export function FinancialReportsPage() {
           <TabsContent value="promotions-impact" className="space-y-4">
             <div className="grid gap-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">Promotions Impact Analysis</h2>
+                <h2 className="text-2xl font-bold tracking-tight">{t("breakdown.promotionsTitle")}</h2>
               </div>
               <PromotionImpactCard
                 bookings={filteredBookings}
@@ -1312,10 +1332,7 @@ export function FinancialReportsPage() {
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder={t(
-                        "filters.searchTransactions",
-                        "Search transactions..."
-                      )}
+                      placeholder={t("filters.search")}
                       className="pl-9"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -1327,21 +1344,18 @@ export function FinancialReportsPage() {
                   >
                     <SelectTrigger className="w-40">
                       <SelectValue
-                        placeholder={t(
-                          "filters.paymentMethod",
-                          "Payment method"
-                        )}
+                        placeholder={t("filters.paymentMethod")}
                       />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">
-                        {t("filters.allMethods", "All Methods")}
+                        {t("filters.allMethods")}
                       </SelectItem>
                       <SelectItem value="card">
-                        {t("filters.card", "Card")}
+                        {t("filters.card")}
                       </SelectItem>
                       <SelectItem value="cash">
-                        {t("filters.cash", "Cash")}
+                        {t("filters.cash")}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -1356,7 +1370,7 @@ export function FinancialReportsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">
-                        {t("filters.allServices", "All Services")}
+                        {t("filters.allServices")}
                       </SelectItem>
                       <SelectItem value="hair">
                         {t("filters.hairServices", "Hair Services")}
@@ -1380,25 +1394,25 @@ export function FinancialReportsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {t("transactions.history", "Transaction History")}
+                  {t("transactions.history")}
                 </CardTitle>
                 <CardDescription>
-                  Detailed list of all financial transactions
+                  {t("transactions.description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Transaction</TableHead>
-                      <TableHead>Client & Service</TableHead>
-                      <TableHead>Professional</TableHead>
-                      <TableHead>Payment</TableHead>
-                      <TableHead className="text-right">Gross</TableHead>
-                      <TableHead className="text-right">Commission</TableHead>
-                      <TableHead className="text-right">Voucher</TableHead>
-                      <TableHead className="text-right">Net</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t("transactions.table.transaction")}</TableHead>
+                      <TableHead>{t("transactions.table.clientService")}</TableHead>
+                      <TableHead>{t("transactions.table.professional")}</TableHead>
+                      <TableHead>{t("transactions.table.payment")}</TableHead>
+                      <TableHead className="text-right">{t("transactions.table.gross")}</TableHead>
+                      <TableHead className="text-right">{t("transactions.table.commission")}</TableHead>
+                      <TableHead className="text-right">{t("transactions.table.voucher")}</TableHead>
+                      <TableHead className="text-right">{t("transactions.table.net")}</TableHead>
+                      <TableHead>{t("transactions.table.status")}</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1432,7 +1446,11 @@ export function FinancialReportsPage() {
                           <div className="flex items-center gap-2">
                             {getPaymentMethodIcon(transaction.paymentMethod)}
                             <span className="text-sm capitalize">
-                              {transaction.paymentMethod}
+                              {transaction.paymentMethod === "card"
+                                ? t("filters.card")
+                                : transaction.paymentMethod === "cash"
+                                  ? t("filters.cash")
+                                  : transaction.paymentMethod}
                             </span>
                           </div>
                         </TableCell>
@@ -1472,13 +1490,13 @@ export function FinancialReportsPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label className="text-sm font-medium">
-                                      Transaction ID
+                                      {t("transactions.dialog.id")}
                                     </Label>
                                     <p className="text-sm">{transaction.id}</p>
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">
-                                      Date & Time
+                                      {t("transactions.dialog.dateTime")}
                                     </Label>
                                     <p className="text-sm">
                                       {transaction.date} at {transaction.time}
@@ -1486,7 +1504,7 @@ export function FinancialReportsPage() {
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">
-                                      Client
+                                      {t("transactions.dialog.client")}
                                     </Label>
                                     <p className="text-sm">
                                       {transaction.client}
@@ -1494,7 +1512,7 @@ export function FinancialReportsPage() {
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">
-                                      Professional
+                                      {t("transactions.dialog.professional")}
                                     </Label>
                                     <p className="text-sm">
                                       {transaction.professional}
@@ -1502,7 +1520,7 @@ export function FinancialReportsPage() {
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">
-                                      Service
+                                      {t("transactions.dialog.service")}
                                     </Label>
                                     <p className="text-sm">
                                       {transaction.service}
@@ -1510,23 +1528,27 @@ export function FinancialReportsPage() {
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">
-                                      Payment Method
+                                      {t("transactions.dialog.paymentMethod")}
                                     </Label>
                                     <p className="text-sm capitalize">
-                                      {transaction.paymentMethod}
+                                      {transaction.paymentMethod === "card"
+                                        ? t("filters.card")
+                                        : transaction.paymentMethod === "cash"
+                                          ? t("filters.cash")
+                                          : transaction.paymentMethod}
                                     </p>
                                   </div>
                                 </div>
                                 <div className="border-t pt-4">
                                   <div className="space-y-2">
                                     <div className="flex justify-between">
-                                      <span>Gross Amount:</span>
+                                      <span>{t("transactions.dialog.grossAmount")}</span>
                                       <span className="font-medium">
                                         {formatCurrency(transaction.gross)}
                                       </span>
                                     </div>
                                     <div className="flex justify-between text-red-600">
-                                      <span>Commission:</span>
+                                      <span>{t("transactions.dialog.commission")}</span>
                                       <span>
                                         -
                                         {formatCurrency(transaction.commission)}
@@ -1534,14 +1556,14 @@ export function FinancialReportsPage() {
                                     </div>
                                     {transaction.voucher > 0 && (
                                       <div className="flex justify-between text-orange-600">
-                                        <span>Voucher Discount:</span>
+                                        <span>{t("transactions.dialog.voucherDiscount")}</span>
                                         <span>
                                           -{formatCurrency(transaction.voucher)}
                                         </span>
                                       </div>
                                     )}
                                     <div className="flex justify-between font-bold text-green-600 border-t pt-2">
-                                      <span>Net Amount:</span>
+                                      <span>{t("transactions.dialog.netAmount")}</span>
                                       <span>
                                         {formatCurrency(transaction.net)}
                                       </span>

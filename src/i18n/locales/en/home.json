@@ -3,7 +3,7 @@
     "badge": "Trusted by 10,000+ businesses",
     "title": "Simplify Your",
     "highlight": "Scheduling",
-    "subtitle": "Professional scheduling platform designed for businesses in Portugal, Brazil, and USA. Powered by AI.",
+    "subtitle": "Professional scheduling platform designed for businesses in Portugal, Brazil and USA. Powered by AI.",
     "feature1": "No setup fees",
     "feature2": "Cancel anytime",
     "feature3": "Free migration"
@@ -17,7 +17,7 @@
     "subtitle": "Powerful features designed to help you manage your business efficiently",
     "calendar": {
       "title": "Smart Scheduling",
-      "desc": "Intelligent calendar management with automatic conflicts resolution"
+      "desc": "Intelligent calendar management with automatic conflict resolution"
     },
     "team": {
       "title": "Team Management",
@@ -25,7 +25,7 @@
     },
     "analytics": {
       "title": "AI Analytics",
-      "desc": "Get insights about your business performance with AI"
+      "desc": "Get insights into your business performance with AI"
     },
     "mobile": {
       "title": "Mobile First",
@@ -33,7 +33,7 @@
     },
     "global": {
       "title": "Multi-Regional",
-      "desc": "Support for Portugal, Brazil, and United States"
+      "desc": "Support for Portugal, Brazil and United States"
     },
     "security": {
       "title": "Enterprise Security",
@@ -64,18 +64,18 @@
       "features": {
         "appointments": "Unlimited appointments",
         "calendar": "Advanced calendar sync",
-        "notifications": "SMS & Email notifications",
+        "notifications": "SMS and Email notifications",
         "analytics": "Basic analytics",
         "forms": "Custom booking forms"
       }
     },
     "business": {
       "name": "Business",
-      "description": "For teams and businesses",
+      "description": "For teams and enterprises",
       "features": {
         "everything": "Everything in Individual",
         "team": "Team management",
-        "analytics": "Advanced analytics & AI insights",
+        "analytics": "Advanced analytics and AI insights",
         "locations": "Multi-location support",
         "support": "Priority support"
       }
@@ -114,19 +114,19 @@
       "answer": "Yes, we offer free migration assistance for all Business plan customers."
     },
     "support": {
-      "question": "What support do you provide?",
-      "answer": "We provide 24/7 email support for all plans, with priority phone support for Business customers."
+      "question": "What support do you offer?",
+      "answer": "We offer 24/7 email support for all plans, with priority phone support for Business customers."
     },
     "mobile": {
       "question": "Is there a mobile app?",
-      "answer": "Our web app is fully responsive and works perfectly on mobile. A native app is coming soon."
+      "answer": "Our web app is fully responsive and works seamlessly on mobile. A native app is coming soon."
     }
   },
   "cta": {
     "title": "Ready to transform your business?",
     "subtitle": "Join thousands of businesses already using Schedfy to streamline their operations",
     "start": "Start Free Trial",
-    "contact": "Contact Sales"
+    "contact": "Talk to Sales"
   },
   "footer": {
     "description": "Modern scheduling platform for businesses worldwide",

@@ -33,7 +33,6 @@ import {
   Activity,
   CheckCircle,
   AlertCircle,
-  XCircle,
   Plus,
   RefreshCw,
   Phone,
@@ -273,36 +272,6 @@ export function ProfessionalDashboardPage() {
       day: "numeric",
       year: "numeric",
     });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "in-progress":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "scheduled":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "in-progress":
-        return <AlertCircle className="h-4 w-4 text-blue-500" />;
-      case "scheduled":
-        return <Clock className="h-4 w-4 text-gray-500" />;
-      case "cancelled":
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
-    }
   };
 
   return (

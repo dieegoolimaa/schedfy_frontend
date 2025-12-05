@@ -1,0 +1,122 @@
+{
+  "title": "Detalhes da Marcação",
+  "subtitle": "Gerir a sua marcação com {{entity}}",
+  "us": "nós",
+  "status": {
+    "confirmed": "Confirmada",
+    "pending": "Aguarda Confirmação",
+    "cancelled": "Cancelada",
+    "completed": "Concluída"
+  },
+  "notFound": {
+    "title": "Marcação Não Encontrada",
+    "description": "Não conseguimos encontrar a marcação que procura.",
+    "goHome": "Ir para Início"
+  },
+  "labels": {
+    "dateTime": "Data e Hora",
+    "professional": "Profissional",
+    "anyProfessional": "Qualquer Profissional",
+    "location": "Localização",
+    "onlineRemote": "Online / Remoto",
+    "price": "Preço",
+    "freeConsult": "Gratuito / Consultar",
+    "yourNotes": "As Suas Notas",
+    "service": "Serviço"
+  },
+  "actions": {
+    "backTo": "Voltar para {{entity}}",
+    "reschedule": "Reagendar",
+    "cancelBooking": "Cancelar Marcação"
+  },
+  "reschedule": {
+    "title": "Reagendar Marcação",
+    "description": "Selecione uma nova data e hora para a sua marcação.",
+    "availableTimes": "Horários Disponíveis para {{date}}",
+    "noSlots": "Não há horários disponíveis para esta data.",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar Reagendamento",
+    "confirming": "A confirmar..."
+  },
+  "cancel": {
+    "title": "Cancelar Marcação",
+    "description": "Tem a certeza de que deseja cancelar esta marcação? Esta ação não pode ser desfeita.",
+    "reasonLabel": "Motivo do cancelamento (opcional)",
+    "reasonPlaceholder": "Não consigo comparecer...",
+    "keepBooking": "Manter Marcação",
+    "yesCancel": "Sim, Cancelar Marcação",
+    "cancelling": "A cancelar..."
+  },
+  "messages": {
+    "rescheduleSuccess": "Marcação reagendada com sucesso",
+    "rescheduleFailed": "Falha ao reagendar marcação",
+    "cancelSuccess": "Marcação cancelada com sucesso",
+    "cancelFailed": "Falha ao cancelar marcação",
+    "loadFailed": "Falha ao carregar detalhes da marcação",
+    "slotsFailed": "Falha ao carregar horários disponíveis"
+  },
+  "profile": {
+    "loading": "A carregar perfil...",
+    "notFoundTitle": "Negócio Não Encontrado",
+    "notFoundDesc": "O negócio que procura não existe ou não está disponível.",
+    "privateTitle": "Perfil Privado",
+    "privateDesc": "Este perfil de negócio não está atualmente visível ao público.",
+    "linkCopied": "Link copiado!",
+    "bookTitle": "Agendar uma Marcação",
+    "bookDesc": "Escolha um serviço ou pacote e selecione o seu horário preferido",
+    "tabs": {
+      "services": "Serviços",
+      "packages": "Pacotes"
+    },
+    "availableServices": "Serviços Disponíveis",
+    "noServices": "Nenhum serviço disponível no momento",
+    "selected": "Selecionado",
+    "noPackages": "Nenhum pacote disponível no momento",
+    "selectDate": "Selecione a Data",
+    "selectTime": "Selecione o Horário",
+    "selectProfessional": "Selecione o Profissional",
+    "yourInfo": "Os Seus Dados",
+    "confirmBooking": "Confirmar Agendamento",
+    "processing": "A processar...",
+    "reviews": "avaliações",
+    "off": "OFF",
+    "form": {
+      "name": "Nome",
+      "email": "Email",
+      "phone": "Telefone",
+      "notes": "Notas",
+      "voucher": "Código Voucher",
+      "apply": "Aplicar"
+    },
+    "validation": {
+      "fillAll": "Por favor preencha todos os campos obrigatórios",
+      "scheduleAll": "Por favor agende todos os serviços no pacote",
+      "selectAll": "Por favor selecione todos os detalhes do agendamento",
+      "serviceNotFound": "Serviço não encontrado",
+      "invalidVoucher": "Voucher inválido",
+      "voucherFailed": "Falha ao validar voucher",
+      "loadEntityFailed": "Falha ao carregar informações do negócio",
+      "entityNotFound": "Negócio não encontrado"
+    },
+    "success": {
+      "package": "{{count}} agendamentos confirmados! Receberá emails de confirmação em breve.",
+      "single": "Agendamento confirmado! Receberá um email de confirmação em breve.",
+      "voucher": "Voucher aplicado com sucesso!"
+    },
+    "scheduleAllTitle": "Agendar Todos os Serviços do Pacote",
+    "scheduleAllDesc": "Por favor agende as marcações para cada serviço incluído no seu pacote.",
+    "scheduled": "Agendado",
+    "promotion": "Promoção",
+    "remove": "Remover",
+    "discountApplied": "Desconto aplicado",
+    "total": "Total",
+    "confirmPackage": "Confirmar {{count}} Agendamentos de Pacote",
+    "confirmingPackage": "A confirmar {{count}} Agendamentos...",
+    "ourTeam": "A Nossa Equipa",
+    "showLess": "Mostrar Menos",
+    "viewAll": "Ver Todos ({{count}})",
+    "contactInfo": "Informações de Contacto",
+    "bookingDetails": "Detalhes do Agendamento",
+    "chooseProfessional": "Escolha o Profissional (Opcional)"
+  }
+}

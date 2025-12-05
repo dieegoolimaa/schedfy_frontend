@@ -1,0 +1,34 @@
+{
+  "title": "Accept Invitation",
+  "invalidInvitation": {
+    "title": "Invalid Invitation",
+    "description": "The invitation link is invalid or missing. Please contact your administrator."
+  },
+  "description": {
+    "simple": "Set up your password to access the platform",
+    "complete": "Complete your profile to access the platform"
+  },
+  "form": {
+    "firstName": "First Name",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "jobFunction": "Job Function",
+    "jobFunctionPlaceholder": "e.g. Senior Stylist",
+    "jobFunctionHint": "Your role title visible to clients",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "passwordHint": "Must be at least 8 characters long",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password"
+  },
+  "submit": "Accept Invitation & Create Account",
+  "messages": {
+    "invalidLink": "Invalid invitation link",
+    "invalidToken": "Invalid or expired invitation link",
+    "passwordMismatch": "Passwords do not match",
+    "passwordLength": "Password must be at least 8 characters",
+    "success": "Invitation accepted! Please login.",
+    "error": "Failed to accept invitation"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "title": "Booking Details",
+  "subtitle": "Manage your appointment with {{entity}}",
+  "us": "us",
+  "status": {
+    "confirmed": "Confirmed",
+    "pending": "Pending Confirmation",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "notFound": {
+    "title": "Booking Not Found",
+    "description": "We couldn't find the booking you're looking for.",
+    "goHome": "Go Home"
+  },
+  "labels": {
+    "dateTime": "Date & Time",
+    "professional": "Professional",
+    "anyProfessional": "Any Professional",
+    "location": "Location",
+    "onlineRemote": "Online / Remote",
+    "price": "Price",
+    "freeConsult": "Free / Consult",
+    "yourNotes": "Your Notes",
+    "service": "Service"
+  },
+  "actions": {
+    "backTo": "Back to {{entity}}",
+    "reschedule": "Reschedule",
+    "cancelBooking": "Cancel Booking"
+  },
+  "reschedule": {
+    "title": "Reschedule Appointment",
+    "description": "Select a new date and time for your appointment.",
+    "availableTimes": "Available Times for {{date}}",
+    "noSlots": "No slots available for this date.",
+    "cancel": "Cancel",
+    "confirm": "Confirm Reschedule",
+    "confirming": "Confirming..."
+  },
+  "cancel": {
+    "title": "Cancel Booking",
+    "description": "Are you sure you want to cancel this booking? This action cannot be undone.",
+    "reasonLabel": "Reason for cancellation (optional)",
+    "reasonPlaceholder": "I can't make it...",
+    "keepBooking": "Keep Booking",
+    "yesCancel": "Yes, Cancel Booking",
+    "cancelling": "Cancelling..."
+  },
+  "messages": {
+    "rescheduleSuccess": "Booking rescheduled successfully",
+    "rescheduleFailed": "Failed to reschedule booking",
+    "cancelSuccess": "Booking cancelled successfully",
+    "cancelFailed": "Failed to cancel booking",
+    "loadFailed": "Failed to load booking details",
+    "slotsFailed": "Failed to load available times"
+  },
+  "profile": {
+    "loading": "Loading profile...",
+    "notFoundTitle": "Business Not Found",
+    "notFoundDesc": "The business you're looking for doesn't exist or is not available.",
+    "privateTitle": "Profile Private",
+    "privateDesc": "This business profile is currently not visible to the public.",
+    "linkCopied": "Link copied!",
+    "bookTitle": "Book an Appointment",
+    "bookDesc": "Choose a service or package and select your preferred time",
+    "tabs": {
+      "services": "Services",
+      "packages": "Packages"
+    },
+    "availableServices": "Available Services",
+    "noServices": "No services available at the moment",
+    "selected": "Selected",
+    "noPackages": "No packages available at the moment",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "selectProfessional": "Select Professional",
+    "yourInfo": "Your Information",
+    "confirmBooking": "Confirm Booking",
+    "processing": "Processing...",
+    "reviews": "reviews",
+    "off": "OFF",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "notes": "Notes",
+      "voucher": "Voucher Code",
+      "apply": "Apply"
+    },
+    "validation": {
+      "fillAll": "Please fill in all required information",
+      "scheduleAll": "Please schedule all services in the package",
+      "selectAll": "Please select all booking details",
+      "serviceNotFound": "Service not found",
+      "invalidVoucher": "Invalid voucher",
+      "voucherFailed": "Failed to validate voucher",
+      "loadEntityFailed": "Failed to load business information",
+      "entityNotFound": "Business not found"
+    },
+    "success": {
+      "package": "{{count}} appointments confirmed! You will receive confirmation emails shortly.",
+      "single": "Booking confirmed! You will receive a confirmation email shortly.",
+      "voucher": "Voucher applied successfully!"
+    },
+    "scheduleAllTitle": "Schedule All Package Services",
+    "scheduleAllDesc": "Please schedule appointments for each service included in your package.",
+    "scheduled": "Scheduled",
+    "promotion": "Promotion",
+    "remove": "Remove",
+    "discountApplied": "Discount applied",
+    "total": "Total",
+    "confirmPackage": "Confirm {{count}} Package Appointments",
+    "confirmingPackage": "Confirming {{count}} Appointments...",
+    "ourTeam": "Our Team",
+    "showLess": "Show Less",
+    "viewAll": "View All ({{count}})",
+    "contactInfo": "Contact Information",
+    "bookingDetails": "Booking Details",
+    "chooseProfessional": "Choose Professional (Optional)"
+  }
+}

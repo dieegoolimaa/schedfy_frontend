@@ -1,0 +1,89 @@
+{
+  "title": "Contact Us",
+  "subtitle": "Have a question or need support? We're here to help! Reach out to us and we'll get back to you as soon as possible.",
+  "header": {
+    "signIn": "Sign In",
+    "getStarted": "Get Started"
+  },
+  "getInTouch": {
+    "title": "Get In Touch",
+    "description": "Multiple ways to reach our team"
+  },
+  "email": {
+    "title": "Email",
+    "responseTime": "Response within 24 hours"
+  },
+  "phone": {
+    "title": "Phone",
+    "hours": "Mon-Fri 9AM-6PM CET"
+  },
+  "address": {
+    "title": "Address"
+  },
+  "supportHours": {
+    "title": "Support Hours",
+    "mondayFriday": "Monday - Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "closed": "Closed",
+    "timezone": "All times are in Central European Time (CET)"
+  },
+  "quickHelp": {
+    "title": "Quick Help",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "helpCenter": "Help Center"
+  },
+  "form": {
+    "title": "Send us a Message",
+    "description": "Fill out the form below and we'll get back to you as soon as possible",
+    "name": "Full Name",
+    "namePlaceholder": "Your full name",
+    "email": "Email Address",
+    "emailPlaceholder": "your.email@example.com",
+    "subject": "Subject",
+    "subjectPlaceholder": "Brief description of your inquiry",
+    "category": "Category",
+    "categoryPlaceholder": "Select a category",
+    "message": "Message",
+    "messagePlaceholder": "Please provide details about your inquiry...",
+    "submit": "Send Message",
+    "submitting": "Sending Message...",
+    "agreement": "By submitting this form, you agree to our",
+    "and": "and"
+  },
+  "categories": {
+    "general": "General Inquiry",
+    "support": "Technical Support",
+    "billing": "Billing & Subscriptions",
+    "feature": "Feature Request",
+    "bug": "Bug Report",
+    "partnership": "Partnership",
+    "other": "Other"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "description": "Quick answers to common questions",
+    "responseTime": {
+      "question": "How quickly do you respond to support requests?",
+      "answer": "We aim to respond to all support requests within 24 hours during business days. Critical issues are addressed within 4 hours."
+    },
+    "phoneSupport": {
+      "question": "Do you offer phone support?",
+      "answer": "Yes! Phone support is available for Business plan subscribers during our business hours. Email support is available for all users."
+    },
+    "demo": {
+      "question": "Can I schedule a demo?",
+      "answer": "Absolutely! Contact us to schedule a personalized demo of Schedfy's features and see how it can benefit your business."
+    },
+    "implementation": {
+      "question": "Do you provide implementation assistance?",
+      "answer": "Yes, we offer onboarding assistance and implementation support to help you get started quickly and efficiently with Schedfy."
+    }
+  },
+  "backToHome": "Back to Home",
+  "messages": {
+    "success": "Thank you for your message! We'll get back to you within 24 hours.",
+    "error": "Failed to send message. Please try again or contact us directly."
+  }
+}

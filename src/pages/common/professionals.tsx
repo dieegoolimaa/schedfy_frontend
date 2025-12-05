@@ -67,7 +67,7 @@ import {
 } from "lucide-react";
 
 export function ProfessionalsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("professionals");
   const { user } = useAuth();
   const navigate = useNavigate();
   const { getActiveCommissions } = usePromotions();
@@ -406,10 +406,10 @@ export function ProfessionalsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">
-            {t("professionals.title", "Professionals")}
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Manage professionals and attendants
+            {t("subtitle")}
           </p>
         </div>
         <Dialog
@@ -443,65 +443,59 @@ export function ProfessionalsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Professional
+              {t("addProfessional")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingProfessional
-                  ? "Edit Professional"
-                  : "Add New Professional"}
+                  ? t("dialog.editTitle")
+                  : t("dialog.addTitle")}
               </DialogTitle>
               <DialogDescription>
                 {editingProfessional
-                  ? "Update professional information"
-                  : "Create new professional account and send invitation"}
+                  ? t("dialog.editDescription")
+                  : t("dialog.addDescription")}
               </DialogDescription>
             </DialogHeader>
 
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="professional">Professional</TabsTrigger>
-                <TabsTrigger value="social">Social Media</TabsTrigger>
-                <TabsTrigger value="commission">Commission</TabsTrigger>
+                <TabsTrigger value="basic">{t("tabs.basic")}</TabsTrigger>
+                <TabsTrigger value="professional">{t("tabs.professional")}</TabsTrigger>
+                <TabsTrigger value="social">{t("tabs.social")}</TabsTrigger>
+                <TabsTrigger value="commission">{t("tabs.commission")}</TabsTrigger>
               </TabsList>
 
               {/* Basic Information Tab */}
               <TabsContent value="basic" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name *</Label>
+                    <Label htmlFor="firstName">{t("form.firstName")} *</Label>
                     <Input
                       id="firstName"
                       value={formData.firstName}
                       onChange={(e) =>
                         setFormData({ ...formData, firstName: e.target.value })
                       }
-                      placeholder={t(
-                        "professionals.form.firstNamePlaceholder",
-                        "John"
-                      )}
+                      placeholder={t("form.firstNamePlaceholder")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Label htmlFor="lastName">{t("form.lastName")} *</Label>
                     <Input
                       id="lastName"
                       value={formData.lastName}
                       onChange={(e) =>
                         setFormData({ ...formData, lastName: e.target.value })
                       }
-                      placeholder={t(
-                        "professionals.form.lastNamePlaceholder",
-                        "Doe"
-                      )}
+                      placeholder={t("form.lastNamePlaceholder")}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="email">{t("form.email")} *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -509,33 +503,24 @@ export function ProfessionalsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder={t(
-                      "professionals.form.emailPlaceholder",
-                      "john.doe@example.com"
-                    )}
+                    placeholder={t("form.emailPlaceholder")}
                     disabled={!!editingProfessional}
                   />
                   {!editingProfessional && (
                     <p className="text-xs text-muted-foreground">
-                      {t(
-                        "professionals.form.invitationNote",
-                        "An invitation will be sent to this email"
-                      )}
+                      {t("form.invitationNote")}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t("form.phone")}</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder={t(
-                      "professionals.form.phonePlaceholder",
-                      "+351 123 456 789"
-                    )}
+                    placeholder={t("form.phonePlaceholder")}
                   />
                 </div>
               </TabsContent>
@@ -545,7 +530,7 @@ export function ProfessionalsPage() {
                 <div className="space-y-2">
                   <Label htmlFor="jobFunction">
                     <Briefcase className="inline h-4 w-4 mr-2" />
-                    Job Function / Title
+                    {t("form.jobFunction")}
                   </Label>
                   <Input
                     id="jobFunction"
@@ -553,31 +538,25 @@ export function ProfessionalsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, jobFunction: e.target.value })
                     }
-                    placeholder={t(
-                      "professionals.form.jobFunctionPlaceholder",
-                      "e.g., Barber, Hair Stylist, Massage Therapist"
-                    )}
+                    placeholder={t("form.jobFunctionPlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Bio / Description</Label>
+                  <Label htmlFor="bio">{t("form.bio")}</Label>
                   <Textarea
                     id="bio"
                     value={formData.bio}
                     onChange={(e) =>
                       setFormData({ ...formData, bio: e.target.value })
                     }
-                    placeholder={t(
-                      "professionals.form.bioPlaceholder",
-                      "Tell us about your professional background..."
-                    )}
+                    placeholder={t("form.bioPlaceholder")}
                     rows={4}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="experience">Years of Experience</Label>
+                  <Label htmlFor="experience">{t("form.experience")}</Label>
                   <Input
                     id="experience"
                     type="number"
@@ -586,23 +565,20 @@ export function ProfessionalsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, experience: e.target.value })
                     }
-                    placeholder={t(
-                      "professionals.form.experiencePlaceholder",
-                      "5"
-                    )}
+                    placeholder={t("form.experiencePlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label>
                     <Award className="inline h-4 w-4 mr-2" />
-                    Specialties
+                    {t("form.specialties")}
                   </Label>
                   <div className="flex gap-2">
                     <Input
                       value={newSpecialty}
                       onChange={(e) => setNewSpecialty(e.target.value)}
-                      placeholder="Add specialty..."
+                      placeholder={t("form.addSpecialty")}
                       onKeyPress={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();

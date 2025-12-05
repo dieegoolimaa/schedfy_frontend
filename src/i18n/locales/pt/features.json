@@ -1,28 +1,89 @@
 {
-  "title": "Recursos da Schedfy",
-  "subtitle": "Descubra tudo o que a Schedfy pode oferecer",
-  "booking": {
-    "title": "Sistema de Agendamentos",
-    "description": "Agendamento online simples e eficiente"
+  "title": "Funcionalidades",
+  "hero": { 
+    "title": "Funcionalidades Poderosas para o Seu Negócio", 
+    "getStarted": "Começar", 
+    "seePricing": "Ver Preços" 
   },
-  "calendar": {
-    "title": "Calendário Integrado",
-    "description": "Visualize todos os seus agendamentos em um só lugar"
+  "cta": { 
+    "title": "Pronto para começar?", 
+    "start": "Iniciar Teste Grátis", 
+    "contact": "Contactar Vendas" 
   },
-  "clients": {
-    "title": "Gestão de Clientes",
-    "description": "Mantenha o histórico completo dos seus clientes"
+  "additional": { 
+    "title": "Funcionalidades Adicionais", 
+    "clientManagement": "Gestão de Clientes", 
+    "integrations": "Integrações", 
+    "reporting": "Relatórios" 
   },
-  "reports": {
-    "title": "Relatórios Detalhados",
-    "description": "Análises completas do seu negócio"
+  "calendar": { "title": "Calendário Inteligente" },
+  "global": { "title": "Multi-Regional" },
+  "team": { "title": "Gestão de Equipa" },
+  "secure": "Segurança de nível bancário",
+  "support": "Suporte ao cliente 24/7",
+  "noSetupFee": "Sem taxas de configuração",
+  "instantSetup": "Configuração instantânea",
+  "smartScheduling": {
+    "title": "Agendamento Inteligente",
+    "benefit1": "Resolução automática de conflitos",
+    "benefit2": "Intervalo entre compromissos",
+    "benefit3": "Reservas recorrentes",
+    "benefit4": "Reservas em grupo"
   },
-  "mobile": {
-    "title": "Aplicativo Mobile",
-    "description": "Gerencie tudo em qualquer lugar"
+  "analytics": { 
+    "title": "Análises e Relatórios", 
+    "benefit1": "Acompanhar métricas de desempenho", 
+    "benefit2": "Insights de receita", 
+    "benefit3": "Análises de clientes", 
+    "benefit4": "Acompanhamento de crescimento" 
   },
-  "integration": {
-    "title": "Integrações",
-    "description": "Conecte com suas ferramentas favoritas"
+  "automation": { 
+    "title": "Automação", 
+    "benefit1": "Lembretes automáticos", 
+    "benefit2": "Agendamento inteligente", 
+    "benefit3": "Automação de fluxos", 
+    "benefit4": "Poupança de tempo" 
+  },
+  "mobile": { 
+    "title": "Mobile First", 
+    "benefit1": "Otimizado para mobile", 
+    "benefit2": "Acesso em movimento", 
+    "benefit3": "Apps nativas a caminho", 
+    "benefit4": "Notificações push" 
+  },
+  "multiRegional": { 
+    "title": "Multi-Regional", 
+    "benefit1": "Suporte Portugal", 
+    "benefit2": "Suporte Brasil", 
+    "benefit3": "Suporte EUA", 
+    "benefit4": "Multi-moeda" 
+  },
+  "notifications": { 
+    "title": "Notificações",
+    "benefit1": "Notificações por email", 
+    "benefit2": "Notificações por SMS", 
+    "benefit3": "Notificações push",
+    "benefit4": "WhatsApp em breve"
+  },
+  "payments": {
+    "title": "Processamento de Pagamentos",
+    "benefit1": "Pagamentos online",
+    "benefit2": "Múltiplas moedas",
+    "benefit3": "Faturação",
+    "benefit4": "Lembretes de pagamento"
+  },
+  "security": {
+    "title": "Segurança Empresarial",
+    "benefit1": "Encriptação de nível bancário",
+    "benefit2": "Conformidade com GDPR",
+    "benefit3": "Backups regulares",
+    "benefit4": "99,9% de tempo de atividade"
+  },
+  "teamManagement": {
+    "title": "Gestão de Equipa",
+    "benefit1": "Múltiplos membros da equipa",
+    "benefit2": "Permissões por função",
+    "benefit3": "Gestão de horários",
+    "benefit4": "Acompanhamento de desempenho"
   }
 }

@@ -1,0 +1,26 @@
+{
+  "title": "Avaliações e Feedback",
+  "subtitle": "Gerir avaliações de clientes e responder a feedback",
+  "filterByRating": "Filtrar por Classificação",
+  "allRatings": "Todas as Classificações",
+  "sortBy": "Ordenar Por",
+  "mostRecent": "Mais Recentes",
+  "oldest": "Mais Antigos",
+  "highestRating": "Maior Classificação",
+  "lowestRating": "Menor Classificação",
+  "tabs": {
+    "allReviews": "Todas as Avaliações",
+    "pending": "Pendentes",
+    "responded": "Respondidas"
+  },
+  "noReviews": "Ainda não há avaliações",
+  "noReviewsDesc": "As avaliações dos seus clientes irão aparecer aqui",
+  "respond": "Responder",
+  "reply": "Resposta",
+  "yourReply": "A sua resposta",
+  "sendReply": "Enviar Resposta",
+  "deleteReview": "Eliminar Avaliação",
+  "reportReview": "Reportar Avaliação",
+  "verified": "Verificado",
+  "stars": "estrelas"
+}

@@ -22,7 +22,7 @@ import {
 } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import { BusinessProfileManager } from "../../components/business-profile-manager";
-import { User, Shield, Save, Building2, Clock } from "lucide-react";
+import { User, Shield, Save, Building2, Clock, Sparkles } from "lucide-react";
 
 /**
  * Unified Settings Page - Adapts to user's plan (Simple, Individual, Business)
@@ -30,7 +30,7 @@ import { User, Shield, Save, Building2, Clock } from "lucide-react";
  */
 export default function UnifiedSettingsPage() {
   const { t } = useTranslation("settings");
-  const { user } = useAuth();
+  const { user, updateEntity } = useAuth();
   const plan = user?.plan || "simple";
   const isOwnerOrManager = user?.role === "owner" || user?.role === "manager" || user?.role === "admin";
 
@@ -69,6 +69,27 @@ export default function UnifiedSettingsPage() {
           // Initialize working hours if available
           if ((response.data as any).workingHours) {
             setWorkingHours((response.data as any).workingHours);
+          }
+
+          // Initialize default slot duration
+          if (response.data.defaultSlotDuration) {
+            setDefaultSlotDuration(response.data.defaultSlotDuration);
+          }
+
+          // Initialize AI features
+          // Use aiInsightsEnabled (preference) if available, otherwise fallback to aiFeaturesEnabled (system)
+          if ((response.data as any).aiInsightsEnabled !== undefined) {
+            setAiFeaturesEnabled((response.data as any).aiInsightsEnabled);
+          } else if (response.data.aiFeaturesEnabled !== undefined) {
+            setAiFeaturesEnabled(response.data.aiFeaturesEnabled);
+          }
+
+          // Initialize Privacy Settings
+          if ((response.data as any).publicProfile) {
+            setPrivacySettings(prev => ({
+              ...prev,
+              profileVisible: (response.data as any).publicProfile?.enabled ?? true
+            }));
           }
         }
       } catch (error) {
@@ -148,6 +169,12 @@ export default function UnifiedSettingsPage() {
     },
   });
 
+  // Default Slot Duration
+  const [defaultSlotDuration, setDefaultSlotDuration] = useState(30);
+
+  // AI Features
+  const [aiFeaturesEnabled, setAiFeaturesEnabled] = useState(false);
+
   // Privacy Settings
   const [privacySettings, setPrivacySettings] = useState({
     profileVisible: true,
@@ -165,13 +192,19 @@ export default function UnifiedSettingsPage() {
     try {
       setSaving(true);
       // Use updateProfile method instead
-      await entitiesService.updateProfile({
+      const response = await entitiesService.updateProfile({
         name: profileData.name,
         description: profileData.description,
         address: profileData.address,
         phone: profileData.phone,
         website: profileData.website,
       } as any);
+
+      if (response.data) {
+        setEntity(response.data as any);
+        updateEntity(response.data as any);
+      }
+
       toast.success(t("success.profileSaved"));
     } catch (error) {
       console.error("Failed to save profile:", error);
@@ -190,9 +223,25 @@ export default function UnifiedSettingsPage() {
     try {
       setSaving(true);
 
-      // Save Working Hours if applicable
+      // Save Working Hours, Slot Duration, AI Features, and Privacy Settings
       if (plan === "business" || plan === "individual" || plan === "simple") {
-        await entitiesService.updateWorkingHours(workingHours);
+        const response = await entitiesService.updateProfile({
+          workingHours,
+          defaultSlotDuration,
+          aiInsightsEnabled: aiFeaturesEnabled, // Map local state to preference field
+          publicProfile: {
+            ...(entity?.publicProfile || {}),
+            enabled: privacySettings.profileVisible
+          }
+        } as any);
+
+        // Update local entity state
+        setEntity(response.data as any);
+
+        // Update global auth context entity state
+        if (response.data) {
+          updateEntity(response.data as any);
+        }
       }
 
       // Note: Appearance settings are typically local or user-specific,
@@ -247,6 +296,10 @@ export default function UnifiedSettingsPage() {
               {t("tabs.workingHours")}
             </TabsTrigger>
           )}
+          <TabsTrigger value="features" className="gap-2">
+            <Sparkles className="w-4 h-4" />
+            {t("features.title")}
+          </TabsTrigger>
           <TabsTrigger value="privacy" className="gap-2">
             <Shield className="w-4 h-4" />
             {t("tabs.privacy")}
@@ -384,6 +437,27 @@ export default function UnifiedSettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="p-4 border rounded-lg bg-muted/20 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">{t("workingHours.slotDuration")}</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {t("workingHours.slotDurationDesc")}
+                      </p>
+                    </div>
+                    <div className="w-24">
+                      <Input
+                        type="number"
+                        min="5"
+                        step="5"
+                        value={defaultSlotDuration}
+                        onChange={(e) => setDefaultSlotDuration(parseInt(e.target.value) || 30)}
+                        disabled={!isOwnerOrManager}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {Object.entries(workingHours)
                   .filter(([day]) =>
                     [
@@ -412,7 +486,7 @@ export default function UnifiedSettingsPage() {
                             })
                           }
                         />
-                        <Label className="capitalize">{day}</Label>
+                        <Label className="capitalize">{t(`days.${day}`)}</Label>
                       </div>
                       {hours.enabled && (
                         <div className="flex gap-2 flex-1">
@@ -462,6 +536,43 @@ export default function UnifiedSettingsPage() {
           </TabsContent>
         )}
 
+        {/* Features Tab */}
+        <TabsContent value="features" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("features.title")}</CardTitle>
+              <CardDescription>
+                {t("features.description")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <Label className="text-base">{t("features.aiInsights")}</Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {t("features.aiInsightsDesc")}
+                  </p>
+                </div>
+                <Switch
+                  checked={aiFeaturesEnabled}
+                  onCheckedChange={setAiFeaturesEnabled}
+                  disabled={!isOwnerOrManager}
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSaveSettings} disabled={saving || !isOwnerOrManager}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? t("actions.saving") : t("actions.save")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Privacy Tab */}
         <TabsContent value="privacy" className="space-y-6">
           <Card>
@@ -498,6 +609,6 @@ export default function UnifiedSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </div >
   );
 }

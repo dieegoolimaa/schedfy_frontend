@@ -1,69 +1,125 @@
 {
     "title": "Settings",
-    "description": "Manage your account settings and preferences",
+    "description": "Manage your account and business settings",
     "tabs": {
         "business": "Business",
         "profile": "Profile",
         "workingHours": "Working Hours",
-        "notifications": "Notifications",
-        "appearance": "Appearance",
+        "features": "Features",
         "privacy": "Privacy"
     },
-    "business": {
-        "title": "Business Profile",
-        "description": "Configure your business information and public page"
-    },
     "profile": {
-        "title": "Personal Profile",
-        "description": "Manage your personal information",
+        "title": "Profile Information",
+        "description": "Update your personal information",
         "name": "Name",
-        "phone": "Phone",
         "email": "Email",
-        "description": "Description",
+        "phone": "Phone",
         "address": "Address",
-        "website": "Website"
+        "website": "Website",
+        "firstName": "First Name",
+        "firstNamePlaceholder": "Enter your first name",
+        "lastName": "Last Name",
+        "lastNamePlaceholder": "Enter your last name"
+    },
+    "privacy": {
+        "title": "Privacy Settings",
+        "description": "Control your visibility and data sharing",
+        "profileVisible": "Profile Visible",
+        "profileVisibleDesc": "Allow your profile to be publicly visible"
     },
     "workingHours": {
         "title": "Working Hours",
-        "description": "Set your availability schedule"
+        "description": "Set your weekly working hours schedule",
+        "slotDuration": "Default Slot Duration",
+        "slotDurationDesc": "Standard duration for your appointments (in minutes)"
     },
-    "notifications": {
-        "title": "Notification Preferences",
-        "description": "Choose how you want to be notified",
-        "email": "Email Notifications",
-        "emailDesc": "Receive booking updates via email",
-        "sms": "SMS Notifications",
-        "smsDesc": "Receive booking updates via SMS",
-        "reminders": "Booking Reminders",
-        "remindersDesc": "Receive reminders before your bookings"
+    "features": {
+        "title": "Features & Add-ons",
+        "description": "Manage additional features and subscriptions for your account",
+        "aiInsights": "AI Operational Insights",
+        "aiInsightsDesc": "Get AI-powered insights about your bookings, revenue, and operational efficiency."
     },
-    "appearance": {
-        "title": "Appearance",
-        "description": "Customize the application appearance",
-        "theme": "Theme",
-        "language": "Language",
-        "timezone": "Timezone",
-        "currency": "Currency"
-    },
-    "privacy": {
-        "title": "Privacy",
-        "description": "Manage your privacy settings",
-        "profileVisible": "Public Profile Visible",
-        "profileVisibleDesc": "Allow your profile to be found publicly",
-        "twoFactor": "Two-Factor Authentication",
-        "twoFactorDesc": "Add an extra layer of security to your account"
+    "days": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
     },
     "actions": {
-        "save": "Save Changes",
+        "save": "Save",
         "saving": "Saving...",
-        "cancel": "Cancel"
-    },
-    "errors": {
-        "loadFailed": "Failed to load settings",
-        "saveFailed": "Failed to save settings"
+        "cancel": "Cancel",
+        "reset": "Reset"
     },
     "success": {
         "profileSaved": "Profile saved successfully",
-        "settingsSaved": "Settings saved successfully"
+        "settingsSaved": "Settings saved successfully",
+        "logoUploaded": "Logo uploaded!",
+        "bannerUploaded": "Banner uploaded!",
+        "linkCopied": "Link copied to clipboard!",
+        "checkUsernameFailed": "Failed to check username availability",
+        "uploadFailed": "Failed to upload {{type}}"
+    },
+    "business": {
+        "title": "Business Profile",
+        "subtitle": "Configure your business information and public page settings",
+        "logo": {
+            "title": "Logo",
+            "description": "Your business logo (recommended: 200x200px)",
+            "upload": "Upload Logo",
+            "change": "Change Logo",
+            "format": "JPG, PNG or GIF. Max 5MB"
+        },
+        "banner": {
+            "title": "Cover Banner",
+            "description": "Header image for your public page (recommended: 1200x400px)",
+            "upload": "Upload Banner",
+            "change": "Change Banner",
+            "noBanner": "No banner uploaded"
+        },
+        "basicInfo": {
+            "title": "Basic Information",
+            "description": "Essential details about your business",
+            "businessName": "Business Name",
+            "businessNamePlaceholder": "Your Business Name",
+            "username": "Username",
+            "usernamePlaceholder": "yourbusiness",
+            "usernameHint": "Your unique identifier (3-30 characters)",
+            "usernameAvailable": "Username available",
+            "usernameTaken": "Username already taken",
+            "businessDescription": "Business Description",
+            "descriptionPlaceholder": "Describe your business and services...",
+            "address": "Address",
+            "addressPlaceholder": "123 Main Street, City",
+            "phone": "Phone Number",
+            "phonePlaceholder": "+351 123 456 789",
+            "email": "Business Email",
+            "emailPlaceholder": "contact@yourbusiness.com",
+            "website": "Website",
+            "websitePlaceholder": "https://www.yourbusiness.com"
+        },
+        "publicPage": {
+            "title": "Public Page URL",
+            "description": "Share this link with your customers to let them book appointments",
+            "preview": "Preview",
+            "qrCode": "QR Code",
+            "directLink": "Direct Link",
+            "qrCompatible": "QR Code Compatible",
+            "copyLink": "Copy Link",
+            "downloadQr": "Download QR",
+            "configureFirst": "Configure a username first",
+            "configureFirstDesc": "Your public booking URL will appear here once you set a username",
+            "qrDialogTitle": "QR Code for Your Business",
+            "qrDialogDesc": "Customers can scan this QR code to access your booking page"
+        },
+        "save": "Save Profile"
+    },
+    "errors": {
+        "loadFailed": "Failed to load settings",
+        "saveFailed": "Failed to save settings",
+        "unauthorized": "Only owners can modify settings"
     }
 }

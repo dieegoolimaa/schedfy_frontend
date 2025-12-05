@@ -45,6 +45,32 @@ import enPayments from './locales/en/payments.json'
 import ptPayments from './locales/pt/payments.json'
 import enPackages from './locales/en/packages.json'
 import ptPackages from './locales/pt/packages.json'
+import enHome from './locales/en/home.json'
+import ptHome from './locales/pt/home.json'
+import enIntegrations from './locales/en/integrations.json'
+import ptIntegrations from './locales/pt/integrations.json'
+import enReviews from './locales/en/reviews.json'
+import ptReviews from './locales/pt/reviews.json'
+import enTeam from './locales/en/team.json'
+import ptTeam from './locales/pt/team.json'
+import enProfessionals from './locales/en/professionals.json'
+import ptProfessionals from './locales/pt/professionals.json'
+import enNotifications from './locales/en/notifications.json'
+import ptNotifications from './locales/pt/notifications.json'
+import enContact from './locales/en/contact.json'
+import ptContact from './locales/pt/contact.json'
+import enInvitation from './locales/en/invitation.json'
+import ptInvitation from './locales/pt/invitation.json'
+import enUpgrade from './locales/en/upgrade.json'
+import ptUpgrade from './locales/pt/upgrade.json'
+import enPublicBooking from './locales/en/publicBooking.json'
+import ptPublicBooking from './locales/pt/publicBooking.json'
+import enEarnings from './locales/en/earnings.json'
+import ptEarnings from './locales/pt/earnings.json'
+import enAiPremium from './locales/en/aiPremium.json'
+import ptAiPremium from './locales/pt/aiPremium.json'
+import enCommissions from './locales/en/commissions.json'
+import ptCommissions from './locales/pt/commissions.json'
 
 const resources = {
     en: {
@@ -69,6 +95,19 @@ const resources = {
         clients: enClients,
         payments: enPayments,
         packages: enPackages,
+        home: enHome,
+        integrations: enIntegrations,
+        reviews: enReviews,
+        team: enTeam,
+        professionals: enProfessionals,
+        notifications: enNotifications,
+        contact: enContact,
+        invitation: enInvitation,
+        upgrade: enUpgrade,
+        publicBooking: enPublicBooking,
+        earnings: enEarnings,
+        aiPremium: enAiPremium,
+        commissions: enCommissions,
     },
     pt: {
         common: ptCommon,
@@ -92,6 +131,19 @@ const resources = {
         clients: ptClients,
         payments: ptPayments,
         packages: ptPackages,
+        home: ptHome,
+        integrations: ptIntegrations,
+        reviews: ptReviews,
+        team: ptTeam,
+        professionals: ptProfessionals,
+        notifications: ptNotifications,
+        contact: ptContact,
+        invitation: ptInvitation,
+        upgrade: ptUpgrade,
+        publicBooking: ptPublicBooking,
+        earnings: ptEarnings,
+        aiPremium: ptAiPremium,
+        commissions: ptCommissions,
     },
 }
 
@@ -103,6 +155,12 @@ i18n
         resources,
         fallbackLng: 'en',
         debug: false,
+
+        // Default namespace when using t() without prefix
+        defaultNS: 'common',
+
+        // All available namespaces
+        ns: ['common', 'auth', 'dashboard', 'bookings', 'entity', 'nav', 'services', 'platform', 'admin', 'professional', 'settings', 'about', 'features', 'pricing', 'onboarding', 'financial', 'subscription', 'analytics', 'clients', 'payments', 'packages', 'home', 'integrations', 'reviews', 'team', 'professionals', 'notifications', 'contact', 'invitation', 'upgrade', 'publicBooking', 'earnings', 'aiPremium', 'commissions'],
 
         interpolation: {
             escapeValue: false,

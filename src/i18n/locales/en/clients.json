@@ -1,46 +1,64 @@
 {
-  "title": "Client Management",
-  "description": "Manage your client relationships",
-  "search": "Search clients...",
+  "title": "Client Profiles",
+  "subtitle": "Manage client profiles and link to bookings",
   "addClient": "Add Client",
-  "filter": {
-    "all": "All Clients",
-    "active": "Active",
-    "inactive": "Inactive",
-    "vip": "VIP"
+  "searchPlaceholder": "Search clients...",
+  "allStatus": "All Status",
+  "moreFilters": "More Filters",
+  "tabs": {
+    "allClients": "All Clients",
+    "recentActivity": "Recent Activity",
+    "analytics": "Analytics"
   },
   "stats": {
-    "totalClients": "Total Clients",
-    "activeClients": "Active Clients",
-    "totalRevenue": "Total Revenue",
-    "avgSpent": "Avg. Spent"
+    "total": "Total",
+    "clients": "Clients",
+    "active": "Active",
+    "engaged": "Engaged",
+    "bookings": "Bookings",
+    "revenue": "Revenue",
+    "avgSpent": "Avg. Spent",
+    "perClient": "Per Client"
+  },
+  "directory": {
+    "title": "Client Directory",
+    "subtitle": "Complete list of all clients with their details"
   },
   "table": {
-    "name": "Name",
-    "email": "Email",
-    "phone": "Phone",
-    "totalBookings": "Bookings",
-    "totalSpent": "Total Spent",
-    "avgSpent": "Avg. Spent",
-    "lastBooking": "Last Booking",
+    "client": "Client",
+    "contact": "Contact",
+    "activity": "Activity",
+    "spending": "Spending",
     "status": "Status",
-    "actions": "Actions"
+    "actions": "Actions",
+    "memberSince": "Member since",
+    "bookings": "bookings",
+    "last": "Last",
+    "avg": "Avg"
   },
-  "details": {
-    "title": "Client Details",
-    "info": "Client Information",
-    "bookingHistory": "Booking History",
-    "notes": "Notes"
-  },
-  "form": {
-    "name": "Full Name",
-    "email": "Email Address",
-    "phone": "Phone Number",
-    "notes": "Additional Notes"
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "new": "New"
   },
   "actions": {
-    "edit": "Edit Client",
-    "delete": "Delete Client",
-    "viewDetails": "View Details"
-  }
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "form": {
+    "addTitle": "Add New Client",
+    "addDescription": "Create a client profile with essential information.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "birthDate": "Birth Date",
+    "notes": "Notes",
+    "optional": "Optional",
+    "additionalInfo": "Additional Information",
+    "addClientButton": "Add Client"
+  },
+  "noClients": "No clients found",
+  "noClientsDesc": "Add your first client to get started"
 }

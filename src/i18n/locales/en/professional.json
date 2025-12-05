@@ -1,21 +1,45 @@
 {
-  "dashboard": {
-    "title": "Professional Dashboard",
-    "subtitle": "Manage your bookings and availability"
-  },
-  "bookings": {
-    "title": "My Bookings",
-    "subtitle": "View and manage your bookings",
-    "upcoming": "Upcoming",
-    "past": "Past",
-    "today": "Today"
-  },
+  "title": "Professional",
+  "profile": { "firstName": "First Name", "firstNamePlaceholder": "Enter first name", "lastName": "Last Name", "lastNamePlaceholder": "Enter last name" },
   "schedule": {
-    "title": "Working Hours",
-    "manage": "Manage Availability"
-  },
-  "profile": {
-    "title": "Professional Profile",
-    "settings": "Settings"
+    "title": "My Schedule",
+    "description": "Manage your availability and working hours",
+    "save": "Save Changes",
+    "bufferTime": "Buffer Time",
+    "bufferDescription": "Time between appointments for preparation",
+    "breakTime": "Break Duration",
+    "breakDescription": "Standard break time during your schedule",
+    "weekly": "Weekly Hours",
+    "blocked": "Blocked Dates",
+    "unavailable": "Unavailable",
+    "slots": "slot(s)",
+    "noBuffer": "No buffer",
+    "noBreak": "No break",
+    "minutes": "minutes",
+    "hour": "hour",
+    "hours": "hours",
+    "blockDate": "Block Date",
+    "unblockDate": "Unblock Date",
+    "reason": "Reason",
+    "allDay": "All Day",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "confirmUnblock": "Are you sure you want to unblock this date?",
+    "blockDescription": "Block specific dates when you're not available",
+    "blockDialogTitle": "Block a Date",
+    "blockDialogDescription": "Select a date and provide a reason",
+    "selectDateLabel": "Select date or date range",
+    "clickToRange": "(click again to select range)",
+    "clearSelection": "Clear selection",
+    "reasonPlaceholder": "e.g., Vacation, Personal",
+    "noBlockedDates": "No blocked dates yet",
+    "cancel": "Cancel",
+    "messages": {
+      "selectDate": "Please select at least one date",
+      "blockedSuccess": "Date blocked successfully",
+      "unblockedSuccess": "Blocked date removed",
+      "saveSuccess": "Schedule saved successfully",
+      "saveError": "Failed to save schedule"
+    }
   }
 }

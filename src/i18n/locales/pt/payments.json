@@ -1,44 +1,127 @@
 {
   "title": "Gestão de Pagamentos",
-  "description": "Acompanhe e gerencie pagamentos",
-  "search": "Pesquisar pagamentos...",
-  "filter": {
-    "all": "Todos os Pagamentos",
-    "status": "Status",
-    "method": "Método de Pagamento"
+  "subtitle": {
+    "business": "Rastreie e gerencie todas as transações de pagamento",
+    "individual": "Gerencie e registre pagamentos manuais"
+  },
+  "upgrade": {
+    "title": "Gestão de Pagamentos",
+    "description": "A gestão avançada de pagamentos está disponível nos planos Individual e Business. Faça upgrade do seu plano para rastrear e gerenciar transações de pagamento."
+  },
+  "loading": "Carregando pagamentos...",
+  "actions": {
+    "sync": "Sincronizar",
+    "registerPayment": "Registrar Pagamento",
+    "cancel": "Cancelar",
+    "register": "Registrar",
+    "export": "Exportar"
+  },
+  "dialog": {
+    "title": "Registrar Novo Pagamento",
+    "description": "Registre pagamentos feitos em dinheiro, PIX ou outras formas offline"
+  },
+  "form": {
+    "amount": "Valor",
+    "paymentMethod": "Método de Pagamento",
+    "paymentDate": "Data do Pagamento",
+    "description": "Descrição",
+    "descriptionPlaceholder": "Ex: Consulta com Dr. João",
+    "notes": "Observações",
+    "notesPlaceholder": "Observações adicionais..."
+  },
+  "paymentMethods": {
+    "cash": "Dinheiro",
+    "pix": "PIX",
+    "debitCard": "Cartão de Débito",
+    "creditCard": "Cartão de Crédito",
+    "bankTransfer": "Transferência Bancária",
+    "card": "Cartão",
+    "transfer": "Transferência",
+    "mbway": "MB Way"
+  },
+  "status": {
+    "paid": "Pago",
+    "pending": "Pendente",
+    "refunded": "Reembolsado",
+    "failed": "Falhou",
+    "completed": "Completo"
   },
   "stats": {
     "totalRevenue": "Receita Total",
-    "pendingPayments": "Pagamentos Pendentes",
-    "completedPayments": "Pagamentos Concluídos",
-    "failedPayments": "Pagamentos Falhados"
+    "transactions": "transações",
+    "pending": "Pendente",
+    "toReceive": "A receber",
+    "processingFees": "Taxas de Processamento",
+    "ofRevenue": "da receita",
+    "failedPayments": "Pagamentos Falhados",
+    "requireAttention": "Requerem atenção"
+  },
+  "filters": {
+    "title": "Filtros",
+    "status": "Status",
+    "all": "Todos",
+    "method": "Método",
+    "startDate": "Data Inicial",
+    "endDate": "Data Final"
   },
   "table": {
-    "id": "ID do Pagamento",
-    "booking": "Agendamento",
+    "title": "Histórico de Pagamentos",
+    "paymentsFound": "pagamento(s) encontrado(s)",
+    "noPayments": "Nenhum pagamento encontrado",
+    "id": "ID / Reserva",
+    "date": "Data",
     "client": "Cliente",
+    "service": "Serviço",
     "amount": "Valor",
     "method": "Método",
+    "description": "Descrição",
     "status": "Status",
-    "date": "Data",
-    "actions": "Ações"
+    "actions": "Ações",
+    "booking": "Reserva",
+    "by": "por",
+    "fee": "Taxa"
   },
-  "methods": {
-    "creditCard": "Cartão de Crédito",
-    "debitCard": "Cartão de Débito",
-    "cash": "Dinheiro",
-    "pix": "PIX",
-    "bankTransfer": "Transferência Bancária"
+  "messages": {
+    "success": "Pagamento registrado com sucesso",
+    "error": "Não foi possível registrar o pagamento",
+    "loadError": "Não foi possível carregar os pagamentos",
+    "invalidAmount": "Informe um valor válido"
   },
-  "status": {
-    "pending": "Pendente",
-    "completed": "Concluído",
-    "failed": "Falhado",
-    "refunded": "Reembolsado"
+  "success": {
+    "title": "A processar pagamento",
+    "description": "Estamos a verificar o seu pagamento. Esta página completará a marcação assim que o pagamento for confirmado.",
+    "missingBooking": "ID da marcação em falta",
+    "confirmed": "Pagamento confirmado e marcação concluída",
+    "completeFailed": "Pagamento confirmado mas falhou ao completar marcação",
+    "timeout": "Confirmação do pagamento expirou. Por favor, verifique o estado da sua marcação mais tarde.",
+    "verifyFailed": "Falha ao verificar estado do pagamento",
+    "waiting": "A aguardar confirmação do pagamento…",
+    "received": "Pagamento recebido. A completar marcação…",
+    "completed": "Marcação concluída — a redirecionar…",
+    "timeoutMessage": "Pagamento não confirmado a tempo. Verifique a sua marcação mais tarde.",
+    "errorMessage": "Ocorreu um erro ao verificar o pagamento. Por favor, tente novamente mais tarde."
   },
-  "actions": {
-    "viewDetails": "Ver Detalhes",
-    "refund": "Reembolsar",
-    "resend": "Reenviar Recibo"
+  "receipt": {
+    "title": "Recibo de Pagamento",
+    "error": "Erro",
+    "notFound": "Recibo não encontrado",
+    "loadError": "Não foi possível carregar os detalhes do recibo.",
+    "print": "Imprimir",
+    "totalAmount": "Valor Total",
+    "paidTo": "Pago para",
+    "paidBy": "Pago por",
+    "company": "Empresa",
+    "client": "Cliente",
+    "transactionDetails": "Detalhes da Transação",
+    "transactionId": "ID da Transação",
+    "paymentMethod": "Método de Pagamento",
+    "status": "Estado",
+    "paid": "Pago",
+    "description": "Descrição",
+    "thankYou": "Obrigado pela sua preferência!",
+    "questions": "Se tiver alguma dúvida, entre em contacto connosco.",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar"
   }
 }

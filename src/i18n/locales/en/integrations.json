@@ -1,0 +1,45 @@
+{
+  "badge": "Integrations",
+  "hero": { 
+    "title": "Calendar Integrations", 
+    "getStarted": "Get Started", 
+    "seeFeatures": "See Features" 
+  },
+  "cta": { 
+    "title": "Ready to connect?", 
+    "start": "Start Free Trial", 
+    "contact": "Contact Sales" 
+  },
+  "google": { 
+    "feature1": "Google Calendar sync", 
+    "feature2": "Two-way sync", 
+    "feature3": "Automatic updates", 
+    "feature4": "Color coding", 
+    "feature5": "Multiple calendars" 
+  },
+  "apple": { 
+    "feature1": "iCloud Calendar", 
+    "feature2": "Apple Watch", 
+    "feature3": "Siri support", 
+    "feature4": "Reminders", 
+    "feature5": "Family sharing" 
+  },
+  "benefits": { 
+    "title": "Integration Benefits", 
+    "unified": { "title": "Unified View" }, 
+    "realtime": { "title": "Real-time Sync" }, 
+    "mobile": { "title": "Mobile Access" }, 
+    "secure": { "title": "Secure Connection" } 
+  },
+  "setup": { 
+    "title": "Easy Setup", 
+    "step1": { "title": "Connect account" }, 
+    "step2": { "title": "Select calendars" }, 
+    "step3": { "title": "Configure sync" }, 
+    "step4": { "title": "Start using" } 
+  },
+  "faq": { 
+    "title": "Integration FAQ", 
+    "q4": "Is my data secure?" 
+  }
+}

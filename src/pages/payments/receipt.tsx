@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { paymentsService } from "../../services/payments.service";
 import { Payment } from "../../types/models/payments.interface";
 import { Loader2, Printer, CheckCircle2, AlertCircle } from "lucide-react";
@@ -7,6 +8,7 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 
 export function ReceiptPage() {
+    const { t } = useTranslation("payments");
     const { id } = useParams<{ id: string }>();
     const [payment, setPayment] = useState<Payment | null>(null);
     const [entity, setEntity] = useState<any>(null);
@@ -39,7 +41,7 @@ export function ReceiptPage() {
             }
         } catch (err) {
             console.error("Error loading payment:", err);
-            setError("Não foi possível carregar os detalhes do recibo.");
+            setError(t("receipt.loadError"));
         } finally {
             setLoading(false);
         }
@@ -107,8 +109,8 @@ export function ReceiptPage() {
                 <Card className="w-full max-w-md">
                     <CardContent className="pt-6 text-center">
                         <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-                        <h2 className="text-xl font-semibold mb-2">Erro</h2>
-                        <p className="text-muted-foreground">{error || "Recibo não encontrado"}</p>
+                        <h2 className="text-xl font-semibold mb-2">{t("receipt.error")}</h2>
+                        <p className="text-muted-foreground">{error || t("receipt.notFound")}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -121,7 +123,7 @@ export function ReceiptPage() {
                 <div className="mb-6 flex justify-end print:hidden">
                     <Button onClick={handlePrint} variant="outline" className="gap-2">
                         <Printer className="h-4 w-4" />
-                        Imprimir
+                        {t("receipt.print")}
                     </Button>
                 </div>
 
@@ -130,7 +132,7 @@ export function ReceiptPage() {
                         <div className="mx-auto bg-green-100 p-3 rounded-full w-fit mb-4 print:hidden">
                             <CheckCircle2 className="h-8 w-8 text-green-600" />
                         </div>
-                        <CardTitle className="text-2xl font-bold">Recibo de Pagamento</CardTitle>
+                        <CardTitle className="text-2xl font-bold">{t("receipt.title")}</CardTitle>
                         <p className="text-muted-foreground mt-2">
                             {new Date(payment.createdAt).toLocaleDateString("pt-BR", {
                                 weekday: "long",
@@ -143,7 +145,7 @@ export function ReceiptPage() {
                     <CardContent className="pt-8 space-y-8">
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
-                                Valor Total
+                                {t("receipt.totalAmount")}
                             </p>
 
                             {isEditing ? (
@@ -157,10 +159,10 @@ export function ReceiptPage() {
                                     />
                                     <div className="flex flex-col gap-1">
                                         <Button size="sm" onClick={handleSaveAmount} disabled={isSaving}>
-                                            {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Salvar"}
+                                            {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : t("receipt.save")}
                                         </Button>
                                         <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>
-                                            Cancelar
+                                            {t("receipt.cancel")}
                                         </Button>
                                     </div>
                                 </div>
@@ -179,7 +181,7 @@ export function ReceiptPage() {
                                                 setIsEditing(true);
                                             }}
                                         >
-                                            Editar
+                                            {t("receipt.edit")}
                                         </Button>
                                     )}
                                 </div>
@@ -188,14 +190,14 @@ export function ReceiptPage() {
 
                         <div className="grid grid-cols-2 gap-6 text-sm">
                             <div>
-                                <p className="text-muted-foreground mb-1">Pago para</p>
-                                <p className="font-medium text-lg">{entity?.name || "Empresa"}</p>
+                                <p className="text-muted-foreground mb-1">{t("receipt.paidTo")}</p>
+                                <p className="font-medium text-lg">{entity?.name || t("receipt.company")}</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-muted-foreground mb-1">Pago por</p>
+                                <p className="text-muted-foreground mb-1">{t("receipt.paidBy")}</p>
                                 <p className="font-medium text-lg">
                                     {/* @ts-ignore - Assuming client info might be populated or in metadata */}
-                                    {payment.metadata?.clientName || "Cliente"}
+                                    {payment.metadata?.clientName || t("receipt.client")}
                                 </p>
                                 {/* NIF/Tax ID Display */}
                                 <p className="text-muted-foreground text-sm mt-1">
@@ -213,29 +215,29 @@ export function ReceiptPage() {
                         </div>
 
                         <div className="border rounded-lg p-4 bg-gray-50 print:bg-white print:border">
-                            <h3 className="font-semibold mb-4">Detalhes da Transação</h3>
+                            <h3 className="font-semibold mb-4">{t("receipt.transactionDetails")}</h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">ID da Transação</span>
+                                    <span className="text-muted-foreground">{t("receipt.transactionId")}</span>
                                     <span className="font-mono">{payment.id}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Método de Pagamento</span>
+                                    <span className="text-muted-foreground">{t("receipt.paymentMethod")}</span>
                                     <span className="capitalize">
                                         {/* @ts-ignore */}
-                                        {payment.paymentMethod?.brand || payment.paymentMethod?.type || "Cartão"} •••• {/* @ts-ignore */}
+                                        {payment.paymentMethod?.brand || payment.paymentMethod?.type || t("paymentMethods.card")} •••• {/* @ts-ignore */}
                                         {payment.paymentMethod?.last4 || "****"}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Status</span>
+                                    <span className="text-muted-foreground">{t("receipt.status")}</span>
                                     <span className="capitalize text-green-600 font-medium">
-                                        Pago
+                                        {t("receipt.paid")}
                                     </span>
                                 </div>
                                 {payment.description && (
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Descrição</span>
+                                        <span className="text-muted-foreground">{t("receipt.description")}</span>
                                         <span>{payment.description}</span>
                                     </div>
                                 )}
@@ -243,9 +245,9 @@ export function ReceiptPage() {
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground pt-8 border-t">
-                            <p>Obrigado pela sua preferência!</p>
+                            <p>{t("receipt.thankYou")}</p>
                             <p className="mt-1">
-                                Se você tiver alguma dúvida, entre em contato conosco.
+                                {t("receipt.questions")}
                             </p>
                         </div>
                     </CardContent>

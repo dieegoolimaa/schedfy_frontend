@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   Card,
@@ -15,6 +16,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { usersService } from "../services/users.service";
 
 export function AcceptInvitationPage() {
+  const { t } = useTranslation("invitation");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
@@ -119,10 +121,9 @@ export function AcceptInvitationPage() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Invalid Invitation</CardTitle>
+            <CardTitle>{t("invalidInvitation.title")}</CardTitle>
             <CardDescription>
-              The invitation link is invalid or missing. Please contact your
-              administrator.
+              {t("invalidInvitation.description")}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -137,39 +138,39 @@ export function AcceptInvitationPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Accept Invitation</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
             {isSimplePlan
-              ? "Set up your password to access the platform"
-              : "Complete your profile to access the platform"}
+              ? t("description.simple")
+              : t("description.complete")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="firstName">{t("form.firstName")}</Label>
                 <Input
                   id="firstName"
                   value={formData.firstName}
                   onChange={(e) =>
                     setFormData({ ...formData, firstName: e.target.value })
                   }
-                  placeholder="John"
+                  placeholder={t("form.firstNamePlaceholder")}
                   required
                   disabled={isSimplePlan}
                   className={isSimplePlan ? "bg-muted" : ""}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="lastName">{t("form.lastName")}</Label>
                 <Input
                   id="lastName"
                   value={formData.lastName}
                   onChange={(e) =>
                     setFormData({ ...formData, lastName: e.target.value })
                   }
-                  placeholder="Doe"
+                  placeholder={t("form.lastNamePlaceholder")}
                   required
                   disabled={isSimplePlan}
                   className={isSimplePlan ? "bg-muted" : ""}
@@ -180,23 +181,23 @@ export function AcceptInvitationPage() {
             {/* Show Job Function only for Business Plan Professionals */}
             {!isSimplePlan && isProfessional && (
               <div className="space-y-2">
-                <Label htmlFor="jobFunction">Job Function</Label>
+                <Label htmlFor="jobFunction">{t("form.jobFunction")}</Label>
                 <Input
                   id="jobFunction"
                   value={formData.jobFunction}
                   onChange={(e) =>
                     setFormData({ ...formData, jobFunction: e.target.value })
                   }
-                  placeholder="e.g. Senior Stylist"
+                  placeholder={t("form.jobFunctionPlaceholder")}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Your role title visible to clients
+                  {t("form.jobFunctionHint")}
                 </p>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("form.password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -205,7 +206,7 @@ export function AcceptInvitationPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder="Enter your password"
+                  placeholder={t("form.passwordPlaceholder")}
                   required
                   minLength={8}
                 />
@@ -224,12 +225,12 @@ export function AcceptInvitationPage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters long
+                {t("form.passwordHint")}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">{t("form.confirmPassword")}</Label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
@@ -237,14 +238,14 @@ export function AcceptInvitationPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
-                placeholder="Confirm your password"
+                placeholder={t("form.confirmPasswordPlaceholder")}
                 required
               />
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Accept Invitation & Create Account
+              {t("submit")}
             </Button>
           </form>
         </CardContent>

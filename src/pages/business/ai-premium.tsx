@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCurrency } from "../../hooks/useCurrency";
+import { useTranslation } from "react-i18next";
 import { FeatureGate } from "../../contexts/feature-flags-context";
 import {
   Card,
@@ -43,6 +44,7 @@ import {
 } from "lucide-react";
 
 export function AIPremiumPage() {
+  const { t } = useTranslation("aiPremium");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const { formatCurrency } = useCurrency();
@@ -57,9 +59,9 @@ export function AIPremiumPage() {
       currentRevenue: 12450,
       projectedIncrease: 18.5,
       recommendations: [
-        "Increase pricing for premium services by 15%",
-        "Offer package deals during slow periods",
-        "Implement dynamic pricing for peak hours",
+        t("mock.rec1"),
+        t("mock.rec2"),
+        t("mock.rec3"),
       ],
     },
     customerBehavior: {
@@ -71,7 +73,7 @@ export function AIPremiumPage() {
     staffOptimization: {
       efficiency: 92.1,
       utilizationRate: 78.5,
-      suggestedSchedule: "Add 2 hours on weekends",
+      suggestedSchedule: t("mock.suggestedSchedule"),
     },
     marketingInsights: {
       bestChannels: ["Instagram", "Google Ads", "Referrals"],
@@ -83,51 +85,48 @@ export function AIPremiumPage() {
   const aiFeatures = [
     {
       id: "smart-scheduling",
-      name: "Smart Scheduling",
-      description:
-        "AI-powered appointment optimization based on staff availability and customer preferences",
+      name: t("plans.features.smartScheduling"),
+      description: t("gate.expect.scheduling.description"),
       icon: Calendar,
       enabled: true,
       tier: "starter",
     },
     {
       id: "predictive-analytics",
-      name: "Predictive Analytics",
-      description: "Forecast revenue, customer behavior, and business trends",
+      name: t("plans.features.basicAnalytics"),
+      description: t("gate.expect.analytics.description"),
       icon: BarChart3,
       enabled: predictiveAnalyticsEnabled,
       tier: "starter",
     },
     {
       id: "auto-booking",
-      name: "Automated Booking",
-      description: "AI chatbot handles customer bookings and inquiries 24/7",
+      name: t("plans.features.automatedBooking"),
+      description: t("gate.expect.booking.description"),
       icon: Bot,
       enabled: autoBookingEnabled,
       tier: "professional",
     },
     {
       id: "smart-pricing",
-      name: "Dynamic Pricing",
-      description:
-        "Optimize pricing based on demand, time, and market conditions",
+      name: t("plans.features.dynamicPricing"),
+      description: t("gate.expect.pricing.description"),
       icon: Target,
       enabled: smartPricingEnabled,
       tier: "professional",
     },
     {
       id: "customer-insights",
-      name: "Customer AI Insights",
-      description:
-        "Deep learning analysis of customer behavior and preferences",
+      name: t("plans.features.customerInsights"),
+      description: t("insights.behavior.description"),
       icon: Users,
       enabled: true,
       tier: "enterprise",
     },
     {
       id: "marketing-ai",
-      name: "AI Marketing Campaigns",
-      description: "Automated marketing campaigns with personalized content",
+      name: t("plans.features.marketingAI"),
+      description: t("plans.features.marketingAIDesc"),
       icon: Sparkles,
       enabled: false,
       tier: "enterprise",
@@ -137,40 +136,40 @@ export function AIPremiumPage() {
   const pricingPlans = [
     {
       id: "starter",
-      name: "AI Starter",
+      name: t("plans.starter"),
       price: 29.99,
       features: [
-        "Smart Scheduling",
-        "Basic Analytics",
-        "Customer Insights",
-        "Email Support",
+        t("plans.features.smartScheduling"),
+        t("plans.features.basicAnalytics"),
+        t("plans.features.customerInsights"),
+        t("plans.features.emailSupport"),
       ],
       maxFeatures: 3,
     },
     {
       id: "professional",
-      name: "AI Professional",
+      name: t("plans.professional"),
       price: 59.99,
       features: [
-        "All Starter Features",
-        "Automated Booking",
-        "Dynamic Pricing",
-        "Priority Support",
-        "Custom Reports",
+        t("plans.features.allStarter"),
+        t("plans.features.automatedBooking"),
+        t("plans.features.dynamicPricing"),
+        t("plans.features.prioritySupport"),
+        t("plans.features.customReports"),
       ],
       maxFeatures: 6,
       popular: true,
     },
     {
       id: "enterprise",
-      name: "AI Enterprise",
+      name: t("plans.enterprise"),
       price: 119.99,
       features: [
-        "All Professional Features",
-        "Advanced ML Models",
-        "Marketing AI",
-        "Dedicated Support",
-        "API Access",
+        t("plans.features.allProfessional"),
+        t("plans.features.advancedML"),
+        t("plans.features.marketingAI"),
+        t("plans.features.dedicatedSupport"),
+        t("plans.features.apiAccess"),
       ],
       maxFeatures: 10,
     },
@@ -185,24 +184,22 @@ export function AIPremiumPage() {
             <Brain className="h-20 w-20 text-muted-foreground mx-auto opacity-50" />
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-2">
-                AI Premium Coming Soon
+                {t("gate.title")}
               </h2>
               <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                Our AI Premium features are currently in development and will be
-                available for purchase soon. Stay tuned for powerful AI-driven
-                insights and automation!
+                {t("gate.description")}
               </p>
             </div>
             <Badge variant="secondary" className="text-base px-4 py-2">
               <Sparkles className="mr-2 h-4 w-4" />
-              Feature Not Available Yet
+              {t("gate.badge")}
             </Badge>
           </div>
           <Card className="max-w-2xl w-full">
             <CardHeader>
-              <CardTitle>What to Expect</CardTitle>
+              <CardTitle>{t("gate.expect.title")}</CardTitle>
               <CardDescription>
-                AI Premium will revolutionize how you manage your business
+                {t("gate.expect.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -210,36 +207,36 @@ export function AIPremiumPage() {
                 <div className="flex items-start space-x-3">
                   <Calendar className="h-5 w-5 text-purple-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Smart Scheduling</p>
+                    <p className="font-medium">{t("gate.expect.scheduling.title")}</p>
                     <p className="text-sm text-muted-foreground">
-                      AI-powered appointment optimization
+                      {t("gate.expect.scheduling.description")}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <BarChart3 className="h-5 w-5 text-purple-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Predictive Analytics</p>
+                    <p className="font-medium">{t("gate.expect.analytics.title")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Forecast revenue and customer behavior
+                      {t("gate.expect.analytics.description")}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <Bot className="h-5 w-5 text-purple-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Automated Booking</p>
+                    <p className="font-medium">{t("gate.expect.booking.title")}</p>
                     <p className="text-sm text-muted-foreground">
-                      24/7 AI chatbot for customer bookings
+                      {t("gate.expect.booking.description")}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <Target className="h-5 w-5 text-purple-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Dynamic Pricing</p>
+                    <p className="font-medium">{t("gate.expect.pricing.title")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Optimize pricing based on demand
+                      {t("gate.expect.pricing.description")}
                     </p>
                   </div>
                 </div>
@@ -255,25 +252,25 @@ export function AIPremiumPage() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Brain className="h-8 w-8 text-purple-600" />
-              <h1 className="text-3xl font-bold tracking-tight">AI Premium</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
               <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                 <Sparkles className="mr-1 h-3 w-3" />
-                Beta
+                {t("beta")}
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              Supercharge your business with artificial intelligence
+              {t("subtitle")}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline">
               <Settings className="mr-2 h-4 w-4" />
-              AI Settings
+              {t("actions.settings")}
             </Button>
             {!isSubscribed && (
               <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
                 <Crown className="mr-2 h-4 w-4" />
-                Upgrade to AI Premium
+                {t("actions.upgrade")}
               </Button>
             )}
           </div>
@@ -284,9 +281,9 @@ export function AIPremiumPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Choose Your AI Plan</CardTitle>
+                <CardTitle className="text-2xl">{t("plans.title")}</CardTitle>
                 <CardDescription>
-                  Unlock powerful AI features to grow your business
+                  {t("plans.subtitle")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -301,7 +298,7 @@ export function AIPremiumPage() {
                     >
                       {plan.popular && (
                         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                          <Badge className="bg-purple-500">Most Popular</Badge>
+                          <Badge className="bg-purple-500">{t("plans.mostPopular")}</Badge>
                         </div>
                       )}
                       <CardHeader className="text-center">
@@ -309,7 +306,7 @@ export function AIPremiumPage() {
                         <div className="text-3xl font-bold">
                           {formatCurrency(plan.price)}
                           <span className="text-sm font-normal text-muted-foreground">
-                            /month
+                            {t("plans.perMonth")}
                           </span>
                         </div>
                       </CardHeader>
@@ -328,8 +325,8 @@ export function AIPremiumPage() {
                           onClick={() => setIsSubscribed(true)}
                         >
                           {selectedPlan === plan.id
-                            ? "Subscribe Now"
-                            : "Select Plan"}
+                            ? t("actions.subscribe")
+                            : t("actions.selectPlan")}
                         </Button>
                       </CardContent>
                     </Card>
@@ -342,10 +339,10 @@ export function AIPremiumPage() {
           /* AI Dashboard - For Subscribed Users */
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="insights">AI Insights</TabsTrigger>
-              <TabsTrigger value="features">Features</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="overview">{t("tabs.overview")}</TabsTrigger>
+              <TabsTrigger value="insights">{t("tabs.insights")}</TabsTrigger>
+              <TabsTrigger value="features">{t("tabs.features")}</TabsTrigger>
+              <TabsTrigger value="settings">{t("tabs.settings")}</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -354,14 +351,14 @@ export function AIPremiumPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      AI Score
+                      {t("overview.aiScore")}
                     </CardTitle>
                     <Brain className="h-4 w-4 text-purple-600" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">94.2</div>
                     <p className="text-xs text-muted-foreground">
-                      +2.1 from last month
+                      +2.1 {t("overview.lastMonth")}
                     </p>
                   </CardContent>
                 </Card>
@@ -369,14 +366,14 @@ export function AIPremiumPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Efficiency Gain
+                      {t("overview.efficiencyGain")}
                     </CardTitle>
                     <TrendingUp className="h-4 w-4 text-green-600" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">+28.5%</div>
                     <p className="text-xs text-muted-foreground">
-                      Since AI activation
+                      {t("overview.sinceActivation")}
                     </p>
                   </CardContent>
                 </Card>
@@ -384,26 +381,26 @@ export function AIPremiumPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Automated Tasks
+                      {t("overview.automatedTasks")}
                     </CardTitle>
                     <Zap className="h-4 w-4 text-yellow-600" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">1,247</div>
-                    <p className="text-xs text-muted-foreground">This month</p>
+                    <p className="text-xs text-muted-foreground">{t("overview.thisMonth")}</p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Time Saved
+                      {t("overview.timeSaved")}
                     </CardTitle>
                     <Clock className="h-4 w-4 text-blue-600" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">47.2h</div>
-                    <p className="text-xs text-muted-foreground">This month</p>
+                    <p className="text-xs text-muted-foreground">{t("overview.thisMonth")}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -413,10 +410,10 @@ export function AIPremiumPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="h-5 w-5 text-purple-600" />
-                    AI Recommendations
+                    {t("overview.recommendations.title")}
                   </CardTitle>
                   <CardDescription>
-                    Personalized suggestions to optimize your business
+                    {t("overview.recommendations.description")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -434,9 +431,9 @@ export function AIPremiumPage() {
                             {recommendation}
                           </p>
                           <div className="flex gap-2 mt-2">
-                            <Button size="sm">Apply</Button>
+                            <Button size="sm">{t("actions.apply")}</Button>
                             <Button size="sm" variant="outline">
-                              Learn More
+                              {t("actions.learnMore")}
                             </Button>
                           </div>
                         </div>
@@ -452,16 +449,16 @@ export function AIPremiumPage() {
               <div className="grid gap-6 lg:grid-cols-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Revenue Optimization</CardTitle>
+                    <CardTitle>{t("insights.revenue.title")}</CardTitle>
                     <CardDescription>
-                      AI-powered revenue analysis and forecasting
+                      {t("insights.revenue.description")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
                       <div>
                         <p className="text-sm font-medium">
-                          Projected Revenue Increase
+                          {t("insights.revenue.projected")}
                         </p>
                         <p className="text-2xl font-bold text-green-600">
                           +{aiInsights.revenueOptimization.projectedIncrease}%
@@ -471,7 +468,7 @@ export function AIPremiumPage() {
                     </div>
                     <div className="text-center p-4 border rounded-lg">
                       <p className="text-sm text-muted-foreground">
-                        Current Monthly Revenue
+                        {t("insights.revenue.current")}
                       </p>
                       <p className="text-2xl font-bold">
                         {formatCurrency(
@@ -484,16 +481,16 @@ export function AIPremiumPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Customer Behavior Analysis</CardTitle>
+                    <CardTitle>{t("insights.behavior.title")}</CardTitle>
                     <CardDescription>
-                      Deep insights into customer patterns
+                      {t("insights.behavior.description")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-3 bg-blue-50 rounded-lg">
                         <p className="text-sm text-muted-foreground">
-                          Retention Rate
+                          {t("insights.behavior.retention")}
                         </p>
                         <p className="text-xl font-bold text-blue-600">
                           {aiInsights.customerBehavior.retention}%
@@ -501,7 +498,7 @@ export function AIPremiumPage() {
                       </div>
                       <div className="text-center p-3 bg-purple-50 rounded-lg">
                         <p className="text-sm text-muted-foreground">
-                          Avg. Spending
+                          {t("insights.behavior.avgSpending")}
                         </p>
                         <p className="text-xl font-bold text-purple-600">
                           {formatCurrency(
@@ -511,7 +508,7 @@ export function AIPremiumPage() {
                       </div>
                     </div>
                     <div className="p-4 border rounded-lg">
-                      <p className="text-sm font-medium mb-2">Peak Hours</p>
+                      <p className="text-sm font-medium mb-2">{t("insights.behavior.peakHours")}</p>
                       <div className="flex gap-2">
                         {aiInsights.customerBehavior.peakHours.map(
                           (hour, index) => (
@@ -571,17 +568,17 @@ export function AIPremiumPage() {
             <TabsContent value="settings" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>AI Configuration</CardTitle>
+                  <CardTitle>{t("settings.title")}</CardTitle>
                   <CardDescription>
-                    Customize AI behavior and preferences
+                    {t("settings.description")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label>Automated Booking</Label>
+                      <Label>{t("settings.automatedBooking.label")}</Label>
                       <p className="text-sm text-muted-foreground">
-                        Allow AI to automatically confirm bookings
+                        {t("settings.automatedBooking.desc")}
                       </p>
                     </div>
                     <Switch
@@ -592,9 +589,9 @@ export function AIPremiumPage() {
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label>Smart Pricing</Label>
+                      <Label>{t("settings.smartPricing.label")}</Label>
                       <p className="text-sm text-muted-foreground">
-                        Enable dynamic pricing based on demand
+                        {t("settings.smartPricing.desc")}
                       </p>
                     </div>
                     <Switch
@@ -605,9 +602,9 @@ export function AIPremiumPage() {
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label>Predictive Analytics</Label>
+                      <Label>{t("settings.predictiveAnalytics.label")}</Label>
                       <p className="text-sm text-muted-foreground">
-                        Generate forecasts and business insights
+                        {t("settings.predictiveAnalytics.desc")}
                       </p>
                     </div>
                     <Switch
@@ -618,20 +615,20 @@ export function AIPremiumPage() {
 
                   <div className="pt-4 border-t">
                     <div className="space-y-2">
-                      <Label>AI Learning Preferences</Label>
+                      <Label>{t("settings.learning.label")}</Label>
                       <Select defaultValue="balanced">
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="conservative">
-                            Conservative Learning
+                            {t("settings.learning.conservative")}
                           </SelectItem>
                           <SelectItem value="balanced">
-                            Balanced Approach
+                            {t("settings.learning.balanced")}
                           </SelectItem>
                           <SelectItem value="aggressive">
-                            Aggressive Optimization
+                            {t("settings.learning.aggressive")}
                           </SelectItem>
                         </SelectContent>
                       </Select>

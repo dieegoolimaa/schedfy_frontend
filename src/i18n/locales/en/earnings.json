@@ -1,0 +1,46 @@
+{
+  "title": "My Earnings",
+  "subtitle": "Track your earnings from completed services",
+  "loading": "Loading earnings data...",
+  "exportStatement": "Export Statement",
+  "stats": {
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "pending": "Pending",
+    "totalEarned": "Total Earned",
+    "vsLastMonth": "vs last month",
+    "noChange": "No change",
+    "confirmedBookings": "confirmed booking",
+    "confirmedBookingsPlural": "confirmed bookings",
+    "completedServices": "completed service",
+    "completedServicesPlural": "completed services"
+  },
+  "chart": {
+    "title": "Monthly Earnings",
+    "description": "Your earnings over the selected period",
+    "periods": {
+      "3months": "Last 3 months",
+      "6months": "Last 6 months",
+      "12months": "Last 12 months"
+    }
+  },
+  "recentActivity": {
+    "title": "Recent Activity",
+    "description": "Your latest completed services",
+    "noServices": "No completed services yet",
+    "unknownClient": "Unknown Client",
+    "unknownService": "Unknown Service"
+  },
+  "summary": {
+    "title": "This Month Summary",
+    "description": "{{month}} overview",
+    "totalEarnings": "Total Earnings",
+    "completedServices": "Completed Services",
+    "pendingEarnings": "Pending Earnings",
+    "averagePerService": "Average per Service"
+  },
+  "messages": {
+    "exportComingSoon": "Statement export coming soon",
+    "exportFailed": "Failed to export statement"
+  }
+}

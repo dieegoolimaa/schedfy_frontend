@@ -1,21 +1,4 @@
 {
-  "dashboard": {
-    "title": "Admin Dashboard",
-    "subtitle": "Platform administrative management"
-  },
-  "users": {
-    "title": "User Management",
-    "editUser": "Edit User",
-    "editUserDesc": "Update user information",
-    "create": "Create User",
-    "manage": "Manage Users"
-  },
-  "entities": {
-    "title": "Entity Management",
-    "manage": "Manage Entities"
-  },
-  "system": {
-    "title": "System Settings",
-    "maintenance": "Maintenance"
-  }
+  "title": "Admin",
+  "admin": {}
 }

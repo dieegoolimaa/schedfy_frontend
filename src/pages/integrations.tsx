@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 export default function Integrations() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("integrations");
 
   const calendarIntegrations = [
     {

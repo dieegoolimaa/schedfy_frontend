@@ -48,7 +48,16 @@ export interface BookingCreatorProps {
    * Show pricing information
    * @default true
    */
+  /**
+   * Show pricing information
+   * @default true
+   */
   showPricing?: boolean;
+
+  /**
+   * Default slot duration for simple plan bookings without service
+   */
+  defaultSlotDuration?: number;
 }
 
 /**
@@ -87,8 +96,10 @@ export function BookingCreator({
   onSuccess,
   onError,
   entityId: propEntityId,
+
   planType = "business",
   showPricing = true,
+  defaultSlotDuration = 60,
 }: BookingCreatorProps) {
   const { user } = useAuth();
   const entityId = propEntityId || user?.entityId || user?.id || "";
@@ -134,7 +145,7 @@ export function BookingCreator({
         (s) => s.id === bookingData.serviceId
       );
 
-      if (!selectedService) {
+      if (!selectedService && planType !== 'simple') {
         throw new Error("Service not found");
       }
 
@@ -154,8 +165,8 @@ export function BookingCreator({
         },
         // Pricing information (REQUIRED by backend)
         pricing: {
-          basePrice: selectedService.price || 0,
-          totalPrice: selectedService.price || 0,
+          basePrice: selectedService?.price || 0,
+          totalPrice: selectedService?.price || 0,
           currency: "EUR",
         },
         // Created by (REQUIRED by backend) - fallback to _id or entityId
@@ -175,7 +186,7 @@ export function BookingCreator({
       if (!apiData.entityId) {
         throw new Error("Entity ID is required");
       }
-      if (!apiData.serviceId) {
+      if (!apiData.serviceId && planType !== 'simple') {
         throw new Error("Service ID is required");
       }
       if (!apiData.createdBy) {
@@ -242,6 +253,8 @@ export function BookingCreator({
         // For recurring bookings handled internally by CreateBookingDialog
         bookingCount.current += 1;
       }}
+      planType={planType}
+      defaultSlotDuration={defaultSlotDuration}
     />
   );
 }

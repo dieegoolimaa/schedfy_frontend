@@ -4,10 +4,10 @@
 
 export interface Booking {
     id: string;
-    entityId: string;
-    serviceId: string;
-    clientId: string;
-    professionalId?: string;
+    entityId: string | { _id: string;[key: string]: any };
+    serviceId: string | { _id: string;[key: string]: any };
+    clientId: string | { _id: string;[key: string]: any };
+    professionalId?: string | { _id: string;[key: string]: any };
     startTime: string;
     endTime: string;
     // Backend também pode retornar startDateTime/endDateTime

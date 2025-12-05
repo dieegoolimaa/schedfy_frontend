@@ -1,62 +1,146 @@
 {
   "title": "Relatórios Financeiros",
-  "description": "Acompanhe suas receitas e despesas",
+  "subtitle": "Acompanhe sua receita, comissões e análises de pagamentos",
+  "tabs": {
+    "overview": "Visão Geral",
+    "professionals": "Profissionais",
+    "goals": "Metas e Objetivos",
+    "commissions": "Comissões",
+    "vouchers": "Vouchers",
+    "impact": "Impacto das Promoções",
+    "transactions": "Transações"
+  },
   "summary": {
     "totalRevenue": "Receita Total",
-    "totalCommissions": "Comissões Totais",
-    "vouchersUsed": "Vouchers Usados",
     "netRevenue": "Receita Líquida",
-    "afterDeductions": "Após todas as deduções",
+    "totalCommissions": "Total de Comissões",
+    "vouchersUsed": "Vouchers Utilizados",
+    "totalVouchers": "Total de Vouchers",
+    "afterDeductions": "Após Deduções",
     "ofRevenue": "da receita",
     "vsLastPeriod": "vs período anterior"
   },
-  "tabs": {
-    "overview": "Visão Geral",
-    "commissions": "Comissões",
-    "vouchers": "Vouchers",
-    "transactions": "Transações"
-  },
   "breakdown": {
-    "title": "Detalhamento Financeiro",
-    "revenueBySource": "Receita por Origem",
-    "transactions": "transações"
+    "revenueByService": "Receita por Serviço",
+    "revenueByServiceDesc": "Detalhamento da receita por categoria de serviço",
+    "transactions": "transações",
+    "transactionSummary": "Resumo de Transações",
+    "transactionSummaryDesc": "Métricas chave de transações para o período selecionado",
+    "promotionsTitle": "Análise de Impacto das Promoções"
   },
   "metrics": {
     "totalTransactions": "Total de Transações",
     "averageTransaction": "Transação Média",
     "transactionGrowth": "Crescimento de Transações"
   },
+  "impact": {
+    "totalDiscounts": "Total de Descontos",
+    "bookingsCount": "Em {{count}} agendamentos",
+    "estimatedCommissions": "Comissões Estimadas",
+    "activeRules": "Baseado em regras ativas",
+    "promotionUsage": "Uso de Promoções",
+    "completedBookings": "de agendamentos concluídos",
+    "promotionalRevenue": "Receita Promocional",
+    "discountedBookings": "Gerado de agendamentos com desconto"
+  },
+
   "commissions": {
-    "title": "Detalhamento de Comissões",
-    "description": "Visão detalhada de todas as comissões",
-    "total": "Total de Comissões"
+    "breakdown": "Detalhamento de Comissões",
+    "description": "Detalhamento de todas as comissões cobradas"
   },
   "vouchers": {
-    "title": "Uso de Vouchers",
-    "description": "Acompanhe vouchers de desconto e promoções",
-    "used": "usados",
-    "total": "Total de Vouchers"
+    "usage": "Utilização de Vouchers",
+    "description": "Detalhamento de vouchers e descontos aplicados"
+  },
+
+  "export": { "button": "Exportar Relatório" },
+  "professionals": {
+    "title": "Receita por Profissional",
+    "description": "Desempenho financeiro por profissional",
+    "viewOperational": "Ver Desempenho Operacional",
+    "table": {
+      "professional": "Profissional",
+      "revenue": "Receita",
+      "percentOfTotal": "% do Total",
+      "bookings": "Agendamentos",
+      "avgTicket": "Ticket Médio"
+    }
+  },
+  "goals": {
+    "goalsProgress": "Progresso das Metas",
+    "setMonthlyGoals": "Definir Metas Mensais",
+    "description": "Defina seus objetivos de negócios para receita, agendamentos e novos clientes",
+    "trackPerformance": "Acompanhe seu desempenho atual vs. metas",
+    "form": {
+      "revenueTarget": "Meta de Receita (€)",
+      "bookingsTarget": "Meta de Agendamentos",
+      "newClientsTarget": "Meta de Novos Clientes",
+      "period": "Período",
+      "save": "Salvar Metas",
+      "placeholders": {
+        "revenue": "ex: 5000",
+        "bookings": "ex: 100",
+        "newClients": "ex: 20"
+      },
+      "periods": {
+        "monthly": "Mensal",
+        "quarterly": "Trimestral",
+        "yearly": "Anual"
+      }
+    },
+    "metrics": {
+      "revenue": "Receita",
+      "bookings": "Agendamentos",
+      "newClients": "Novos Clientes"
+    },
+    "status": {
+      "ofTarget": "da meta",
+      "achieved": "🎉 Meta alcançada!",
+      "noGoals": "Nenhuma meta definida",
+      "setTargets": "Defina suas metas para acompanhar o progresso"
+    }
   },
   "transactions": {
-    "title": "Todas as Transações",
-    "id": "ID",
-    "date": "Data",
-    "client": "Cliente",
-    "service": "Serviço",
-    "paymentMethod": "Método de Pagamento",
-    "gross": "Bruto",
-    "commission": "Comissão",
-    "voucher": "Voucher",
-    "net": "Líquido",
-    "status": "Status",
-    "viewDetails": "Ver Detalhes",
-    "grossAmount": "Valor Bruto",
-    "voucherDiscount": "Desconto de Voucher",
-    "netAmount": "Valor Líquido"
+    "history": "Histórico de Transações",
+    "description": "Lista detalhada de todas as transações financeiras",
+    "table": {
+      "transaction": "Transação",
+      "clientService": "Cliente e Serviço",
+      "professional": "Profissional",
+      "payment": "Pagamento",
+      "gross": "Bruto",
+      "commission": "Comissão",
+      "voucher": "Voucher",
+      "net": "Líquido",
+      "status": "Status"
+    },
+    "dialog": {
+      "title": "Detalhes da Transação",
+      "description": "Informação completa da transação {{id}}",
+      "id": "ID da Transação",
+      "dateTime": "Data e Hora",
+      "client": "Cliente",
+      "professional": "Profissional",
+      "service": "Serviço",
+      "paymentMethod": "Método de Pagamento",
+      "grossAmount": "Valor Bruto:",
+      "commission": "Comissão:",
+      "voucherDiscount": "Desconto Voucher:",
+      "netAmount": "Valor Líquido:"
+    }
   },
-  "export": {
-    "button": "Exportar",
-    "csv": "Exportar CSV",
-    "pdf": "Exportar PDF"
+  "filters": {
+    "search": "Buscar transações...",
+    "paymentMethod": "Método de pagamento",
+    "serviceType": "Tipo de serviço",
+    "allMethods": "Todos os Métodos",
+    "card": "Cartão",
+    "cash": "Dinheiro",
+    "allServices": "Todos os Serviços"
+  },
+  "status": {
+    "completed": "Concluído",
+    "pending": "Pendente",
+    "refunded": "Reembolsado"
   }
 }

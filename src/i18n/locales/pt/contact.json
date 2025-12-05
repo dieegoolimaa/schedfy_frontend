@@ -1,0 +1,89 @@
+{
+  "title": "Contacte-nos",
+  "subtitle": "Tem uma pergunta ou precisa de suporte? Estamos aqui para ajudar! Entre em contacto e responderemos o mais breve possível.",
+  "header": {
+    "signIn": "Entrar",
+    "getStarted": "Começar"
+  },
+  "getInTouch": {
+    "title": "Entre em Contacto",
+    "description": "Várias formas de contactar a nossa equipa"
+  },
+  "email": {
+    "title": "Email",
+    "responseTime": "Resposta em 24 horas"
+  },
+  "phone": {
+    "title": "Telefone",
+    "hours": "Seg-Sex 9h-18h WET"
+  },
+  "address": {
+    "title": "Morada"
+  },
+  "supportHours": {
+    "title": "Horário de Suporte",
+    "mondayFriday": "Segunda - Sexta",
+    "saturday": "Sábado",
+    "sunday": "Domingo",
+    "closed": "Encerrado",
+    "timezone": "Todos os horários são no fuso horário de Portugal (WET)"
+  },
+  "quickHelp": {
+    "title": "Ajuda Rápida",
+    "termsOfService": "Termos de Serviço",
+    "privacyPolicy": "Política de Privacidade",
+    "helpCenter": "Centro de Ajuda"
+  },
+  "form": {
+    "title": "Envie-nos uma Mensagem",
+    "description": "Preencha o formulário abaixo e responderemos o mais breve possível",
+    "name": "Nome Completo",
+    "namePlaceholder": "O seu nome completo",
+    "email": "Endereço de Email",
+    "emailPlaceholder": "seu.email@exemplo.com",
+    "subject": "Assunto",
+    "subjectPlaceholder": "Breve descrição do seu pedido",
+    "category": "Categoria",
+    "categoryPlaceholder": "Selecione uma categoria",
+    "message": "Mensagem",
+    "messagePlaceholder": "Por favor, forneça detalhes sobre o seu pedido...",
+    "submit": "Enviar Mensagem",
+    "submitting": "A enviar mensagem...",
+    "agreement": "Ao submeter este formulário, concorda com os nossos",
+    "and": "e"
+  },
+  "categories": {
+    "general": "Pedido Geral",
+    "support": "Suporte Técnico",
+    "billing": "Faturação e Subscrições",
+    "feature": "Pedido de Funcionalidade",
+    "bug": "Reportar Erro",
+    "partnership": "Parceria",
+    "other": "Outro"
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "description": "Respostas rápidas a perguntas comuns",
+    "responseTime": {
+      "question": "Qual é o tempo de resposta aos pedidos de suporte?",
+      "answer": "Procuramos responder a todos os pedidos de suporte dentro de 24 horas em dias úteis. Problemas críticos são tratados em 4 horas."
+    },
+    "phoneSupport": {
+      "question": "Oferecem suporte por telefone?",
+      "answer": "Sim! O suporte por telefone está disponível para subscritores do plano Business durante o horário de expediente. O suporte por email está disponível para todos os utilizadores."
+    },
+    "demo": {
+      "question": "Posso agendar uma demonstração?",
+      "answer": "Absolutamente! Contacte-nos para agendar uma demonstração personalizada das funcionalidades do Schedfy e veja como pode beneficiar o seu negócio."
+    },
+    "implementation": {
+      "question": "Fornecem assistência na implementação?",
+      "answer": "Sim, oferecemos assistência de onboarding e suporte de implementação para o ajudar a começar de forma rápida e eficiente com o Schedfy."
+    }
+  },
+  "backToHome": "Voltar ao Início",
+  "messages": {
+    "success": "Obrigado pela sua mensagem! Responderemos em até 24 horas.",
+    "error": "Falha ao enviar mensagem. Por favor, tente novamente ou contacte-nos diretamente."
+  }
+}

@@ -30,6 +30,7 @@ export interface User {
     };
     createdAt: string;
     updatedAt: string;
+    permissions?: string[];
 }
 
 export interface AuthEntity {

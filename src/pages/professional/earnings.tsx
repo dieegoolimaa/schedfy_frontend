@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useBookings } from "../../hooks/useBookings";
@@ -44,6 +45,7 @@ interface MonthlyData {
 }
 
 export default function ProfessionalEarningsPage() {
+  const { t } = useTranslation("earnings");
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
   const professionalId = user?.id || "";
@@ -123,8 +125,8 @@ export default function ProfessionalEarningsPage() {
     lastMonthEarnings > 0
       ? ((thisMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100
       : thisMonthEarnings > 0
-      ? 100
-      : 0;
+        ? 100
+        : 0;
 
   // Generate monthly data for chart
   const monthlyData = useMemo(() => {
@@ -176,7 +178,7 @@ export default function ProfessionalEarningsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Loading earnings data...</p>
+        <p className="text-muted-foreground">{t("loading")}</p>
       </div>
     );
   }
@@ -186,14 +188,14 @@ export default function ProfessionalEarningsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Earnings</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground mt-1">
-            Track your earnings from completed services
+            {t("subtitle")}
           </p>
         </div>
         <Button onClick={handleExportStatement}>
           <Download className="h-4 w-4 mr-2" />
-          Export Statement
+          {t("exportStatement")}
         </Button>
       </div>
 
@@ -352,17 +354,16 @@ export default function ProfessionalEarningsPage() {
                     typeof booking.client === "string"
                       ? booking.client
                       : booking.client?.name ||
-                        `${(booking.client as any)?.firstName || ""} ${
-                          (booking.client as any)?.lastName || ""
+                      `${(booking.client as any)?.firstName || ""} ${(booking.client as any)?.lastName || ""
                         }`.trim() ||
-                        "Unknown Client";
+                      "Unknown Client";
                   const service =
                     typeof booking.service === "string"
                       ? booking.service
                       : booking.service?.name || "Unknown Service";
                   const price =
                     typeof booking.service === "object" &&
-                    booking.service?.price
+                      booking.service?.price
                       ? booking.service.price
                       : 0;
 
@@ -450,8 +451,8 @@ export default function ProfessionalEarningsPage() {
                 <span className="text-sm font-medium">
                   {thisMonthBookings.length > 0
                     ? formatCurrency(
-                        thisMonthEarnings / thisMonthBookings.length
-                      )
+                      thisMonthEarnings / thisMonthBookings.length
+                    )
                     : formatCurrency(0)}
                 </span>
               </div>

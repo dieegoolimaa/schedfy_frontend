@@ -1,35 +1,144 @@
 {
-  "title": "Serviços",
-  "subtitle": "Gerencie os serviços oferecidos pela sua entidade",
-  "create": {
-    "title": "Criar Novo Serviço",
-    "description": "Adicione um novo serviço ao seu catálogo"
+  "title": "Serviços e Pacotes",
+  "subtitle": "Gerencie seus serviços",
+  "subtitleWithPackages": "Gerencie seus serviços e crie pacotes promocionais",
+  "loading": "A carregar...",
+  "stats": {
+    "totalServices": "Total de Serviços",
+    "active": "ativos",
+    "totalPackages": "Total de Pacotes",
+    "subscriptions": "Assinaturas",
+    "of": "de",
+    "total": "totais",
+    "totalRevenue": "Receita Total",
+    "fromPackages": "de pacotes"
   },
-  "edit": {
-    "title": "Editar Serviço",
-    "description": "Atualizar informações do serviço"
+  "tabs": {
+    "services": "Serviços",
+    "packages": "Pacotes",
+    "subscriptions": "Assinaturas",
+    "promotions": "Promoções"
   },
-  "fields": {
-    "name": "Nome",
-    "description": "Descrição",
-    "category": "Categoria",
-    "duration": "Duração",
-    "price": "Preço",
-    "currency": "Moeda",
-    "status": "Status",
-    "active": "Ativo",
-    "inactive": "Inativo"
+  "services": {
+    "title": "Serviços",
+    "addService": "Adicionar Serviço",
+    "editService": "Editar Serviço",
+    "deleteService": "Eliminar Serviço",
+    "noServices": "Nenhum serviço encontrado",
+    "searchPlaceholder": "Pesquisar serviços...",
+    "filters": {
+      "allCategories": "Todas as Categorias",
+      "allStatus": "Todos os Estados",
+      "clear": "Limpar"
+    },
+    "table": {
+      "name": "Nome",
+      "category": "Categoria",
+      "duration": "Duração",
+      "price": "Preço",
+      "status": "Estado",
+      "actions": "Ações"
+    },
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Ex: Corte de Cabelo",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Descreva o serviço...",
+      "category": "Categoria",
+      "categoryPlaceholder": "Selecione",
+      "customCategory": "Categoria Personalizada",
+      "customCategoryPlaceholder": "Introduza o nome da categoria personalizada",
+      "duration": "Duração (minutos)",
+      "durationPlaceholder": "Ex: 60",
+      "price": "Preço",
+      "isActive": "Ativo",
+      "isPublic": "Visível publicamente",
+      "requireManualConfirmation": "Confirmação manual"
+    },
+    "status": {
+      "active": "Ativo",
+      "inactive": "Inativo"
+    },
+    "card": {
+      "title": "Os Seus Serviços",
+      "description": "Gerencie todos os serviços disponíveis"
+    }
   },
-  "actions": {
-    "create": "Criar Serviço",
-    "edit": "Editar",
-    "delete": "Excluir",
-    "activate": "Ativar",
-    "deactivate": "Desativar"
+  "categories": {
+    "haircut": "Corte de Cabelo",
+    "color": "Coloração",
+    "treatment": "Tratamento",
+    "styling": "Penteado",
+    "massage": "Massagem",
+    "facial": "Facial",
+    "manicure": "Manicure",
+    "pedicure": "Pedicure",
+    "other": "Outro",
+    "custom": "➕ Criar Categoria Personalizada"
+  },
+  "modal": {
+    "createTitle": "Criar Novo Serviço",
+    "createDescription": "Adicione um novo serviço ao seu catálogo",
+    "updateTitle": "Atualizar Serviço"
+  },
+  "packages": {
+    "title": "Pacotes",
+    "addPackage": "Adicionar Pacote",
+    "editPackage": "Editar Pacote",
+    "deletePackage": "Eliminar Pacote",
+    "noPackages": "Nenhum pacote encontrado",
+    "form": {
+      "name": "Nome",
+      "description": "Descrição",
+      "services": "Serviços",
+      "packagePrice": "Preço do Pacote",
+      "recurrence": "Recorrência",
+      "validity": "Validade (dias)",
+      "sessionsIncluded": "Sessões Incluídas"
+    },
+    "recurrence": {
+      "oneTime": "Pagamento Único",
+      "monthly": "Mensal"
+    },
+    "status": {
+      "active": "Ativo",
+      "inactive": "Inativo",
+      "draft": "Rascunho",
+      "expired": "Expirado",
+      "cancelled": "Cancelado",
+      "paused": "Pausado"
+    }
+  },
+  "promotions": {
+    "title": "Promoções",
+    "commissions": "Comissões",
+    "vouchers": "Vouchers",
+    "discounts": "Descontos",
+    "managePromotions": "Gerir Promoções",
+    "active": "ativas"
   },
   "messages": {
-    "created": "Serviço criado com sucesso",
-    "updated": "Serviço atualizado com sucesso",
-    "deleted": "Serviço excluído com sucesso"
+    "serviceCreated": "Serviço criado com sucesso!",
+    "serviceUpdated": "Serviço atualizado com sucesso!",
+    "serviceDeleted": "Serviço eliminado com sucesso!",
+    "packageCreated": "Pacote criado com sucesso!",
+    "packageUpdated": "Pacote atualizado com sucesso!",
+    "packageDeleted": "Pacote eliminado com sucesso!",
+    "statusUpdated": "Estado atualizado com sucesso!",
+    "error": "Ocorreu um erro",
+    "fillRequiredFields": "Preencha todos os campos obrigatórios",
+    "selectAtLeastOneService": "Selecione pelo menos um serviço",
+    "priceGreaterThanZero": "O preço deve ser maior que zero",
+    "priceTooHigh": "O preço do pacote não pode ser maior que o valor total dos serviços",
+    "confirmDelete": "Tem certeza que deseja eliminar?",
+    "unauthorized": "Apenas proprietários ou gerentes podem realizar esta ação"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "add": "Adicionar",
+    "assignProfessionals": "Atribuir Profissionais"
   }
 }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { bookingsService } from "../../services/bookings.service";
 import { toast } from "sonner";
 
 export default function PaymentsSuccessPage() {
+  const { t } = useTranslation("payments");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const bookingId = searchParams.get("bookingId");
@@ -13,7 +15,7 @@ export default function PaymentsSuccessPage() {
 
   useEffect(() => {
     if (!bookingId) {
-      toast.error("Missing booking id");
+      toast.error(t("success.missingBooking", "Missing booking id"));
       navigate("/");
       return;
     }
@@ -38,13 +40,13 @@ export default function PaymentsSuccessPage() {
           try {
             await bookingsService.complete(String(bookingId));
             setStatus("completed");
-            toast.success("Payment confirmed and booking completed");
+            toast.success(t("success.confirmed", "Payment confirmed and booking completed"));
             // redirect back to bookings page
             navigate("/entity/bookings");
           } catch (err) {
             console.error(err);
             setStatus("error");
-            toast.error("Payment confirmed but failed to complete booking");
+            toast.error(t("success.completeFailed", "Payment confirmed but failed to complete booking"));
             navigate("/entity/bookings");
           }
           return;
@@ -53,7 +55,7 @@ export default function PaymentsSuccessPage() {
         if (Date.now() - start > timeoutMs) {
           setStatus("timeout");
           toast.error(
-            "Payment confirmation timed out. Please check your booking status later."
+            t("success.timeout", "Payment confirmation timed out. Please check your booking status later.")
           );
           navigate("/entity/bookings");
           return;
@@ -65,7 +67,7 @@ export default function PaymentsSuccessPage() {
         console.error(err);
         if (!mounted) return;
         setStatus("error");
-        toast.error("Failed to verify payment status");
+        toast.error(t("success.verifyFailed", "Failed to verify payment status"));
         navigate("/entity/bookings");
       }
     };
@@ -76,31 +78,31 @@ export default function PaymentsSuccessPage() {
     return () => {
       mounted = false;
     };
-  }, [bookingId, navigate]);
+  }, [bookingId, navigate, t]);
 
   return (
     <div className="mx-auto max-w-xl py-24 text-center">
-      <h2 className="text-2xl font-semibold">Processing payment</h2>
+      <h2 className="text-2xl font-semibold">{t("success.title", "Processing payment")}</h2>
       <p className="mt-4 text-sm text-muted-foreground">
-        We are verifying your payment. This page will complete the booking once
-        payment is confirmed.
+        {t("success.description", "We are verifying your payment. This page will complete the booking once payment is confirmed.")}
       </p>
 
       <div className="mt-8">
         {status === "pending" && (
-          <div className="animate-pulse">Waiting for payment confirmation…</div>
+          <div className="animate-pulse">{t("success.waiting", "Waiting for payment confirmation…")}</div>
         )}
-        {status === "paid" && <div>Payment received. Completing booking…</div>}
-        {status === "completed" && <div>Booking completed — redirecting…</div>}
+        {status === "paid" && <div>{t("success.received", "Payment received. Completing booking…")}</div>}
+        {status === "completed" && <div>{t("success.completed", "Booking completed — redirecting…")}</div>}
         {status === "timeout" && (
-          <div>Payment not confirmed in time. Check your booking later.</div>
+          <div>{t("success.timeoutMessage", "Payment not confirmed in time. Check your booking later.")}</div>
         )}
         {status === "error" && (
           <div>
-            There was an error verifying payment. Please try again later.
+            {t("success.errorMessage", "There was an error verifying payment. Please try again later.")}
           </div>
         )}
       </div>
     </div>
   );
 }
+

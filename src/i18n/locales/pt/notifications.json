@@ -1,0 +1,110 @@
+{
+  "title": "Preferências de Notificação",
+  "subtitle": "Gerencie as suas definições de notificação.",
+  "simplePlan": {
+    "title": "Notificações do Plano Simple",
+    "description": "As definições do seu plano atual são geridas automaticamente."
+  },
+  "channels": {
+    "title": "Definições Globais de Canais",
+    "description": "Ative ou desative canais de notificação opcionais globalmente.",
+    "email": {
+      "title": "Notificações por Email",
+      "description": "Ativo para todos os eventos de reserva",
+      "enabled": "Ativado",
+      "mandatory": "As notificações por email são obrigatórias e sempre enviadas para todos os eventos para garantir que nunca perca atualizações importantes."
+    },
+    "sms": {
+      "title": "Notificações por SMS",
+      "description": "Enviar mensagens de texto para telemóveis dos clientes para eventos de reserva"
+    },
+    "whatsapp": {
+      "title": "Notificações por WhatsApp",
+      "description": "Enviar mensagens via WhatsApp Business para eventos de reserva"
+    }
+  },
+  "categories": {
+    "bookings": "Reservas e Compromissos",
+    "reminders": "Lembretes de Compromisso",
+    "clients": "Gestão de Clientes",
+    "payments": "Pagamentos e Faturas",
+    "subscriptions": "Subscrições",
+    "team": "Equipa e Profissionais",
+    "reviews": "Avaliações e Feedback",
+    "reports": "Relatórios e Análises",
+    "entity": "Gestão de Entidade",
+    "security": "Segurança"
+  },
+  "events": {
+    "bookingCreated": {
+      "label": "Reserva Criada",
+      "description": "Quando uma nova reserva é criada"
+    },
+    "bookingConfirmed": {
+      "label": "Reserva Confirmada",
+      "description": "Quando uma reserva é confirmada"
+    },
+    "bookingRescheduled": {
+      "label": "Reserva Remarcada",
+      "description": "Quando o horário de uma reserva é alterado"
+    },
+    "bookingCancelled": {
+      "label": "Reserva Cancelada",
+      "description": "Quando uma reserva é cancelada"
+    },
+    "bookingCompleted": {
+      "label": "Reserva Concluída",
+      "description": "Quando uma reserva é concluída"
+    },
+    "bookingNoShow": {
+      "label": "Reserva Sem Comparência",
+      "description": "Quando um cliente não comparece"
+    },
+    "bookingReminder24h": {
+      "label": "24 Horas Antes",
+      "description": "Lembrete enviado 24 horas antes do compromisso"
+    },
+    "bookingReminder2h": {
+      "label": "2 Horas Antes",
+      "description": "Lembrete enviado 2 horas antes do compromisso"
+    },
+    "bookingReminder30min": {
+      "label": "30 Minutos Antes",
+      "description": "Lembrete enviado 30 minutos antes do compromisso"
+    },
+    "clientWelcome": {
+      "label": "Mensagem de Boas-vindas",
+      "description": "Quando um novo cliente se regista"
+    },
+    "clientFirstBooking": {
+      "label": "Primeira Reserva",
+      "description": "Após a primeira reserva do cliente"
+    }
+  },
+  "upgrade": {
+    "title": "Quer notificações por SMS e WhatsApp?",
+    "description": "Faça upgrade para o plano Individual ou Business para desbloquear:",
+    "features": {
+      "sms": "Lembretes e Atualizações por SMS",
+      "whatsapp": "Notificações WhatsApp Business",
+      "firstBooking": "Alertas de Primeira Reserva do Cliente"
+    },
+    "button": "Ver Planos e Fazer Upgrade"
+  },
+  "table": {
+    "notification": "Notificação",
+    "sms": "SMS",
+    "whatsapp": "WhatsApp"
+  },
+  "actions": {
+    "save": "Guardar Preferências",
+    "saving": "A guardar...",
+    "reset": "Repor"
+  },
+  "messages": {
+    "saved": "Preferências de notificação guardadas com sucesso",
+    "loadError": "Falha ao carregar preferências de notificação",
+    "saveError": "Falha ao guardar preferências",
+    "entityNotFound": "ID da entidade não encontrado. Não é possível guardar preferências."
+  }
+}

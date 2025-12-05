@@ -1,0 +1,34 @@
+{
+  "title": "Aceitar Convite",
+  "invalidInvitation": {
+    "title": "Convite Inválido",
+    "description": "O link do convite é inválido ou está em falta. Por favor, contacte o seu administrador."
+  },
+  "description": {
+    "simple": "Configure a sua password para aceder à plataforma",
+    "complete": "Complete o seu perfil para aceder à plataforma"
+  },
+  "form": {
+    "firstName": "Primeiro Nome",
+    "firstNamePlaceholder": "João",
+    "lastName": "Último Nome",
+    "lastNamePlaceholder": "Silva",
+    "jobFunction": "Função",
+    "jobFunctionPlaceholder": "Ex: Estilista Sénior",
+    "jobFunctionHint": "O seu cargo visível para os clientes",
+    "password": "Password",
+    "passwordPlaceholder": "Introduza a sua password",
+    "passwordHint": "Deve ter pelo menos 8 caracteres",
+    "confirmPassword": "Confirmar Password",
+    "confirmPasswordPlaceholder": "Confirme a sua password"
+  },
+  "submit": "Aceitar Convite e Criar Conta",
+  "messages": {
+    "invalidLink": "Link de convite inválido",
+    "invalidToken": "Link de convite inválido ou expirado",
+    "passwordMismatch": "As passwords não coincidem",
+    "passwordLength": "A password deve ter pelo menos 8 caracteres",
+    "success": "Convite aceite! Por favor, faça login.",
+    "error": "Falha ao aceitar o convite"
+  }
+}

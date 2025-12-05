@@ -1,0 +1,46 @@
+{
+  "title": "Os Meus Rendimentos",
+  "subtitle": "Acompanhe os seus rendimentos de serviços concluídos",
+  "loading": "A carregar dados de rendimentos...",
+  "exportStatement": "Exportar Extrato",
+  "stats": {
+    "thisMonth": "Este Mês",
+    "lastMonth": "Mês Passado",
+    "pending": "Pendente",
+    "totalEarned": "Total Ganho",
+    "vsLastMonth": "vs mês passado",
+    "noChange": "Sem alteração",
+    "confirmedBookings": "marcação confirmada",
+    "confirmedBookingsPlural": "marcações confirmadas",
+    "completedServices": "serviço concluído",
+    "completedServicesPlural": "serviços concluídos"
+  },
+  "chart": {
+    "title": "Rendimentos Mensais",
+    "description": "Os seus rendimentos durante o período selecionado",
+    "periods": {
+      "3months": "Últimos 3 meses",
+      "6months": "Últimos 6 meses",
+      "12months": "Últimos 12 meses"
+    }
+  },
+  "recentActivity": {
+    "title": "Atividade Recente",
+    "description": "Os seus últimos serviços concluídos",
+    "noServices": "Ainda não há serviços concluídos",
+    "unknownClient": "Cliente Desconhecido",
+    "unknownService": "Serviço Desconhecido"
+  },
+  "summary": {
+    "title": "Resumo deste Mês",
+    "description": "Visão geral de {{month}}",
+    "totalEarnings": "Rendimentos Totais",
+    "completedServices": "Serviços Concluídos",
+    "pendingEarnings": "Rendimentos Pendentes",
+    "averagePerService": "Média por Serviço"
+  },
+  "messages": {
+    "exportComingSoon": "Exportação de extrato em breve",
+    "exportFailed": "Falha ao exportar extrato"
+  }
+}

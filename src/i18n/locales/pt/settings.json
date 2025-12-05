@@ -1,69 +1,125 @@
 {
     "title": "Configurações",
-    "description": "Gerencie as configurações da sua conta e preferências",
+    "description": "Gerir as configurações da sua conta e negócio",
     "tabs": {
         "business": "Negócio",
         "profile": "Perfil",
-        "workingHours": "Horário de Funcionamento",
-        "notifications": "Notificações",
-        "appearance": "Aparência",
+        "workingHours": "Horário",
+        "features": "Funcionalidades",
         "privacy": "Privacidade"
     },
-    "business": {
-        "title": "Perfil da Empresa",
-        "description": "Configure as informações da sua empresa e página pública"
-    },
     "profile": {
-        "title": "Perfil Pessoal",
-        "description": "Gerencie suas informações pessoais",
+        "title": "Informações do Perfil",
+        "description": "Atualize as suas informações pessoais",
         "name": "Nome",
-        "phone": "Telefone",
         "email": "Email",
-        "description": "Descrição",
-        "address": "Endereço",
-        "website": "Website"
+        "phone": "Telefone",
+        "address": "Morada",
+        "website": "Website",
+        "firstName": "Primeiro Nome",
+        "firstNamePlaceholder": "Introduza o seu primeiro nome",
+        "lastName": "Apelido",
+        "lastNamePlaceholder": "Introduza o seu apelido"
+    },
+    "privacy": {
+        "title": "Definições de Privacidade",
+        "description": "Controle a sua visibilidade e partilha de dados",
+        "profileVisible": "Perfil Visível",
+        "profileVisibleDesc": "Permitir que o seu perfil seja visível publicamente"
     },
     "workingHours": {
         "title": "Horário de Funcionamento",
-        "description": "Defina seus horários de disponibilidade"
+        "description": "Defina o seu horário de funcionamento semanal",
+        "slotDuration": "Duração Padrão do Slot",
+        "slotDurationDesc": "Duração padrão para os seus compromissos (em minutos)"
     },
-    "notifications": {
-        "title": "Preferências de Notificação",
-        "description": "Escolha como você quer ser notificado",
-        "email": "Notificações por Email",
-        "emailDesc": "Receba atualizações sobre agendamentos por email",
-        "sms": "Notificações por SMS",
-        "smsDesc": "Receba atualizações sobre agendamentos por SMS",
-        "reminders": "Lembretes de Agendamento",
-        "remindersDesc": "Receba lembretes antes dos seus agendamentos"
+    "features": {
+        "title": "Funcionalidades e Add-ons",
+        "description": "Gerir funcionalidades adicionais e subscrições para a sua conta",
+        "aiInsights": "Insights Operacionais de IA",
+        "aiInsightsDesc": "Obtenha insights baseados em IA sobre os seus agendamentos, receita e eficiência operacional."
     },
-    "appearance": {
-        "title": "Aparência",
-        "description": "Personalize a aparência do aplicativo",
-        "theme": "Tema",
-        "language": "Idioma",
-        "timezone": "Fuso Horário",
-        "currency": "Moeda"
-    },
-    "privacy": {
-        "title": "Privacidade",
-        "description": "Gerencie suas configurações de privacidade",
-        "profileVisible": "Perfil Público Visível",
-        "profileVisibleDesc": "Permitir que seu perfil seja encontrado publicamente",
-        "twoFactor": "Autenticação de Dois Fatores",
-        "twoFactorDesc": "Adicione uma camada extra de segurança à sua conta"
+    "days": {
+        "monday": "Segunda-feira",
+        "tuesday": "Terça-feira",
+        "wednesday": "Quarta-feira",
+        "thursday": "Quinta-feira",
+        "friday": "Sexta-feira",
+        "saturday": "Sábado",
+        "sunday": "Domingo"
     },
     "actions": {
-        "save": "Salvar Alterações",
-        "saving": "Salvando...",
-        "cancel": "Cancelar"
+        "save": "Guardar",
+        "saving": "A guardar...",
+        "cancel": "Cancelar",
+        "reset": "Repor"
+    },
+    "success": {
+        "profileSaved": "Perfil guardado com sucesso",
+        "settingsSaved": "Definições guardadas com sucesso",
+        "logoUploaded": "Logótipo carregado!",
+        "bannerUploaded": "Banner carregado!",
+        "linkCopied": "Link copiado para a área de transferência!",
+        "checkUsernameFailed": "Falha ao verificar disponibilidade do nome de utilizador",
+        "uploadFailed": "Falha ao carregar {{type}}"
+    },
+    "business": {
+        "title": "Perfil de Negócio",
+        "subtitle": "Configure as informações do seu negócio e definições da página pública",
+        "logo": {
+            "title": "Logótipo",
+            "description": "O logótipo do seu negócio (recomendado: 200x200px)",
+            "upload": "Carregar Logótipo",
+            "change": "Alterar Logótipo",
+            "format": "JPG, PNG ou GIF. Máx 5MB"
+        },
+        "banner": {
+            "title": "Banner de Capa",
+            "description": "Imagem de cabeçalho para a sua página pública (recomendado: 1200x400px)",
+            "upload": "Carregar Banner",
+            "change": "Alterar Banner",
+            "noBanner": "Nenhum banner carregado"
+        },
+        "basicInfo": {
+            "title": "Informação Básica",
+            "description": "Detalhes essenciais sobre o seu negócio",
+            "businessName": "Nome do Negócio",
+            "businessNamePlaceholder": "Nome do Seu Negócio",
+            "username": "Nome de Utilizador",
+            "usernamePlaceholder": "oseunegocio",
+            "usernameHint": "O seu identificador único (3-30 caracteres)",
+            "usernameAvailable": "Nome de utilizador disponível",
+            "usernameTaken": "Nome de utilizador já em uso",
+            "businessDescription": "Descrição do Negócio",
+            "descriptionPlaceholder": "Descreva o seu negócio e serviços...",
+            "address": "Morada",
+            "addressPlaceholder": "Rua Principal 123, Cidade",
+            "phone": "Número de Telefone",
+            "phonePlaceholder": "+351 123 456 789",
+            "email": "Email de Negócio",
+            "emailPlaceholder": "contacto@oseunegocio.com",
+            "website": "Website",
+            "websitePlaceholder": "https://www.oseunegocio.com"
+        },
+        "publicPage": {
+            "title": "URL da Página Pública",
+            "description": "Partilhe este link com os seus clientes para agendarem marcações",
+            "preview": "Pré-visualizar",
+            "qrCode": "Código QR",
+            "directLink": "Link Direto",
+            "qrCompatible": "Compatível com QR Code",
+            "copyLink": "Copiar Link",
+            "downloadQr": "Descarregar QR",
+            "configureFirst": "Configure um nome de utilizador primeiro",
+            "configureFirstDesc": "O seu URL de agendamento público aparecerá aqui assim que definir um nome de utilizador",
+            "qrDialogTitle": "Código QR para o Seu Negócio",
+            "qrDialogDesc": "Os clientes podem digitalizar este código QR para aceder à sua página de agendamentos"
+        },
+        "save": "Guardar Perfil"
     },
     "errors": {
         "loadFailed": "Falha ao carregar configurações",
-        "saveFailed": "Falha ao salvar configurações"
-    },
-    "success": {
-        "profileSaved": "Perfil salvo com sucesso",
-        "settingsSaved": "Configurações salvas com sucesso"
+        "saveFailed": "Falha ao guardar configurações",
+        "unauthorized": "Apenas proprietários podem modificar configurações"
     }
 }

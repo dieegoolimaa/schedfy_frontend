@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+
 import {
     Dialog,
     DialogContent,
@@ -55,7 +55,7 @@ export function EditUserDialog({
     onClose,
     onSave,
 }: Readonly<EditUserDialogProps>) {
-    const { t } = useTranslation();
+    // const { t } = useTranslation();
     const [formData, setFormData] = useState<Partial<User>>({});
 
     useEffect(() => {
@@ -161,17 +161,37 @@ interface PermissionsDialogProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (userId: string, permissions: string[]) => void;
+    planType?: 'simple' | 'individual' | 'business';
 }
 
 const AVAILABLE_PERMISSIONS = [
-    { id: "bookings", label: "Manage Bookings" },
-    { id: "services", label: "Manage Services" },
-    { id: "professionals", label: "Manage Professionals" },
-    { id: "users", label: "Manage Users" },
-    { id: "clients", label: "Manage Clients" },
-    { id: "reports", label: "View Reports" },
-    { id: "financial_reports", label: "View Financial Reports" },
-    { id: "settings", label: "Manage Settings" },
+    // Bookings
+    { id: "canViewAllBookings", label: "View All Bookings" },
+    { id: "canManageBookings", label: "Manage Bookings" },
+
+    // Clients
+    { id: "canViewClients", label: "View Clients" },
+    { id: "canManageClients", label: "Manage Clients" },
+
+    // Services
+    { id: "canViewServices", label: "View Services" },
+    { id: "canManageServices", label: "Manage Services" },
+
+    // Team
+    { id: "canViewTeam", label: "View Team" },
+    { id: "canInviteMembers", label: "Invite Members" },
+    { id: "canRemoveMembers", label: "Remove Members" },
+
+    // Financial
+    { id: "canViewFinancialReports", label: "View Financial Reports" },
+    { id: "canManagePayments", label: "Manage Payments" },
+
+    // Settings
+    { id: "canEditEntitySettings", label: "Edit Entity Settings" },
+    { id: "canManageSubscription", label: "Manage Subscription" },
+
+    // AI
+    { id: "canViewAIInsights", label: "View AI Insights" },
 ];
 
 export function PermissionsDialog({
@@ -179,6 +199,7 @@ export function PermissionsDialog({
     isOpen,
     onClose,
     onSave,
+    planType = 'simple',
 }: Readonly<PermissionsDialogProps>) {
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
@@ -205,6 +226,19 @@ export function PermissionsDialog({
 
     if (!user) return null;
 
+    // Filter permissions based on plan
+    // Filter permissions based on plan
+    const filteredPermissions = AVAILABLE_PERMISSIONS.filter(p => {
+        // Financial reports only for Business (or maybe Individual?)
+        // Plan says: "Simple account não deve poder ver/gerenciar Financial Reports"
+        if (planType === 'simple' && (p.id === 'canViewFinancialReports' || p.id === 'canManagePayments' || p.id === 'canManageSubscription')) return false;
+
+        // AI Insights only for Business
+        if (planType !== 'business' && p.id === 'canViewAIInsights') return false;
+
+        return true;
+    });
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[500px]">
@@ -216,7 +250,7 @@ export function PermissionsDialog({
                 </DialogHeader>
                 <ScrollArea className="h-[300px] pr-4">
                     <div className="space-y-4">
-                        {AVAILABLE_PERMISSIONS.map((permission) => (
+                        {filteredPermissions.map((permission) => (
                             <div key={permission.id} className="flex items-center space-x-2">
                                 <Checkbox
                                     id={permission.id}

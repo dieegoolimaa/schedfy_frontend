@@ -17,20 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-interface AIFinancialInsight {
-    type: 'success' | 'warning' | 'info' | 'prediction';
-    title: string;
-    description: string;
-    impact?: string;
-    action?: {
-        label: string;
-        onClick: () => void;
-    };
-    metric?: {
-        value: string;
-        change?: number;
-    };
-}
+
 
 interface AIFinancialInsightsProps {
     revenue?: number;
@@ -38,51 +25,33 @@ interface AIFinancialInsightsProps {
     dateRange?: { start: Date; end: Date };
 }
 
-export function AIFinancialInsights({ revenue = 0, bookings = [], dateRange }: AIFinancialInsightsProps) {
-    // Generate AI insights based on data
-    const insights: AIFinancialInsight[] = [
-        {
-            type: 'prediction',
-            title: 'Revenue Forecast',
-            description: 'Based on current trends, you\'re projected to reach €12,500 by month end.',
-            impact: '+15% vs last month',
-            metric: {
-                value: '€12.5K',
-                change: 15
-            }
-        },
-        {
-            type: 'success',
-            title: 'Peak Performance',
-            description: 'Tuesdays and Thursdays generate 40% more revenue. Consider adding more slots.',
-            action: {
-                label: 'Optimize Schedule',
-                onClick: () => console.log('Optimize schedule')
-            }
-        },
-        {
-            type: 'warning',
-            title: 'Pricing Opportunity',
-            description: 'Your top service is underpriced by 20% compared to market average.',
-            action: {
-                label: 'Review Pricing',
-                onClick: () => console.log('Review pricing')
-            },
-            metric: {
-                value: '+€2.3K',
-                change: 20
-            }
-        },
-        {
-            type: 'info',
-            title: 'Client Retention',
-            description: 'Repeat clients contribute 65% of revenue. Focus on retention programs.',
-            metric: {
-                value: '65%',
-                change: 5
-            }
-        }
-    ];
+import { useQuery } from "@tanstack/react-query";
+import { reportsService } from "../../services/reports.service";
+import { useAIFeatures } from "../../hooks/useAIFeatures";
+
+export function AIFinancialInsights({ revenue = 0, bookings = [] }: AIFinancialInsightsProps) {
+    const { canUse } = useAIFeatures();
+
+    // Fetch AI insights from backend
+    const { data: insightsData, isLoading } = useQuery({
+        queryKey: ['ai-financial-insights'],
+        queryFn: reportsService.getFinancialInsights,
+        enabled: canUse,
+    });
+
+    if (!canUse) {
+        return null;
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            </div>
+        );
+    }
+
+    const insights = insightsData?.insights || [];
 
     const getInsightIcon = (type: string) => {
         switch (type) {

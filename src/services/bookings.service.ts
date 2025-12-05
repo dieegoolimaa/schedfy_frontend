@@ -18,10 +18,11 @@ export type { Booking, CreateBookingDto, UpdateBookingDto, BookingFilters, TimeS
 export const bookingsService = {
     getAvailableSlots: async (params: {
         entityId: string;
-        serviceId: string;
+        serviceId?: string;
         date: string;
         professionalId?: string;
         includeOverbooking?: boolean; // Only for internal/authenticated users
+        duration?: number;
     }) => {
         return apiClient.get<TimeSlot[]>('/api/bookings/available-slots', params);
     },

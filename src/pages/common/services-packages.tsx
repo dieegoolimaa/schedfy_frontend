@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useCurrency } from "../../hooks/useCurrency";
 import {
@@ -76,6 +77,7 @@ import { useNavigate } from "react-router-dom";
 import { usePromotions } from "../../hooks/usePromotions";
 
 const ServicesAndPackages: React.FC = () => {
+  const { t } = useTranslation("services");
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
   const navigate = useNavigate();
@@ -708,11 +710,10 @@ const ServicesAndPackages: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Sparkles className="w-6 h-6 sm:w-8 sm:h-8" />
-            Serviços e Pacotes
+            {t("title")}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Gerencie seus serviços
-            {hasPackageAccess && " e crie pacotes promocionais"}
+            {hasPackageAccess ? t("subtitleWithPackages") : t("subtitle")}
           </p>
         </div>
       </div>
@@ -722,13 +723,13 @@ const ServicesAndPackages: React.FC = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total de Serviços
+              {t("stats.totalServices")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalServices}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {activeServices.length} ativos
+              {activeServices.length} {t("stats.active")}
             </p>
           </CardContent>
         </Card>
@@ -738,13 +739,13 @@ const ServicesAndPackages: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total de Pacotes
+                  {t("stats.totalPackages")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalPackages}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {activePackages} ativos
+                  {activePackages} {t("stats.active")}
                 </p>
               </CardContent>
             </Card>
@@ -752,7 +753,7 @@ const ServicesAndPackages: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Assinaturas
+                  {t("stats.subscriptions")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -761,7 +762,7 @@ const ServicesAndPackages: React.FC = () => {
                   {activeSubscriptions}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  de {totalSubscriptions} totais
+                  {t("stats.of")} {totalSubscriptions} {t("stats.total")}
                 </p>
               </CardContent>
             </Card>
@@ -769,7 +770,7 @@ const ServicesAndPackages: React.FC = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Receita Total
+                  {t("stats.totalRevenue")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -777,7 +778,7 @@ const ServicesAndPackages: React.FC = () => {
                   <DollarSign className="w-5 h-5 text-blue-500" />
                   {formatCurrency(totalRevenue)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">de pacotes</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("stats.fromPackages")}</p>
               </CardContent>
             </Card>
           </>
@@ -790,14 +791,14 @@ const ServicesAndPackages: React.FC = () => {
           className={`grid w-full ${hasPackageAccess ? "grid-cols-3" : "grid-cols-1"
             }`}
         >
-          <TabsTrigger value="services">Serviços ({totalServices})</TabsTrigger>
+          <TabsTrigger value="services">{t("tabs.services")} ({totalServices})</TabsTrigger>
           {hasPackageAccess && (
             <>
               <TabsTrigger value="packages">
-                Pacotes ({totalPackages})
+                {t("tabs.packages")} ({totalPackages})
               </TabsTrigger>
               <TabsTrigger value="subscriptions">
-                Assinaturas ({totalSubscriptions})
+                {t("tabs.subscriptions")} ({totalSubscriptions})
               </TabsTrigger>
             </>
           )}
@@ -810,7 +811,7 @@ const ServicesAndPackages: React.FC = () => {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar serviços..."
+                placeholder={t("services.searchPlaceholder")}
                 value={serviceSearchTerm}
                 onChange={(e) => setServiceSearchTerm(e.target.value)}
                 className="pl-10"
@@ -823,10 +824,10 @@ const ServicesAndPackages: React.FC = () => {
                 onValueChange={setServiceCategoryFilter}
               >
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Categoria" />
+                  <SelectValue placeholder={t("services.table.category")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="all">{t("services.filters.allCategories")}</SelectItem>
                   {Array.from(
                     new Set(services.map((s) => s.category).filter((c): c is string => !!c))
                   )
@@ -847,9 +848,9 @@ const ServicesAndPackages: React.FC = () => {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Ativos</SelectItem>
-                  <SelectItem value="inactive">Inativos</SelectItem>
+                  <SelectItem value="all">{t("services.filters.allStatus")}</SelectItem>
+                  <SelectItem value="active">{t("services.status.active")}</SelectItem>
+                  <SelectItem value="inactive">{t("services.status.inactive")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -862,7 +863,7 @@ const ServicesAndPackages: React.FC = () => {
                   setServiceStatusFilter("all");
                 }}
               >
-                Limpar
+                {t("actions.reset", "Clear")}
               </Button>
             </div>
           </div>
@@ -877,21 +878,21 @@ const ServicesAndPackages: React.FC = () => {
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="w-4 h-4 mr-2" />
-                    Criar Serviço
+                    {t("services.addService")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Criar Novo Serviço</DialogTitle>
+                    <DialogTitle>{t("services.addService")}</DialogTitle>
                     <DialogDescription>
-                      Adicione um novo serviço ao seu catálogo
+                      {t("services.form.description", "Add a new service to your catalog")}
                     </DialogDescription>
                   </DialogHeader>
 
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="service-name">Nome do Serviço *</Label>
+                        <Label htmlFor="service-name">{t("services.form.name")} *</Label>
                         <Input
                           id="service-name"
                           value={serviceFormData.name}
@@ -901,12 +902,12 @@ const ServicesAndPackages: React.FC = () => {
                               name: e.target.value,
                             })
                           }
-                          placeholder="Ex: Corte de Cabelo"
+                          placeholder={t("services.form.namePlaceholder", "e.g., Haircut")}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="service-category">Categoria *</Label>
+                        <Label htmlFor="service-category">{t("services.form.category")} *</Label>
                         <Select
                           value={
                             showCustomCategory
@@ -1037,7 +1038,7 @@ const ServicesAndPackages: React.FC = () => {
                           htmlFor="service-active"
                           className="cursor-pointer"
                         >
-                          Ativo
+                          {t("services.form.isActive")}
                         </Label>
                       </div>
 
@@ -1056,7 +1057,7 @@ const ServicesAndPackages: React.FC = () => {
                           htmlFor="service-public"
                           className="cursor-pointer"
                         >
-                          Visível publicamente
+                          {t("services.form.isPublic")}
                         </Label>
                       </div>
 
@@ -1075,7 +1076,7 @@ const ServicesAndPackages: React.FC = () => {
                           htmlFor="service-manual-confirm"
                           className="cursor-pointer"
                         >
-                          Confirmação manual
+                          {t("services.form.requireManualConfirmation")}
                         </Label>
                       </div>
                     </div>
@@ -1089,9 +1090,9 @@ const ServicesAndPackages: React.FC = () => {
                         resetServiceForm();
                       }}
                     >
-                      Cancelar
+                      {t("actions.cancel")}
                     </Button>
-                    <Button onClick={handleCreateService}>Criar Serviço</Button>
+                    <Button onClick={handleCreateService}>{t("services.addService")}</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -1100,21 +1101,21 @@ const ServicesAndPackages: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Seus Serviços</CardTitle>
+              <CardTitle>{t("services.title")}</CardTitle>
               <CardDescription>
-                Gerencie todos os serviços disponíveis
+                {t("services.form.description", "Manage all available services")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Duração</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead>{t("services.table.name")}</TableHead>
+                    <TableHead>{t("services.table.category")}</TableHead>
+                    <TableHead>{t("services.table.duration")}</TableHead>
+                    <TableHead>{t("services.table.price")}</TableHead>
+                    <TableHead>{t("services.table.status")}</TableHead>
+                    <TableHead className="text-right">{t("services.table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1124,7 +1125,7 @@ const ServicesAndPackages: React.FC = () => {
                         colSpan={6}
                         className="text-center py-8 text-muted-foreground"
                       >
-                        Nenhum serviço encontrado
+                        {t("services.noServices")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -1152,19 +1153,19 @@ const ServicesAndPackages: React.FC = () => {
                               {hasCommission && (
                                 <Badge variant="outline" className="text-[10px] px-1 py-0 bg-yellow-50 text-yellow-700 border-yellow-200 h-5">
                                   <DollarSign className="w-3 h-3 mr-1" />
-                                  Commission
+                                  {t("promotions.commissions")}
                                 </Badge>
                               )}
                               {hasVoucher && (
                                 <Badge variant="outline" className="text-[10px] px-1 py-0 bg-green-50 text-green-700 border-green-200 h-5">
                                   <Tag className="w-3 h-3 mr-1" />
-                                  Voucher
+                                  {t("promotions.vouchers")}
                                 </Badge>
                               )}
                               {hasDiscount && (
                                 <Badge variant="outline" className="text-[10px] px-1 py-0 bg-blue-50 text-blue-700 border-blue-200 h-5">
                                   <Percent className="w-3 h-3 mr-1" />
-                                  Discount
+                                  {t("promotions.discounts")}
                                 </Badge>
                               )}
                             </div>
@@ -1183,9 +1184,9 @@ const ServicesAndPackages: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             {(service as any).status !== "inactive" ? (
-                              <Badge variant="default">Ativo</Badge>
+                              <Badge variant="default">{t("services.status.active")}</Badge>
                             ) : (
-                              <Badge variant="secondary">Inativo</Badge>
+                              <Badge variant="secondary">{t("services.status.inactive")}</Badge>
                             )}
                           </TableCell>
                           <TableCell className="text-right">

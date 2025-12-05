@@ -1,44 +1,127 @@
 {
   "title": "Payment Management",
-  "description": "Track and manage payments",
-  "search": "Search payments...",
-  "filter": {
-    "all": "All Payments",
-    "status": "Status",
-    "method": "Payment Method"
+  "subtitle": {
+    "business": "Track and manage all payment transactions",
+    "individual": "Manage and record manual payments"
+  },
+  "upgrade": {
+    "title": "Payment Management",
+    "description": "Advanced payment management is available on Individual and Business plans. Upgrade your plan to track and manage payment transactions."
+  },
+  "loading": "Loading payments...",
+  "actions": {
+    "sync": "Sync",
+    "registerPayment": "Register Payment",
+    "cancel": "Cancel",
+    "register": "Register",
+    "export": "Export"
+  },
+  "dialog": {
+    "title": "Register New Payment",
+    "description": "Register payments made in cash, PIX or other offline methods"
+  },
+  "form": {
+    "amount": "Amount",
+    "paymentMethod": "Payment Method",
+    "paymentDate": "Payment Date",
+    "description": "Description",
+    "descriptionPlaceholder": "e.g., Consultation with Dr. John",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes..."
+  },
+  "paymentMethods": {
+    "cash": "Cash",
+    "pix": "PIX",
+    "debitCard": "Debit Card",
+    "creditCard": "Credit Card",
+    "bankTransfer": "Bank Transfer",
+    "card": "Card",
+    "transfer": "Transfer",
+    "mbway": "MB Way"
+  },
+  "status": {
+    "paid": "Paid",
+    "pending": "Pending",
+    "refunded": "Refunded",
+    "failed": "Failed",
+    "completed": "Completed"
   },
   "stats": {
     "totalRevenue": "Total Revenue",
-    "pendingPayments": "Pending Payments",
-    "completedPayments": "Completed Payments",
-    "failedPayments": "Failed Payments"
+    "transactions": "transactions",
+    "pending": "Pending",
+    "toReceive": "To receive",
+    "processingFees": "Processing Fees",
+    "ofRevenue": "of revenue",
+    "failedPayments": "Failed Payments",
+    "requireAttention": "Require attention"
+  },
+  "filters": {
+    "title": "Filters",
+    "status": "Status",
+    "all": "All",
+    "method": "Method",
+    "startDate": "Start Date",
+    "endDate": "End Date"
   },
   "table": {
-    "id": "Payment ID",
-    "booking": "Booking",
+    "title": "Payment History",
+    "paymentsFound": "payment(s) found",
+    "noPayments": "No payments found",
+    "id": "ID / Booking",
+    "date": "Date",
     "client": "Client",
+    "service": "Service",
     "amount": "Amount",
     "method": "Method",
+    "description": "Description",
     "status": "Status",
-    "date": "Date",
-    "actions": "Actions"
+    "actions": "Actions",
+    "booking": "Booking",
+    "by": "by",
+    "fee": "Fee"
   },
-  "methods": {
-    "creditCard": "Credit Card",
-    "debitCard": "Debit Card",
-    "cash": "Cash",
-    "pix": "PIX",
-    "bankTransfer": "Bank Transfer"
+  "messages": {
+    "success": "Payment registered successfully",
+    "error": "Failed to register payment",
+    "loadError": "Failed to load payments",
+    "invalidAmount": "Please enter a valid amount"
   },
-  "status": {
-    "pending": "Pending",
-    "completed": "Completed",
-    "failed": "Failed",
-    "refunded": "Refunded"
+  "success": {
+    "title": "Processing payment",
+    "description": "We are verifying your payment. This page will complete the booking once payment is confirmed.",
+    "missingBooking": "Missing booking id",
+    "confirmed": "Payment confirmed and booking completed",
+    "completeFailed": "Payment confirmed but failed to complete booking",
+    "timeout": "Payment confirmation timed out. Please check your booking status later.",
+    "verifyFailed": "Failed to verify payment status",
+    "waiting": "Waiting for payment confirmation…",
+    "received": "Payment received. Completing booking…",
+    "completed": "Booking completed — redirecting…",
+    "timeoutMessage": "Payment not confirmed in time. Check your booking later.",
+    "errorMessage": "There was an error verifying payment. Please try again later."
   },
-  "actions": {
-    "viewDetails": "View Details",
-    "refund": "Refund",
-    "resend": "Resend Receipt"
+  "receipt": {
+    "title": "Payment Receipt",
+    "error": "Error",
+    "notFound": "Receipt not found",
+    "loadError": "Could not load receipt details.",
+    "print": "Print",
+    "totalAmount": "Total Amount",
+    "paidTo": "Paid to",
+    "paidBy": "Paid by",
+    "company": "Company",
+    "client": "Client",
+    "transactionDetails": "Transaction Details",
+    "transactionId": "Transaction ID",
+    "paymentMethod": "Payment Method",
+    "status": "Status",
+    "paid": "Paid",
+    "description": "Description",
+    "thankYou": "Thank you for your business!",
+    "questions": "If you have any questions, please contact us.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit"
   }
 }

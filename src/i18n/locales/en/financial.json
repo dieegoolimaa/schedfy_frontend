@@ -1,62 +1,146 @@
 {
   "title": "Financial Reports",
-  "description": "Track your revenue and expenses",
+  "subtitle": "Track your revenue, commissions, and payment analytics",
+  "tabs": {
+    "overview": "Overview",
+    "professionals": "Professionals",
+    "goals": "Goals & Targets",
+    "commissions": "Commissions",
+    "vouchers": "Vouchers",
+    "impact": "Promotions Impact",
+    "transactions": "Transactions"
+  },
   "summary": {
     "totalRevenue": "Total Revenue",
+    "netRevenue": "Net Revenue",
     "totalCommissions": "Total Commissions",
     "vouchersUsed": "Vouchers Used",
-    "netRevenue": "Net Revenue",
-    "afterDeductions": "After all deductions",
+    "totalVouchers": "Total Vouchers",
+    "afterDeductions": "After Deductions",
     "ofRevenue": "of revenue",
     "vsLastPeriod": "vs last period"
   },
-  "tabs": {
-    "overview": "Overview",
-    "commissions": "Commissions",
-    "vouchers": "Vouchers",
-    "transactions": "Transactions"
-  },
   "breakdown": {
-    "title": "Financial Breakdown",
-    "revenueBySource": "Revenue by Source",
-    "transactions": "transactions"
+    "revenueByService": "Revenue by Service",
+    "revenueByServiceDesc": "Breakdown of revenue by service category",
+    "transactions": "transactions",
+    "transactionSummary": "Transaction Summary",
+    "transactionSummaryDesc": "Key transaction metrics for the selected period",
+    "promotionsTitle": "Promotions Impact Analysis"
   },
   "metrics": {
     "totalTransactions": "Total Transactions",
     "averageTransaction": "Average Transaction",
     "transactionGrowth": "Transaction Growth"
   },
+  "impact": {
+    "totalDiscounts": "Total Discounts",
+    "bookingsCount": "Across {{count}} bookings",
+    "estimatedCommissions": "Estimated Commissions",
+    "activeRules": "Based on active rules",
+    "promotionUsage": "Promotion Usage",
+    "completedBookings": "of completed bookings",
+    "promotionalRevenue": "Promotional Revenue",
+    "discountedBookings": "Generated from discounted bookings"
+  },
+
   "commissions": {
-    "title": "Commission Breakdown",
-    "description": "Detailed view of all commissions",
-    "total": "Total Commissions"
+    "breakdown": "Commissions Breakdown",
+    "description": "Detailed breakdown of all commission charges"
   },
   "vouchers": {
-    "title": "Voucher Usage",
-    "description": "Track discount vouchers and promotions",
-    "used": "used",
-    "total": "Total Vouchers"
+    "usage": "Voucher Usage",
+    "description": "Detailed breakdown of vouchers and discounts applied"
+  },
+
+  "export": { "button": "Export Report" },
+  "professionals": {
+    "title": "Revenue by Professional",
+    "description": "Financial performance per professional",
+    "viewOperational": "View Operational Performance",
+    "table": {
+      "professional": "Professional",
+      "revenue": "Revenue",
+      "percentOfTotal": "% of Total",
+      "bookings": "Bookings",
+      "avgTicket": "Avg. Ticket"
+    }
+  },
+  "goals": {
+    "goalsProgress": "Goals Progress",
+    "setMonthlyGoals": "Set Monthly Goals",
+    "description": "Define your business targets for revenue, bookings, and new clients",
+    "trackPerformance": "Track your current performance vs. targets",
+    "form": {
+      "revenueTarget": "Revenue Target (€)",
+      "bookingsTarget": "Bookings Target",
+      "newClientsTarget": "New Clients Target",
+      "period": "Period",
+      "save": "Save Goals",
+      "placeholders": {
+        "revenue": "e.g., 5000",
+        "bookings": "e.g., 100",
+        "newClients": "e.g., 20"
+      },
+      "periods": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      }
+    },
+    "metrics": {
+      "revenue": "Revenue",
+      "bookings": "Bookings",
+      "newClients": "New Clients"
+    },
+    "status": {
+      "ofTarget": "of target",
+      "achieved": "🎉 Goal achieved!",
+      "noGoals": "No goals set yet",
+      "setTargets": "Set your targets to track progress"
+    }
   },
   "transactions": {
-    "title": "All Transactions",
-    "id": "ID",
-    "date": "Date",
-    "client": "Client",
-    "service": "Service",
-    "paymentMethod": "Payment Method",
-    "gross": "Gross",
-    "commission": "Commission",
-    "voucher": "Voucher",
-    "net": "Net",
-    "status": "Status",
-    "viewDetails": "View Details",
-    "grossAmount": "Gross Amount",
-    "voucherDiscount": "Voucher Discount",
-    "netAmount": "Net Amount"
+    "history": "Transaction History",
+    "description": "Detailed list of all financial transactions",
+    "table": {
+      "transaction": "Transaction",
+      "clientService": "Client & Service",
+      "professional": "Professional",
+      "payment": "Payment",
+      "gross": "Gross",
+      "commission": "Commission",
+      "voucher": "Voucher",
+      "net": "Net",
+      "status": "Status"
+    },
+    "dialog": {
+      "title": "Transaction Details",
+      "description": "Complete information for transaction {{id}}",
+      "id": "Transaction ID",
+      "dateTime": "Date & Time",
+      "client": "Client",
+      "professional": "Professional",
+      "service": "Service",
+      "paymentMethod": "Payment Method",
+      "grossAmount": "Gross Amount:",
+      "commission": "Commission:",
+      "voucherDiscount": "Voucher Discount:",
+      "netAmount": "Net Amount:"
+    }
   },
-  "export": {
-    "button": "Export",
-    "csv": "Export CSV",
-    "pdf": "Export PDF"
+  "filters": {
+    "search": "Search transactions...",
+    "paymentMethod": "Payment method",
+    "serviceType": "Service type",
+    "allMethods": "All Methods",
+    "card": "Card",
+    "cash": "Cash",
+    "allServices": "All Services"
+  },
+  "status": {
+    "completed": "Completed",
+    "pending": "Pending",
+    "refunded": "Refunded"
   }
 }

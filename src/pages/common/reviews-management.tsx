@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
@@ -59,6 +60,7 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function ReviewsManagement() {
+  const { t } = useTranslation("reviews");
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
   const { toast } = useToast();
@@ -294,10 +296,10 @@ export default function ReviewsManagement() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Reviews & Feedback
+            {t("title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage customer reviews and respond to feedback
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -427,31 +429,31 @@ export default function ReviewsManagement() {
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
-              <Label className="text-xs mb-2 block">Filter by Rating</Label>
+              <Label className="text-xs mb-2 block">{t("filterByRating")}</Label>
               <Select value={ratingFilter} onValueChange={setRatingFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All Ratings" />
+                  <SelectValue placeholder={t("allRatings")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Ratings</SelectItem>
-                  <SelectItem value="5">5 Stars</SelectItem>
-                  <SelectItem value="4">4 Stars</SelectItem>
-                  <SelectItem value="3">3 Stars</SelectItem>
-                  <SelectItem value="2">2 Stars</SelectItem>
-                  <SelectItem value="1">1 Star</SelectItem>
+                  <SelectItem value="all">{t("allRatings")}</SelectItem>
+                  <SelectItem value="5">5 {t("stars")}</SelectItem>
+                  <SelectItem value="4">4 {t("stars")}</SelectItem>
+                  <SelectItem value="3">3 {t("stars")}</SelectItem>
+                  <SelectItem value="2">2 {t("stars")}</SelectItem>
+                  <SelectItem value="1">1 {t("stars")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex-1 min-w-[200px]">
-              <Label className="text-xs mb-2 block">Sort By</Label>
+              <Label className="text-xs mb-2 block">{t("sortBy")}</Label>
               <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sort By" />
+                  <SelectValue placeholder={t("sortBy")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="createdAt">Most Recent</SelectItem>
-                  <SelectItem value="rating">Highest Rating</SelectItem>
+                  <SelectItem value="createdAt">{t("mostRecent")}</SelectItem>
+                  <SelectItem value="rating">{t("highestRating")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -468,13 +470,13 @@ export default function ReviewsManagement() {
           >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all">
-                All Reviews ({reviews.length})
+                {t("tabs.allReviews")} ({reviews.length})
               </TabsTrigger>
               <TabsTrigger value="pending">
-                Pending ({pendingCount})
+                {t("tabs.pending")} ({pendingCount})
               </TabsTrigger>
               <TabsTrigger value="responded">
-                Responded ({respondedCount})
+                {t("tabs.responded")} ({respondedCount})
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -487,9 +489,9 @@ export default function ReviewsManagement() {
           ) : reviews.length === 0 ? (
             <div className="text-center py-12">
               <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("noReviews")}</h3>
               <p className="text-muted-foreground">
-                Reviews from your clients will appear here
+                {t("noReviewsDesc")}
               </p>
             </div>
           ) : (

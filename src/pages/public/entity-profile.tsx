@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, isToday } from "date-fns";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/hooks/useCurrency";
 import { publicService } from "@/services/public.service";
 import { toast } from "sonner";
@@ -34,66 +35,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-interface PublicEntity {
-  id: string;
-  name: string;
-  slug: string;
-  logo?: string;
-  coverImage?: string;
-  description?: string;
-  phone?: string;
-  email?: string;
-  instagram?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  rating: number;
-  totalReviews: number;
-  workingHours: any;
-}
-
-interface PublicService {
-  id: string;
-  name: string;
-  description?: string;
-  duration: number;
-  price: number;
-  category?: string;
-  isActive: boolean;
-  professionalIds?: string[];
-}
-
-interface PublicProfessional {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  avatar?: string;
-  specialties?: string[];
-}
-
-interface ServicePackage {
-  _id: string;
-  name: string;
-  description?: string;
-  services: PublicService[];
-  pricing: {
-    packagePrice: number;
-    originalPrice: number;
-    discount: number;
-  };
-  validity: number;
-  sessionsIncluded: number;
-  status: string;
-}
-
-interface TimeSlot {
-  time: string;
-  professionalId?: string;
-}
+import type {
+  PublicEntity,
+  PublicService,
+  PublicProfessional,
+  PublicServicePackage as ServicePackage,
+  PublicTimeSlot as TimeSlot,
+} from "@/types/models/public.interface";
 
 export function PublicEntityProfilePage() {
+  const { t } = useTranslation(["publicBooking", "common"]);
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
@@ -136,6 +87,16 @@ export function PublicEntityProfilePage() {
     phone: "",
     notes: "",
   });
+
+  // Voucher state
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    amount: number;
+  } | null>(null);
+  const [validatingVoucher, setValidatingVoucher] = useState(false);
+
+  const [showAllTeam, setShowAllTeam] = useState(false);
 
   // Fetch entity data
   useEffect(() => {
@@ -208,9 +169,9 @@ export function PublicEntityProfilePage() {
       } catch (error: any) {
         console.error("Failed to load entity data:", error);
         if (error.response?.status === 404) {
-          toast.error("Business not found");
+          toast.error(t("profile.validation.entityNotFound"));
         } else {
-          toast.error("Failed to load business information");
+          toast.error(t("profile.validation.loadEntityFailed"));
         }
       } finally {
         setLoading(false);
@@ -268,16 +229,51 @@ export function PublicEntityProfilePage() {
         setAvailableSlots(response.data);
       } catch (error) {
         console.error("Failed to fetch slots:", error);
-        toast.error("Failed to load available times");
+        toast.error(t("messages.slotsFailed"));
       }
     };
 
     fetchSlots();
   }, [selectedDate, selectedService, selectedProfessional, entity?.id]);
 
+  const handleValidateVoucher = async () => {
+    if (!voucherCode || !entity || !selectedService) return;
+
+    const service = services.find((s) => s.id === selectedService);
+    if (!service) return;
+
+    setValidatingVoucher(true);
+    try {
+      const response = await publicService.validateVoucher({
+        entityId: entity.id,
+        code: voucherCode,
+        bookingValue: service.price,
+        serviceId: selectedService,
+        bookingDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined,
+      });
+
+      if (response.data.valid && response.data.discountAmount !== undefined) {
+        setAppliedDiscount({
+          code: voucherCode,
+          amount: response.data.discountAmount,
+        });
+        toast.success(t("profile.success.voucher"));
+      } else {
+        setAppliedDiscount(null);
+        toast.error(response.data.reason || t("profile.validation.invalidVoucher"));
+      }
+    } catch (error: any) {
+      console.error("Voucher validation failed:", error);
+      setAppliedDiscount(null);
+      toast.error(error.response?.data?.message || t("profile.validation.voucherFailed"));
+    } finally {
+      setValidatingVoucher(false);
+    }
+  };
+
   const handleBooking = async () => {
     if (!clientData.name || !clientData.email || !clientData.phone) {
-      toast.error("Please fill in all required information");
+      toast.error(t("profile.validation.fillAll"));
       return;
     }
 
@@ -287,13 +283,13 @@ export function PublicEntityProfilePage() {
     if (isPackageBooking) {
       // Validate all package bookings have date and slot
       if (packageBookings.some((b) => !b.date || !b.slot)) {
-        toast.error("Please schedule all services in the package");
+        toast.error(t("profile.validation.scheduleAll"));
         return;
       }
     } else {
       // Single service booking validation
       if (!selectedService || !selectedDate || !selectedSlot) {
-        toast.error("Please select all booking details");
+        toast.error(t("profile.validation.selectAll"));
         return;
       }
     }
@@ -347,13 +343,13 @@ export function PublicEntityProfilePage() {
         await Promise.all(bookingPromises);
 
         toast.success(
-          `${packageBookings.length} appointments confirmed! You will receive confirmation emails shortly.`
+          t("profile.success.package", { count: packageBookings.length })
         );
       } else {
         // Single service booking
         const service = services.find((s) => s.id === selectedService);
         if (!service) {
-          toast.error("Service not found");
+          toast.error(t("profile.validation.serviceNotFound"));
           return;
         }
 
@@ -386,13 +382,14 @@ export function PublicEntityProfilePage() {
             totalPrice: service.price || 0,
             currency: "EUR",
           },
+          voucherCode: appliedDiscount?.code,
           createdBy: entity!.id, // Using entity ID as creator for public bookings
         };
 
         await publicService.createBooking(bookingData as any);
 
         toast.success(
-          "Booking confirmed! You will receive a confirmation email shortly."
+          t("profile.success.single")
         );
       }
 
@@ -430,7 +427,7 @@ export function PublicEntityProfilePage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading profile...</p>
+          <p className="text-muted-foreground">{t("profile.loading")}</p>
         </div>
       </div>
     );
@@ -441,15 +438,36 @@ export function PublicEntityProfilePage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Business Not Found</CardTitle>
+            <CardTitle className="text-2xl">{t("profile.notFoundTitle")}</CardTitle>
             <CardDescription>
-              The business you're looking for doesn't exist or is not available.
+              {t("profile.notFoundDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <Button onClick={() => navigate("/")} className="mt-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Go Home
+              {t("notFound.goHome")}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if ((entity as any).publicProfile?.enabled === false) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">{t("profile.privateTitle")}</CardTitle>
+            <CardDescription>
+              {t("profile.privateDesc")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={() => navigate("/")} className="mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("notFound.goHome")}
             </Button>
           </CardContent>
         </Card>
@@ -483,7 +501,7 @@ export function PublicEntityProfilePage() {
             onClick={() => navigate("/")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            {t("common:back")}
           </Button>
 
           <Button
@@ -492,7 +510,7 @@ export function PublicEntityProfilePage() {
             className="bg-white/90 backdrop-blur-md hover:bg-white shadow-lg"
             onClick={() => {
               navigator.clipboard.writeText(globalThis.location.href);
-              toast.success("Link copied!");
+              toast.success(t("profile.linkCopied"));
             }}
           >
             <Share2 className="h-4 w-4" />
@@ -532,7 +550,7 @@ export function PublicEntityProfilePage() {
                       <div className="flex items-center gap-1.5">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         <span className="font-medium">{entity.rating}</span>
-                        <span>({entity.totalReviews} reviews)</span>
+                        <span>({entity.totalReviews} {t("profile.reviews")})</span>
                       </div>
                     </div>
                   </div>
@@ -549,7 +567,7 @@ export function PublicEntityProfilePage() {
                       <Button variant="outline" size="sm" asChild>
                         <a href={`tel:${entity.phone}`}>
                           <Phone className="h-4 w-4 mr-2" />
-                          Call
+                          {t("common:actions.call") || "Call"}
                         </a>
                       </Button>
                     )}
@@ -557,7 +575,7 @@ export function PublicEntityProfilePage() {
                       <Button variant="outline" size="sm" asChild>
                         <a href={`mailto:${entity.email}`}>
                           <Mail className="h-4 w-4 mr-2" />
-                          Email
+                          {t("profile.form.email")}
                         </a>
                       </Button>
                     )}
@@ -592,9 +610,9 @@ export function PublicEntityProfilePage() {
             {/* Services & Packages Tabs */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Book an Appointment</CardTitle>
+                <CardTitle className="text-2xl">{t("profile.bookTitle")}</CardTitle>
                 <CardDescription>
-                  Choose a service or package and select your preferred time
+                  {t("profile.bookDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -607,18 +625,18 @@ export function PublicEntityProfilePage() {
                     <TabsList className="grid w-full grid-cols-2 mb-6">
                       <TabsTrigger value="services" className="gap-2">
                         <Sparkles className="h-4 w-4" />
-                        Services ({services.length})
+                        {t("profile.tabs.services")} ({services.length})
                       </TabsTrigger>
                       <TabsTrigger value="packages" className="gap-2">
                         <Package className="h-4 w-4" />
-                        Packages ({packages.length})
+                        {t("profile.tabs.packages")} ({packages.length})
                       </TabsTrigger>
                     </TabsList>
                   ) : (
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <Sparkles className="h-5 w-5" />
-                        Available Services
+                        {t("profile.availableServices")}
                       </h3>
                     </div>
                   )}
@@ -628,7 +646,7 @@ export function PublicEntityProfilePage() {
                     {services.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground">
                         <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No services available at the moment</p>
+                        <p>{t("profile.noServices")}</p>
                       </div>
                     ) : (
                       <div className="grid sm:grid-cols-2 gap-4">
@@ -669,7 +687,7 @@ export function PublicEntityProfilePage() {
                               {selectedService === service.id && (
                                 <Badge className="mt-3 w-full justify-center">
                                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                                  Selected
+                                  {t("profile.selected")}
                                 </Badge>
                               )}
                             </CardContent>
@@ -684,7 +702,7 @@ export function PublicEntityProfilePage() {
                     {packages.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground">
                         <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No packages available at the moment</p>
+                        <p>{t("profile.noPackages")}</p>
                       </div>
                     ) : (
                       <div className="grid gap-4">
@@ -763,7 +781,7 @@ export function PublicEntityProfilePage() {
                                       variant="destructive"
                                       className="text-sm"
                                     >
-                                      -{pkg.pricing.discount.toFixed(0)}% OFF
+                                      -{pkg.pricing.discount.toFixed(0)}% {t("profile.off")}
                                     </Badge>
                                   )}
                                 </div>
@@ -819,7 +837,7 @@ export function PublicEntityProfilePage() {
                                 {selectedPackage === pkg._id && (
                                   <Badge className="w-full justify-center">
                                     <CheckCircle2 className="h-3 w-3 mr-1" />
-                                    Selected
+                                    {t("profile.selected")}
                                   </Badge>
                                 )}
                               </CardContent>
@@ -839,11 +857,10 @@ export function PublicEntityProfilePage() {
                   >
                     <div>
                       <h3 className="text-xl font-semibold mb-2">
-                        Schedule All Package Services
+                        {t("profile.scheduleAllTitle")}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        Please schedule appointments for each service included
-                        in your package.
+                        {t("profile.scheduleAllDesc")}
                       </p>
                     </div>
 
@@ -880,7 +897,7 @@ export function PublicEntityProfilePage() {
                                         className="text-xs"
                                       >
                                         <CheckCircle2 className="h-3 w-3 mr-1" />
-                                        Scheduled
+                                        {t("profile.scheduled")}
                                       </Badge>
                                     )}
                                   </div>
@@ -909,7 +926,7 @@ export function PublicEntityProfilePage() {
                               <div className="space-y-3">
                                 <div className="space-y-2">
                                   <Label className="text-sm">
-                                    Select Date & Time
+                                    {t("profile.selectDate")}
                                   </Label>
                                   <div className="grid grid-cols-2 gap-2">
                                     <Input
@@ -1005,7 +1022,7 @@ export function PublicEntityProfilePage() {
                                       }
                                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
-                                      <option value="">Select time</option>
+                                      <option value="">{t("profile.selectTime")}</option>
                                       {(booking.availableSlots || [])
                                         .filter((slot) => {
                                           // Filter out past slots if date is today
@@ -1147,10 +1164,10 @@ export function PublicEntityProfilePage() {
 
                     {/* Client Information for Package */}
                     <div className="space-y-4 pt-6 border-t">
-                      <h4 className="font-semibold">Your Information</h4>
+                      <h4 className="font-semibold">{t("profile.yourInfo")}</h4>
                       <div className="grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="pkg-name">Full Name *</Label>
+                          <Label htmlFor="pkg-name">{t("profile.form.name")} *</Label>
                           <Input
                             id="pkg-name"
                             placeholder="John Doe"
@@ -1164,7 +1181,7 @@ export function PublicEntityProfilePage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="pkg-email">Email *</Label>
+                          <Label htmlFor="pkg-email">{t("profile.form.email")} *</Label>
                           <Input
                             id="pkg-email"
                             type="email"
@@ -1180,7 +1197,7 @@ export function PublicEntityProfilePage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="pkg-phone">Phone *</Label>
+                        <Label htmlFor="pkg-phone">{t("profile.form.phone")} *</Label>
                         <Input
                           id="pkg-phone"
                           type="tel"
@@ -1195,7 +1212,7 @@ export function PublicEntityProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="pkg-notes">Additional Notes</Label>
+                        <Label htmlFor="pkg-notes">{t("profile.form.notes")}</Label>
                         <Textarea
                           id="pkg-notes"
                           placeholder="Any special requests or information..."
@@ -1227,12 +1244,12 @@ export function PublicEntityProfilePage() {
                       {booking ? (
                         <>
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Confirming {packageBookings.length} Appointments...
+                          {t("profile.confirmingPackage", { count: packageBookings.length })}
                         </>
                       ) : (
                         <>
                           <Calendar className="h-5 w-5 mr-2" />
-                          Confirm {packageBookings.length} Package Appointments
+                          {t("profile.confirmPackage", { count: packageBookings.length })}
                         </>
                       )}
                     </Button>
@@ -1242,12 +1259,12 @@ export function PublicEntityProfilePage() {
                 {/* Booking Form - Services (only show if NO package selected) */}
                 {selectedService && !selectedPackage && (
                   <div className="mt-8 space-y-6 pt-8 border-t">
-                    <h3 className="text-xl font-semibold">Booking Details</h3>
+                    <h3 className="text-xl font-semibold">{t("profile.bookingDetails")}</h3>
 
                     {/* Professional Selection (optional) */}
                     {availableProfessionals.length > 0 && (
                       <div className="space-y-2">
-                        <Label>Choose Professional (Optional)</Label>
+                        <Label>{t("profile.chooseProfessional")}</Label>
                         <div className="grid sm:grid-cols-2 gap-3">
                           {availableProfessionals.map((prof) => (
                             <Card
@@ -1287,11 +1304,11 @@ export function PublicEntityProfilePage() {
 
                     {/* Date & Time Selection */}
                     <div className="space-y-2">
-                      <Label>Select Date & Time</Label>
+                      <Label>{t("profile.selectDate")}</Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
                           <Label className="text-xs text-muted-foreground">
-                            Date
+                            {t("publicBooking:labels.dateTime")}
                           </Label>
                           <Input
                             type="date"
@@ -1332,7 +1349,7 @@ export function PublicEntityProfilePage() {
                             }
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            <option value="">Select time</option>
+                            <option value="">{t("profile.selectTime")}</option>
                             {availableSlots
                               .filter(
                                 (slot) =>
@@ -1359,12 +1376,11 @@ export function PublicEntityProfilePage() {
                       )}
                     </div>
 
-                    {/* Client Information */}
                     <div className="space-y-4 pt-6 border-t">
-                      <h4 className="font-semibold">Your Information</h4>
+                      <h4 className="font-semibold">{t("profile.yourInfo")}</h4>
                       <div className="grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="name">Full Name *</Label>
+                          <Label htmlFor="name">{t("profile.form.name")} *</Label>
                           <Input
                             id="name"
                             placeholder="John Doe"
@@ -1378,7 +1394,7 @@ export function PublicEntityProfilePage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email *</Label>
+                          <Label htmlFor="email">{t("profile.form.email")} *</Label>
                           <Input
                             id="email"
                             type="email"
@@ -1394,7 +1410,7 @@ export function PublicEntityProfilePage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Phone *</Label>
+                        <Label htmlFor="phone">{t("profile.form.phone")} *</Label>
                         <Input
                           id="phone"
                           type="tel"
@@ -1409,7 +1425,7 @@ export function PublicEntityProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="notes">Additional Notes</Label>
+                        <Label htmlFor="notes">{t("profile.form.notes")}</Label>
                         <Textarea
                           id="notes"
                           placeholder="Any special requests or information..."
@@ -1422,6 +1438,58 @@ export function PublicEntityProfilePage() {
                             })
                           }
                         />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-6 border-t">
+                      <h4 className="font-semibold">{t("profile.promotion")}</h4>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder={t("profile.form.voucher")}
+                          value={voucherCode}
+                          onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                          disabled={!!appliedDiscount}
+                        />
+                        {appliedDiscount ? (
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setAppliedDiscount(null);
+                              setVoucherCode("");
+                            }}
+                          >
+                            {t("profile.remove")}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            onClick={handleValidateVoucher}
+                            disabled={!voucherCode || validatingVoucher}
+                          >
+                            {validatingVoucher ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              t("profile.form.apply")
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                      {appliedDiscount && (
+                        <div className="flex justify-between items-center text-sm bg-green-50 text-green-700 p-3 rounded-md border border-green-200">
+                          <span>{t("profile.discountApplied")}</span>
+                          <span className="font-bold">
+                            -{formatCurrency(appliedDiscount.amount)}
+                          </span>
+                        </div>
+                      )}
+                      {/* Total Price Display */}
+                      <div className="flex justify-between items-center text-lg font-bold pt-2">
+                        <span>{t("profile.total")}</span>
+                        <span>
+                          {formatCurrency(
+                            Math.max(0, (services.find(s => s.id === selectedService)?.price || 0) - (appliedDiscount?.amount || 0))
+                          )}
+                        </span>
                       </div>
                     </div>
 
@@ -1443,12 +1511,12 @@ export function PublicEntityProfilePage() {
                       {booking ? (
                         <>
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Confirming...
+                          {t("profile.processing")}
                         </>
                       ) : (
                         <>
                           <Calendar className="h-5 w-5 mr-2" />
-                          Confirm Booking
+                          {t("profile.confirmBooking")}
                         </>
                       )}
                     </Button>
@@ -1460,13 +1528,13 @@ export function PublicEntityProfilePage() {
           {/* Right Sidebar - Team & Info */}
           <div className="space-y-6">
             {/* Team */}
-            {professionals.length > 0 && (
+            {entity.plan !== 'simple' && professionals.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Our Team</CardTitle>
+                  <CardTitle>{t("profile.ourTeam")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {professionals.map((prof) => (
+                  {(showAllTeam ? professionals : professionals.slice(0, 5)).map((prof) => (
                     <div key={prof.id} className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={prof.avatar} />
@@ -1486,6 +1554,16 @@ export function PublicEntityProfilePage() {
                       </div>
                     </div>
                   ))}
+
+                  {professionals.length > 5 && (
+                    <Button
+                      variant="ghost"
+                      className="w-full mt-2"
+                      onClick={() => setShowAllTeam(!showAllTeam)}
+                    >
+                      {showAllTeam ? t("profile.showLess") : t("profile.viewAll", { count: professionals.length })}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1493,7 +1571,7 @@ export function PublicEntityProfilePage() {
             {/* Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle>{t("profile.contactInfo")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {entity.phone && (

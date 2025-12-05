@@ -1,35 +1,144 @@
 {
-  "title": "Services",
-  "subtitle": "Manage the services offered by your entity",
-  "create": {
-    "title": "Create New Service",
-    "description": "Add a new service to your catalog"
+  "title": "Services & Packages",
+  "subtitle": "Manage your services",
+  "subtitleWithPackages": "Manage your services and create promotional packages",
+  "loading": "Loading...",
+  "stats": {
+    "totalServices": "Total Services",
+    "active": "active",
+    "totalPackages": "Total Packages",
+    "subscriptions": "Subscriptions",
+    "of": "of",
+    "total": "total",
+    "totalRevenue": "Total Revenue",
+    "fromPackages": "from packages"
   },
-  "edit": {
-    "title": "Edit Service",
-    "description": "Update service information"
+  "tabs": {
+    "services": "Services",
+    "packages": "Packages",
+    "subscriptions": "Subscriptions",
+    "promotions": "Promotions"
   },
-  "fields": {
-    "name": "Name",
-    "description": "Description",
-    "category": "Category",
-    "duration": "Duration",
-    "price": "Price",
-    "currency": "Currency",
-    "status": "Status",
-    "active": "Active",
-    "inactive": "Inactive"
+  "services": {
+    "title": "Services",
+    "addService": "Add Service",
+    "editService": "Edit Service",
+    "deleteService": "Delete Service",
+    "noServices": "No services found",
+    "searchPlaceholder": "Search services...",
+    "filters": {
+      "allCategories": "All Categories",
+      "allStatus": "All Status",
+      "clear": "Clear"
+    },
+    "table": {
+      "name": "Name",
+      "category": "Category",
+      "duration": "Duration",
+      "price": "Price",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "E.g.: Haircut",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the service...",
+      "category": "Category",
+      "categoryPlaceholder": "Select",
+      "customCategory": "Custom Category",
+      "customCategoryPlaceholder": "Enter custom category name",
+      "duration": "Duration (minutes)",
+      "durationPlaceholder": "E.g.: 60",
+      "price": "Price",
+      "isActive": "Active",
+      "isPublic": "Publicly visible",
+      "requireManualConfirmation": "Manual confirmation"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "card": {
+      "title": "Your Services",
+      "description": "Manage all available services"
+    }
   },
-  "actions": {
-    "create": "Create Service",
-    "edit": "Edit",
-    "delete": "Delete",
-    "activate": "Activate",
-    "deactivate": "Deactivate"
+  "categories": {
+    "haircut": "Haircut",
+    "color": "Coloring",
+    "treatment": "Treatment",
+    "styling": "Hairstyle",
+    "massage": "Massage",
+    "facial": "Facial",
+    "manicure": "Manicure",
+    "pedicure": "Pedicure",
+    "other": "Other",
+    "custom": "➕ Create Custom Category"
+  },
+  "modal": {
+    "createTitle": "Create New Service",
+    "createDescription": "Add a new service to your catalog",
+    "updateTitle": "Update Service"
+  },
+  "packages": {
+    "title": "Packages",
+    "addPackage": "Add Package",
+    "editPackage": "Edit Package",
+    "deletePackage": "Delete Package",
+    "noPackages": "No packages found",
+    "form": {
+      "name": "Name",
+      "description": "Description",
+      "services": "Services",
+      "packagePrice": "Package Price",
+      "recurrence": "Recurrence",
+      "validity": "Validity (days)",
+      "sessionsIncluded": "Sessions Included"
+    },
+    "recurrence": {
+      "oneTime": "One-time Payment",
+      "monthly": "Monthly"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "paused": "Paused"
+    }
+  },
+  "promotions": {
+    "title": "Promotions",
+    "commissions": "Commissions",
+    "vouchers": "Vouchers",
+    "discounts": "Discounts",
+    "managePromotions": "Manage Promotions",
+    "active": "active"
   },
   "messages": {
-    "created": "Service created successfully",
-    "updated": "Service updated successfully",
-    "deleted": "Service deleted successfully"
+    "serviceCreated": "Service created successfully!",
+    "serviceUpdated": "Service updated successfully!",
+    "serviceDeleted": "Service deleted successfully!",
+    "packageCreated": "Package created successfully!",
+    "packageUpdated": "Package updated successfully!",
+    "packageDeleted": "Package deleted successfully!",
+    "statusUpdated": "Status updated successfully!",
+    "error": "An error occurred",
+    "fillRequiredFields": "Please fill all required fields",
+    "selectAtLeastOneService": "Select at least one service",
+    "priceGreaterThanZero": "Price must be greater than zero",
+    "priceTooHigh": "Package price cannot be greater than total services value",
+    "confirmDelete": "Are you sure you want to delete?",
+    "unauthorized": "Only owners or managers can perform this action"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "assignProfessionals": "Assign Professionals"
   }
 }

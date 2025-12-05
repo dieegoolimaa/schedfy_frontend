@@ -1,0 +1,126 @@
+{
+  "title": "AI Premium",
+  "beta": "Beta",
+  "subtitle": "Supercharge your business with artificial intelligence",
+  "actions": {
+    "upgrade": "Upgrade to AI Premium",
+    "settings": "AI Settings",
+    "subscribe": "Subscribe Now",
+    "selectPlan": "Select Plan",
+    "apply": "Apply",
+    "learnMore": "Learn More"
+  },
+  "mock": {
+    "rec1": "Increase pricing for premium services by 15%",
+    "rec2": "Offer package deals during slow periods",
+    "rec3": "Implement dynamic pricing for peak hours",
+    "suggestedSchedule": "Add 2 hours on weekends"
+  },
+  "gate": {
+    "title": "AI Premium Coming Soon",
+    "description": "Our AI Premium features are currently in development and will be available for purchase soon. Stay tuned for powerful AI-driven insights and automation!",
+    "badge": "Feature Not Available Yet",
+    "expect": {
+      "title": "What to Expect",
+      "description": "AI Premium will revolutionize how you manage your business",
+      "scheduling": {
+        "title": "Smart Scheduling",
+        "description": "AI-powered appointment optimization"
+      },
+      "analytics": {
+        "title": "Predictive Analytics",
+        "description": "Forecast revenue and customer behavior"
+      },
+      "booking": {
+        "title": "Automated Booking",
+        "description": "24/7 AI chatbot for customer bookings"
+      },
+      "pricing": {
+        "title": "Dynamic Pricing",
+        "description": "Optimize pricing based on demand"
+      }
+    }
+  },
+  "plans": {
+    "title": "Choose Your AI Plan",
+    "subtitle": "Unlock powerful AI features to grow your business",
+    "mostPopular": "Most Popular",
+    "perMonth": "/month",
+    "starter": "AI Starter",
+    "professional": "AI Professional",
+    "enterprise": "AI Enterprise",
+    "features": {
+      "smartScheduling": "Smart Scheduling",
+      "basicAnalytics": "Basic Analytics",
+      "customerInsights": "Customer Insights",
+      "emailSupport": "Email Support",
+      "allStarter": "All Starter Features",
+      "automatedBooking": "Automated Booking",
+      "dynamicPricing": "Dynamic Pricing",
+      "prioritySupport": "Priority Support",
+      "customReports": "Custom Reports",
+      "allProfessional": "All Professional Features",
+      "advancedML": "Advanced ML Models",
+      "marketingAI": "Marketing AI",
+      "marketingAIDesc": "Automated marketing campaigns with personalized content",
+      "dedicatedSupport": "Dedicated Support",
+      "apiAccess": "API Access"
+    }
+  },
+  "tabs": {
+    "overview": "Overview",
+    "insights": "AI Insights",
+    "features": "Features",
+    "settings": "Settings"
+  },
+  "overview": {
+    "aiScore": "AI Score",
+    "efficiencyGain": "Efficiency Gain",
+    "automatedTasks": "Automated Tasks",
+    "timeSaved": "Time Saved",
+    "lastMonth": "from last month",
+    "sinceActivation": "Since AI activation",
+    "thisMonth": "This month",
+    "recommendations": {
+      "title": "AI Recommendations",
+      "description": "Personalized suggestions to optimize your business"
+    }
+  },
+  "insights": {
+    "revenue": {
+      "title": "Revenue Optimization",
+      "description": "AI-powered revenue analysis and forecasting",
+      "projected": "Projected Revenue Increase",
+      "current": "Current Monthly Revenue"
+    },
+    "behavior": {
+      "title": "Customer Behavior Analysis",
+      "description": "Deep insights into customer patterns",
+      "retention": "Retention Rate",
+      "avgSpending": "Avg. Spending",
+      "peakHours": "Peak Hours"
+    }
+  },
+  "settings": {
+    "title": "AI Configuration",
+    "description": "Customize AI behavior and preferences",
+    "automatedBooking": {
+      "label": "Automated Booking",
+      "desc": "Allow AI to automatically confirm bookings"
+    },
+    "smartPricing": {
+      "label": "Smart Pricing",
+      "desc": "Enable dynamic pricing based on demand"
+    },
+    "predictiveAnalytics": {
+      "label": "Predictive Analytics",
+      "desc": "Generate forecasts and business insights"
+    },
+    "learning": {
+      "label": "AI Learning Preferences",
+      "conservative": "Conservative Learning",
+      "balanced": "Balanced Approach",
+      "aggressive": "Aggressive Optimization"
+    }
+  }
+}

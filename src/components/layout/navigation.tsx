@@ -27,7 +27,7 @@ export function Navigation() {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const { canViewPage } = usePermissions();
+  const { canViewPage, hasDirectPermission } = usePermissions();
 
   const handleLogout = () => {
     logout();
@@ -107,10 +107,6 @@ export function Navigation() {
         ],
         operations: [
           {
-            path: "/entity/bookings",
-            label: t("nav.bookings", "Bookings"),
-          },
-          {
             path: "/entity/services-packages",
             label: t("nav.servicesPackages", "Services & Packages"),
           },
@@ -152,14 +148,14 @@ export function Navigation() {
               },
             ]
             : []),
-          {
+          ...(hasDirectPermission('canManageSubscription') ? [{
             path: "/entity/subscription-management",
             label: t("nav.subscription", "Subscription"),
-          },
-          {
+          }] : []),
+          ...(hasDirectPermission('canEditEntitySettings') ? [{
             path: "/entity/settings",
             label: t("nav.settings", "Settings"),
-          },
+          }] : []),
         ],
       };
     }
@@ -174,10 +170,6 @@ export function Navigation() {
           },
         ],
         operations: [
-          {
-            path: "/individual/bookings",
-            label: t("nav.bookings", "Bookings"),
-          },
           {
             path: "/individual/services",
             label: t("nav.services", "Services"),
@@ -204,10 +196,14 @@ export function Navigation() {
           },
         ],
         settings: [
-          {
+          ...(hasDirectPermission('canManageSubscription') ? [{
+            path: "/individual/subscription",
+            label: t("nav.subscription", "Subscription"),
+          }] : []),
+          ...(hasDirectPermission('canEditEntitySettings') ? [{
             path: "/simple/settings",
             label: t("nav.settings", "Settings"),
-          },
+          }] : []),
         ],
       };
     }
@@ -227,12 +223,12 @@ export function Navigation() {
       };
 
       // Add pages based on permissions
-      if (canViewPage("bookings")) {
-        navItems.operations.push({
-          path: "/professional/bookings",
-          label: t("nav.bookings", "My Appointments"),
-        });
-      }
+      // if (canViewPage("bookings")) {
+      //   navItems.operations.push({
+      //     path: "/professional/bookings",
+      //     label: t("nav.bookings", "My Appointments"),
+      //   });
+      // }
 
       if (canViewPage("clients")) {
         navItems.operations.push({
@@ -269,7 +265,7 @@ export function Navigation() {
         ],
         operations: [
           {
-            path: "/entity/services-packages",
+            path: "/simple/services",
             label: t("nav.services", "Services"),
           },
           {
@@ -282,10 +278,14 @@ export function Navigation() {
           },
         ],
         settings: [
-          {
+          ...(hasDirectPermission('canManageSubscription') ? [{
+            path: "/simple/subscription",
+            label: t("nav.subscription", "Subscription"),
+          }] : []),
+          ...(hasDirectPermission('canEditEntitySettings') ? [{
             path: "/simple/settings",
             label: t("nav.settings", "Settings"),
-          },
+          }] : []),
         ],
       };
     }
@@ -339,7 +339,7 @@ export function Navigation() {
       return (
         <>
           {/* Main Dashboard Link */}
-          {navItems.main.map((item) => (
+          {navItems.main.map((item: any) => (
             <Link
               key={item.path}
               to={item.path}
@@ -364,7 +364,7 @@ export function Navigation() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {(navItems.management || navItems.operations)?.map((item) => (
+                {(navItems.management || navItems.operations)?.map((item: any) => (
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
@@ -388,7 +388,7 @@ export function Navigation() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {navItems.financial.map((item) => (
+                {navItems.financial.map((item: any) => (
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
@@ -412,7 +412,7 @@ export function Navigation() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {navItems.features.map((item) => (
+                {navItems.features.map((item: any) => (
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
@@ -436,7 +436,7 @@ export function Navigation() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {navItems.settings.map((item) => (
+                {navItems.settings.map((item: any) => (
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
@@ -471,7 +471,7 @@ export function Navigation() {
       return (
         <div className="px-2 pt-2 pb-3 space-y-1 max-h-[70vh] overflow-y-auto">
           {/* Main items */}
-          {navItems.main.map((item) => (
+          {navItems.main.map((item: any) => (
             <Link
               key={item.path}
               to={item.path}
@@ -504,7 +504,7 @@ export function Navigation() {
               </button>
               {expandedSections.includes("management") && (
                 <div className="mt-1">
-                  {(navItems.management || navItems.operations)?.map((item) => (
+                  {(navItems.management || navItems.operations)?.map((item: any) => (
                     <Link
                       key={item.path}
                       to={item.path}
@@ -537,7 +537,7 @@ export function Navigation() {
               </button>
               {expandedSections.includes("financial") && (
                 <div className="mt-1">
-                  {navItems.financial.map((item) => (
+                  {navItems.financial.map((item: any) => (
                     <Link
                       key={item.path}
                       to={item.path}
@@ -570,7 +570,7 @@ export function Navigation() {
               </button>
               {expandedSections.includes("features") && (
                 <div className="mt-1">
-                  {navItems.features.map((item) => (
+                  {navItems.features.map((item: any) => (
                     <Link
                       key={item.path}
                       to={item.path}
@@ -603,7 +603,7 @@ export function Navigation() {
               </button>
               {expandedSections.includes("settings") && (
                 <div className="mt-1">
-                  {navItems.settings.map((item) => (
+                  {navItems.settings.map((item: any) => (
                     <Link
                       key={item.path}
                       to={item.path}

@@ -1,31 +1,30 @@
 {
   "appName": "Schedfy",
-  "navigation": {
-    "dashboard": "Painel",
-    "bookings": "Agendamentos",
-    "services": "Serviços",
-    "reports": "Relatórios",
-    "settings": "Configurações",
-    "profile": "Perfil",
-    "notifications": "Notificações",
-    "financialReports": "Relatórios Financeiros",
-    "ai": "IA Premium",
-    "loyalty": "Fidelidade",
-    "featureManagement": "Gestão de Recursos",
-    "communications": "Comunicações",
-    "subscriptions": "Subscrições",
-    "support": "Suporte",
-    "entities": "Entidades",
-    "users": "Utilizadores",
-    "management": "Gestão",
-    "operations": "Operações",
-    "financial": "Financeiro",
-    "features": "Recursos"
-  },
+  "loading": "A carregar...",
+  "logout": "Sair",
+  "and": "e",
+  "back": "Voltar",
+  "next": "Seguinte",
+  "previous": "Anterior",
+  "of": "de",
+  "complete": "completo",
+  "step": "Passo",
+  "getStarted": "Começar",
+  "signIn": "Entrar",
+  "viewAll": "Ver Todos",
+  "welcome": "Bem-vindo",
+  "title": "Título",
+  "subtitle": "Subtítulo",
+  "description": "Descrição",
+  "status": "Estado",
+  "state": "Estado",
+  "plan": "Plano",
+  "token": "Token",
+  "redirect": "Redirecionar",
   "actions": {
-    "save": "Salvar",
+    "save": "Guardar",
     "cancel": "Cancelar",
-    "delete": "Excluir",
+    "delete": "Eliminar",
     "edit": "Editar",
     "add": "Adicionar",
     "create": "Criar",
@@ -35,40 +34,290 @@
     "search": "Pesquisar",
     "filter": "Filtrar",
     "export": "Exportar",
-    "import": "Importar"
-  },
-  "status": {
-    "pending": "Pendente",
-    "confirmed": "Confirmado",
-    "completed": "Concluído",
-    "cancelled": "Cancelado",
-    "active": "Ativo",
-    "inactive": "Inativo"
+    "import": "Importar",
+    "download": "Descarregar",
+    "downloadInvoice": "Descarregar fatura",
+    "updatePayment": "Atualizar pagamento",
+    "applyFilters": "Aplicar filtros",
+    "clearFilters": "Limpar filtros",
+    "markCompleted": "Marcar como concluído"
   },
   "time": {
     "today": "Hoje",
     "yesterday": "Ontem",
     "tomorrow": "Amanhã",
-    "thisWeek": "Esta Semana",
-    "thisMonth": "Este Mês",
-    "lastMonth": "Mês Passado"
+    "thisWeek": "Esta semana",
+    "thisMonth": "Este mês",
+    "lastMonth": "Mês passado",
+    "last7Days": "Últimos 7 dias",
+    "last30Days": "Últimos 30 dias",
+    "last90Days": "Últimos 90 dias",
+    "lastYear": "Último ano",
+    "customRange": "Período personalizado"
   },
   "messages": {
-    "loading": "Carregando...",
+    "loading": "A carregar...",
     "noData": "Nenhum dado disponível",
     "error": "Ocorreu um erro",
     "success": "Operação realizada com sucesso",
-    "confirmDelete": "Tem certeza que deseja excluir este item?",
-    "unsavedChanges": "Você tem alterações não salvas. Tem certeza que deseja sair?"
+    "confirmDelete": "Tem a certeza que deseja eliminar este item?",
+    "unsavedChanges": "Tem alterações não guardadas. Tem a certeza que deseja sair?",
+    "bookingCompleted": "Agendamento marcado como concluído",
+    "failedComplete": "Falha ao concluir o agendamento"
   },
-  "currency": {
-    "brl": "R$",
-    "usd": "$",
-    "eur": "€"
+  "confirmations": {
+    "markCompleted": "Tem a certeza que deseja marcar este agendamento como concluído?"
   },
-  "theme": {
-    "light": "Claro",
-    "dark": "Escuro",
-    "system": "Sistema"
+  "stats": {
+    "total": "Total",
+    "totalSub": "registados",
+    "active": "Ativos",
+    "activeclients": "Clientes ativos",
+    "clients": "Clientes",
+    "bookings": "Agendamentos",
+    "revenue": "Receita",
+    "avgSpent": "Gasto médio",
+    "perClient": "por cliente",
+    "engaged": "Engajados",
+    "totalBookings": "Total de agendamentos",
+    "totalbookings": "Total de agendamentos",
+    "confirmed": "Confirmados",
+    "pending": "Pendentes",
+    "completed": "Concluídos",
+    "cancelled": "Cancelados",
+    "awaitingConfirmation": "Aguardam confirmação",
+    "completedSessions": "Sessões concluídas",
+    "thismonthrevenue": "Receita deste mês",
+    "revenueThisMonth": "Receita deste mês",
+    "bookingsThisMonth": "Agendamentos deste mês",
+    "newClients": "Novos clientes"
+  },
+  "filters": {
+    "all": "Todos",
+    "allStatus": "Todos os estados",
+    "allPayments": "Todos os pagamentos",
+    "allProfessionals": "Todos os profissionais",
+    "allServices": "Todos os serviços",
+    "allMethods": "Todos os métodos",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "paid": "Pago",
+    "partial": "Parcial",
+    "pending": "Pendente",
+    "more": "Mais",
+    "serviceType": "Tipo de serviço",
+    "hairServices": "Serviços de cabelo",
+    "nailCare": "Cuidados de unhas",
+    "facial": "Tratamentos faciais",
+    "massage": "Massagem",
+    "cash": "Dinheiro",
+    "card": "Cartão"
+  },
+  "search": {
+    "placeholder": "Pesquisar...",
+    "bookingsPlaceholder": "Pesquisar agendamentos..."
+  },
+  "table": {
+    "client": "Cliente",
+    "contact": "Contacto",
+    "activity": "Atividade",
+    "spending": "Gastos",
+    "status": "Estado",
+    "actions": "Ações"
+  },
+  "tabs": {
+    "overview": "Visão geral",
+    "allClients": "Todos os clientes",
+    "analytics": "Estatísticas",
+    "recentActivity": "Atividade recente",
+    "billing": "Faturação",
+    "changePlan": "Alterar plano",
+    "addOns": "Add-ons",
+    "invoices": "Faturas",
+    "profile": "Perfil",
+    "business": "Negócio",
+    "privacy": "Privacidade",
+    "workingHours": "Horário de funcionamento",
+    "transactions": "Transações",
+    "commissions": "Comissões",
+    "vouchers": "Vouchers",
+    "professionals": "Profissionais",
+    "goals": "Metas"
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "message": "A página que procura não existe ou foi movida.",
+    "goHome": "Voltar ao início"
+  },
+  "footer": {
+    "product": "Produto",
+    "features": "Funcionalidades",
+    "pricing": "Preços",
+    "integrations": "Integrações",
+    "company": "Empresa",
+    "about": "Sobre",
+    "blog": "Blog",
+    "careers": "Carreiras",
+    "help": "Ajuda",
+    "support": "Suporte",
+    "contact": "Contacto",
+    "privacy": "Privacidade",
+    "rights": "Todos os direitos reservados"
+  },
+  "days": {
+    "monday": "Segunda-feira",
+    "tuesday": "Terça-feira",
+    "wednesday": "Quarta-feira",
+    "thursday": "Quinta-feira",
+    "friday": "Sexta-feira",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
+  },
+  "form": {
+    "addTitle": "Adicionar novo",
+    "addDescription": "Criar um novo registo",
+    "firstName": "Primeiro nome",
+    "lastName": "Apelido",
+    "email": "Email",
+    "phone": "Telefone",
+    "birthDate": "Data de nascimento",
+    "notes": "Observações",
+    "optional": "Opcional",
+    "additionalInfo": "Informações adicionais",
+    "addClientButton": "Adicionar cliente"
+  },
+  "profile": {
+    "title": "Perfil",
+    "description": "Gerir as informações do seu perfil",
+    "firstName": "Primeiro nome",
+    "firstNamePlaceholder": "Introduza o seu primeiro nome",
+    "lastName": "Apelido",
+    "lastNamePlaceholder": "Introduza o seu apelido",
+    "email": "Email",
+    "phone": "Telefone",
+    "address": "Morada",
+    "website": "Website",
+    "name": "Nome"
+  },
+  "privacy": {
+    "title": "Definições de privacidade",
+    "description": "Controle a sua visibilidade e partilha de dados",
+    "profileVisible": "Perfil visível",
+    "profileVisibleDesc": "Permitir que o seu perfil seja visível publicamente"
+  },
+  "workingHours": {
+    "title": "Horário de funcionamento",
+    "description": "Defina o seu horário de funcionamento semanal"
+  },
+  "success": {
+    "profileSaved": "Perfil guardado com sucesso",
+    "settingsSaved": "Configurações guardadas com sucesso"
+  },
+  "summary": {
+    "totalRevenue": "Receita total",
+    "netRevenue": "Receita líquida",
+    "totalCommissions": "Total de comissões",
+    "vouchersUsed": "Vouchers utilizados",
+    "afterDeductions": "Após deduções",
+    "ofRevenue": "da receita",
+    "vsLastPeriod": "vs período anterior"
+  },
+  "transactions": {
+    "history": "Histórico de transações"
+  },
+  "vouchers": {
+    "usage": "Utilização de vouchers"
+  },
+  "invoices": {
+    "title": "Histórico de faturas",
+    "description": "Veja e descarregue as suas faturas",
+    "invoice": "Fatura"
+  },
+  "goals": {
+    "goalsProgress": "Progresso das metas",
+    "setMonthlyGoals": "Definir metas mensais"
+  },
+  "professionals": {
+    "title": "Profissionais"
+  },
+  "planDetails": {
+    "plan": "Plano",
+    "activeSince": "Ativo desde",
+    "includedFeatures": "Funcionalidades incluídas",
+    "activeAddOns": "Add-ons ativos"
+  },
+  "plans": {
+    "title": "Planos disponíveis",
+    "currentPlan": "Plano atual",
+    "mostPopular": "Mais Popular",
+    "upgrade": "Fazer upgrade",
+    "simple": { 
+      "name": "Simples",
+      "features": {
+        "email": "Notificações por email",
+        "mobile": "App móvel"
+      }
+    },
+    "individual": { "name": "Individual" },
+    "business": { 
+      "name": "Empresarial", 
+      "description": "Solução completa para equipas", 
+      "features": { 
+        "team": "Gestão de equipa", 
+        "support": "Suporte prioritário" 
+      } 
+    }
+  },
+  "usage": {
+    "title": "Utilização",
+    "description": "A sua utilização atual do plano",
+    "bookings": "Agendamentos",
+    "professionals": "Profissionais",
+    "storage": "Armazenamento",
+    "aiInsights": "Insights IA"
+  },
+  "teamManagement": {
+    "title": "Gestão de equipa",
+    "description": "Gerir os membros da sua equipa",
+    "inviteUser": "Convidar membro",
+    "searchPlaceholder": "Pesquisar membros..."
+  },
+  "quickActions": {
+    "title": "Ações rápidas"
+  },
+  "recentActivity": {
+    "title": "Atividade recente",
+    "description": "Últimas atualizações",
+    "newBookingConfirmed": "Novo agendamento confirmado",
+    "sessionCompleted": "Sessão concluída",
+    "minutesAgo": "{{count}} minutos atrás",
+    "hourAgo": "1 hora atrás"
+  },
+  "upcomingBookings": {
+    "title": "Próximos agendamentos",
+    "description": "Os seus próximos compromissos",
+    "noBookings": "Nenhum agendamento próximo",
+    "createBooking": "Criar agendamento",
+    "unknownClient": "Cliente desconhecido",
+    "unknownService": "Serviço desconhecido"
+  },
+  "passwordStrength": {
+    "label": "Força da palavra-passe",
+    "weak": "Fraca",
+    "fair": "Razoável",
+    "good": "Boa",
+    "strong": "Forte",
+    "requirements": {
+      "minLength": "Pelo menos 8 caracteres",
+      "uppercase": "Uma letra maiúscula",
+      "number": "Um número",
+      "special": "Um caractere especial"
+    }
+  },
+  "unauthorized": {
+    "title": "Acesso Negado",
+    "description": "Não tem permissão para aceder a esta página. Por favor, contacte o seu administrador se acredita que isto é um erro.",
+    "goHome": "Ir para o Início",
+    "goBack": "Voltar"
   }
 }

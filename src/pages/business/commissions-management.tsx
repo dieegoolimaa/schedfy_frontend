@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-// import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
-import { usePermissions } from "@/hooks/usePermissions";
+
 import { usePromotions } from "@/hooks/usePromotions";
 import { useServices } from "@/hooks/useServices";
 import { useBookings } from "@/hooks/useBookings";
@@ -67,10 +67,10 @@ import { toast } from "sonner";
 import { Commission, Voucher, Discount } from "@/types/models/promotions.interface";
 
 export function CommissionsManagementPage() {
-  // const { t } = useTranslation();
+  const { t } = useTranslation("commissions");
   const { user } = useAuth();
   const entityId = user?.entityId || user?.id || "";
-  const { userPackage } = usePermissions();
+
   const { formatCurrency } = useCurrency();
   const {
     createCommission,
@@ -113,7 +113,7 @@ export function CommissionsManagementPage() {
 
   // Check if user has access to financial features
   const hasFinancialAccess =
-    userPackage === "Individual" || userPackage === "Business";
+    user?.plan === "individual" || user?.plan === "business";
 
   // State
   const [commissions, setCommissions] = useState<Commission[]>([]);
@@ -699,12 +699,10 @@ export function CommissionsManagementPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                  Financial Features Not Available
+                  {t("access.title")}
                 </h3>
                 <p className="text-sm text-orange-800 dark:text-orange-200 mb-4">
-                  Commissions, vouchers, and discounts are available for
-                  Individual and Business plans only. Your Simple plan is
-                  focused on appointment management.
+                  {t("access.description")}
                 </p>
                 <Button
                   onClick={() => {
@@ -713,7 +711,7 @@ export function CommissionsManagementPage() {
                   }}
                   className="bg-orange-600 hover:bg-orange-700 text-white"
                 >
-                  Upgrade to Individual or Business Plan
+                  {t("access.upgrade")}
                 </Button>
               </div>
             </div>
@@ -728,10 +726,10 @@ export function CommissionsManagementPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                Commissions & Promotions
+                {t("title")}
               </h1>
               <p className="text-muted-foreground">
-                Manage commissions, voucher codes, and automatic discounts
+                {t("subtitle")}
               </p>
             </div>
           </div>
@@ -741,7 +739,7 @@ export function CommissionsManagementPage() {
             <Card className="p-3 sm:p-4">
               <CardHeader className="flex flex-row items-center justify-between pb-2 p-0">
                 <CardTitle className="text-sm font-medium">
-                  Active Commissions
+                  {t("stats.activeCommissions")}
                 </CardTitle>
                 <Percent className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -750,14 +748,14 @@ export function CommissionsManagementPage() {
                   {commissions.filter((c) => c.isActive).length}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Total: {commissions.length}
+                  {t("stats.total")}: {commissions.length}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Vouchers
+                  {t("stats.activeVouchers")}
                 </CardTitle>
                 <Tag className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -766,14 +764,14 @@ export function CommissionsManagementPage() {
                   {vouchers.filter((v) => v.status === "active").length}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Total: {vouchers.length}
+                  {t("stats.total")}: {vouchers.length}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Discounts
+                  {t("stats.activeDiscounts")}
                 </CardTitle>
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -782,14 +780,14 @@ export function CommissionsManagementPage() {
                   {discounts.filter((d) => d.status === "active").length}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Auto-apply: {discounts.filter((d) => d.autoApply).length}
+                  {t("stats.autoApply")}: {discounts.filter((d) => d.autoApply).length}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Savings
+                  {t("stats.totalSavings")}
                 </CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -817,7 +815,7 @@ export function CommissionsManagementPage() {
                     return totalSavings.toFixed(2);
                   })()}
                 </div>
-                <p className="text-xs text-muted-foreground">This month</p>
+                <p className="text-xs text-muted-foreground">{t("stats.thisMonth")}</p>
               </CardContent>
             </Card>
           </StatsGrid>
@@ -827,15 +825,15 @@ export function CommissionsManagementPage() {
             <TabsList>
               <TabsTrigger value="commissions">
                 <Percent className="h-4 w-4 mr-2" />
-                Commissions
+                {t("tabs.commissions")}
               </TabsTrigger>
               <TabsTrigger value="vouchers">
                 <Tag className="h-4 w-4 mr-2" />
-                Vouchers
+                {t("tabs.vouchers")}
               </TabsTrigger>
               <TabsTrigger value="discounts">
                 <TrendingDown className="h-4 w-4 mr-2" />
-                Discounts
+                {t("tabs.discounts")}
               </TabsTrigger>
             </TabsList>
 
@@ -845,10 +843,9 @@ export function CommissionsManagementPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Commission Rules</CardTitle>
+                      <CardTitle>{t("commissions.title")}</CardTitle>
                       <CardDescription>
-                        Define commission percentages or fixed amounts for
-                        services and professionals
+                        {t("commissions.description")}
                       </CardDescription>
                     </div>
                     <Dialog
@@ -858,23 +855,22 @@ export function CommissionsManagementPage() {
                       <DialogTrigger asChild>
                         <Button>
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Commission
+                          {t("commissions.add")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Create Commission Rule</DialogTitle>
+                          <DialogTitle>{t("dialog.createCommission")}</DialogTitle>
                           <DialogDescription>
-                            Set up a new commission rule for services or
-                            professionals
+                            {t("commissions.description")}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="comm-name">Name *</Label>
+                            <Label htmlFor="comm-name">{t("commissions.form.name")} *</Label>
                             <Input
                               id="comm-name"
-                              placeholder="e.g., Haircut Commission"
+                              placeholder={t("commissions.form.namePlaceholder")}
                               value={newCommission.name}
                               onChange={(e) =>
                                 setNewCommission({
@@ -885,10 +881,10 @@ export function CommissionsManagementPage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="comm-desc">Description</Label>
+                            <Label htmlFor="comm-desc">{t("commissions.form.description")}</Label>
                             <Textarea
                               id="comm-desc"
-                              placeholder="Optional description"
+                              placeholder={t("commissions.form.descriptionPlaceholder")}
                               rows={2}
                               value={newCommission.description}
                               onChange={(e) =>
@@ -901,7 +897,7 @@ export function CommissionsManagementPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Type</Label>
+                              <Label>{t("commissions.form.type")}</Label>
                               <Select
                                 value={newCommission.type}
                                 onValueChange={(value) =>
@@ -916,16 +912,16 @@ export function CommissionsManagementPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="percentage">
-                                    Percentage (%)
+                                    {t("commissions.form.percentage")}
                                   </SelectItem>
                                   <SelectItem value="fixed">
-                                    Fixed Amount (€)
+                                    {t("commissions.form.fixed")}
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label>Value</Label>
+                              <Label>{t("commissions.form.value")}</Label>
                               <Input
                                 type="number"
                                 min="0"
@@ -959,13 +955,13 @@ export function CommissionsManagementPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="service">
-                                  Specific Services
+                                  {t("commissions.form.service")}
                                 </SelectItem>
                                 <SelectItem value="professional">
-                                  Specific Professionals
+                                  {t("commissions.form.professional")}
                                 </SelectItem>
                                 <SelectItem value="service_category">
-                                  Service Category
+                                  {t("commissions.form.category")}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -974,9 +970,9 @@ export function CommissionsManagementPage() {
                           {/* Service Selection - only for service type */}
                           {newCommission.appliesTo === "service" && (
                             <div className="space-y-2 pt-2 border-t">
-                              <Label>Select Services *</Label>
+                              <Label>{t("commissions.form.services")} *</Label>
                               <p className="text-sm text-muted-foreground">
-                                Choose which services receive this commission
+                                {t("commissions.description")}
                               </p>
 
                               {newCommission.serviceIds.length > 0 && (
@@ -1050,10 +1046,9 @@ export function CommissionsManagementPage() {
                           {/* Professional Selection - only for professional type */}
                           {newCommission.appliesTo === "professional" && (
                             <div className="space-y-2 pt-2 border-t">
-                              <Label>Select Professionals *</Label>
+                              <Label>{t("commissions.form.professionals")} *</Label>
                               <p className="text-sm text-muted-foreground">
-                                Choose which professionals receive this
-                                commission
+                                {t("commissions.description")}
                               </p>
 
                               {newCommission.professionalIds.length > 0 && (
@@ -1133,7 +1128,7 @@ export function CommissionsManagementPage() {
 
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Valid From</Label>
+                              <Label>{t("commissions.form.validFrom")}</Label>
                               <Input
                                 type="date"
                                 value={newCommission.validFrom}
@@ -1146,7 +1141,7 @@ export function CommissionsManagementPage() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>Valid Until</Label>
+                              <Label>{t("commissions.form.validUntil")}</Label>
                               <Input
                                 type="date"
                                 value={newCommission.validUntil}
@@ -1164,10 +1159,10 @@ export function CommissionsManagementPage() {
                               variant="outline"
                               onClick={() => setCommissionDialog(false)}
                             >
-                              Cancel
+                              {t("dialog.cancel")}
                             </Button>
                             <Button onClick={handleCreateCommission}>
-                              Create Commission
+                              {t("dialog.create")}
                             </Button>
                           </div>
                         </div>
@@ -1191,14 +1186,14 @@ export function CommissionsManagementPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Value</TableHead>
-                          <TableHead>Applies To</TableHead>
+                          <TableHead>{t("commissions.table.name")}</TableHead>
+                          <TableHead>{t("commissions.table.type")}</TableHead>
+                          <TableHead>{t("commissions.table.value")}</TableHead>
+                          <TableHead>{t("commissions.table.appliesTo")}</TableHead>
                           <TableHead>Assigned</TableHead>
-                          <TableHead>Valid Period</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="w-[100px]">Actions</TableHead>
+                          <TableHead>{t("commissions.table.validity")}</TableHead>
+                          <TableHead>{t("commissions.table.status")}</TableHead>
+                          <TableHead className="w-[100px]">{t("commissions.table.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1297,10 +1292,9 @@ export function CommissionsManagementPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Voucher Codes</CardTitle>
+                      <CardTitle>{t("vouchers.title")}</CardTitle>
                       <CardDescription>
-                        Create and manage discount codes that clients can use at
-                        checkout
+                        {t("vouchers.description")}
                       </CardDescription>
                     </div>
                     <Dialog
@@ -1310,23 +1304,23 @@ export function CommissionsManagementPage() {
                       <DialogTrigger asChild>
                         <Button>
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Voucher
+                          {t("vouchers.add")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Create Voucher Code</DialogTitle>
+                          <DialogTitle>{t("dialog.createVoucher")}</DialogTitle>
                           <DialogDescription>
-                            Generate a new voucher code for customer discounts
+                            {t("vouchers.description")}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="vouch-code">Voucher Code *</Label>
+                            <Label htmlFor="vouch-code">{t("vouchers.form.code")} *</Label>
                             <div className="flex gap-2">
                               <Input
                                 id="vouch-code"
-                                placeholder="SUMMER2025"
+                                placeholder={t("vouchers.form.codePlaceholder")}
                                 value={newVoucher.code}
                                 onChange={(e) =>
                                   setNewVoucher({
@@ -1354,7 +1348,7 @@ export function CommissionsManagementPage() {
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="vouch-name">Name *</Label>
+                            <Label htmlFor="vouch-name">{t("vouchers.form.name")} *</Label>
                             <Input
                               id="vouch-name"
                               placeholder="Summer Promotion 2025"
@@ -1368,7 +1362,7 @@ export function CommissionsManagementPage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="vouch-desc">Description</Label>
+                            <Label htmlFor="vouch-desc">{t("vouchers.form.description")}</Label>
                             <Textarea
                               id="vouch-desc"
                               placeholder="20% off all services in Summer"
@@ -1384,7 +1378,7 @@ export function CommissionsManagementPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Discount Type</Label>
+                              <Label>{t("vouchers.form.type")}</Label>
                               <Select
                                 value={newVoucher.type}
                                 onValueChange={(value) =>
@@ -1399,16 +1393,16 @@ export function CommissionsManagementPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="percentage">
-                                    Percentage (%)
+                                    {t("commissions.form.percentage")}
                                   </SelectItem>
                                   <SelectItem value="fixed">
-                                    Fixed Amount (€)
+                                    {t("commissions.form.fixed")}
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label>Discount Value</Label>
+                              <Label>{t("vouchers.form.value")}</Label>
                               <Input
                                 type="number"
                                 min="0"
@@ -1430,7 +1424,7 @@ export function CommissionsManagementPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Min. Purchase (€)</Label>
+                              <Label>{t("vouchers.form.minPurchase")} (€)</Label>
                               <Input
                                 type="number"
                                 min="0"
@@ -1447,7 +1441,7 @@ export function CommissionsManagementPage() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>Max Uses</Label>
+                              <Label>{t("vouchers.form.maxUsage")}</Label>
                               <Input
                                 type="number"
                                 min="0"
@@ -1465,7 +1459,7 @@ export function CommissionsManagementPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Valid From *</Label>
+                              <Label>{t("commissions.form.validFrom")} *</Label>
                               <Input
                                 type="date"
                                 value={newVoucher.validFrom}
@@ -1478,7 +1472,7 @@ export function CommissionsManagementPage() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>Valid Until *</Label>
+                              <Label>{t("commissions.form.validUntil")} *</Label>
                               <Input
                                 type="date"
                                 value={newVoucher.validUntil}
@@ -1494,10 +1488,9 @@ export function CommissionsManagementPage() {
 
                           {/* Applicable Services */}
                           <div className="space-y-2 pt-2 border-t">
-                            <Label>Applicable Services (Optional)</Label>
+                            <Label>{t("vouchers.form.applicableServices")} (Optional)</Label>
                             <p className="text-sm text-muted-foreground">
-                              Select specific services or leave empty to apply
-                              to all services
+                              {t("vouchers.description")}
                             </p>
                             <Select
                               value={
@@ -1519,10 +1512,10 @@ export function CommissionsManagementPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="all">
-                                  All Services
+                                  {t("discounts.form.allServices")}
                                 </SelectItem>
                                 <SelectItem value="specific">
-                                  Specific Services
+                                  {t("commissions.form.service")}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -1623,10 +1616,10 @@ export function CommissionsManagementPage() {
                               variant="outline"
                               onClick={() => setVoucherDialog(false)}
                             >
-                              Cancel
+                              {t("dialog.cancel")}
                             </Button>
                             <Button onClick={handleCreateVoucher}>
-                              Create Voucher
+                              {t("dialog.create")}
                             </Button>
                           </div>
                         </div>
@@ -1639,24 +1632,24 @@ export function CommissionsManagementPage() {
                     <div className="text-center py-12">
                       <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                       <h3 className="text-lg font-semibold mb-2">
-                        No vouchers yet
+                        {t("vouchers.empty.title")}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Create voucher codes to offer discounts to your clients
+                        {t("vouchers.empty.description")}
                       </p>
                     </div>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Code</TableHead>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Discount</TableHead>
-                          <TableHead>Usage</TableHead>
-                          <TableHead>Valid Period</TableHead>
-                          <TableHead>Services</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="w-[100px]">Actions</TableHead>
+                          <TableHead>{t("vouchers.table.code")}</TableHead>
+                          <TableHead>{t("vouchers.table.name")}</TableHead>
+                          <TableHead>{t("vouchers.table.discount")}</TableHead>
+                          <TableHead>{t("vouchers.table.usage")}</TableHead>
+                          <TableHead>{t("vouchers.table.validity")}</TableHead>
+                          <TableHead>{t("vouchers.table.services")}</TableHead>
+                          <TableHead>{t("vouchers.table.status")}</TableHead>
+                          <TableHead className="w-[100px]">{t("vouchers.table.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1672,7 +1665,7 @@ export function CommissionsManagementPage() {
                                   size="sm"
                                   onClick={() => {
                                     navigator.clipboard.writeText(voucher.code);
-                                    toast.success("Code copied!");
+                                    toast.success(t("vouchers.codeCopied"));
                                   }}
                                 >
                                   <Copy className="h-3 w-3" />
@@ -1748,10 +1741,9 @@ export function CommissionsManagementPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Automatic Discounts</CardTitle>
+                      <CardTitle>{t("discounts.title")}</CardTitle>
                       <CardDescription>
-                        Set up automatic discounts that apply based on
-                        conditions
+                        {t("discounts.description")}
                       </CardDescription>
                     </div>
                     <Dialog
@@ -1761,22 +1753,22 @@ export function CommissionsManagementPage() {
                       <DialogTrigger asChild>
                         <Button>
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Discount
+                          {t("discounts.add")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Create Discount Rule</DialogTitle>
+                          <DialogTitle>{t("dialog.createDiscount")}</DialogTitle>
                           <DialogDescription>
-                            Set up a new automatic or manual discount
+                            {t("discounts.description")}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="disc-name">Name *</Label>
+                            <Label htmlFor="disc-name">{t("discounts.form.name")} *</Label>
                             <Input
                               id="disc-name"
-                              placeholder="e.g., First Time Client Discount"
+                              placeholder={t("discounts.form.namePlaceholder")}
                               value={newDiscount.name}
                               onChange={(e) =>
                                 setNewDiscount({
@@ -1787,10 +1779,10 @@ export function CommissionsManagementPage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="disc-desc">Description</Label>
+                            <Label htmlFor="disc-desc">{t("discounts.form.description")}</Label>
                             <Textarea
                               id="disc-desc"
-                              placeholder="Optional description"
+                              placeholder={t("discounts.form.descriptionPlaceholder")}
                               rows={2}
                               value={newDiscount.description}
                               onChange={(e) =>
@@ -1803,7 +1795,7 @@ export function CommissionsManagementPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Discount Type</Label>
+                              <Label>{t("discounts.form.type")}</Label>
                               <Select
                                 value={newDiscount.type}
                                 onValueChange={(value) =>
@@ -1818,16 +1810,16 @@ export function CommissionsManagementPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="percentage">
-                                    Percentage (%)
+                                    {t("commissions.form.percentage")}
                                   </SelectItem>
                                   <SelectItem value="fixed">
-                                    Fixed Amount (€)
+                                    {t("commissions.form.fixed")}
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label>Discount Value</Label>
+                              <Label>{t("discounts.form.value")}</Label>
                               <Input
                                 type="number"
                                 min="0"
@@ -1843,7 +1835,7 @@ export function CommissionsManagementPage() {
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label>Applies To</Label>
+                            <Label>{t("discounts.form.appliesTo")}</Label>
                             <Select
                               value={newDiscount.appliesTo}
                               onValueChange={(value) =>
@@ -1861,13 +1853,13 @@ export function CommissionsManagementPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="all_services">
-                                  All Services
+                                  {t("discounts.form.allServices")}
                                 </SelectItem>
                                 <SelectItem value="specific_services">
-                                  Specific Services
+                                  {t("discounts.form.specificServices")}
                                 </SelectItem>
                                 <SelectItem value="first_time_clients">
-                                  First-Time Clients
+                                  {t("discounts.form.firstTimeClients")}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -1876,9 +1868,9 @@ export function CommissionsManagementPage() {
                           {/* Service Selection - only for specific_services */}
                           {newDiscount.appliesTo === "specific_services" && (
                             <div className="space-y-2 pt-2 border-t">
-                              <Label>Select Services *</Label>
+                              <Label>{t("discounts.form.selectServices")} *</Label>
                               <p className="text-sm text-muted-foreground">
-                                Choose which services this discount applies to
+                                {t("discounts.description")}
                               </p>
 
                               {newDiscount.serviceIds.length > 0 && (
@@ -1948,7 +1940,7 @@ export function CommissionsManagementPage() {
                           )}
 
                           <div className="space-y-2">
-                            <Label>Minimum Purchase (€)</Label>
+                            <Label>{t("discounts.form.minPurchase")} (€)</Label>
                             <Input
                               type="number"
                               min="0"
@@ -1981,12 +1973,12 @@ export function CommissionsManagementPage() {
                               htmlFor="auto-apply"
                               className="cursor-pointer"
                             >
-                              Auto-apply at checkout
+                              {t("discounts.form.autoApply")}
                             </Label>
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Valid From *</Label>
+                              <Label>{t("commissions.form.validFrom")} *</Label>
                               <Input
                                 type="date"
                                 value={newDiscount.validFrom}
@@ -1999,7 +1991,7 @@ export function CommissionsManagementPage() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>Valid Until *</Label>
+                              <Label>{t("commissions.form.validUntil")} *</Label>
                               <Input
                                 type="date"
                                 value={newDiscount.validUntil}
@@ -2017,10 +2009,10 @@ export function CommissionsManagementPage() {
                               variant="outline"
                               onClick={() => setDiscountDialog(false)}
                             >
-                              Cancel
+                              {t("dialog.cancel")}
                             </Button>
                             <Button onClick={handleCreateDiscount}>
-                              Create Discount
+                              {t("dialog.create")}
                             </Button>
                           </div>
                         </div>
@@ -2033,25 +2025,25 @@ export function CommissionsManagementPage() {
                     <div className="text-center py-12">
                       <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                       <h3 className="text-lg font-semibold mb-2">
-                        No discounts yet
+                        {t("discounts.empty.title")}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Create automatic discounts to boost bookings
+                        {t("discounts.empty.description")}
                       </p>
                     </div>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Value</TableHead>
-                          <TableHead>Applies To</TableHead>
-                          <TableHead>Services</TableHead>
-                          <TableHead>Auto-Apply</TableHead>
-                          <TableHead>Valid Period</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="w-[100px]">Actions</TableHead>
+                          <TableHead>{t("discounts.table.name")}</TableHead>
+                          <TableHead>{t("discounts.table.type")}</TableHead>
+                          <TableHead>{t("discounts.table.value")}</TableHead>
+                          <TableHead>{t("discounts.table.appliesTo")}</TableHead>
+                          <TableHead>{t("discounts.table.services")}</TableHead>
+                          <TableHead>{t("discounts.table.autoApply")}</TableHead>
+                          <TableHead>{t("discounts.table.validity")}</TableHead>
+                          <TableHead>{t("discounts.table.status")}</TableHead>
+                          <TableHead className="w-[100px]">{t("discounts.table.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -2061,7 +2053,7 @@ export function CommissionsManagementPage() {
                               {discount.name}
                             </TableCell>
                             <TableCell className="capitalize">
-                              {discount.type}
+                              {t(`commissions.form.${discount.type}`)}
                             </TableCell>
                             <TableCell>
                               {discount.type === "percentage"
@@ -2069,7 +2061,13 @@ export function CommissionsManagementPage() {
                                 : formatCurrency(discount.value)}
                             </TableCell>
                             <TableCell className="capitalize">
-                              {discount.appliesTo.replace(/_/g, " ")}
+                              {discount.appliesTo === "all_services"
+                                ? t("discounts.form.allServices")
+                                : discount.appliesTo === "specific_services"
+                                  ? t("discounts.form.specificServices")
+                                  : discount.appliesTo === "first_time_clients"
+                                    ? t("discounts.form.firstTime")
+                                    : discount.appliesTo}
                             </TableCell>
                             <TableCell>
                               {discount.appliesTo === "specific_services" ? (
@@ -2080,17 +2078,17 @@ export function CommissionsManagementPage() {
                                 />
                               ) : (
                                 <Badge variant="outline" className="text-xs">
-                                  All services
+                                  {t("discounts.form.allServices")}
                                 </Badge>
                               )}
                             </TableCell>
                             <TableCell>
                               {discount.autoApply ? (
                                 <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                                  Yes
+                                  {t("common.yes")}
                                 </Badge>
                               ) : (
-                                <Badge variant="outline">No</Badge>
+                                <Badge variant="outline">{t("common.no")}</Badge>
                               )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
@@ -2106,7 +2104,7 @@ export function CommissionsManagementPage() {
                               <Badge
                                 className={getStatusBadge(discount.status)}
                               >
-                                {discount.status}
+                                {t(`common.${discount.status}`)}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -2149,14 +2147,14 @@ export function CommissionsManagementPage() {
           >
             <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Edit Commission</DialogTitle>
+                <DialogTitle>{t("dialog.editCommission")}</DialogTitle>
                 <DialogDescription>
-                  Update commission settings
+                  {t("dialog.editCommissionDesc")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Name *</Label>
+                  <Label>{t("commissions.form.name")} *</Label>
                   <Input
                     value={editCommissionForm.name}
                     onChange={(e) =>
@@ -2165,11 +2163,12 @@ export function CommissionsManagementPage() {
                         name: e.target.value,
                       })
                     }
+                    placeholder={t("commissions.form.namePlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label>{t("commissions.form.description")}</Label>
                   <Textarea
                     value={editCommissionForm.description}
                     onChange={(e) =>
@@ -2183,7 +2182,7 @@ export function CommissionsManagementPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Type *</Label>
+                    <Label>{t("commissions.form.type")} *</Label>
                     <Select
                       value={editCommissionForm.type}
                       onValueChange={(value: any) =>
@@ -2197,14 +2196,14 @@ export function CommissionsManagementPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="fixed">Fixed Amount</SelectItem>
+                        <SelectItem value="percentage">{t("commissions.form.percentage")}</SelectItem>
+                        <SelectItem value="fixed">{t("commissions.form.fixed")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Value *</Label>
+                    <Label>{t("commissions.form.value")} *</Label>
                     <Input
                       type="text"
                       value={editCommissionForm.value}
@@ -2224,7 +2223,7 @@ export function CommissionsManagementPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Applies To *</Label>
+                  <Label>{t("commissions.form.appliesTo")} *</Label>
                   <Select
                     value={editCommissionForm.appliesTo}
                     onValueChange={(value: any) =>
@@ -2240,12 +2239,12 @@ export function CommissionsManagementPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="service">Specific Services</SelectItem>
+                      <SelectItem value="service">{t("commissions.form.service")}</SelectItem>
                       <SelectItem value="professional">
-                        Specific Professionals
+                        {t("commissions.form.professional")}
                       </SelectItem>
                       <SelectItem value="service_category">
-                        Service Category
+                        {t("commissions.form.category")}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -2254,7 +2253,7 @@ export function CommissionsManagementPage() {
                 {/* Service Selection */}
                 {editCommissionForm.appliesTo === "service" && (
                   <div className="space-y-2">
-                    <Label>Select Services *</Label>
+                    <Label>{t("commissions.form.services")} *</Label>
                     {editCommissionForm.serviceIds.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-2">
                         {servicesData
@@ -2315,7 +2314,7 @@ export function CommissionsManagementPage() {
                 {/* Professional Selection */}
                 {editCommissionForm.appliesTo === "professional" && (
                   <div className="space-y-2">
-                    <Label>Select Professionals *</Label>
+                    <Label>{t("commissions.form.professionals")} *</Label>
                     {editCommissionForm.professionalIds.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-2">
                         {professionals
@@ -2378,7 +2377,7 @@ export function CommissionsManagementPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Valid From</Label>
+                    <Label>{t("commissions.form.validFrom")}</Label>
                     <Input
                       type="date"
                       value={editCommissionForm.validFrom}
@@ -2391,7 +2390,7 @@ export function CommissionsManagementPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Valid Until</Label>
+                    <Label>{t("commissions.form.validUntil")}</Label>
                     <Input
                       type="date"
                       value={editCommissionForm.validUntil}
@@ -2411,10 +2410,10 @@ export function CommissionsManagementPage() {
                     type="button"
                     onClick={() => setEditCommissionDialog(false)}
                   >
-                    Cancel
+                    {t("dialog.cancel")}
                   </Button>
                   <Button type="button" onClick={handleUpdateCommission}>
-                    Update Commission
+                    {t("commissions.form.update")}
                   </Button>
                 </div>
               </div>
@@ -2425,13 +2424,13 @@ export function CommissionsManagementPage() {
           <Dialog open={editVoucherDialog} onOpenChange={setEditVoucherDialog}>
             <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Edit Voucher</DialogTitle>
-                <DialogDescription>Update voucher settings</DialogDescription>
+                <DialogTitle>{t("dialog.editVoucher")}</DialogTitle>
+                <DialogDescription>{t("dialog.editVoucherDesc")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Code *</Label>
+                    <Label>{t("vouchers.form.code")} *</Label>
                     <Input
                       value={editVoucherForm.code}
                       onChange={(e) =>
@@ -2440,10 +2439,11 @@ export function CommissionsManagementPage() {
                           code: e.target.value.toUpperCase(),
                         })
                       }
+                      placeholder={t("vouchers.form.codePlaceholder")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Name *</Label>
+                    <Label>{t("vouchers.form.name")} *</Label>
                     <Input
                       value={editVoucherForm.name}
                       onChange={(e) =>
@@ -2452,12 +2452,13 @@ export function CommissionsManagementPage() {
                           name: e.target.value,
                         })
                       }
+                      placeholder={t("vouchers.form.namePlaceholder")}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label>{t("vouchers.form.description")}</Label>
                   <Textarea
                     value={editVoucherForm.description}
                     onChange={(e) =>
@@ -2466,12 +2467,13 @@ export function CommissionsManagementPage() {
                         description: e.target.value,
                       })
                     }
+                    placeholder={t("vouchers.form.descriptionPlaceholder")}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Type *</Label>
+                    <Label>{t("vouchers.form.type")} *</Label>
                     <Select
                       value={editVoucherForm.type}
                       onValueChange={(value: any) =>
@@ -2485,13 +2487,13 @@ export function CommissionsManagementPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="fixed">Fixed Amount</SelectItem>
+                        <SelectItem value="percentage">{t("commissions.form.percentage")}</SelectItem>
+                        <SelectItem value="fixed">{t("commissions.form.fixed")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Value *</Label>
+                    <Label>{t("vouchers.form.value")} *</Label>
                     <Input
                       type="text"
                       value={editVoucherForm.value}
@@ -2501,15 +2503,20 @@ export function CommissionsManagementPage() {
                           value: e.target.value,
                         })
                       }
+                      placeholder={
+                        editVoucherForm.type === "percentage"
+                          ? t("vouchers.form.percentagePlaceholder")
+                          : t("vouchers.form.fixedPlaceholder")
+                      }
                     />
                   </div>
                 </div>
 
                 {/* Applicable Services */}
                 <div className="space-y-2">
-                  <Label>Applicable Services (Optional)</Label>
+                  <Label>{t("vouchers.form.applicableServicesOptional")}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Leave empty to apply to all services
+                    {t("vouchers.form.leaveEmpty")}
                   </p>
                   {editVoucherForm.applicableServiceIds.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-2">
@@ -2569,9 +2576,10 @@ export function CommissionsManagementPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Minimum Purchase</Label>
+                    <Label>{t("vouchers.form.minPurchase")}</Label>
                     <Input
                       type="text"
+                      placeholder={t("vouchers.form.minPurchasePlaceholder")}
                       value={editVoucherForm.minimumPurchase}
                       onChange={(e) =>
                         setEditVoucherForm({
@@ -2582,9 +2590,10 @@ export function CommissionsManagementPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Max Usage Count</Label>
+                    <Label>{t("vouchers.form.maxUsage")}</Label>
                     <Input
                       type="text"
+                      placeholder={t("vouchers.form.unlimited")}
                       value={editVoucherForm.maxUsageCount}
                       onChange={(e) =>
                         setEditVoucherForm({
@@ -2598,7 +2607,7 @@ export function CommissionsManagementPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Valid From *</Label>
+                    <Label>{t("vouchers.form.validFrom")} *</Label>
                     <Input
                       type="date"
                       value={editVoucherForm.validFrom}
@@ -2611,7 +2620,7 @@ export function CommissionsManagementPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Valid Until *</Label>
+                    <Label>{t("vouchers.form.validUntil")} *</Label>
                     <Input
                       type="date"
                       value={editVoucherForm.validUntil}
@@ -2631,9 +2640,9 @@ export function CommissionsManagementPage() {
                     type="button"
                     onClick={() => setEditVoucherDialog(false)}
                   >
-                    Cancel
+                    {t("dialog.cancel")}
                   </Button>
-                  <Button type="button" onClick={handleUpdateVoucher}>Update Voucher</Button>
+                  <Button type="button" onClick={handleUpdateVoucher}>{t("vouchers.form.update")}</Button>
                 </div>
               </div>
             </DialogContent>
@@ -2646,12 +2655,12 @@ export function CommissionsManagementPage() {
           >
             <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Edit Discount</DialogTitle>
-                <DialogDescription>Update discount settings</DialogDescription>
+                <DialogTitle>{t("dialog.editDiscount")}</DialogTitle>
+                <DialogDescription>{t("dialog.editDiscountDesc")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Name *</Label>
+                  <Label>{t("discounts.form.name")} *</Label>
                   <Input
                     value={editDiscountForm.name}
                     onChange={(e) =>
@@ -2660,11 +2669,12 @@ export function CommissionsManagementPage() {
                         name: e.target.value,
                       })
                     }
+                    placeholder={t("discounts.form.namePlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label>{t("discounts.form.description")}</Label>
                   <Textarea
                     value={editDiscountForm.description}
                     onChange={(e) =>
@@ -2673,12 +2683,13 @@ export function CommissionsManagementPage() {
                         description: e.target.value,
                       })
                     }
+                    placeholder={t("discounts.form.descriptionPlaceholder")}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Type *</Label>
+                    <Label>{t("discounts.form.type")} *</Label>
                     <Select
                       value={editDiscountForm.type}
                       onValueChange={(value: any) =>
@@ -2692,13 +2703,13 @@ export function CommissionsManagementPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="fixed">Fixed Amount</SelectItem>
+                        <SelectItem value="percentage">{t("commissions.form.percentage")}</SelectItem>
+                        <SelectItem value="fixed">{t("commissions.form.fixed")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Value *</Label>
+                    <Label>{t("discounts.form.value")} *</Label>
                     <Input
                       type="text"
                       value={editDiscountForm.value}
@@ -2708,12 +2719,17 @@ export function CommissionsManagementPage() {
                           value: e.target.value,
                         })
                       }
+                      placeholder={
+                        editDiscountForm.type === "percentage"
+                          ? t("discounts.form.percentagePlaceholder")
+                          : t("discounts.form.fixedPlaceholder")
+                      }
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Applies To *</Label>
+                  <Label>{t("discounts.form.appliesTo")} *</Label>
                   <Select
                     value={editDiscountForm.appliesTo}
                     onValueChange={(value: any) =>
@@ -2728,12 +2744,12 @@ export function CommissionsManagementPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all_services">All Services</SelectItem>
+                      <SelectItem value="all_services">{t("discounts.form.allServices")}</SelectItem>
                       <SelectItem value="specific_services">
-                        Specific Services
+                        {t("discounts.form.specificServices")}
                       </SelectItem>
                       <SelectItem value="first_time_clients">
-                        First-Time Clients
+                        {t("discounts.form.firstTime")}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -2742,7 +2758,7 @@ export function CommissionsManagementPage() {
                 {/* Service Selection */}
                 {editDiscountForm.appliesTo === "specific_services" && (
                   <div className="space-y-2">
-                    <Label>Select Services *</Label>
+                    <Label>{t("discounts.form.specificServices")} *</Label>
                     {editDiscountForm.serviceIds.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-2">
                         {servicesData
@@ -2801,7 +2817,7 @@ export function CommissionsManagementPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label>Minimum Purchase</Label>
+                  <Label>{t("discounts.form.minPurchase")}</Label>
                   <Input
                     type="text"
                     value={editDiscountForm.minimumPurchase}
@@ -2825,12 +2841,12 @@ export function CommissionsManagementPage() {
                       })
                     }
                   />
-                  <Label>Auto-apply discount</Label>
+                  <Label>{t("discounts.form.autoApply")}</Label>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Valid From *</Label>
+                    <Label>{t("discounts.form.validFrom")} *</Label>
                     <Input
                       type="date"
                       value={editDiscountForm.validFrom}
@@ -2843,7 +2859,7 @@ export function CommissionsManagementPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Valid Until *</Label>
+                    <Label>{t("discounts.form.validUntil")} *</Label>
                     <Input
                       type="date"
                       value={editDiscountForm.validUntil}
@@ -2863,10 +2879,10 @@ export function CommissionsManagementPage() {
                     type="button"
                     onClick={() => setEditDiscountDialog(false)}
                   >
-                    Cancel
+                    {t("dialog.cancel")}
                   </Button>
                   <Button type="button" onClick={handleUpdateDiscount}>
-                    Update Discount
+                    {t("discounts.form.update")}
                   </Button>
                 </div>
               </div>

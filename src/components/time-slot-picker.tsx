@@ -15,6 +15,7 @@ interface TimeSlotPickerProps {
   onSelectSlot: (slot: TimeSlot) => void;
   className?: string;
   includeOverbooking?: boolean; // Only for internal/authenticated users
+  duration?: number;
 }
 
 export function TimeSlotPicker({
@@ -26,13 +27,14 @@ export function TimeSlotPicker({
   onSelectSlot,
   className,
   includeOverbooking = false, // Default false for public access
+  duration,
 }: TimeSlotPickerProps) {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!entityId || !serviceId || !date) {
+    if (!entityId || (!serviceId && !duration) || !date) {
       setSlots([]);
       return;
     }
@@ -54,6 +56,7 @@ export function TimeSlotPicker({
           date,
           professionalId,
           includeOverbooking,
+          duration,
         });
         console.log("[TimeSlotPicker] Response:", response);
         setSlots(response.data || []);
@@ -79,7 +82,7 @@ export function TimeSlotPicker({
     };
 
     loadSlots();
-  }, [entityId, serviceId, date, professionalId, includeOverbooking]);
+  }, [entityId, serviceId, date, professionalId, includeOverbooking, duration]);
 
   if (loading) {
     return (
@@ -141,8 +144,8 @@ export function TimeSlotPicker({
                 isSelected
                   ? "default"
                   : slot.isOverbooking
-                  ? "destructive"
-                  : "outline"
+                    ? "destructive"
+                    : "outline"
               }
               size="lg"
               className={cn(
@@ -151,8 +154,8 @@ export function TimeSlotPicker({
                 isSelected
                   ? "ring-2 ring-primary shadow-lg bg-primary text-primary-foreground"
                   : slot.isOverbooking
-                  ? "border-orange-500 bg-orange-50 hover:bg-orange-100 text-orange-900"
-                  : "hover:shadow-md hover:border-primary/50"
+                    ? "border-orange-500 bg-orange-50 hover:bg-orange-100 text-orange-900"
+                    : "hover:shadow-md hover:border-primary/50"
               )}
               onClick={() => onSelectSlot(slot)}
               title={

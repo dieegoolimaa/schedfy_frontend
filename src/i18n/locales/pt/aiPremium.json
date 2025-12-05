@@ -1,0 +1,126 @@
+{
+  "title": "AI Premium",
+  "beta": "Beta",
+  "subtitle": "Impulsione o seu negócio com inteligência artificial",
+  "actions": {
+    "upgrade": "Aderir ao AI Premium",
+    "settings": "Definições de IA",
+    "subscribe": "Subscrever Agora",
+    "selectPlan": "Selecionar Plano",
+    "apply": "Aplicar",
+    "learnMore": "Saber Mais"
+  },
+  "mock": {
+    "rec1": "Aumentar preços de serviços premium em 15%",
+    "rec2": "Oferecer pacotes durante períodos de baixa procura",
+    "rec3": "Implementar preços dinâmicos para horas de ponta",
+    "suggestedSchedule": "Adicionar 2 horas aos fins de semana"
+  },
+  "gate": {
+    "title": "AI Premium em Breve",
+    "description": "As nossas funcionalidades AI Premium estão atualmente em desenvolvimento e estarão disponíveis para compra em breve. Fique atento a insights e automação poderosos impulsionados por IA!",
+    "badge": "Funcionalidade Ainda Não Disponível",
+    "expect": {
+      "title": "O Que Esperar",
+      "description": "O AI Premium irá revolucionar a forma como gere o seu negócio",
+      "scheduling": {
+        "title": "Agendamento Inteligente",
+        "description": "Otimização de agendamentos com IA"
+      },
+      "analytics": {
+        "title": "Análise Preditiva",
+        "description": "Previsão de receitas e comportamento do cliente"
+      },
+      "booking": {
+        "title": "Agendamento Automatizado",
+        "description": "Chatbot de IA 24/7 para agendamentos de clientes"
+      },
+      "pricing": {
+        "title": "Preços Dinâmicos",
+        "description": "Otimize preços com base na procura"
+      }
+    }
+  },
+  "plans": {
+    "title": "Escolha o Seu Plano de IA",
+    "subtitle": "Desbloqueie funcionalidades de IA poderosas para fazer crescer o seu negócio",
+    "mostPopular": "Mais Popular",
+    "perMonth": "/mês",
+    "starter": "AI Starter",
+    "professional": "AI Professional",
+    "enterprise": "AI Enterprise",
+    "features": {
+      "smartScheduling": "Agendamento Inteligente",
+      "basicAnalytics": "Análises Básicas",
+      "customerInsights": "Insights de Clientes",
+      "emailSupport": "Suporte por Email",
+      "allStarter": "Todas as Funcionalidades Starter",
+      "automatedBooking": "Agendamento Automatizado",
+      "dynamicPricing": "Preços Dinâmicos",
+      "prioritySupport": "Suporte Prioritário",
+      "customReports": "Relatórios Personalizados",
+      "allProfessional": "Todas as Funcionalidades Professional",
+      "advancedML": "Modelos de ML Avançados",
+      "marketingAI": "IA de Marketing",
+      "marketingAIDesc": "Campanhas de marketing automatizadas com conteúdo personalizado",
+      "dedicatedSupport": "Suporte Dedicado",
+      "apiAccess": "Acesso à API"
+    }
+  },
+  "tabs": {
+    "overview": "Visão Geral",
+    "insights": "Insights de IA",
+    "features": "Funcionalidades",
+    "settings": "Definições"
+  },
+  "overview": {
+    "aiScore": "Pontuação de IA",
+    "efficiencyGain": "Ganho de Eficiência",
+    "automatedTasks": "Tarefas Automatizadas",
+    "timeSaved": "Tempo Poupado",
+    "lastMonth": "desde o mês passado",
+    "sinceActivation": "Desde a ativação da IA",
+    "thisMonth": "Este mês",
+    "recommendations": {
+      "title": "Recomendações de IA",
+      "description": "Sugestões personalizadas para otimizar o seu negócio"
+    }
+  },
+  "insights": {
+    "revenue": {
+      "title": "Otimização de Receitas",
+      "description": "Análise e previsão de receitas com IA",
+      "projected": "Aumento de Receita Projetado",
+      "current": "Receita Mensal Atual"
+    },
+    "behavior": {
+      "title": "Análise de Comportamento do Cliente",
+      "description": "Insights profundos sobre padrões de clientes",
+      "retention": "Taxa de Retenção",
+      "avgSpending": "Gasto Médio",
+      "peakHours": "Horas de Ponta"
+    }
+  },
+  "settings": {
+    "title": "Configuração de IA",
+    "description": "Personalize o comportamento e preferências da IA",
+    "automatedBooking": {
+      "label": "Agendamento Automatizado",
+      "desc": "Permitir que a IA confirme agendamentos automaticamente"
+    },
+    "smartPricing": {
+      "label": "Preços Dinâmicos",
+      "desc": "Ativar preços dinâmicos com base na procura"
+    },
+    "predictiveAnalytics": {
+      "label": "Análise Preditiva",
+      "desc": "Gerar previsões e insights de negócios"
+    },
+    "learning": {
+      "label": "Preferências de Aprendizagem da IA",
+      "conservative": "Aprendizagem Conservadora",
+      "balanced": "Abordagem Equilibrada",
+      "aggressive": "Otimização Agressiva"
+    }
+  }
+}

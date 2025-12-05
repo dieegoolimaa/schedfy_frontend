@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Layout } from "./components/layout/layout";
 
@@ -26,12 +25,12 @@ import { UpgradePage } from "./pages/upgrade";
 // Common pages (shared across all plan types)
 import { ClientProfilePage } from "./pages/common/client-profile";
 import { EntityProfilePage } from "./pages/common/entity-profile";
-import { BookingManagementPage } from "./pages/common/booking-management";
+
 
 import { OperationalReportsPage } from "./pages/common/operational-reports";
 import UnifiedSettingsPage from "./pages/common/settings";
-import UnifiedSubscriptionManagement from "./pages/common/subscription-management";
 import CommandCenter from "./pages/common/command-center";
+import SimpleCommandCenter from "./pages/simple/command-center";
 import UnifiedPaymentManagement from "./pages/common/payment-management";
 import { CommissionsManagementPage } from "./pages/business/commissions-management";
 import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
@@ -40,11 +39,14 @@ import NotificationPreferences from "./pages/common/notification-preferences";
 import ServicesAndPackagesPage from "./pages/common/services-packages";
 import ReviewsManagementPage from "./pages/common/reviews-management";
 import UserManagementPage from "./pages/common/user-management";
+import SimpleServicesPage from "./pages/simple/services";
+import { SimpleSubscriptionPage } from "./pages/simple/subscription";
+import { IndividualSubscriptionPage } from "./pages/individual/subscription";
+import { EntitySubscriptionPage } from "./pages/entity/subscription";
 
 // Professional pages
 import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
 import ProfessionalProfilePage from "./pages/professional/profile";
-import ProfessionalBookingsPage from "./pages/professional/bookings";
 import ProfessionalSchedulePage from "./pages/professional/schedule";
 import ProfessionalEarningsPage from "./pages/professional/earnings";
 
@@ -80,20 +82,13 @@ import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/auth-context";
 import { RegionProvider } from "./contexts/region-context";
 import { RegionInitializer } from "./components/region-initializer";
-import { storage } from "./lib/storage";
 import { FeatureFlagsProvider } from "./contexts/feature-flags-context";
 
 function App() {
-  const { i18n } = useTranslation();
+  useTranslation();
 
-  useEffect(() => {
-    // Region detection is now handled by RegionProvider
-    // Keep this for backward compatibility with manual locale changes
-    const storedLocale = storage.getLocale();
-    if (storedLocale && i18n.language !== storedLocale) {
-      i18n.changeLanguage(storedLocale);
-    }
-  }, [i18n]);
+  // Region detection is now handled by RegionProvider
+  // Legacy locale handling removed to prevent conflicts with RegionProvider
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="schedfy-ui-theme">
@@ -167,11 +162,11 @@ function App() {
                   path="/simple/services"
                   element={
                     <ProtectedRoute
-                      allowedPlans={["simple", "individual", "business"]}
+                      allowedPlans={["simple"]}
                     >
                       <OnboardingGuard>
                         <Layout>
-                          <ServicesAndPackagesPage />
+                          <SimpleServicesPage />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -185,7 +180,7 @@ function App() {
                     >
                       <OnboardingGuard>
                         <Layout>
-                          <BookingManagementPage />
+                          <SimpleCommandCenter planType="simple" />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -241,7 +236,7 @@ function App() {
                     <ProtectedRoute allowedPlans={["simple"]}>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedSubscriptionManagement />
+                          <SimpleSubscriptionPage />
                         </Layout>
                       </OnboardingGuard>
                     </ProtectedRoute>
@@ -279,7 +274,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <BookingManagementPage />
+                          <CommandCenter planType="individual" />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -327,7 +322,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <BookingManagementPage />
+                          <CommandCenter planType="individual" />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -340,7 +335,7 @@ function App() {
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedSubscriptionManagement />
+                          <IndividualSubscriptionPage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -367,7 +362,7 @@ function App() {
                     <EntityRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <BookingManagementPage />
+                          <CommandCenter planType="business" />
                         </Layout>
                       </OnboardingGuard>
                     </EntityRoute>
@@ -469,7 +464,7 @@ function App() {
                   element={
                     <BusinessRoute>
                       <Layout>
-                        <UnifiedSubscriptionManagement />
+                        <EntitySubscriptionPage />
                       </Layout>
                     </BusinessRoute>
                   }
@@ -479,7 +474,7 @@ function App() {
                   element={
                     <BusinessRoute>
                       <Layout>
-                        <UnifiedSubscriptionManagement />
+                        <EntitySubscriptionPage />
                       </Layout>
                     </BusinessRoute>
                   }
@@ -582,7 +577,7 @@ function App() {
                   element={
                     <ProfessionalRoute>
                       <Layout>
-                        <ProfessionalBookingsPage />
+                        <CommandCenter />
                       </Layout>
                     </ProfessionalRoute>
                   }
@@ -615,7 +610,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <BookingManagementPage />
+                        <CommandCenter />
                       </Layout>
                     </ProtectedRoute>
                   }

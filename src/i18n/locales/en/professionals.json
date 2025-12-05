@@ -1,0 +1,93 @@
+{
+  "title": "Professionals",
+  "subtitle": "Manage professionals and attendants",
+  "addProfessional": "Add Professional",
+  "editProfessional": "Edit Professional",
+  "deleteProfessional": "Delete Professional",
+  "searchPlaceholder": "Search professionals...",
+  "noProfessionals": "No professionals found",
+  "stats": {
+    "total": "Total Professionals",
+    "active": "Active",
+    "pending": "Pending",
+    "avgBookings": "Average Bookings"
+  },
+  "status": {
+    "active": "Active",
+    "pending": "Pending",
+    "inactive": "Inactive"
+  },
+  "tabs": {
+    "basic": "Basic Info",
+    "professional": "Professional",
+    "social": "Social Media",
+    "commission": "Commission"
+  },
+  "form": {
+    "firstName": "First Name",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "email": "Email",
+    "emailPlaceholder": "john.doe@example.com",
+    "invitationNote": "An invitation will be sent to this email",
+    "phone": "Phone",
+    "phonePlaceholder": "+351 123 456 789",
+    "jobFunction": "Job Function / Title",
+    "jobFunctionPlaceholder": "e.g., Barber, Hair Stylist, Massage Therapist",
+    "bio": "Bio / Description",
+    "bioPlaceholder": "Tell us about your professional background...",
+    "experience": "Years of Experience",
+    "experiencePlaceholder": "5",
+    "specialties": "Specialties",
+    "addSpecialty": "Add specialty...",
+    "certifications": "Certifications",
+    "addCertification": "Add certification...",
+    "instagram": "Instagram",
+    "linkedin": "LinkedIn",
+    "website": "Personal Website",
+    "commissionEnabled": "Enable Commission",
+    "commissionEnabledDesc": "Set commission rates for this professional",
+    "commissionPercentage": "Commission Percentage (%)",
+    "commissionFixed": "Fixed Commission Amount"
+  },
+  "dialog": {
+    "addTitle": "Add New Professional",
+    "addDescription": "Create new professional account and send invitation",
+    "editTitle": "Edit Professional",
+    "editDescription": "Update professional information"
+  },
+  "table": {
+    "name": "Name",
+    "contact": "Contact",
+    "function": "Function",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "resendInvite": "Resend Invite",
+    "viewProfile": "View Profile",
+    "add": "Add",
+    "copyLink": "Copy Link"
+  },
+  "messages": {
+    "created": "Professional created successfully!",
+    "updated": "Professional updated successfully!",
+    "deleted": "Professional deleted successfully!",
+    "invitationSent": "Professional invitation sent!",
+    "invitationResent": "Invitation resent!",
+    "emailSentTo": "Email sent to",
+    "invitationLink": "Invitation link",
+    "linkCopied": "Link copied!",
+    "error": "An error occurred",
+    "fillRequiredFields": "Please fill required fields",
+    "emailRequired": "Email is required for new professionals",
+    "entityNotFound": "Entity ID not found. Please ensure you're logged in properly.",
+    "loadError": "Failed to load professionals for this entity",
+    "confirmDelete": "Delete this professional?"
+  }
+}

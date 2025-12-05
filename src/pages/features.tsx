@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 export default function Features() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("features");
 
   const features = [
     {

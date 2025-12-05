@@ -1,0 +1,150 @@
+{
+  "title": "Comissões e Promoções",
+  "subtitle": "Gerencie comissões, códigos de voucher e descontos automáticos",
+  "access": {
+    "title": "Funcionalidades Financeiras Indisponíveis",
+    "description": "Comissões, vouchers e descontos estão disponíveis apenas para planos Individual e Business. O seu plano Simples foca-se na gestão de agendamentos.",
+    "upgrade": "Atualizar para Plano Individual ou Business"
+  },
+  "stats": {
+    "activeCommissions": "Comissões Ativas",
+    "activeVouchers": "Vouchers Ativos",
+    "activeDiscounts": "Descontos Ativos",
+    "totalSavings": "Poupança Total",
+    "total": "Total",
+    "autoApply": "Aplicação auto.",
+    "thisMonth": "Este mês"
+  },
+  "common": {
+    "yes": "Sim",
+    "no": "Não",
+    "active": "Ativo",
+    "inactive": "Inativo"
+  },
+  "tabs": {
+    "commissions": "Comissões",
+    "vouchers": "Vouchers",
+    "discounts": "Descontos"
+  },
+  "commissions": {
+    "title": "Comissões",
+    "description": "Configure regras de comissão para a sua equipa e serviços",
+    "add": "Adicionar Comissão",
+    "table": {
+      "name": "Nome da Regra",
+      "type": "Tipo",
+      "appliesTo": "Aplica-se a",
+      "value": "Valor",
+      "validity": "Validade",
+      "status": "Estado",
+      "actions": "Ações"
+    },
+    "form": {
+      "name": "Nome da Regra",
+      "namePlaceholder": "ex: Comissão de Corte de Cabelo",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Descrição interna para esta regra",
+      "type": "Tipo de Comissão",
+      "value": "Valor",
+      "appliesTo": "Aplica-se a",
+      "validFrom": "Válido De",
+      "validUntil": "Válido Até",
+      "services": "Selecionar Serviços",
+      "professionals": "Selecionar Profissionais",
+      "percentage": "Percentagem (%)",
+      "fixed": "Valor Fixo (€)",
+      "service": "Serviço Específico",
+      "professional": "Profissional Específico",
+      "category": "Categoria de Serviço",
+      "update": "Atualizar Comissão"
+    }
+  },
+  "vouchers": {
+    "title": "Vouchers",
+    "description": "Crie códigos de desconto para os seus clientes",
+    "add": "Criar Voucher",
+    "table": {
+      "code": "Código",
+      "name": "Nome",
+      "discount": "Desconto",
+      "usage": "Utilização",
+      "validity": "Validade",
+      "status": "Estado",
+      "actions": "Ações"
+    },
+    "form": {
+      "code": "Código do Voucher",
+      "codePlaceholder": "ex. VERAO2024",
+      "name": "Nome",
+      "description": "Descrição",
+      "type": "Tipo de Desconto",
+      "value": "Valor",
+      "minPurchase": "Compra Mínima",
+      "maxUsage": "Máx. Utilizações",
+      "applicableServices": "Serviços Aplicáveis",
+      "applicableServicesOptional": "Serviços Aplicáveis (Opcional)",
+      "leaveEmpty": "Deixe vazio para aplicar a todos os serviços",
+      "update": "Atualizar Voucher",
+      "namePlaceholder": "ex: Promoção de Verão 2025",
+      "unlimited": "Ilimitado"
+    }
+  },
+  "discounts": {
+    "title": "Descontos Automáticos",
+    "description": "Configure regras para descontos automáticos",
+    "add": "Adicionar Desconto",
+    "table": {
+      "name": "Nome",
+      "discount": "Desconto",
+      "appliesTo": "Aplica-se a",
+      "conditions": "Condições",
+      "validity": "Validade",
+      "status": "Estado",
+      "actions": "Ações",
+      "type": "Tipo",
+      "value": "Valor",
+      "services": "Serviços",
+      "autoApply": "Aplic. Auto"
+    },
+    "form": {
+      "name": "Nome do Desconto",
+      "namePlaceholder": "ex: Desconto Primeira Visita",
+      "description": "Descrição",
+      "type": "Tipo de Desconto",
+      "value": "Valor",
+      "appliesTo": "Aplica-se a",
+      "autoApply": "Aplicar automaticamente no checkout",
+      "allServices": "Todos os Serviços",
+      "specificServices": "Serviços Específicos",
+      "firstTime": "Clientes de Primeira Vez",
+      "update": "Atualizar Desconto"
+    }
+  },
+  "dialog": {
+    "createCommission": "Criar Regra de Comissão",
+    "editCommission": "Editar Regra de Comissão",
+    "editCommissionDesc": "Atualizar configurações de comissão",
+    "createVoucher": "Criar Voucher",
+    "editVoucher": "Editar Voucher",
+    "editVoucherDesc": "Atualizar configurações do voucher",
+    "createDiscount": "Criar Regra de Desconto",
+    "editDiscount": "Editar Regra de Desconto",
+    "editDiscountDesc": "Atualizar configurações de desconto",
+    "save": "Salvar Regra",
+    "update": "Atualizar",
+    "create": "Criar",
+    "cancel": "Cancelar",
+    "messages": {
+        "commissionCreated": "Comissão criada com sucesso",
+        "commissionUpdated": "Comissão atualizada com sucesso",
+        "commissionDeleted": "Comissão eliminada com sucesso",
+        "voucherCreated": "Voucher criado com sucesso",
+        "voucherUpdated": "Voucher atualizado com sucesso",
+        "voucherDeleted": "Voucher eliminado com sucesso",
+        "discountCreated": "Desconto criado com sucesso",
+        "discountUpdated": "Desconto atualizado com sucesso",
+        "discountDeleted": "Desconto eliminado com sucesso",
+        "deleteConfirm": "Tem a certeza que deseja eliminar esta regra?"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "badge": "Integrações",
+  "hero": { 
+    "title": "Integrações de Calendário", 
+    "getStarted": "Começar", 
+    "seeFeatures": "Ver Funcionalidades" 
+  },
+  "cta": { 
+    "title": "Pronto para conectar?", 
+    "start": "Iniciar Teste Grátis", 
+    "contact": "Contactar Vendas" 
+  },
+  "google": { 
+    "feature1": "Sincronização Google Calendar", 
+    "feature2": "Sincronização bidirecional", 
+    "feature3": "Atualizações automáticas", 
+    "feature4": "Código de cores", 
+    "feature5": "Múltiplos calendários" 
+  },
+  "apple": { 
+    "feature1": "iCloud Calendar", 
+    "feature2": "Apple Watch", 
+    "feature3": "Suporte Siri", 
+    "feature4": "Lembretes", 
+    "feature5": "Partilha familiar" 
+  },
+  "benefits": { 
+    "title": "Benefícios da Integração", 
+    "unified": { "title": "Vista Unificada" }, 
+    "realtime": { "title": "Sincronização em Tempo Real" }, 
+    "mobile": { "title": "Acesso Móvel" }, 
+    "secure": { "title": "Conexão Segura" } 
+  },
+  "setup": { 
+    "title": "Configuração Fácil", 
+    "step1": { "title": "Conectar conta" }, 
+    "step2": { "title": "Selecionar calendários" }, 
+    "step3": { "title": "Configurar sincronização" }, 
+    "step4": { "title": "Começar a usar" } 
+  },
+  "faq": { 
+    "title": "FAQ de Integrações", 
+    "q4": "Os meus dados estão seguros?" 
+  }
+}

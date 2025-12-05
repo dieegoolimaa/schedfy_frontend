@@ -108,6 +108,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const { formatCurrency } = useCurrency();
     const entityId = user?.entityId || user?.id || "";
 
+    // If no forced ID is provided but user is a professional, restrict to their own ID
+    const effectiveProfessionalId = forcedProfessionalId || (user?.role === 'professional' ? user?.id : undefined);
+
 
 
     // Use the bookings hook with real API
@@ -584,8 +587,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
             const matchesService =
                 serviceFilter === "all" || booking.service?.name === serviceFilter;
 
-            const matchesProfessional = forcedProfessionalId
-                ? (String(booking.professional?.id) === String(forcedProfessionalId) || String(booking.professionalId) === String(forcedProfessionalId))
+            const matchesProfessional = effectiveProfessionalId
+                ? (String(booking.professional?.id) === String(effectiveProfessionalId) || String(booking.professionalId) === String(effectiveProfessionalId))
                 : (professionalFilter === "all" || booking.professional?.name === professionalFilter);
 
             const matchesPayment =
@@ -665,21 +668,15 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     <CalendarIcon className="h-6 w-6 text-primary" />
                                 </div>
                                 <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    Command Center
+                                    {t("commandCenter.title")}
                                 </h1>
                             </div>
                             <p className="text-muted-foreground">
-                                Complete view of all your bookings, payments, and operations
+                                {t("commandCenter.subtitle")}
                             </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                            {/* Command Palette Hint */}
-                            <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg bg-white/80 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700">
-                                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                                    <span className="text-xs">⌘</span>K
-                                </kbd>
-                                <span className="text-xs text-muted-foreground">Quick search</span>
-                            </div>
+
 
                             {/* View Mode Toggle */}
                             <div className="flex items-center border rounded-lg bg-white/80 dark:bg-gray-900/80">
@@ -690,7 +687,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     className="rounded-r-none"
                                 >
                                     <LayoutList className="h-4 w-4 mr-2" />
-                                    <span className="hidden lg:inline">List</span>
+                                    <span className="hidden lg:inline">{t("list")}</span>
                                 </Button>
                                 <Button
                                     variant={viewMode === "calendar" ? "default" : "ghost"}
@@ -699,7 +696,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     className="rounded-l-none"
                                 >
                                     <CalendarIcon className="h-4 w-4 mr-2" />
-                                    <span className="hidden lg:inline">Calendar</span>
+                                    <span className="hidden lg:inline">{t("calendar")}</span>
                                 </Button>
                             </div>
 
@@ -709,7 +706,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                             >
                                 <Plus className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">New Booking</span>
+                                <span className="hidden sm:inline">{t("newBooking")}</span>
                             </Button>
                         </div>
                     </div>
@@ -735,7 +732,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     </div>
                     <div className="text-center">
                         <div className="text-2xl font-bold">{stats.pendingConfirmation}</div>
-                        <div className="text-xs text-muted-foreground">Pending Actions</div>
+                        <div className="text-xs text-muted-foreground">{t("pendingActions")}</div>
                     </div>
                 </Button>
 
@@ -752,7 +749,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     </div>
                     <div className="text-center">
                         <div className="text-2xl font-bold">{stats.today}</div>
-                        <div className="text-xs text-muted-foreground">Today's Bookings</div>
+                        <div className="text-xs text-muted-foreground">{t("todaysBookings")}</div>
                     </div>
                 </Button>
 
@@ -766,8 +763,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <X className="h-5 w-5 text-red-600" />
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold">Reset</div>
-                            <div className="text-xs text-muted-foreground">Active Filters</div>
+                            <div className="text-2xl font-bold">{t("reset")}</div>
+                            <div className="text-xs text-muted-foreground">{t("activeFilters")}</div>
                         </div>
                     </Button>
                 )}
@@ -840,12 +837,12 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="pending">Pending Confirmation</SelectItem>
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="in_progress">In Progress</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="all">{t("allStatus")}</SelectItem>
+                            <SelectItem value="pending">{t("status.pending")}</SelectItem>
+                            <SelectItem value="confirmed">{t("status.confirmed")}</SelectItem>
+                            <SelectItem value="in_progress">{t("status.inProgress")}</SelectItem>
+                            <SelectItem value="completed">{t("status.completed")}</SelectItem>
+                            <SelectItem value="cancelled">{t("status.cancelled")}</SelectItem>
                         </SelectContent>
                     </Select>
                     <Select value={dateFilter} onValueChange={setDateFilter}>
@@ -853,10 +850,10 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Dates</SelectItem>
-                            <SelectItem value="today">Today</SelectItem>
-                            <SelectItem value="upcoming">Upcoming</SelectItem>
-                            <SelectItem value="past">Past</SelectItem>
+                            <SelectItem value="all">{t("allDates")}</SelectItem>
+                            <SelectItem value="today">{t("filters.today")}</SelectItem>
+                            <SelectItem value="upcoming">{t("filters.upcoming")}</SelectItem>
+                            <SelectItem value="past">{t("filters.past")}</SelectItem>
                         </SelectContent>
                     </Select>
                     {canViewPaymentDetails && (
@@ -865,10 +862,10 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Payments</SelectItem>
-                                <SelectItem value="paid">Paid</SelectItem>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="failed">Failed</SelectItem>
+                                <SelectItem value="all">{t("allPayments")}</SelectItem>
+                                <SelectItem value="paid">{t("filters.paid")}</SelectItem>
+                                <SelectItem value="pending">{t("filters.pending")}</SelectItem>
+                                <SelectItem value="failed">{t("filters.failed", "Failed")}</SelectItem>
                             </SelectContent>
                         </Select>
                     )}
@@ -881,19 +878,19 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                         <DialogTrigger asChild>
                             <Button variant="outline" size="sm">
                                 <Filter className="h-4 w-4 mr-2" />
-                                More Filters
+                                {t("moreFilters")}
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                                <DialogTitle>Advanced Filters</DialogTitle>
+                                <DialogTitle>{t("moreFilters")}</DialogTitle>
                                 <DialogDescription>
-                                    Apply additional filters to refine your booking search
+                                    {t("filters.advancedDescription", "Apply additional filters to refine your booking search")}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">
                                 <div>
-                                    <Label htmlFor="service-filter">Service</Label>
+                                    <Label htmlFor="service-filter">{t("table.service")}</Label>
                                     <Select
                                         value={serviceFilter}
                                         onValueChange={setServiceFilter}
@@ -915,9 +912,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {!forcedProfessionalId && (
+                                {!effectiveProfessionalId && (
                                     <div>
-                                        <Label htmlFor="professional-filter">Professional</Label>
+                                        <Label htmlFor="professional-filter">{t("table.professional")}</Label>
                                         <Select
                                             value={professionalFilter}
                                             onValueChange={setProfessionalFilter}
@@ -952,7 +949,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 )}
                                 {canViewPaymentDetails && (
                                     <div>
-                                        <Label htmlFor="payment-filter">Payment Status</Label>
+                                        <Label htmlFor="payment-filter">{t("table.payment")}</Label>
                                         <Select
                                             value={paymentFilter}
                                             onValueChange={setPaymentFilter}
@@ -1009,9 +1006,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     {viewMode === "list" ? (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Bookings ({filteredBookings.length})</CardTitle>
+                                <CardTitle>{t("bookingsCount")} ({filteredBookings.length})</CardTitle>
                                 <CardDescription>
-                                    Complete list of all bookings with detailed information
+                                    {t("completeList")}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="p-0 sm:p-6 bg-gray-50/50">
@@ -1043,7 +1040,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                     </Avatar>
                                                     {booking.client?.isFirstTime && (
                                                         <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] h-4 sm:h-5 min-w-0 bg-blue-500 border-2 border-white shadow-sm">
-                                                            New
+                                                            {t("status.new", "New")}
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -1078,7 +1075,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                 }}
                                                             >
                                                                 <Repeat className="h-3 w-3 mr-1" />
-                                                                Series
+                                                                {t("recurring.series", "Series")}
                                                             </Badge>
                                                         )}
                                                     </div>
@@ -1255,10 +1252,10 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end" className="w-48">
-                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            <DropdownMenuLabel>{t("table.actions")}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => handleViewDetails(booking)}>
                                                                 <Eye className="mr-2 h-4 w-4" />
-                                                                View Details
+                                                                {t("actions.view")}
                                                             </DropdownMenuItem>
 
                                                             {booking.status === "pending" && (
@@ -1268,14 +1265,14 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                         className="text-green-600 focus:text-green-700 focus:bg-green-50"
                                                                     >
                                                                         <CheckCircle className="mr-2 h-4 w-4" />
-                                                                        Confirm Booking
+                                                                        {t("actions.confirm")}
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem
                                                                         onClick={() => openRejectDialog(booking.id)}
                                                                         className="text-red-600 focus:text-red-700 focus:bg-red-50"
                                                                     >
                                                                         <XCircle className="mr-2 h-4 w-4" />
-                                                                        Reject Booking
+                                                                        {t("actions.reject")}
                                                                     </DropdownMenuItem>
                                                                 </>
                                                             )}
@@ -1287,7 +1284,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                 }}
                                                             >
                                                                 <Edit className="mr-2 h-4 w-4" />
-                                                                Edit Booking
+                                                                {t("actions.edit")}
                                                             </DropdownMenuItem>
 
                                                             {booking.status === 'confirmed' && (
@@ -1296,7 +1293,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                     className="text-blue-600"
                                                                 >
                                                                     <Play className="mr-2 h-4 w-4" />
-                                                                    Start Appointment
+                                                                    {t("actions.startAppointment", "Start Appointment")}
                                                                 </DropdownMenuItem>
                                                             )}
 
@@ -1328,7 +1325,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                         disabled={booking.status === 'cancelled' || booking.paymentStatus === 'paid'}
                                                                     >
                                                                         <CreditCard className="mr-2 h-4 w-4" />
-                                                                        Process Payment
+                                                                        {t("payment.processPayment")}
                                                                     </DropdownMenuItem>
                                                                 </>
                                                             )}
@@ -1348,7 +1345,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                         className="text-red-600 focus:text-red-700 focus:bg-red-50"
                                                                     >
                                                                         <XCircle className="mr-2 h-4 w-4" />
-                                                                        Cancel Booking
+                                                                        {t("actions.cancel")}
                                                                     </DropdownMenuItem>
                                                                 </>
                                                             )}
@@ -1364,9 +1361,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
                                                 <CalendarIcon className="h-full w-full" />
                                             </div>
-                                            <h3 className="text-lg font-medium text-gray-900">No bookings found</h3>
+                                            <h3 className="text-lg font-medium text-gray-900">{t("noBookingsFound")}</h3>
                                             <p className="text-sm text-gray-500 mt-1">
-                                                Try adjusting your filters or create a new booking.
+                                                {t("tryAdjustingFilters")}
                                             </p>
                                         </div>
                                     )}
@@ -2582,7 +2579,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                         price: (s as any).pricing?.basePrice || (s as any).price || 0
                     }))
                 }
-                planType="business"
+                planType={(user?.plan as 'simple' | 'individual' | 'business') || 'business'}
                 onSuccess={async () => {
                     await fetchBookings();
                 }}

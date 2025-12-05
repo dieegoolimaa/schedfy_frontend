@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
 import { Booking } from "../../types/models/bookings.interface";
 import { Commission } from "../../types/models/promotions.interface";
@@ -14,6 +15,7 @@ export const PromotionImpactCard: React.FC<PromotionImpactCardProps> = ({
     bookings,
     commissions,
 }) => {
+    const { t } = useTranslation("financial");
     const { formatCurrency } = useCurrency();
 
     const stats = useMemo(() => {
@@ -42,9 +44,19 @@ export const PromotionImpactCard: React.FC<PromotionImpactCardProps> = ({
 
             let commissionValue = 0;
 
+            // Helper to get ID
+            const getId = (id: any): string | undefined => {
+                if (!id) return undefined;
+                if (typeof id === 'string') return id;
+                return id._id;
+            };
+
+            const serviceId = getId(booking.serviceId);
+            const professionalId = getId(booking.professionalId);
+
             // Check for service specific commission
             const serviceCommission = commissions.find(c =>
-                c.appliesTo === 'service' && c.serviceIds?.includes(booking.serviceId) && c.isActive
+                c.appliesTo === 'service' && serviceId && c.serviceIds?.includes(serviceId) && c.isActive
             );
 
             if (serviceCommission) {
@@ -55,7 +67,8 @@ export const PromotionImpactCard: React.FC<PromotionImpactCardProps> = ({
                 // Check for professional specific commission
                 const profCommission = commissions.find(c =>
                     c.appliesTo === 'professional' &&
-                    c.professionalIds?.includes(booking.professionalId || '') &&
+                    professionalId &&
+                    c.professionalIds?.includes(professionalId) &&
                     c.isActive
                 );
 
@@ -95,52 +108,52 @@ export const PromotionImpactCard: React.FC<PromotionImpactCardProps> = ({
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Discounts</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t("impact.totalDiscounts")}</CardTitle>
                     <Percent className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{formatCurrency(stats.totalDiscountAmount)}</div>
                     <p className="text-xs text-muted-foreground">
-                        Across {stats.bookingsWithPromotion} bookings
+                        {t("impact.bookingsCount", { count: stats.bookingsWithPromotion })}
                     </p>
                 </CardContent>
             </Card>
 
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Estimated Commissions</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t("impact.estimatedCommissions")}</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{formatCurrency(stats.totalCommissionAmount)}</div>
                     <p className="text-xs text-muted-foreground">
-                        Based on active rules
+                        {t("impact.activeRules")}
                     </p>
                 </CardContent>
             </Card>
 
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Promotion Usage</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t("impact.promotionUsage")}</CardTitle>
                     <Tag className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{stats.promotionRate.toFixed(1)}%</div>
                     <p className="text-xs text-muted-foreground">
-                        of completed bookings
+                        {t("impact.completedBookings")}
                     </p>
                 </CardContent>
             </Card>
 
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Promotional Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t("impact.promotionalRevenue")}</CardTitle>
                     <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{formatCurrency(stats.revenueFromPromotions)}</div>
                     <p className="text-xs text-muted-foreground">
-                        Generated from discounted bookings
+                        {t("impact.discountedBookings")}
                     </p>
                 </CardContent>
             </Card>

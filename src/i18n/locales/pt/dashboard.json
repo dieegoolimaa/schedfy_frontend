@@ -1,262 +1,89 @@
 {
   "welcome": "Bem-vindo de volta",
-  "welcomeWithName": "Bem-vindo de volta, {{name}}!",
-  "subtitle": "Veja o que está acontecendo com seu negócio hoje",
-  "subtitleIndividual": "Gerencie sua prática individual e agendamentos",
-  "subtitleProfessional": "{{role}} em {{businessName}}",
-
+  "subtitle": "Veja o que está a acontecer com o seu negócio hoje",
   "today": "Hoje",
-  "viewCalendar": "Ver Calendário",
-  "viewAll": "Ver Todos",
-  "createNew": "Criar Novo",
-
-  "stats": {
-    "totalrevenue": "Receita Total",
-    "totalbookings": "Total de Agendamentos",
-    "activeclients": "Clientes Ativos",
-    "confirmedtoday": "Confirmados Hoje",
-    "completedSessions": "Sessões Concluídas",
-    "thismonthrevenue": "Receita deste Mês",
-    "expectedRevenue": "Receita Esperada",
-    "commission": "Comissão",
-    "newClients": "Novos Clientes",
-    "averageRating": "Avaliação Média",
-    "totalBookings": "Total de Agendamentos",
-    "totalEarnings": "Ganhos Totais",
-    "totalClients": "Total de Clientes",
-    "fromLastMonth": "do mês passado",
-    "thisMonth": "este mês",
-    "confirmed": "confirmados",
-    "pending": "pendentes"
-  },
-
-  "upcomingBookings": {
-    "title": "Próximos Agendamentos",
-    "todaySchedule": "Agenda de Hoje",
-    "todaysAppointments": "Compromissos de Hoje",
-    "description": "Seus próximos compromissos",
-    "descriptionToday": "Seus compromissos para hoje",
-    "noBookings": "Nenhum agendamento próximo",
-    "noAppointmentsToday": "Nenhum compromisso agendado para hoje",
-    "createBooking": "Criar Agendamento",
-    "newBooking": "Novo Agendamento",
-    "appointmentsScheduled": "{{count}} compromissos agendados",
-    "unknownClient": "Cliente Desconhecido",
-    "unknownService": "Serviço Desconhecido"
-  },
-
-  "quickActions": {
-    "title": "Ações Rápidas",
-    "description": "Recursos essenciais para seu negócio",
-    "descriptionCommon": "Tarefas comuns e atalhos",
-    "newBooking": "Novo Agendamento",
-    "addNewClient": "Adicionar Novo Cliente",
-    "viewSchedule": "Ver Agenda",
-    "viewReports": "Ver Relatórios",
-    "generateReport": "Gerar Relatório"
-  },
-
-  "upgradeBanner": {
-    "title": "Desbloqueie Mais Recursos",
-    "description": "Faça upgrade para o plano Individual ou Empresarial para análises avançadas, gestão de equipe e muito mais.",
-    "button": "Fazer Upgrade"
-  },
-
-  "recentActivity": {
-    "title": "Atividade Recente",
-    "description": "Últimas atualizações",
-    "descriptionFull": "Últimas atualizações e notificações",
-    "newBookingConfirmed": "Novo agendamento confirmado para amanhã",
-    "sessionCompleted": "Sessão concluída com sucesso",
-    "minutesAgo": "{{count}} minutos atrás",
-    "hourAgo": "1 hora atrás",
-    "hoursAgo": "{{count}} horas atrás",
-    "paymentReceived": "Pagamento recebido de {{name}} - {{amount}}",
-    "newReview": "Nova avaliação de 5 estrelas recebida",
-    "sessionCompletedWith": "Sessão concluída com {{name}}",
-    "newBookingService": "Novo agendamento: {{service}}",
-    "bookingCancelled": "Agendamento cancelado"
-  },
-
-  "aiInsights": {
-    "title": "Insights de IA",
-    "businessIntelligence": "Inteligência de Negócios",
-    "description": "Recomendações inteligentes para otimizar sua prática",
-    "descriptionBusiness": "Insights gerados por IA para otimizar suas operações de negócio",
-
-    "revenueOpportunity": {
-      "title": "Oportunidade de Receita",
-      "description": "Suas tardes de terça-feira têm 40% de disponibilidade. Considere oferecer promoções para horários de baixa demanda para aumentar agendamentos.",
-      "potential": "Potencial +€180/semana"
-    },
-
-    "clientRetention": {
-      "title": "Dica de Retenção de Clientes",
-      "description": "Clientes que agendam consultas de acompanhamento em até 24 horas têm 85% mais retenção. Ative lembretes automáticos de acompanhamento.",
-      "badge": "Acionável"
-    },
-
-    "servicePerformance": {
-      "title": "Desempenho do Serviço",
-      "description": "Seu serviço \"Penteado\" tem menor demanda este mês. Considere combiná-lo com serviços populares ou ajustar o preço.",
-      "badge": "Monitorar"
-    },
-
-    "peakHours": {
-      "title": "Otimização de Horários de Pico",
-      "description": "Adicione 2 profissionais a mais durante 14h-17h para reduzir tempos de espera e aumentar a receita em 23%.",
-      "potential": "Potencial +€1.200/mês"
-    },
-
-    "serviceBundling": {
-      "title": "Pacotes de Serviços",
-      "description": "70% dos clientes de coloração também agendam penteado. Crie um pacote combo para aumentar o valor médio do agendamento.",
-      "badge": "Implementar agora"
-    },
-
-    "retentionAlert": {
-      "title": "Alerta de Retenção de Clientes",
-      "description": "15 clientes não retornaram em mais de 45 dias. Envie campanhas de reengajamento personalizadas para reconquistá-los.",
-      "badge": "Ação necessária"
-    }
-  },
-
-  "charts": {
-    "revenueOverview": "Visão Geral da Receita",
-    "monthlyRevenue": "Tendências mensais de receita e agendamentos",
-    "revenue": "Receita",
-    "appointments": "Agendamentos",
-    "bookingsTrend": "Tendência de Agendamentos",
-    "bookingsTrendDescription": "Número de compromissos {{period}}",
-    "thisWeek": "esta semana",
-    "overTime": "ao longo do tempo",
-    "revenueTrend": "Tendência de Receita",
-    "revenueTrendDescription": "Ganhos {{period}}",
-    "serviceDistribution": "Distribuição de Serviços",
-    "serviceDistributionDescription": "Serviços populares este mês",
-    "completed": "Concluídos",
-    "cancelled": "Cancelados",
-    "scheduled": "Agendados"
-  },
-
-  "monthlyGoals": {
-    "title": "Metas Mensais",
-    "description": "Acompanhe seu progresso este mês",
-    "revenueGoal": "Meta de Receita",
-    "appointments": "Agendamentos",
-    "newClients": "Novos Clientes"
-  },
-
-  "professionalDashboard": {
-    "reviews": "avaliações",
-    "todayBookings": "Agendamentos de Hoje",
-    "expectedRevenue": "Receita Esperada",
-    "thisMonth": "Este Mês",
-    "vsLastMonth": "+12% vs mês passado",
-    "ofRevenue": "60% de €{{amount}}",
-    "thisMonthLabel": "Este mês",
-
-    "tabs": {
-      "schedule": "Agenda de Hoje",
-      "performance": "Desempenho",
-      "clients": "Clientes",
-      "profile": "Perfil"
-    },
-
-    "schedule": {
-      "title": "Compromissos de Hoje - {{date}}",
-      "description": "Sua agenda para hoje com detalhes dos clientes",
-      "time": "Horário",
-      "client": "Cliente",
-      "service": "Serviço",
-      "duration": "Duração",
-      "status": "Status",
-      "notes": "Observações",
-      "actions": "Ações",
-      "noNotes": "Sem observações",
-      "contact": "Contatar",
-      "confirm": "Confirmar",
-      "minutes": "min"
-    },
-
-    "performance": {
-      "title": "Análise de Desempenho",
-      "thisWeek": "Esta Semana",
-      "lastSixMonths": "Últimos 6 Meses",
-      "totalBookings": "Total de Agendamentos",
-      "totalEarnings": "Ganhos Totais",
-      "averageRating": "Avaliação Média",
-      "totalClients": "Total de Clientes"
-    },
-
-    "clients": {
-      "title": "Meus Clientes",
-      "description": "Clientes que você atendeu recentemente",
-      "managementTitle": "Gestão de Clientes",
-      "managementDescription": "Visualize seu histórico de clientes e construa relacionamentos.",
-      "comingSoon": "Em Breve"
-    },
-
-    "profile": {
-      "title": "Perfil Profissional",
-      "description": "Suas informações profissionais",
-      "email": "E-MAIL",
-      "phone": "TELEFONE",
-      "business": "NEGÓCIO",
-      "specialities": "ESPECIALIDADES",
-
-      "achievements": {
-        "title": "Conquistas",
-        "description": "Seus marcos e realizações",
-        "topPerformer": {
-          "title": "Melhor Desempenho",
-          "description": "Profissional com melhor avaliação este mês"
-        },
-        "goalAchiever": {
-          "title": "Alcançou Meta",
-          "description": "Superou a meta mensal de agendamentos"
-        },
-        "clientFavorite": {
-          "title": "Favorito dos Clientes",
-          "description": "95% de satisfação dos clientes"
-        },
-        "memberSince": "Membro desde: {{date}}",
-        "viewAll": "Ver Todas as Conquistas"
-      }
-    }
-  },
-
-  "calendar": {
-    "title": "Visualização do Calendário",
-    "description": "Visualize e gerencie seus compromissos e agenda",
-    "prev": "Anterior",
-    "next": "Próximo",
-    "today": "Hoje",
-    "day": "Dia",
-    "week": "Semana",
-    "month": "Mês",
-    "appointments": "comp.",
-    "createNewBooking": "Criar Novo Agendamento",
-    "viewAllBookings": "Ver Todos os Agendamentos"
-  },
-
-  "status": {
-    "confirmed": "confirmado",
-    "pending": "pendente",
-    "completed": "concluído",
-    "cancelled": "cancelado"
-  },
-
+  "viewAll": "Ver todos",
+  "revenueOverview": "Visão geral da receita",
+  "liveUpdates": "Atualizações em tempo real",
+  "overdue": "Em Atraso",
+  "now": "Agora",
+  "inProgress": "Em Progresso",
+  "upcoming": "Próximos",
+  "noLiveActivity": "Sem agendamentos ativos ou próximos neste momento.",
   "time": {
     "today": "Hoje",
     "tomorrow": "Amanhã"
   },
-
-  "loading": {
-    "title": "Carregando...",
-    "value": "--",
-    "subtitle": "Buscando dados..."
+  "stats": {
+    "totalbookings": "Total de Agendamentos",
+    "totalBookings": "Total de Agendamentos",
+    "bookingsThisMonth": "Agendamentos Este Mês",
+    "todaysbookings": "Agendamentos Hoje",
+    "todaysBookings": "Agendamentos Hoje",
+    "completedrate": "Taxa de Conclusão",
+    "completedRate": "Taxa de Conclusão",
+    "thismonthrevenue": "Receita Este Mês",
+    "thisMonthRevenue": "Receita Este Mês",
+    "revenueThisMonth": "Receita Este Mês",
+    "activeclients": "Clientes Ativos",
+    "activeClients": "Clientes Ativos",
+    "newClients": "Novos Clientes",
+    "teamMembers": "Membros da Equipa",
+    "averagerating": "Avaliação Média",
+    "averageRating": "Avaliação Média",
+    "thisMonth": "este mês",
+    "vsLastMonth": "vs mês passado"
   },
-
-  "viewAllAppointments": "Ver Todos os Compromissos"
+  "upcomingBookings": {
+    "title": "Próximos agendamentos",
+    "description": "Os seus próximos compromissos",
+    "noBookings": "Nenhum agendamento próximo",
+    "createBooking": "Criar agendamento",
+    "unknownClient": "Cliente desconhecido",
+    "unknownService": "Serviço desconhecido",
+    "viewAll": "Ver todos os agendamentos"
+  },
+  "quickActions": {
+    "title": "Ações rápidas",
+    "newBooking": "Novo Agendamento",
+    "addClient": "Adicionar Cliente",
+    "viewSchedule": "Ver Agenda",
+    "generateReport": "Gerar Relatório"
+  },
+  "recentActivity": {
+    "title": "Atividade recente",
+    "description": "Últimas atualizações",
+    "newBookingConfirmed": "Novo agendamento confirmado para amanhã",
+    "sessionCompleted": "Sessão concluída com sucesso",
+    "bookingConfirmed": "Agendamento confirmado",
+    "bookingCancelled": "Agendamento cancelado",
+    "minutesAgo": "{{count}} minutos atrás",
+    "hourAgo": "1 hora atrás"
+  },
+  "calendar": {
+    "title": "Visualização do Calendário",
+    "description": "Visualize e gerencie os seus compromissos"
+  },
+  "goals": {
+    "title": "Metas do Mês",
+    "description": "Acompanhe o progresso das suas metas",
+    "noGoals": "Nenhuma meta definida",
+    "createGoal": "Criar meta",
+    "bookings": "Meta de Agendamentos",
+    "revenue": "Meta de Receita",
+    "clients": "Meta de Clientes"
+  },
+  "insights": {
+    "title": "Insights de IA",
+    "description": "Análises inteligentes do seu negócio",
+    "peakHours": "Horários de Pico",
+    "recommendations": "Recomendações"
+  },
+  "upgrade": {
+    "title": "Atualizar Plano",
+    "description": "Desbloqueie recursos avançados"
+  },
+  "loading": "A carregar...",
+  "noData": "Sem dados disponíveis",
+  "error": "Erro ao carregar dados"
 }

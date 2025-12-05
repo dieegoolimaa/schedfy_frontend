@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { useCurrency } from "@/hooks/useCurrency";
 import { publicService } from "@/services/public.service";
@@ -40,13 +41,22 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
+import { Booking } from "@/types/models/bookings.interface";
+
+interface PopulatedBooking extends Omit<Booking, 'entityId' | 'serviceId' | 'professionalId'> {
+    entityId: any;
+    serviceId: any;
+    professionalId?: any;
+}
+
 export function PublicBookingManagementPage() {
+    const { t } = useTranslation("publicBooking");
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { formatCurrency } = useCurrency();
 
     const [loading, setLoading] = useState(true);
-    const [booking, setBooking] = useState<any>(null);
+    const [booking, setBooking] = useState<PopulatedBooking | null>(null);
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
     const [cancelling, setCancelling] = useState(false);
@@ -70,10 +80,16 @@ export function PublicBookingManagementPage() {
         setLoadingSlots(true);
         try {
             const dateStr = format(date, 'yyyy-MM-dd');
-            const response = await publicService.getAvailableSlots(booking.entityId._id || booking.entityId, {
-                serviceId: booking.serviceId._id || booking.serviceId,
+            const entityId = typeof booking.entityId === 'string' ? booking.entityId : booking.entityId._id;
+            const serviceId = typeof booking.serviceId === 'string' ? booking.serviceId : booking.serviceId._id;
+            const professionalId = booking.professionalId
+                ? (typeof booking.professionalId === 'string' ? booking.professionalId : booking.professionalId._id)
+                : undefined;
+
+            const response = await publicService.getAvailableSlots(entityId, {
+                serviceId: serviceId,
                 date: dateStr,
-                professionalId: booking.professionalId?._id || booking.professionalId,
+                professionalId: professionalId,
             });
             setAvailableSlots(response.data);
         } catch (error) {
@@ -85,7 +101,7 @@ export function PublicBookingManagementPage() {
     };
 
     const handleReschedule = async () => {
-        if (!selectedSlot || !selectedDate) return;
+        if (!selectedSlot || !selectedDate || !booking) return;
         setRescheduling(true);
         try {
             const [time, professionalId] = selectedSlot.split('|');
@@ -98,15 +114,16 @@ export function PublicBookingManagementPage() {
             // Ideally we should have service duration. For now, let's assume the backend handles duration or we use a default.
             // Better: The backend update usually takes startDateTime and calculates endDateTime if not provided, or we need to provide it.
             // Let's try to calculate it if we have service duration in booking object.
-            const duration = booking.serviceId?.duration?.duration || 60;
+            // Note: serviceId is populated, so we might have duration there.
+            const duration = booking.serviceId?.duration || 60;
             const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
 
             await publicService.updateBooking(id!, {
                 startDateTime: startDateTime.toISOString(),
                 endDateTime: endDateTime.toISOString(),
-                professionalId: professionalId || booking.professionalId?._id,
-                status: 'pending' // Reset to pending or keep confirmed? Usually reschedule requires re-confirmation or stays confirmed if simple.
-                // Let's keep status as is or let backend decide.
+                professionalId: professionalId || (typeof booking.professionalId === 'string' ? booking.professionalId : booking.professionalId?._id),
+                status: 'pending', // Reset to pending for approval if needed
+                notes: `${booking.notes || ''}\n[Rescheduled from ${format(new Date(booking.startDateTime!), 'yyyy-MM-dd HH:mm')}]`.trim()
             });
 
             toast.success("Booking rescheduled successfully");
@@ -140,10 +157,11 @@ export function PublicBookingManagementPage() {
     }, [id]);
 
     const handleCancelBooking = async () => {
-        if (!id) return;
+        if (!id || !booking) return;
         setCancelling(true);
         try {
-            await publicService.cancelBooking(booking.entityId, id, undefined, cancelReason);
+            const entityId = typeof booking.entityId === 'string' ? booking.entityId : booking.entityId._id;
+            await publicService.cancelBooking(entityId, id, undefined, cancelReason);
             toast.success("Booking cancelled successfully");
             setCancelDialogOpen(false);
             // Refresh booking details
@@ -162,25 +180,25 @@ export function PublicBookingManagementPage() {
             case "confirmed":
                 return (
                     <Badge className="bg-green-500 hover:bg-green-600">
-                        <CheckCircle2 className="w-3 h-3 mr-1" /> Confirmed
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> {t("status.confirmed")}
                     </Badge>
                 );
             case "pending":
                 return (
                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
-                        <AlertCircle className="w-3 h-3 mr-1" /> Pending Confirmation
+                        <AlertCircle className="w-3 h-3 mr-1" /> {t("status.pending")}
                     </Badge>
                 );
             case "cancelled":
                 return (
                     <Badge variant="destructive">
-                        <XCircle className="w-3 h-3 mr-1" /> Cancelled
+                        <XCircle className="w-3 h-3 mr-1" /> {t("status.cancelled")}
                     </Badge>
                 );
             case "completed":
                 return (
                     <Badge variant="outline" className="border-green-500 text-green-500">
-                        <CheckCircle2 className="w-3 h-3 mr-1" /> Completed
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> {t("status.completed")}
                     </Badge>
                 );
             default:
@@ -201,13 +219,13 @@ export function PublicBookingManagementPage() {
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
                 <Card className="w-full max-w-md text-center">
                     <CardHeader>
-                        <CardTitle>Booking Not Found</CardTitle>
+                        <CardTitle>{t("notFound.title")}</CardTitle>
                         <CardDescription>
-                            We couldn't find the booking you're looking for.
+                            {t("notFound.description")}
                         </CardDescription>
                     </CardHeader>
                     <CardFooter className="justify-center">
-                        <Button onClick={() => navigate("/")}>Go Home</Button>
+                        <Button onClick={() => navigate("/")}>{t("notFound.goHome")}</Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -217,6 +235,13 @@ export function PublicBookingManagementPage() {
     const canCancel =
         booking.status !== "cancelled" &&
         booking.status !== "completed" &&
+        booking.startDateTime &&
+        new Date(booking.startDateTime) > new Date();
+
+    const canReschedule =
+        booking &&
+        ['pending', 'confirmed'].includes(booking.status) &&
+        booking.startDateTime &&
         new Date(booking.startDateTime) > new Date();
 
     return (
@@ -224,10 +249,10 @@ export function PublicBookingManagementPage() {
             <div className="max-w-3xl mx-auto">
                 <div className="mb-8 text-center">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Booking Details
+                        {t("title")}
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-400">
-                        Manage your appointment with {booking.entityId?.name || "us"}
+                        {t("subtitle", { entity: booking.entityId?.name || t("us") })}
                     </p>
                 </div>
 
@@ -254,12 +279,12 @@ export function PublicBookingManagementPage() {
                                 </Label>
                                 <div className="flex items-center gap-2 font-medium">
                                     <CalendarIcon className="w-4 h-4 text-primary" />
-                                    {format(new Date(booking.startDateTime), "EEEE, MMMM d, yyyy")}
+                                    {booking.startDateTime && format(new Date(booking.startDateTime), "EEEE, MMMM d, yyyy")}
                                 </div>
                                 <div className="flex items-center gap-2 font-medium pl-6">
                                     <Clock className="w-4 h-4 text-primary" />
-                                    {format(new Date(booking.startDateTime), "HH:mm")} -{" "}
-                                    {format(new Date(booking.endDateTime), "HH:mm")}
+                                    {booking.startDateTime && format(new Date(booking.startDateTime), "HH:mm")} -{" "}
+                                    {booking.endDateTime && format(new Date(booking.endDateTime), "HH:mm")}
                                 </div>
                             </div>
 
@@ -323,7 +348,7 @@ export function PublicBookingManagementPage() {
                             }}>
                                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to {booking.entityId?.name || "Business"}
                             </Button>
-                            {canCancel && (
+                            {canReschedule && (
                                 <Dialog open={rescheduleDialogOpen} onOpenChange={setRescheduleDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button variant="secondary">

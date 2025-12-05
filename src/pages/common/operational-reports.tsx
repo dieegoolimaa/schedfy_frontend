@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
@@ -60,12 +61,15 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import { AIOperationalInsights } from "../../components/reports/ai-operational-insights";
+import { useAIFeatures } from "../../hooks/useAIFeatures";
 
 export function OperationalReportsPage() {
+  const { t } = useTranslation("analytics");
   const { user } = useAuth();
   const navigate = useNavigate();
   const entityId = user?.entityId || user?.id || "";
   const plan = user?.plan || "simple";
+  const { canUse: isAIEnabled } = useAIFeatures();
 
   const [timeRange, setTimeRange] = useState("30d");
 
@@ -286,8 +290,8 @@ export function OperationalReportsPage() {
       if (peakHour.bookings > 0) {
         insights.push({
           type: "opportunity",
-          title: "Peak Time Optimization",
-          description: `High demand observed around ${peakHour.hour}. Consider optimizing staff availability during this time.`,
+          title: t("insights.peakTime"),
+          description: t("insights.peakTimeDesc", { time: peakHour.hour }),
           impact: "high",
         });
       }
@@ -297,15 +301,15 @@ export function OperationalReportsPage() {
     if (stats.cancellationRate > 15) {
       insights.push({
         type: "warning",
-        title: "High Cancellation Rate",
-        description: `Cancellation rate is ${stats.cancellationRate.toFixed(1)}%. Consider sending reminders earlier or requiring deposits.`,
+        title: t("insights.highCancellation"),
+        description: t("insights.highCancellationDesc", { rate: stats.cancellationRate.toFixed(1) }),
         impact: "high",
       });
     } else if (stats.cancellationRate > 5) {
       insights.push({
         type: "warning",
-        title: "Cancellation Alert",
-        description: `Cancellation rate is ${stats.cancellationRate.toFixed(1)}%. Monitor this trend.`,
+        title: t("insights.cancellationAlert"),
+        description: t("insights.cancellationAlertDesc", { rate: stats.cancellationRate.toFixed(1) }),
         impact: "medium",
       });
     }
@@ -315,8 +319,8 @@ export function OperationalReportsPage() {
       const topService = bookingsByService[0];
       insights.push({
         type: "success",
-        title: "Top Performing Service",
-        description: `"${topService.name}" is your most popular service with ${topService.value} bookings.`,
+        title: t("insights.topService"),
+        description: t("insights.topServiceDesc", { service: topService.name, count: topService.value }),
         impact: "high",
       });
     }
@@ -325,8 +329,8 @@ export function OperationalReportsPage() {
     if (stats.total > 0) {
       insights.push({
         type: "info",
-        title: "Booking Activity",
-        description: `You have managed ${stats.total} bookings in this period.`,
+        title: t("insights.activity"),
+        description: t("insights.activityDesc", { count: stats.total }),
         impact: "medium",
       });
     }
@@ -366,10 +370,10 @@ export function OperationalReportsPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Operational Analysis
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            360° view of your business operations and performance
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -378,15 +382,15 @@ export function OperationalReportsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 3 months</SelectItem>
-              <SelectItem value="12m">Last 12 months</SelectItem>
+              <SelectItem value="7d">{t("last7days")}</SelectItem>
+              <SelectItem value="30d">{t("last30days")}</SelectItem>
+              <SelectItem value="90d">{t("last3months")}</SelectItem>
+              <SelectItem value="12m">{t("last12months")}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="sm" onClick={() => fetchBookings()}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {t("refresh")}
           </Button>
         </div>
       </div>
@@ -394,78 +398,80 @@ export function OperationalReportsPage() {
       {/* Key Metrics */}
       <StatsGrid columns={4}>
         <StatCard
-          title="Total Bookings"
+          title={t("stats.totalBookings")}
           value={stats.total}
           icon={Calendar}
           trend={{
             value: `${stats.growth > 0 ? "+" : ""}${stats.growth.toFixed(1)}%`,
             isPositive: stats.growth >= 0
           }}
-          subtitle="in selected period"
+          subtitle={t("stats.inSelectedPeriod")}
         />
         <StatCard
-          title="Completion Rate"
+          title={t("stats.completionRate")}
           value={`${stats.completionRate.toFixed(1)}%`}
           icon={CheckCircle}
           variant="success"
-          subtitle={`${stats.completed} completed`}
+          subtitle={`${stats.completed} ${t("stats.completed")}`}
         />
         <StatCard
-          title="Cancellation Rate"
+          title={t("stats.cancellationRate")}
           value={`${stats.cancellationRate.toFixed(1)}%`}
           icon={XCircle}
           variant="danger"
-          subtitle={`${stats.cancelled} cancelled`}
+          subtitle={`${stats.cancelled} ${t("stats.cancelled")}`}
         />
         <StatCard
-          title="New Clients"
+          title={t("stats.newClients")}
           value={stats.newClients}
           icon={Users}
           variant="info"
-          subtitle="in selected period"
+          subtitle={t("stats.inSelectedPeriod")}
         />
       </StatsGrid>
 
       {/* AI Insights */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {aiInsights.map((insight, i) => (
-          <Card key={i} className={`border ${getInsightColor(insight.type)}`}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                {getInsightIcon(insight.type)}
-                <div>
-                  <h4 className="font-medium text-sm">{insight.title}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {insight.description}
-                  </p>
+      {isAIEnabled && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {aiInsights.map((insight, i) => (
+            <Card key={i} className={`border ${getInsightColor(insight.type)}`}>
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  {getInsightIcon(insight.type)}
+                  <div>
+                    <h4 className="font-medium text-sm">{insight.title}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {insight.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Charts & Detailed Analysis */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="services">Services Performance</TabsTrigger>
+          <TabsTrigger value="overview">{t("tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="services">{t("tabs.services")}</TabsTrigger>
           {plan === "business" && (
-            <TabsTrigger value="professionals">Professionals</TabsTrigger>
+            <TabsTrigger value="professionals">{t("tabs.professionals")}</TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           {/* AI Operational Insights */}
-          <AIOperationalInsights bookings={filteredBookings} />
+          {isAIEnabled && <AIOperationalInsights bookings={filteredBookings} />}
 
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Busy Hours */}
             <Card>
               <CardHeader>
-                <CardTitle>Busy Hours</CardTitle>
+                <CardTitle>{t("charts.busyHours")}</CardTitle>
                 <CardDescription>
-                  Booking distribution by hour of day
+                  {t("charts.busyHoursDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -490,9 +496,9 @@ export function OperationalReportsPage() {
             {/* Status Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle>Booking Status</CardTitle>
+                <CardTitle>{t("charts.bookingStatus")}</CardTitle>
                 <CardDescription>
-                  Distribution of booking outcomes
+                  {t("charts.bookingStatusDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -525,23 +531,23 @@ export function OperationalReportsPage() {
         <TabsContent value="services" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Service Performance</CardTitle>
+              <CardTitle>{t("servicePerformance.title")}</CardTitle>
               <CardDescription>
-                Detailed breakdown of service metrics
+                {t("servicePerformance.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Service Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Total Bookings</TableHead>
-                    <TableHead className="text-right">Completed</TableHead>
+                    <TableHead>{t("table.serviceName")}</TableHead>
+                    <TableHead>{t("table.category")}</TableHead>
+                    <TableHead className="text-right">{t("table.totalBookings")}</TableHead>
+                    <TableHead className="text-right">{t("table.completed")}</TableHead>
                     <TableHead className="text-right">
-                      Completion Rate
+                      {t("table.completionRate")}
                     </TableHead>
-                    <TableHead className="text-right">Avg Duration</TableHead>
+                    <TableHead className="text-right">{t("table.avgDuration")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -581,31 +587,31 @@ export function OperationalReportsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Professional Performance</CardTitle>
+                  <CardTitle>{t("professionalPerformance.title")}</CardTitle>
                   <CardDescription>
-                    Operational metrics per professional
+                    {t("professionalPerformance.description")}
                   </CardDescription>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate("/financial-reports")}
+                  onClick={() => navigate("/entity/financial-reports")}
                 >
-                  View Financial Performance
+                  {t("viewFinancialPerformance")}
                 </Button>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Professional</TableHead>
+                      <TableHead>{t("table.professional")}</TableHead>
                       <TableHead className="text-right">
-                        Total Bookings
+                        {t("table.totalBookings")}
                       </TableHead>
-                      <TableHead className="text-right">Completed</TableHead>
-                      <TableHead className="text-right">Cancelled</TableHead>
+                      <TableHead className="text-right">{t("table.completed")}</TableHead>
+                      <TableHead className="text-right">{t("table.cancelled")}</TableHead>
                       <TableHead className="text-right">
-                        Completion Rate
+                        {t("table.completionRate")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>

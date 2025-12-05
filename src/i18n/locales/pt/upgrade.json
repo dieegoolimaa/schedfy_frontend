@@ -1,0 +1,55 @@
+{
+  "title": "Atualizar o Seu Plano",
+  "subtitle": "Desbloqueie mais funcionalidades e capacidades para o seu negócio",
+  "goBack": "Voltar",
+  "plan": "Plano",
+  "current": "Atual",
+  "currentPlanDescription": "Está atualmente no plano {{plan}}",
+  "recommended": "Recomendado",
+  "upgradeTo": "Atualizar para {{plan}}",
+  "returnToDashboard": "Voltar ao Dashboard",
+  "highestPlan": {
+    "title": "Está no plano mais alto!",
+    "description": "Tem acesso a todas as funcionalidades do Schedfy. Obrigado por ser um cliente Business!"
+  },
+  "needHelp": {
+    "title": "Precisa de Ajuda a Escolher?",
+    "description": "A nossa equipa está aqui para ajudá-lo a encontrar o plano perfeito para o seu negócio"
+  },
+  "contactSupport": "Contactar Suporte",
+  "plans": {
+    "simple": {
+      "name": "Simple",
+      "description": "Perfeito para profissionais individuais",
+      "features": [
+        "Gestão básica de marcações",
+        "Relatórios simples",
+        "Gestão de serviços",
+        "Suporte por email"
+      ]
+    },
+    "individual": {
+      "name": "Individual",
+      "description": "Insights com IA para negócios em crescimento",
+      "features": [
+        "Tudo no Simple",
+        "Insights com IA",
+        "Análises avançadas",
+        "Otimização de serviços",
+        "Suporte prioritário"
+      ]
+    },
+    "business": {
+      "name": "Business",
+      "description": "Solução completa para equipas",
+      "features": [
+        "Tudo no Individual",
+        "Gestão multi-profissional",
+        "Colaboração em equipa",
+        "Gestão avançada de funções",
+        "Integrações personalizadas",
+        "Suporte dedicado"
+      ]
+    }
+  }
+}

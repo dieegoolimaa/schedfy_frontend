@@ -9,10 +9,12 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { ArrowLeft, Crown, Zap, Star, Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/auth-context";
 import { useRegion } from "../contexts/region-context";
 
 export function UpgradePage() {
+  const { t } = useTranslation("upgrade");
   const { user } = useAuth();
   const { getPriceDisplay } = useRegion();
 
@@ -91,14 +93,14 @@ export function UpgradePage() {
           <Button variant="outline" asChild className="mb-4">
             <Link to="/">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Go Back
+              {t("goBack")}
             </Link>
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">
-            Upgrade Your Plan
+            {t("title")}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Unlock more features and capabilities for your business
+            {t("subtitle")}
           </p>
         </div>
 
@@ -109,12 +111,12 @@ export function UpgradePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {getPlanIcon(user.plan)}
-                  <CardTitle className="capitalize">{user.plan} Plan</CardTitle>
-                  <Badge variant="secondary">Current</Badge>
+                  <CardTitle className="capitalize">{user.plan} {t("plan")}</CardTitle>
+                  <Badge variant="secondary">{t("current")}</Badge>
                 </div>
               </div>
               <CardDescription>
-                You're currently on the {user.plan} plan
+                {t("currentPlanDescription", { plan: user.plan })}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -126,14 +128,13 @@ export function UpgradePage() {
             {availableUpgrades.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative ${
-                  plan.recommended ? "border-primary" : ""
-                }`}
+                className={`relative ${plan.recommended ? "border-primary" : ""
+                  }`}
               >
                 {plan.recommended && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-primary text-primary-foreground">
-                      Recommended
+                      {t("recommended")}
                     </Badge>
                   </div>
                 )}
@@ -161,7 +162,7 @@ export function UpgradePage() {
                     ))}
                   </ul>
                   <Button className="w-full" size="lg">
-                    Upgrade to {plan.name}
+                    {t("upgradeTo", { plan: plan.name })}
                   </Button>
                 </CardContent>
               </Card>
@@ -171,16 +172,15 @@ export function UpgradePage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-center">
-                You're on the highest plan!
+                {t("highestPlan.title")}
               </CardTitle>
               <CardDescription className="text-center">
-                You have access to all Schedfy features. Thank you for being a
-                Business customer!
+                {t("highestPlan.description")}
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button asChild>
-                <Link to="/">Return to Dashboard</Link>
+                <Link to="/">{t("returnToDashboard")}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -189,14 +189,13 @@ export function UpgradePage() {
         {/* Contact Support */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle>Need Help Choosing?</CardTitle>
+            <CardTitle>{t("needHelp.title")}</CardTitle>
             <CardDescription>
-              Our team is here to help you find the perfect plan for your
-              business
+              {t("needHelp.description")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline">Contact Support</Button>
+            <Button variant="outline">{t("contactSupport")}</Button>
           </CardContent>
         </Card>
       </div>

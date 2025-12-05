@@ -1,70 +1,85 @@
 {
-  "title": "Complete your business setup",
-  "step": "Step {{current}} of {{total}}",
+  "title": "Onboarding",
+  "signOut": "Sign Out",
+  "welcome": "Welcome to Schedfy!",
+  "welcomeDescription": "Let's get your business set up in just a few steps.",
+  "nextStep": "Next Step",
+  "back": "Back",
+  "complete": "Complete Setup",
   "steps": {
+    "companyInfo": {
+      "title": "Company Info",
+      "description": "Basic details about your business"
+    },
+    "contactHours": {
+      "title": "Contact & Hours",
+      "description": "How customers can reach you"
+    },
+    "firstService": {
+      "title": "First Service",
+      "description": "Add your first service to get started"
+    },
+    "paymentMethod": {
+      "title": "Payment Method",
+      "description": "Setup billing for your subscription"
+    },
     "address": {
-      "title": "Let's start with your business address",
+      "title": "Business Address",
       "street": "Street Address",
-      "streetPlaceholder": "123 Main Street",
+      "streetPlaceholder": "123 Main St",
       "city": "City",
-      "cityPlaceholder": "Lisbon",
-      "state": "State/Region",
-      "statePlaceholder": "Lisbon",
-      "zipCode": "Postal Code",
-      "zipCodePlaceholder": "1000-001",
+      "cityPlaceholder": "New York",
+      "state": "State/Province",
+      "statePlaceholder": "NY",
+      "zipCode": "Zip/Postal Code",
+      "zipCodePlaceholder": "10001",
       "country": "Country",
-      "selectCountry": "Select country"
+      "countryPlaceholder": "United States"
     },
     "contact": {
-      "title": "Configure your contact information and hours",
-      "contactInfo": "Contact Information",
-      "phone": "Phone",
-      "phonePlaceholder": "+351 912 345 678",
-      "whatsapp": "WhatsApp (optional)",
-      "whatsappPlaceholder": "+351 912 345 678",
-      "workingHours": "Business Hours",
-      "workingHoursDescription": "Set your opening and closing times for each day of the week. You can also add lunch/break intervals.",
-      "days": {
-        "monday": "Monday",
-        "tuesday": "Tuesday",
-        "wednesday": "Wednesday",
-        "thursday": "Thursday",
-        "friday": "Friday",
-        "saturday": "Saturday",
-        "sunday": "Sunday"
-      },
+      "title": "Contact Information",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+1 (555) 000-0000",
+      "whatsapp": "WhatsApp (Optional)",
+      "whatsappPlaceholder": "+1 (555) 000-0000"
+    },
+    "bookingSettings": {
+      "title": "Booking Settings",
+      "slotDuration": "Default Slot Duration (minutes)",
+      "selectDuration": "Select duration",
+      "durationDescription": "This will be used as the default duration for appointments without a specific service.",
+      "minutes15": "15 minutes",
+      "minutes30": "30 minutes",
+      "minutes45": "45 minutes",
+      "minutes60": "60 minutes",
+      "minutes90": "90 minutes",
+      "hours2": "2 hours"
+    },
+    "workingHours": {
+      "title": "Working Hours",
       "to": "to",
-      "open": "Open",
-      "interval": "Break:",
-      "intervalOptional": "(optional)"
+      "closed": "Closed",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
     },
     "service": {
-      "title": "Create your first service (optional)",
-      "description": "Creating your first service is optional but recommended to get started quickly. You can add more services later from your dashboard.",
+      "title": "Create Your First Service",
+      "description": "Add a service to start accepting bookings. You can add more later.",
       "name": "Service Name",
-      "namePlaceholder": "e.g., Haircut, Massage, Consultation",
-      "duration": "Duration (minutes)",
+      "namePlaceholder": "e.g., Haircut, Consultation, Massage",
+      "duration": "Duration (min)",
       "price": "Price",
-      "priceDescription": "Description (optional)",
-      "priceDescriptionPlaceholder": "Brief description of the service",
-      "preview": "Service Preview",
-      "previewText": "{{name}} • {{duration}} min • {{currency}}{{price}}"
+      "serviceDescription": "Description",
+      "descriptionPlaceholder": "Brief description of the service..."
     }
   },
-  "buttons": {
-    "back": "Back",
-    "next": "Next",
-    "finish": "Complete Setup",
-    "processing": "Processing..."
-  },
-  "validation": {
-    "streetRequired": "Please enter your business address",
-    "cityRequired": "Please enter the city",
-    "stateRequired": "Please enter the state/region",
-    "zipCodeRequired": "Please enter the postal code",
-    "phoneRequired": "Please enter a contact phone number",
-    "servicePriceInvalid": "Please set a valid price for the service",
-    "genericError": "Unable to complete setup. Please try again."
-  },
-  "success": "Setup complete! Welcome to Schedfy!"
+  "messages": {
+    "success": "Onboarding completed successfully!",
+    "error": "Failed to complete onboarding"
+  }
 }

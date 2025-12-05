@@ -1,0 +1,89 @@
+{
+  "title": "Team Management",
+  "subtitle": "Manage team members, professionals, roles, and permissions",
+  "inviteUser": "Invite Team Member",
+  "searchPlaceholder": "Search team members...",
+  "tabs": {
+    "allTeam": "All Team",
+    "serviceProviders": "Service Providers"
+  },
+  "filters": {
+    "allRoles": "All Roles",
+    "allStatus": "All Status"
+  },
+  "table": {
+    "title": "Team Members",
+    "subtitle": "All team members with their roles and status",
+    "member": "Member",
+    "role": "Role",
+    "contact": "Contact",
+    "professional": "Professional",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "manager": "Manager",
+    "hr": "HR",
+    "attendant": "Attendant",
+    "professional": "Professional"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "suspended": "Suspended",
+    "absent": "Absent"
+  },
+  "loading": {
+    "team": "Loading team members...",
+    "invite": "Sending invitation...",
+    "update": "Updating user...",
+    "permissions": "Updating permissions..."
+  },
+  "errors": {
+    "noEntityId": "No entity ID found",
+    "loginAgain": "No entity ID found. Please log in again.",
+    "loadFailed": "Failed to load team members",
+    "inviteFailed": "Failed to send invitation",
+    "updateFailed": "Failed to update user",
+    "permissionsFailed": "Failed to update permissions"
+  },
+  "placeholders": {
+    "jobFunction": "e.g., Hairstylist, Barber"
+  },
+  "noJobFunction": "No job function",
+  "noTeamMembers": "No team members found",
+  "noServiceProviders": "No service providers found",
+  "enableProfessionalToggle": "Enable the \"Professional\" toggle for team members to mark them as service providers",
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "resendInvite": "Resend Invite",
+    "managePermissions": "Manage Permissions"
+  },
+  "invite": {
+    "title": "Invite Team Member",
+    "description": "Send an invitation to join your team",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "jobFunction": "Job Function",
+    "serviceProvider": "Service Provider",
+    "cancel": "Cancel",
+    "sendInvitation": "Send Invitation"
+  },
+  "messages": {
+    "invitationSent": "Invitation sent successfully!",
+    "invitationFailed": "Failed to send invitation",
+    "userUpdated": "User updated successfully!",
+    "updateFailed": "Failed to update user",
+    "permissionsUpdated": "Permissions updated successfully!",
+    "permissionsFailed": "Failed to update permissions"
+  }
+}

@@ -105,22 +105,22 @@ export function EntityProfilePage() {
         setServices(
           Array.isArray(servicesResponse.data)
             ? servicesResponse.data.map((service: any) => ({
-                ...service,
-                id: service.id || service._id,
-                duration:
-                  typeof service.duration === "object"
-                    ? service.duration.duration
-                    : service.duration,
-                price:
-                  typeof service.pricing === "object"
-                    ? service.pricing.basePrice
-                    : service.price,
-                professionalIds:
-                  service.assignedProfessionalIds ||
-                  service.assignedProfessionals ||
-                  service.professionalIds ||
-                  [],
-              }))
+              ...service,
+              id: service.id || service._id,
+              duration:
+                typeof service.duration === "object"
+                  ? service.duration.duration
+                  : service.duration,
+              price:
+                typeof service.pricing === "object"
+                  ? service.pricing.basePrice
+                  : service.price,
+              professionalIds:
+                service.assignedProfessionalIds ||
+                service.assignedProfessionals ||
+                service.professionalIds ||
+                [],
+            }))
             : []
         );
       } catch (error: any) {
@@ -298,8 +298,8 @@ export function EntityProfilePage() {
                         variant="outline"
                         className={
                           subscriptionColors[
-                            entityData.subscription
-                              .plan as keyof typeof subscriptionColors
+                          entityData.subscription
+                            .plan as keyof typeof subscriptionColors
                           ] || "bg-gray-100 text-gray-800 border-gray-200"
                         }
                       >
@@ -376,9 +376,11 @@ export function EntityProfilePage() {
             <TabsTrigger value="hours" className="whitespace-nowrap">
               Business Hours
             </TabsTrigger>
-            <TabsTrigger value="team" className="whitespace-nowrap">
-              Team
-            </TabsTrigger>
+            {entityData?.subscription?.plan !== 'simple' && (
+              <TabsTrigger value="team" className="whitespace-nowrap">
+                Team
+              </TabsTrigger>
+            )}
             <TabsTrigger value="social" className="whitespace-nowrap">
               Social Media
             </TabsTrigger>
@@ -595,7 +597,7 @@ export function EntityProfilePage() {
               {weekDays.map((day) => {
                 const dayData =
                   entityData.workingHours?.[
-                    day.key as keyof typeof entityData.workingHours
+                  day.key as keyof typeof entityData.workingHours
                   ];
 
                 if (!dayData) return null;
@@ -694,159 +696,161 @@ export function EntityProfilePage() {
         </TabsContent>
 
         {/* Team Tab */}
-        <TabsContent value="team">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Team Members
-              </CardTitle>
-              <CardDescription>
-                Manage your team of professionals
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {professionals.length === 0 ? (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
-                    No professionals found. Add team members to get started.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {professionals.map((professional) => (
-                    <Card
-                      key={professional.id || professional._id}
-                      className="hover:shadow-md transition-shadow"
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage src={professional.profilePicture} />
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                              {professional.firstName?.[0]}
-                              {professional.lastName?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium truncate">
-                              {professional.firstName} {professional.lastName}
-                            </h3>
-                            <div className="flex items-center gap-2 text-sm mt-1">
-                              <div className="flex items-center">
-                                <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                                <span className="ml-1 text-muted-foreground">
-                                  {professional.rating || "N/A"}
-                                </span>
-                              </div>
-                              {professional.isAvailable !== undefined && (
-                                <Badge
-                                  variant={
-                                    professional.isAvailable
-                                      ? "default"
-                                      : "secondary"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {professional.isAvailable
-                                    ? "Available"
-                                    : "Unavailable"}
-                                </Badge>
-                              )}
-                            </div>
-                            {professional.specialties &&
-                              professional.specialties.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {professional.specialties
-                                    .slice(0, 2)
-                                    .map((specialty: string) => (
-                                      <Badge
-                                        key={specialty}
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
-                                        {specialty}
-                                      </Badge>
-                                    ))}
-                                  {professional.specialties.length > 2 && (
-                                    <span className="text-xs text-muted-foreground">
-                                      +{professional.specialties.length - 2}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Services Card */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Services Offered
-              </CardTitle>
-              <CardDescription>
-                Active services available for booking
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {services.length === 0 ? (
-                <div className="text-center py-8">
-                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
-                    No services found. Add services to start accepting bookings.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {services.map((service) => {
-                    const duration =
-                      typeof service.duration === "object"
-                        ? service.duration.duration
-                        : service.duration;
-                    const price =
-                      typeof service.pricing === "object"
-                        ? service.pricing.basePrice
-                        : service.price;
-
-                    return (
-                      <div
-                        key={service.id || service._id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+        {entityData?.subscription?.plan !== 'simple' && (
+          <TabsContent value="team">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Team Members
+                </CardTitle>
+                <CardDescription>
+                  Manage your team of professionals
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {professionals.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No professionals found. Add team members to get started.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {professionals.map((professional) => (
+                      <Card
+                        key={professional.id || professional._id}
+                        className="hover:shadow-md transition-shadow"
                       >
-                        <div className="flex-1">
-                          <h4 className="font-medium">{service.name}</h4>
-                          {service.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-1">
-                              {service.description}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span>{duration || 0} min</span>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={professional.profilePicture} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                                {professional.firstName?.[0]}
+                                {professional.lastName?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium truncate">
+                                {professional.firstName} {professional.lastName}
+                              </h3>
+                              <div className="flex items-center gap-2 text-sm mt-1">
+                                <div className="flex items-center">
+                                  <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                  <span className="ml-1 text-muted-foreground">
+                                    {professional.rating || "N/A"}
+                                  </span>
+                                </div>
+                                {professional.isAvailable !== undefined && (
+                                  <Badge
+                                    variant={
+                                      professional.isAvailable
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {professional.isAvailable
+                                      ? "Available"
+                                      : "Unavailable"}
+                                  </Badge>
+                                )}
+                              </div>
+                              {professional.specialties &&
+                                professional.specialties.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {professional.specialties
+                                      .slice(0, 2)
+                                      .map((specialty: string) => (
+                                        <Badge
+                                          key={specialty}
+                                          variant="outline"
+                                          className="text-xs"
+                                        >
+                                          {specialty}
+                                        </Badge>
+                                      ))}
+                                    {professional.specialties.length > 2 && (
+                                      <span className="text-xs text-muted-foreground">
+                                        +{professional.specialties.length - 2}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                            </div>
                           </div>
-                          <div className="font-semibold">
-                            {formatCurrency(price || 0)}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Services Card */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Services Offered
+                </CardTitle>
+                <CardDescription>
+                  Active services available for booking
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {services.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No services found. Add services to start accepting bookings.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {services.map((service) => {
+                      const duration =
+                        typeof service.duration === "object"
+                          ? service.duration.duration
+                          : service.duration;
+                      const price =
+                        typeof service.pricing === "object"
+                          ? service.pricing.basePrice
+                          : service.price;
+
+                      return (
+                        <div
+                          key={service.id || service._id}
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <h4 className="font-medium">{service.name}</h4>
+                            {service.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-1">
+                                {service.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span>{duration || 0} min</span>
+                            </div>
+                            <div className="font-semibold">
+                              {formatCurrency(price || 0)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {/* Social Media */}
         <TabsContent value="social">
@@ -1075,6 +1079,42 @@ export function EntityProfilePage() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Features</CardTitle>
+                <CardDescription>
+                  Manage AI-powered insights and tools
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">AI Insights</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enable AI-powered financial and operational insights
+                    </p>
+                  </div>
+                  <Switch
+                    checked={entityData.aiInsightsEnabled !== false}
+                    disabled={!editMode || !entityData.aiFeaturesEnabled}
+                    onCheckedChange={(checked) => {
+                      if (editMode) {
+                        setEntityData({
+                          ...entityData,
+                          aiInsightsEnabled: checked,
+                        });
+                      }
+                    }}
+                  />
+                </div>
+                {!entityData.aiFeaturesEnabled && (
+                  <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200">
+                    Upgrade to Business plan to enable AI features.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
@@ -1099,8 +1139,8 @@ export function EntityProfilePage() {
                         variant="outline"
                         className={
                           subscriptionColors[
-                            entityData.subscription
-                              .plan as keyof typeof subscriptionColors
+                          entityData.subscription
+                            .plan as keyof typeof subscriptionColors
                           ]
                         }
                       >

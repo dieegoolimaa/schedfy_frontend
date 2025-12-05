@@ -1,70 +1,85 @@
 {
-  "title": "Complete a configuração do seu negócio",
-  "step": "Etapa {{current}} de {{total}}",
+  "title": "Configuração Inicial",
+  "signOut": "Sair",
+  "welcome": "Bem-vindo ao Schedfy!",
+  "welcomeDescription": "Vamos configurar o seu negócio em apenas alguns passos.",
+  "nextStep": "Próximo Passo",
+  "back": "Voltar",
+  "complete": "Concluir Configuração",
   "steps": {
+    "companyInfo": {
+      "title": "Dados da Empresa",
+      "description": "Informações básicas sobre o seu negócio"
+    },
+    "contactHours": {
+      "title": "Contacto e Horários",
+      "description": "Como os clientes podem contactá-lo"
+    },
+    "firstService": {
+      "title": "Primeiro Serviço",
+      "description": "Adicione o seu primeiro serviço para começar"
+    },
+    "paymentMethod": {
+      "title": "Método de Pagamento",
+      "description": "Configure a faturação da sua subscrição"
+    },
     "address": {
-      "title": "Vamos começar com o endereço do seu negócio",
-      "street": "Endereço",
-      "streetPlaceholder": "Rua das Flores, 123",
+      "title": "Morada do Negócio",
+      "street": "Morada",
+      "streetPlaceholder": "Rua Principal, 123",
       "city": "Cidade",
       "cityPlaceholder": "Lisboa",
-      "state": "Estado/Distrito",
+      "state": "Distrito/Estado",
       "statePlaceholder": "Lisboa",
       "zipCode": "Código Postal",
       "zipCodePlaceholder": "1000-001",
       "country": "País",
-      "selectCountry": "Selecione o país"
+      "countryPlaceholder": "Portugal"
     },
     "contact": {
-      "title": "Configure suas informações de contato e horários",
-      "contactInfo": "Informações de contato",
-      "phone": "Telefone",
+      "title": "Informação de Contacto",
+      "phone": "Número de Telefone",
       "phonePlaceholder": "+351 912 345 678",
-      "whatsapp": "WhatsApp (opcional)",
-      "whatsappPlaceholder": "+351 912 345 678",
-      "workingHours": "Horário de funcionamento",
-      "workingHoursDescription": "Configure os horários de abertura e fechamento para cada dia da semana. Você também pode adicionar intervalos de almoço/pausa.",
-      "days": {
-        "monday": "Segunda",
-        "tuesday": "Terça",
-        "wednesday": "Quarta",
-        "thursday": "Quinta",
-        "friday": "Sexta",
-        "saturday": "Sábado",
-        "sunday": "Domingo"
-      },
-      "to": "às",
-      "open": "Aberto",
-      "interval": "Intervalo:",
-      "intervalOptional": "(opcional)"
+      "whatsapp": "WhatsApp (Opcional)",
+      "whatsappPlaceholder": "+351 912 345 678"
+    },
+    "bookingSettings": {
+      "title": "Configurações de Marcação",
+      "slotDuration": "Duração Padrão do Slot (minutos)",
+      "selectDuration": "Selecionar duração",
+      "durationDescription": "Será usado como duração padrão para marcações sem um serviço específico.",
+      "minutes15": "15 minutos",
+      "minutes30": "30 minutos",
+      "minutes45": "45 minutos",
+      "minutes60": "60 minutos",
+      "minutes90": "90 minutos",
+      "hours2": "2 horas"
+    },
+    "workingHours": {
+      "title": "Horário de Funcionamento",
+      "to": "até",
+      "closed": "Fechado",
+      "monday": "Segunda-feira",
+      "tuesday": "Terça-feira",
+      "wednesday": "Quarta-feira",
+      "thursday": "Quinta-feira",
+      "friday": "Sexta-feira",
+      "saturday": "Sábado",
+      "sunday": "Domingo"
     },
     "service": {
-      "title": "Crie seu primeiro serviço (opcional)",
-      "description": "Criar seu primeiro serviço é opcional, mas recomendado para começar rapidamente. Você pode adicionar mais serviços depois no seu painel.",
-      "name": "Nome do serviço",
-      "namePlaceholder": "Ex: Corte de cabelo, Massagem, Consulta",
-      "duration": "Duração (minutos)",
+      "title": "Crie o Seu Primeiro Serviço",
+      "description": "Adicione um serviço para começar a aceitar marcações. Pode adicionar mais depois.",
+      "name": "Nome do Serviço",
+      "namePlaceholder": "Ex: Corte de Cabelo, Consulta, Massagem",
+      "duration": "Duração (min)",
       "price": "Preço",
-      "priceDescription": "Descrição (opcional)",
-      "priceDescriptionPlaceholder": "Breve descrição do serviço",
-      "preview": "Pré-visualização do serviço",
-      "previewText": "{{name}} • {{duration}} min • {{currency}}{{price}}"
+      "serviceDescription": "Descrição",
+      "descriptionPlaceholder": "Breve descrição do serviço..."
     }
   },
-  "buttons": {
-    "back": "Voltar",
-    "next": "Próximo",
-    "finish": "Concluir configuração",
-    "processing": "Processando..."
-  },
-  "validation": {
-    "streetRequired": "Por favor, informe o endereço da sua empresa",
-    "cityRequired": "Por favor, informe a cidade",
-    "stateRequired": "Por favor, informe o estado/distrito",
-    "zipCodeRequired": "Por favor, informe o código postal",
-    "phoneRequired": "Por favor, informe um número de telefone para contato",
-    "servicePriceInvalid": "Por favor, defina um preço válido para o serviço",
-    "genericError": "Não foi possível concluir a configuração. Tente novamente."
-  },
-  "success": "Configuração concluída! Bem-vindo ao Schedfy!"
+  "messages": {
+    "success": "Configuração concluída com sucesso!",
+    "error": "Falha ao concluir a configuração"
+  }
 }

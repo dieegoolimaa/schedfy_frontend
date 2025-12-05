@@ -1,39 +1,65 @@
 {
-  "title": "Análise de Dados",
-  "description": "Insights abrangentes sobre seu negócio",
-  "overview": {
-    "title": "Visão Geral",
-    "totalRevenue": "Receita Total",
+  "title": "Análise Operacional",
+  "subtitle": "Visão 360° das operações e desempenho do seu negócio",
+  "refresh": "Atualizar",
+  "last7days": "Últimos 7 dias",
+  "last30days": "Últimos 30 dias",
+  "last3months": "Últimos 3 meses",
+  "last12months": "Últimos 12 meses",
+  "thisMonth": "Este mês",
+  "lastMonth": "Mês passado",
+  "stats": {
     "totalBookings": "Total de Agendamentos",
-    "activeClients": "Clientes Ativos",
-    "avgBookingValue": "Valor Médio por Agendamento"
-  },
-  "timeRange": {
-    "7days": "Últimos 7 dias",
-    "30days": "Últimos 30 dias",
-    "90days": "Últimos 90 dias",
-    "year": "Este ano"
-  },
-  "services": {
-    "title": "Desempenho de Serviços",
-    "topServices": "Principais Serviços",
-    "revenue": "Receita",
-    "bookings": "Agendamentos"
-  },
-  "professionals": {
-    "title": "Desempenho de Profissionais",
-    "topProfessionals": "Principais Profissionais"
-  },
-  "clients": {
-    "title": "Análise de Clientes",
-    "segments": "Segmentos de Clientes",
+    "completionRate": "Taxa de Conclusão",
+    "cancellationRate": "Taxa de Cancelamento",
     "newClients": "Novos Clientes",
-    "returningClients": "Clientes Recorrentes"
+    "inSelectedPeriod": "no período selecionado",
+    "completed": "concluídos",
+    "cancelled": "cancelados"
   },
-  "trends": {
-    "title": "Tendências",
-    "hourly": "Análise por Hora",
-    "daily": "Análise Diária",
-    "monthly": "Análise Mensal"
-  }
+  "tabs": {
+    "overview": "Visão Geral",
+    "services": "Desempenho de Serviços",
+    "professionals": "Profissionais"
+  },
+  "charts": {
+    "busyHours": "Horários de Pico",
+    "busyHoursDesc": "Distribuição de agendamentos por hora do dia",
+    "bookingStatus": "Status dos Agendamentos",
+    "bookingStatusDesc": "Distribuição do resultado dos agendamentos",
+    "servicesBreakdown": "Desempenho de Serviços",
+    "professionalPerformance": "Desempenho Profissional"
+  },
+  "servicePerformance": {
+    "title": "Desempenho de Serviços",
+    "description": "Detalhamento das métricas de serviços"
+  },
+  "professionalPerformance": {
+    "title": "Desempenho Profissional",
+    "description": "Métricas operacionais por profissional"
+  },
+  "insights": {
+    "peakTime": "Otimização de Horário de Pico",
+    "peakTimeDesc": "Alta demanda observada por volta das {{time}}. Considere otimizar a disponibilidade da equipe durante este horário.",
+    "highCancellation": "Alta Taxa de Cancelamento",
+    "highCancellationDesc": "A taxa de cancelamento é de {{rate}}%. Considere enviar lembretes mais cedo ou solicitar depósitos.",
+    "cancellationAlert": "Alerta de Cancelamento",
+    "cancellationAlertDesc": "A taxa de cancelamento é de {{rate}}%. Monitore esta tendência.",
+    "topService": "Serviço com Melhor Desempenho",
+    "topServiceDesc": "\"{{service}}\" é o seu serviço mais popular com {{count}} agendamentos.",
+    "activity": "Atividade de Agendamento",
+    "activityDesc": "Você gerenciou {{count}} agendamentos neste período."
+  },
+  "table": {
+    "serviceName": "Nome do Serviço",
+    "category": "Categoria",
+    "totalBookings": "Total de Agendamentos",
+    "completed": "Concluídos",
+    "completionRate": "Taxa de Conclusão",
+    "avgDuration": "Duração Média",
+    "professional": "Profissional",
+    "cancelled": "Cancelados"
+  },
+  "noData": "Sem dados para o período selecionado",
+  "viewFinancialPerformance": "Ver Desempenho Financeiro"
 }

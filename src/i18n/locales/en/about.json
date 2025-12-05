@@ -1,21 +1,9 @@
 {
-  "title": "About Schedfy",
-  "subtitle": "Learn about our mission and values",
-  "mission": {
-    "title": "Our Mission",
-    "description": "Simplify appointment management for businesses and professionals"
-  },
-  "stats": {
-    "bookings": "Monthly Bookings",
-    "users": "Active Users",
-    "entities": "Registered Entities"
-  },
-  "team": {
-    "title": "Our Team",
-    "description": "Meet the people behind Schedfy"
-  },
-  "contact": {
-    "title": "Get in Touch",
-    "description": "We're here to help"
-  }
+  "hero": { "title": "About Us", "getStarted": "Get Started", "seePricing": "See Pricing" },
+  "cta": { "title": "Ready to get started?", "start": "Start Free Trial", "contact": "Contact Sales" },
+  "mission": { "badge": "Our Mission" },
+  "stats": { "users": "Users", "bookings": "Bookings", "countries": "Countries", "uptime": "Uptime" },
+  "values": { "title": "Our Values", "innovation": { "title": "Innovation" }, "customer": { "title": "Customer Focus" }, "simplicity": { "title": "Simplicity" }, "trust": { "title": "Trust" } },
+  "vision": { "badge": "Our Vision", "ai": { "title": "AI-Powered" }, "global": { "title": "Global Reach" }, "community": { "title": "Community" } },
+  "timeline": { "title": "Our Journey", "2024": { "title": "2024" }, "future": { "title": "Future" }, "q2": { "title": "Q2" }, "q3": { "title": "Q3" } }
 }

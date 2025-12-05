@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/auth-context";
 import {
@@ -76,13 +77,13 @@ interface BlockedDate {
 }
 
 const DAYS_OF_WEEK = [
-  { key: "monday", label: "Monday" },
-  { key: "tuesday", label: "Tuesday" },
-  { key: "wednesday", label: "Wednesday" },
-  { key: "thursday", label: "Thursday" },
-  { key: "friday", label: "Friday" },
-  { key: "saturday", label: "Saturday" },
-  { key: "sunday", label: "Sunday" },
+  { key: "monday" },
+  { key: "tuesday" },
+  { key: "wednesday" },
+  { key: "thursday" },
+  { key: "friday" },
+  { key: "saturday" },
+  { key: "sunday" },
 ];
 
 const DEFAULT_TIME_SLOTS: TimeSlot[] = [{ start: "09:00", end: "17:00" }];
@@ -93,6 +94,7 @@ const DEFAULT_DAY_SCHEDULE: DaySchedule = {
 };
 
 export default function ProfessionalSchedulePage() {
+  const { t } = useTranslation(["professional", "common"]);
   const { user } = useAuth();
   const professionalId = user?.id || "";
 
@@ -229,10 +231,10 @@ export default function ProfessionalSchedulePage() {
         bufferTime,
         breakTime,
       });
-      toast.success("Schedule saved successfully");
+      toast.success(t("schedule.messages.saveSuccess"));
     } catch (error) {
       console.error("Error saving schedule:", error);
-      toast.error("Failed to save schedule");
+      toast.error(t("schedule.messages.saveError"));
     } finally {
       setLoading(false);
     }
@@ -287,7 +289,7 @@ export default function ProfessionalSchedulePage() {
 
   const handleBlockDate = () => {
     if (!dateRange.from) {
-      toast.error("Please select at least one date");
+      toast.error(t("schedule.messages.selectDate"));
       return;
     }
 
@@ -307,16 +309,14 @@ export default function ProfessionalSchedulePage() {
     setDateRange({ from: undefined, to: undefined });
     setBlockReason("");
     setBlockAllDay(true);
-    const days =
-      Math.ceil(
-        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1;
-    toast.success(`${days} day${days > 1 ? "s" : ""} blocked successfully`);
+    setBlockReason("");
+    setBlockAllDay(true);
+    toast.success(t("schedule.messages.blockedSuccess"));
   };
 
   const removeBlockedDate = (index: number) => {
     setBlockedDates((prev) => prev.filter((_, i) => i !== index));
-    toast.success("Blocked date removed");
+    toast.success(t("schedule.messages.unblockedSuccess"));
   };
 
   return (
@@ -324,14 +324,14 @@ export default function ProfessionalSchedulePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Schedule</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("schedule.title")}</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your availability and working hours
+            {t("schedule.description")}
           </p>
         </div>
         <Button onClick={handleSaveSchedule} disabled={loading} size="lg">
           <Save className="h-4 w-4 mr-2" />
-          Save Changes
+          {t("schedule.save")}
         </Button>
       </div>
 
@@ -339,9 +339,9 @@ export default function ProfessionalSchedulePage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Buffer Time</CardTitle>
+            <CardTitle className="text-base">{t("schedule.bufferTime")}</CardTitle>
             <CardDescription>
-              Time between appointments for preparation
+              {t("schedule.bufferDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -353,11 +353,11 @@ export default function ProfessionalSchedulePage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">No buffer</SelectItem>
-                <SelectItem value="5">5 minutes</SelectItem>
-                <SelectItem value="10">10 minutes</SelectItem>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
+                <SelectItem value="0">{t("schedule.noBuffer")}</SelectItem>
+                <SelectItem value="5">5 {t("schedule.minutes")}</SelectItem>
+                <SelectItem value="10">10 {t("schedule.minutes")}</SelectItem>
+                <SelectItem value="15">15 {t("schedule.minutes")}</SelectItem>
+                <SelectItem value="30">30 {t("schedule.minutes")}</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -365,9 +365,9 @@ export default function ProfessionalSchedulePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Break Duration</CardTitle>
+            <CardTitle className="text-base">{t("schedule.breakTime")}</CardTitle>
             <CardDescription>
-              Standard break time during your schedule
+              {t("schedule.breakDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -379,11 +379,11 @@ export default function ProfessionalSchedulePage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">No break</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="60">1 hour</SelectItem>
-                <SelectItem value="90">1.5 hours</SelectItem>
-                <SelectItem value="120">2 hours</SelectItem>
+                <SelectItem value="0">{t("schedule.noBreak")}</SelectItem>
+                <SelectItem value="30">30 {t("schedule.minutes")}</SelectItem>
+                <SelectItem value="60">1 {t("schedule.hour")}</SelectItem>
+                <SelectItem value="90">1.5 {t("schedule.hours")}</SelectItem>
+                <SelectItem value="120">2 {t("schedule.hours")}</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -392,16 +392,17 @@ export default function ProfessionalSchedulePage() {
 
       <Tabs defaultValue="weekly" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="weekly">Weekly Hours</TabsTrigger>
-          <TabsTrigger value="blocked">Blocked Dates</TabsTrigger>
+          <TabsTrigger value="weekly">{t("schedule.weekly")}</TabsTrigger>
+          <TabsTrigger value="blocked">{t("schedule.blocked")}</TabsTrigger>
         </TabsList>
 
         {/* Weekly Schedule */}
         <TabsContent value="weekly" className="space-y-4">
           <div className="grid gap-4">
-            {DAYS_OF_WEEK.map(({ key, label }) => {
+            {DAYS_OF_WEEK.map(({ key }) => {
               const dayKey = key as keyof WeeklySchedule;
               const daySchedule = weeklySchedule[dayKey];
+              const label = t(`common:days.${key}`);
 
               return (
                 <Card
@@ -419,10 +420,8 @@ export default function ProfessionalSchedulePage() {
                           <h3 className="font-semibold">{label}</h3>
                           <p className="text-sm text-muted-foreground">
                             {daySchedule.enabled
-                              ? `${daySchedule.slots.length} slot${
-                                  daySchedule.slots.length !== 1 ? "s" : ""
-                                }`
-                              : "Unavailable"}
+                              ? `${daySchedule.slots.length} ${t("schedule.slots")}`
+                              : t("schedule.unavailable")}
                           </p>
                         </div>
                       </div>
@@ -508,9 +507,9 @@ export default function ProfessionalSchedulePage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Blocked Dates</CardTitle>
+                  <CardTitle>{t("schedule.blocked")}</CardTitle>
                   <CardDescription>
-                    Block specific dates when you're not available
+                    {t("schedule.blockDescription")}
                   </CardDescription>
                 </div>
                 <Dialog
@@ -520,14 +519,14 @@ export default function ProfessionalSchedulePage() {
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />
-                      Block Date
+                      {t("schedule.blockDate")}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Block a Date</DialogTitle>
+                      <DialogTitle>{t("schedule.blockDialogTitle")}</DialogTitle>
                       <DialogDescription>
-                        Select a date and provide a reason
+                        {t("schedule.blockDialogDescription")}
                       </DialogDescription>
                     </DialogHeader>
 
@@ -535,16 +534,16 @@ export default function ProfessionalSchedulePage() {
                       <div>
                         <Label className="block mb-2">
                           {!dateRange.from
-                            ? "Select date or date range"
+                            ? t("schedule.selectDateLabel")
                             : dateRange.to
-                            ? `${format(
+                              ? `${format(
                                 dateRange.from,
                                 "MMM d, yyyy"
                               )} - ${format(dateRange.to, "MMM d, yyyy")}`
-                            : `${format(
+                              : `${format(
                                 dateRange.from,
                                 "MMM d, yyyy"
-                              )} (click again to select range)`}
+                              )} ${t("schedule.clickToRange")}`}
                         </Label>
                         <Calendar
                           mode="range"
@@ -569,18 +568,18 @@ export default function ProfessionalSchedulePage() {
                             }
                             className="mt-2 w-full"
                           >
-                            Clear selection
+                            {t("schedule.clearSelection")}
                           </Button>
                         )}
                       </div>
 
                       <div>
-                        <Label>Reason</Label>
+                        <Label>{t("schedule.reason")}</Label>
                         <input
                           type="text"
                           value={blockReason}
                           onChange={(e) => setBlockReason(e.target.value)}
-                          placeholder="e.g., Vacation, Personal"
+                          placeholder={t("schedule.reasonPlaceholder")}
                           className="w-full px-3 py-2 border rounded-md mt-1"
                         />
                       </div>
@@ -590,13 +589,13 @@ export default function ProfessionalSchedulePage() {
                           checked={blockAllDay}
                           onCheckedChange={setBlockAllDay}
                         />
-                        <Label>All day</Label>
+                        <Label>{t("schedule.allDay")}</Label>
                       </div>
 
                       {!blockAllDay && (
                         <div className="flex gap-3">
                           <div className="flex-1">
-                            <Label>Start Time</Label>
+                            <Label>{t("schedule.startTime")}</Label>
                             <input
                               type="time"
                               value={blockStartTime}
@@ -607,7 +606,7 @@ export default function ProfessionalSchedulePage() {
                             />
                           </div>
                           <div className="flex-1">
-                            <Label>End Time</Label>
+                            <Label>{t("schedule.endTime")}</Label>
                             <input
                               type="time"
                               value={blockEndTime}
@@ -624,9 +623,9 @@ export default function ProfessionalSchedulePage() {
                         variant="outline"
                         onClick={() => setBlockDialogOpen(false)}
                       >
-                        Cancel
+                        {t("schedule.cancel")}
                       </Button>
-                      <Button onClick={handleBlockDate}>Block Date</Button>
+                      <Button onClick={handleBlockDate}>{t("schedule.blockDate")}</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -637,7 +636,7 @@ export default function ProfessionalSchedulePage() {
               {blockedDates.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <AlertCircle className="h-12 w-12 mx-auto mb-4" />
-                  <p>No blocked dates yet</p>
+                  <p>{t("schedule.noBlockedDates")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -662,12 +661,12 @@ export default function ProfessionalSchedulePage() {
                                 {isSingleDay
                                   ? format(block.startDate, "MMMM dd, yyyy")
                                   : `${format(
-                                      block.startDate,
-                                      "MMM dd"
-                                    )} - ${format(
-                                      block.endDate,
-                                      "MMM dd, yyyy"
-                                    )}`}
+                                    block.startDate,
+                                    "MMM dd"
+                                  )} - ${format(
+                                    block.endDate,
+                                    "MMM dd, yyyy"
+                                  )}`}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 {block.reason}

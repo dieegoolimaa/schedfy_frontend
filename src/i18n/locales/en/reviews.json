@@ -1,0 +1,26 @@
+{
+  "title": "Reviews & Feedback",
+  "subtitle": "Manage customer reviews and respond to feedback",
+  "filterByRating": "Filter by Rating",
+  "allRatings": "All Ratings",
+  "sortBy": "Sort By",
+  "mostRecent": "Most Recent",
+  "oldest": "Oldest",
+  "highestRating": "Highest Rating",
+  "lowestRating": "Lowest Rating",
+  "tabs": {
+    "allReviews": "All Reviews",
+    "pending": "Pending",
+    "responded": "Responded"
+  },
+  "noReviews": "No reviews yet",
+  "noReviewsDesc": "Reviews from your clients will appear here",
+  "respond": "Respond",
+  "reply": "Reply",
+  "yourReply": "Your reply",
+  "sendReply": "Send Reply",
+  "deleteReview": "Delete Review",
+  "reportReview": "Report Review",
+  "verified": "Verified",
+  "stars": "stars"
+}

@@ -8,6 +8,12 @@ export interface Entity {
     email: string;
     plan: 'simple' | 'individual' | 'business';
     allowConcurrentBookings: boolean;
+    defaultSlotDuration?: number;
+    aiFeaturesEnabled?: boolean;
+    aiInsightsEnabled?: boolean;
+    hasCompletedFirstPayment?: boolean;
+    hasPaymentIssue?: boolean;
+    paymentIssueType?: string;
     username?: string;
     description?: string;
     address?: string;
@@ -31,6 +37,26 @@ export interface Entity {
             };
         };
     };
+    publicProfile?: {
+        enabled: boolean;
+        slug?: string;
+        description?: string;
+        logo?: string;
+        banner?: string;
+        socialLinks?: {
+            facebook?: string;
+            instagram?: string;
+            twitter?: string;
+            linkedin?: string;
+        };
+        bookingSettings?: {
+            allowOnlineBooking: boolean;
+            requireApproval: boolean;
+            cancellationPolicy?: string;
+            bookingNoticeHours: number;
+        };
+        welcomeMessage?: string;
+    };
 }
 
 export interface EntityProfile {
@@ -43,6 +69,29 @@ export interface EntityProfile {
     logo?: string;
     banner?: string;
     workingHours?: WorkingHours;
+    defaultSlotDuration?: number;
+    aiFeaturesEnabled?: boolean;
+    aiInsightsEnabled?: boolean;
+    publicProfile?: {
+        enabled: boolean;
+        slug?: string;
+        description?: string;
+        logo?: string;
+        banner?: string;
+        socialLinks?: {
+            facebook?: string;
+            instagram?: string;
+            twitter?: string;
+            linkedin?: string;
+        };
+        bookingSettings?: {
+            allowOnlineBooking: boolean;
+            requireApproval: boolean;
+            cancellationPolicy?: string;
+            bookingNoticeHours: number;
+        };
+        welcomeMessage?: string;
+    };
 }
 
 export interface UpdateEntityProfileDto {
@@ -54,6 +103,10 @@ export interface UpdateEntityProfileDto {
     website?: string;
     logo?: string;
     banner?: string;
+    workingHours?: WorkingHours;
+    defaultSlotDuration?: number;
+    aiFeaturesEnabled?: boolean;
+    aiInsightsEnabled?: boolean;
 }
 
 export interface WorkingHoursDay {
@@ -85,10 +138,12 @@ export interface CompleteOnboardingDto {
     phone: string;
     whatsapp?: string;
     workingHours: WorkingHours;
+    defaultSlotDuration?: number;
     firstService?: {
         name: string;
         duration: number;
         price: number;
         description?: string;
     };
+    paymentMethodId?: string;
 }

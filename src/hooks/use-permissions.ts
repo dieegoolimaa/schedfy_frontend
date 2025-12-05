@@ -30,10 +30,10 @@ export function usePermissions() {
         queryFn: async () => {
             try {
                 const response = await apiClient.get<{ success: boolean; data: UserPermission[] }>('/api/role-permissions/me');
-                return response.data.data;
+                return response.data?.data || [];
             } catch (error) {
                 console.warn('Failed to fetch permissions from API, using fallback');
-                return null;
+                return [];
             }
         },
         enabled: !!user,
@@ -118,8 +118,18 @@ export function usePermissions() {
         return checks.some((check) => hasPermission(check));
     };
 
+    /**
+     * Check if user has a direct permission string (e.g. 'canManageSubscription')
+     */
+    const hasDirectPermission = (permission: string): boolean => {
+        if (!user) return false;
+        if (user.role === 'owner' || user.role === 'platform_admin') return true;
+        return (user.permissions || []).includes(permission);
+    };
+
     return {
         hasPermission,
+        hasDirectPermission,
         canViewPage,
         canCreate,
         canUpdate,

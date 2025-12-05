@@ -1,46 +1,64 @@
 {
-  "title": "Gestão de Clientes",
-  "description": "Gerencie seus relacionamentos com clientes",
-  "search": "Pesquisar clientes...",
-  "addClient": "Adicionar Cliente",
-  "filter": {
-    "all": "Todos os Clientes",
-    "active": "Ativos",
-    "inactive": "Inativos",
-    "vip": "VIP"
+  "title": "Perfis de clientes",
+  "subtitle": "Gerir perfis de clientes e vincular a agendamentos",
+  "addClient": "Adicionar cliente",
+  "searchPlaceholder": "Pesquisar clientes...",
+  "allStatus": "Todos os Estados",
+  "moreFilters": "Mais Filtros",
+  "tabs": {
+    "allClients": "Todos os clientes",
+    "recentActivity": "Atividade recente",
+    "analytics": "Estatísticas"
   },
   "stats": {
-    "totalClients": "Total de Clientes",
-    "activeClients": "Clientes Ativos",
-    "totalRevenue": "Receita Total",
-    "avgSpent": "Gasto Médio"
+    "total": "Total",
+    "clients": "Clientes",
+    "active": "Ativos",
+    "engaged": "Engajados",
+    "bookings": "Agendamentos",
+    "revenue": "Receita",
+    "avgSpent": "Gasto Médio",
+    "perClient": "Por Cliente"
+  },
+  "directory": {
+    "title": "Diretório de clientes",
+    "subtitle": "Lista completa de todos os clientes com os seus detalhes"
   },
   "table": {
-    "name": "Nome",
-    "email": "Email",
-    "phone": "Telefone",
-    "totalBookings": "Agendamentos",
-    "totalSpent": "Total Gasto",
-    "avgSpent": "Gasto Médio",
-    "lastBooking": "Último Agendamento",
-    "status": "Status",
-    "actions": "Ações"
+    "client": "Cliente",
+    "contact": "Contacto",
+    "activity": "Atividade",
+    "spending": "Gastos",
+    "status": "Estado",
+    "actions": "Ações",
+    "memberSince": "Membro desde",
+    "bookings": "agendamentos",
+    "last": "Último",
+    "avg": "Média"
   },
-  "details": {
-    "title": "Detalhes do Cliente",
-    "info": "Informações do Cliente",
-    "bookingHistory": "Histórico de Agendamentos",
-    "notes": "Observações"
-  },
-  "form": {
-    "name": "Nome Completo",
-    "email": "Endereço de Email",
-    "phone": "Número de Telefone",
-    "notes": "Observações Adicionais"
+  "status": {
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "new": "Novo"
   },
   "actions": {
-    "edit": "Editar Cliente",
-    "delete": "Excluir Cliente",
-    "viewDetails": "Ver Detalhes"
-  }
+    "view": "Ver",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  },
+  "form": {
+    "addTitle": "Adicionar cliente",
+    "addDescription": "Crie um perfil de cliente com informações essenciais.",
+    "firstName": "Primeiro nome",
+    "lastName": "Apelido",
+    "email": "Email",
+    "phone": "Telefone",
+    "birthDate": "Data de nascimento",
+    "notes": "Observações",
+    "optional": "Opcional",
+    "additionalInfo": "Informações adicionais",
+    "addClientButton": "Adicionar cliente"
+  },
+  "noClients": "Nenhum cliente encontrado",
+  "noClientsDesc": "Adicione o seu primeiro cliente para começar"
 }

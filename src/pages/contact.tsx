@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   detectRegion,
@@ -61,6 +62,7 @@ const contactCategories = [
 ];
 
 export function ContactPage() {
+  const { t } = useTranslation("contact");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [regionalConfig, setRegionalConfig] = useState<RegionalConfig | null>(
     null
@@ -136,11 +138,11 @@ export function ContactPage() {
             <div className="ml-auto">
               <Link to="/login">
                 <Button variant="ghost" className="mr-2">
-                  Sign In
+                  {t("header.signIn")}
                 </Button>
               </Link>
               <Link to="/register">
-                <Button>Get Started</Button>
+                <Button>{t("header.getStarted")}</Button>
               </Link>
             </div>
           </div>
@@ -152,10 +154,9 @@ export function ContactPage() {
         <div className="space-y-8">
           {/* Hero Section */}
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight">Contact Us</h1>
+            <h1 className="text-4xl font-bold tracking-tight">{t("title")}</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Have a question or need support? We're here to help! Reach out to
-              us and we'll get back to you as soon as possible.
+              {t("subtitle")}
             </p>
           </div>
 
@@ -168,7 +169,7 @@ export function ContactPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="h-5 w-5" />
-                    Get In Touch
+                    {t("getInTouch.title")}
                   </CardTitle>
                   <CardDescription>
                     Multiple ways to reach our team

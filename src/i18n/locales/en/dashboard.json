@@ -1,262 +1,89 @@
 {
   "welcome": "Welcome back",
-  "welcomeWithName": "Welcome back, {{name}}!",
-  "subtitle": "Here's what's happening with your business today",
-  "subtitleIndividual": "Manage your individual practice and appointments",
-  "subtitleProfessional": "{{role}} at {{businessName}}",
-
+  "subtitle": "See what's happening with your business today",
   "today": "Today",
-  "viewCalendar": "View Calendar",
   "viewAll": "View All",
-  "createNew": "Create New",
-
-  "stats": {
-    "totalrevenue": "Total Revenue",
-    "totalbookings": "Total Bookings",
-    "activeclients": "Active Clients",
-    "confirmedtoday": "Confirmed Today",
-    "completedSessions": "Completed Sessions",
-    "thismonthrevenue": "This Month Revenue",
-    "expectedRevenue": "Expected Revenue",
-    "commission": "Commission",
-    "newClients": "New Clients",
-    "averageRating": "Average Rating",
-    "totalBookings": "Total Bookings",
-    "totalEarnings": "Total Earnings",
-    "totalClients": "Total Clients",
-    "fromLastMonth": "from last month",
-    "thisMonth": "this month",
-    "confirmed": "confirmed",
-    "pending": "pending"
-  },
-
-  "upcomingBookings": {
-    "title": "Upcoming Bookings",
-    "todaySchedule": "Today's Schedule",
-    "todaysAppointments": "Today's Appointments",
-    "description": "Your next appointments",
-    "descriptionToday": "Your appointments for today",
-    "noBookings": "No upcoming bookings",
-    "noAppointmentsToday": "No appointments scheduled for today",
-    "createBooking": "Create Booking",
-    "newBooking": "New Booking",
-    "appointmentsScheduled": "{{count}} appointments scheduled",
-    "unknownClient": "Unknown Client",
-    "unknownService": "Unknown Service"
-  },
-
-  "quickActions": {
-    "title": "Quick Actions",
-    "description": "Essential features for your business",
-    "descriptionCommon": "Common tasks and shortcuts",
-    "newBooking": "New Booking",
-    "addNewClient": "Add New Client",
-    "viewSchedule": "View Schedule",
-    "viewReports": "View Reports",
-    "generateReport": "Generate Report"
-  },
-
-  "upgradeBanner": {
-    "title": "Unlock More Features",
-    "description": "Upgrade to Individual or Business plan for advanced analytics, team management, and more.",
-    "button": "Upgrade Plan"
-  },
-
-  "recentActivity": {
-    "title": "Recent Activity",
-    "description": "Latest updates",
-    "descriptionFull": "Latest updates and notifications",
-    "newBookingConfirmed": "New booking confirmed for tomorrow",
-    "sessionCompleted": "Session completed successfully",
-    "minutesAgo": "{{count}} minutes ago",
-    "hourAgo": "1 hour ago",
-    "hoursAgo": "{{count}} hours ago",
-    "paymentReceived": "Payment received from {{name}} - {{amount}}",
-    "newReview": "New 5-star review received",
-    "sessionCompletedWith": "Session completed with {{name}}",
-    "newBookingService": "New booking: {{service}}",
-    "bookingCancelled": "Booking cancelled"
-  },
-
-  "aiInsights": {
-    "title": "AI Insights",
-    "businessIntelligence": "Business Intelligence",
-    "description": "Intelligent recommendations to optimize your practice",
-    "descriptionBusiness": "AI-powered insights to optimize your business operations",
-
-    "revenueOpportunity": {
-      "title": "Revenue Opportunity",
-      "description": "Your Tuesday afternoons have 40% availability. Consider offering promotions for off-peak hours to increase bookings.",
-      "potential": "Potential +€180/week"
-    },
-
-    "clientRetention": {
-      "title": "Client Retention Tip",
-      "description": "Clients who book follow-up appointments within 24 hours have 85% higher retention. Enable automatic follow-up reminders.",
-      "badge": "Actionable"
-    },
-
-    "servicePerformance": {
-      "title": "Service Performance",
-      "description": "Your \"Hair Styling\" service has lower demand this month. Consider bundling it with popular services or adjusting pricing.",
-      "badge": "Monitor"
-    },
-
-    "peakHours": {
-      "title": "Peak Hours Optimization",
-      "description": "Add 2 more professionals during 2-5 PM to reduce wait times and increase revenue by 23%.",
-      "potential": "Potential +€1,200/month"
-    },
-
-    "serviceBundling": {
-      "title": "Service Bundling",
-      "description": "70% of hair color clients also book styling. Create a combo package to increase average booking value.",
-      "badge": "Implement now"
-    },
-
-    "retentionAlert": {
-      "title": "Client Retention Alert",
-      "description": "15 clients haven't returned in 45+ days. Send personalized re-engagement campaigns to win them back.",
-      "badge": "Action required"
-    }
-  },
-
-  "charts": {
-    "revenueOverview": "Revenue Overview",
-    "monthlyRevenue": "Monthly revenue and appointment trends",
-    "revenue": "Revenue",
-    "appointments": "Appointments",
-    "bookingsTrend": "Bookings Trend",
-    "bookingsTrendDescription": "Number of appointments {{period}}",
-    "thisWeek": "this week",
-    "overTime": "over time",
-    "revenueTrend": "Revenue Trend",
-    "revenueTrendDescription": "Earnings {{period}}",
-    "serviceDistribution": "Service Distribution",
-    "serviceDistributionDescription": "Popular services this month",
-    "completed": "Completed",
-    "cancelled": "Cancelled",
-    "scheduled": "Scheduled"
-  },
-
-  "monthlyGoals": {
-    "title": "Monthly Goals",
-    "description": "Track your progress this month",
-    "revenueGoal": "Revenue Goal",
-    "appointments": "Appointments",
-    "newClients": "New Clients"
-  },
-
-  "professionalDashboard": {
-    "reviews": "reviews",
-    "todayBookings": "Today's Bookings",
-    "expectedRevenue": "Expected Revenue",
-    "thisMonth": "This Month",
-    "vsLastMonth": "+12% vs last month",
-    "ofRevenue": "60% of €{{amount}}",
-    "thisMonthLabel": "This month",
-
-    "tabs": {
-      "schedule": "Today's Schedule",
-      "performance": "Performance",
-      "clients": "Clients",
-      "profile": "Profile"
-    },
-
-    "schedule": {
-      "title": "Today's Appointments - {{date}}",
-      "description": "Your schedule for today with client details",
-      "time": "Time",
-      "client": "Client",
-      "service": "Service",
-      "duration": "Duration",
-      "status": "Status",
-      "notes": "Notes",
-      "actions": "Actions",
-      "noNotes": "No notes",
-      "contact": "Contact",
-      "confirm": "Confirm",
-      "minutes": "min"
-    },
-
-    "performance": {
-      "title": "Performance Analytics",
-      "thisWeek": "This Week",
-      "lastSixMonths": "Last 6 Months",
-      "totalBookings": "Total Bookings",
-      "totalEarnings": "Total Earnings",
-      "averageRating": "Average Rating",
-      "totalClients": "Total Clients"
-    },
-
-    "clients": {
-      "title": "My Clients",
-      "description": "Clients you've served recently",
-      "managementTitle": "Client Management",
-      "managementDescription": "View your client history and build relationships.",
-      "comingSoon": "Coming Soon"
-    },
-
-    "profile": {
-      "title": "Professional Profile",
-      "description": "Your professional information",
-      "email": "EMAIL",
-      "phone": "PHONE",
-      "business": "BUSINESS",
-      "specialities": "SPECIALITIES",
-
-      "achievements": {
-        "title": "Achievements",
-        "description": "Your milestones and achievements",
-        "topPerformer": {
-          "title": "Top Performer",
-          "description": "Highest rated professional this month"
-        },
-        "goalAchiever": {
-          "title": "Goal Achiever",
-          "description": "Exceeded monthly booking target"
-        },
-        "clientFavorite": {
-          "title": "Client Favorite",
-          "description": "95% client satisfaction rate"
-        },
-        "memberSince": "Member since: {{date}}",
-        "viewAll": "View All Achievements"
-      }
-    }
-  },
-
-  "calendar": {
-    "title": "Calendar View",
-    "description": "View and manage your appointments and schedule",
-    "prev": "Prev",
-    "next": "Next",
-    "today": "Today",
-    "day": "Day",
-    "week": "Week",
-    "month": "Month",
-    "appointments": "appts",
-    "createNewBooking": "Create New Booking",
-    "viewAllBookings": "View All Bookings"
-  },
-
-  "status": {
-    "confirmed": "confirmed",
-    "pending": "pending",
-    "completed": "completed",
-    "cancelled": "cancelled"
-  },
-
+  "revenueOverview": "Revenue Overview",
+  "liveUpdates": "Live Updates",
+  "overdue": "Overdue",
+  "now": "Now",
+  "inProgress": "In Progress",
+  "upcoming": "Upcoming",
+  "noLiveActivity": "No active or upcoming bookings right now.",
   "time": {
     "today": "Today",
     "tomorrow": "Tomorrow"
   },
-
-  "loading": {
-    "title": "Loading...",
-    "value": "--",
-    "subtitle": "Fetching data..."
+  "stats": {
+    "totalbookings": "Total Bookings",
+    "totalBookings": "Total Bookings",
+    "bookingsThisMonth": "Bookings This Month",
+    "todaysbookings": "Today's Bookings",
+    "todaysBookings": "Today's Bookings",
+    "completedrate": "Completion Rate",
+    "completedRate": "Completion Rate",
+    "thismonthrevenue": "Revenue This Month",
+    "thisMonthRevenue": "Revenue This Month",
+    "revenueThisMonth": "Revenue This Month",
+    "activeclients": "Active Clients",
+    "activeClients": "Active Clients",
+    "newClients": "New Clients",
+    "teamMembers": "Team Members",
+    "averagerating": "Average Rating",
+    "averageRating": "Average Rating",
+    "thisMonth": "this month",
+    "vsLastMonth": "vs last month"
   },
-
-  "viewAllAppointments": "View All Appointments"
+  "upcomingBookings": {
+    "title": "Upcoming Bookings",
+    "description": "Your next appointments",
+    "noBookings": "No upcoming bookings",
+    "createBooking": "Create Booking",
+    "unknownClient": "Unknown Client",
+    "unknownService": "Unknown Service",
+    "viewAll": "View all bookings"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "newBooking": "New Booking",
+    "addClient": "Add Client",
+    "viewSchedule": "View Schedule",
+    "generateReport": "Generate Report"
+  },
+  "recentActivity": {
+    "title": "Recent Activity",
+    "description": "Latest updates",
+    "newBookingConfirmed": "New booking confirmed for tomorrow",
+    "sessionCompleted": "Session completed successfully",
+    "bookingConfirmed": "Booking confirmed",
+    "bookingCancelled": "Booking cancelled",
+    "minutesAgo": "{{count}} minutes ago",
+    "hourAgo": "1 hour ago"
+  },
+  "calendar": {
+    "title": "Calendar View",
+    "description": "View and manage your appointments"
+  },
+  "goals": {
+    "title": "Monthly Goals",
+    "description": "Track your monthly goals progress",
+    "noGoals": "No goals set",
+    "createGoal": "Create goal",
+    "bookings": "Bookings Goal",
+    "revenue": "Revenue Goal",
+    "clients": "Clients Goal"
+  },
+  "insights": {
+    "title": "AI Insights",
+    "description": "Intelligent analysis of your business",
+    "peakHours": "Peak Hours",
+    "recommendations": "Recommendations"
+  },
+  "upgrade": {
+    "title": "Upgrade Plan",
+    "description": "Unlock advanced features"
+  },
+  "loading": "Loading...",
+  "noData": "No data available",
+  "error": "Error loading data"
 }

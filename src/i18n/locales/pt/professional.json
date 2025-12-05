@@ -1,21 +1,45 @@
 {
-  "dashboard": {
-    "title": "Painel do Profissional",
-    "subtitle": "Gerencie seus agendamentos e disponibilidade"
-  },
-  "bookings": {
-    "title": "Meus Agendamentos",
-    "subtitle": "Visualize e gerencie seus agendamentos",
-    "upcoming": "Próximos",
-    "past": "Passados",
-    "today": "Hoje"
-  },
+  "title": "Profissional",
+  "profile": { "firstName": "Primeiro Nome", "firstNamePlaceholder": "Introduza o primeiro nome", "lastName": "Apelido", "lastNamePlaceholder": "Introduza o apelido" },
   "schedule": {
-    "title": "Horário de Trabalho",
-    "manage": "Gerenciar Disponibilidade"
-  },
-  "profile": {
-    "title": "Perfil Profissional",
-    "settings": "Configurações"
+    "title": "A Minha Agenda",
+    "description": "Gerir disponibilidade e horário de trabalho",
+    "save": "Guardar Alterações",
+    "bufferTime": "Tempo de Intervalo",
+    "bufferDescription": "Tempo entre agendamentos para preparação",
+    "breakTime": "Duração da Pausa",
+    "breakDescription": "Tempo de pausa padrão durante o seu horário",
+    "weekly": "Horário Semanal",
+    "blocked": "Datas Bloqueadas",
+    "unavailable": "Indisponível",
+    "slots": "vaga(s)",
+    "noBuffer": "Sem intervalo",
+    "noBreak": "Sem pausa",
+    "minutes": "minutos",
+    "hour": "hora",
+    "hours": "horas",
+    "blockDate": "Bloquear Data",
+    "unblockDate": "Desbloquear Data",
+    "reason": "Motivo",
+    "allDay": "Todo o Dia",
+    "startTime": "Hora de Início",
+    "endTime": "Hora de Fim",
+    "confirmUnblock": "Tem a certeza que deseja desbloquear esta data?",
+    "blockDescription": "Bloqueie datas específicas em que não está disponível",
+    "blockDialogTitle": "Bloquear uma Data",
+    "blockDialogDescription": "Selecione uma data e indique o motivo",
+    "selectDateLabel": "Selecione data ou intervalo de datas",
+    "clickToRange": "(clique novamente para selecionar intervalo)",
+    "clearSelection": "Limpar seleção",
+    "reasonPlaceholder": "ex: Férias, Pessoal",
+    "noBlockedDates": "Ainda sem datas bloqueadas",
+    "cancel": "Cancelar",
+    "messages": {
+      "selectDate": "Por favor selecione pelo menos uma data",
+      "blockedSuccess": "Data bloqueada com sucesso",
+      "unblockedSuccess": "Data desbloqueada removida",
+      "saveSuccess": "Horário guardado com sucesso",
+      "saveError": "Falha ao guardar horário"
+    }
   }
 }

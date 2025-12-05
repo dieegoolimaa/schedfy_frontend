@@ -1,34 +1,5 @@
 {
-  "bookings": {
-    "editBooking": "Edit Booking",
-    "editBookingDesc": "Update booking details and status",
-    "title": "Bookings",
-    "create": "Create Booking",
-    "view": "View Bookings"
-  },
-  "services": {
-    "editService": "Edit Service",
-    "editServiceDesc": "Update service details",
-    "title": "Services",
-    "create": "Create Service",
-    "manage": "Manage Services"
-  },
-  "clients": {
-    "title": "Clients",
-    "manage": "Manage Clients",
-    "create": "Add Client"
-  },
-  "profile": {
-    "title": "Entity Profile",
-    "settings": "Settings",
-    "information": "Information"
-  },
-  "commissions": {
-    "title": "Commissions & Promotions",
-    "manage": "Manage Commissions"
-  },
-  "dashboard": {
-    "title": "Entity Dashboard",
-    "overview": "Overview"
-  }
+  "title": "Entity Profile",
+  "entityProfile": { "title": "Entity Profile" },
+  "teamManagement": { "title": "Team Management", "description": "Manage your team members", "inviteUser": "Invite User", "searchPlaceholder": "Search team members..." }
 }

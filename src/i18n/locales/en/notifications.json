@@ -1,0 +1,110 @@
+{
+  "title": "Notification Preferences",
+  "subtitle": "Manage your notification settings.",
+  "simplePlan": {
+    "title": "Simple Plan Notifications",
+    "description": "Your current plan settings are managed automatically."
+  },
+  "channels": {
+    "title": "Global Channel Settings",
+    "description": "Enable or disable optional notification channels globally.",
+    "email": {
+      "title": "Email Notifications",
+      "description": "Active for all booking events",
+      "enabled": "Enabled",
+      "mandatory": "Email notifications are mandatory and always sent for all events to ensure you never miss important updates."
+    },
+    "sms": {
+      "title": "SMS Notifications",
+      "description": "Send text messages to clients' mobile phones for booking events"
+    },
+    "whatsapp": {
+      "title": "WhatsApp Notifications",
+      "description": "Send messages via WhatsApp Business for booking events"
+    }
+  },
+  "categories": {
+    "bookings": "Bookings & Appointments",
+    "reminders": "Appointment Reminders",
+    "clients": "Client Management",
+    "payments": "Payments & Invoices",
+    "subscriptions": "Subscriptions",
+    "team": "Team & Professionals",
+    "reviews": "Reviews & Feedback",
+    "reports": "Reports & Analytics",
+    "entity": "Entity Management",
+    "security": "Security"
+  },
+  "events": {
+    "bookingCreated": {
+      "label": "Booking Created",
+      "description": "When a new booking is created"
+    },
+    "bookingConfirmed": {
+      "label": "Booking Confirmed",
+      "description": "When a booking is confirmed"
+    },
+    "bookingRescheduled": {
+      "label": "Booking Rescheduled",
+      "description": "When a booking time is changed"
+    },
+    "bookingCancelled": {
+      "label": "Booking Cancelled",
+      "description": "When a booking is cancelled"
+    },
+    "bookingCompleted": {
+      "label": "Booking Completed",
+      "description": "When a booking is completed"
+    },
+    "bookingNoShow": {
+      "label": "Booking No-Show",
+      "description": "When a client doesn't show up"
+    },
+    "bookingReminder24h": {
+      "label": "24 Hours Before",
+      "description": "Reminder sent 24 hours before appointment"
+    },
+    "bookingReminder2h": {
+      "label": "2 Hours Before",
+      "description": "Reminder sent 2 hours before appointment"
+    },
+    "bookingReminder30min": {
+      "label": "30 Minutes Before",
+      "description": "Reminder sent 30 minutes before appointment"
+    },
+    "clientWelcome": {
+      "label": "Welcome Message",
+      "description": "When a new client registers"
+    },
+    "clientFirstBooking": {
+      "label": "First Booking",
+      "description": "After client's first booking"
+    }
+  },
+  "upgrade": {
+    "title": "Want SMS & WhatsApp Notifications?",
+    "description": "Upgrade to the Individual or Business plan to unlock:",
+    "features": {
+      "sms": "SMS Reminders & Updates",
+      "whatsapp": "WhatsApp Business Notifications",
+      "firstBooking": "Client First Booking Alerts"
+    },
+    "button": "View Plans & Upgrade"
+  },
+  "table": {
+    "notification": "Notification",
+    "sms": "SMS",
+    "whatsapp": "WhatsApp"
+  },
+  "actions": {
+    "save": "Save Preferences",
+    "saving": "Saving...",
+    "reset": "Reset"
+  },
+  "messages": {
+    "saved": "Notification preferences saved successfully",
+    "loadError": "Failed to load notification preferences",
+    "saveError": "Failed to save preferences",
+    "entityNotFound": "Entity ID not found. Cannot save preferences."
+  }
+}

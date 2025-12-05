@@ -1,0 +1,55 @@
+{
+  "title": "Upgrade Your Plan",
+  "subtitle": "Unlock more features and capabilities for your business",
+  "goBack": "Go Back",
+  "plan": "Plan",
+  "current": "Current",
+  "currentPlanDescription": "You're currently on the {{plan}} plan",
+  "recommended": "Recommended",
+  "upgradeTo": "Upgrade to {{plan}}",
+  "returnToDashboard": "Return to Dashboard",
+  "highestPlan": {
+    "title": "You're on the highest plan!",
+    "description": "You have access to all Schedfy features. Thank you for being a Business customer!"
+  },
+  "needHelp": {
+    "title": "Need Help Choosing?",
+    "description": "Our team is here to help you find the perfect plan for your business"
+  },
+  "contactSupport": "Contact Support",
+  "plans": {
+    "simple": {
+      "name": "Simple",
+      "description": "Perfect for solo professionals",
+      "features": [
+        "Basic booking management",
+        "Simple reporting",
+        "Service management",
+        "Email support"
+      ]
+    },
+    "individual": {
+      "name": "Individual",
+      "description": "AI-powered insights for growing businesses",
+      "features": [
+        "Everything in Simple",
+        "AI-powered insights",
+        "Advanced analytics",
+        "Service optimization",
+        "Priority support"
+      ]
+    },
+    "business": {
+      "name": "Business",
+      "description": "Complete solution for teams",
+      "features": [
+        "Everything in Individual",
+        "Multi-professional management",
+        "Team collaboration",
+        "Advanced role management",
+        "Custom integrations",
+        "Dedicated support"
+      ]
+    }
+  }
+}

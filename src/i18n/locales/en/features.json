@@ -1,28 +1,89 @@
 {
-  "title": "Schedfy Features",
-  "subtitle": "Discover everything Schedfy has to offer",
-  "booking": {
-    "title": "Booking System",
-    "description": "Simple and efficient online booking"
+  "title": "Features",
+  "hero": { 
+    "title": "Powerful Features for Your Business", 
+    "getStarted": "Get Started", 
+    "seePricing": "See Pricing" 
   },
-  "calendar": {
-    "title": "Integrated Calendar",
-    "description": "View all your appointments in one place"
+  "cta": { 
+    "title": "Ready to get started?", 
+    "start": "Start Free Trial", 
+    "contact": "Contact Sales" 
   },
-  "clients": {
-    "title": "Client Management",
-    "description": "Keep complete history of your clients"
+  "additional": { 
+    "title": "Additional Features", 
+    "clientManagement": "Client Management", 
+    "integrations": "Integrations", 
+    "reporting": "Reporting" 
   },
-  "reports": {
-    "title": "Detailed Reports",
-    "description": "Complete analytics of your business"
+  "calendar": { "title": "Smart Calendar" },
+  "global": { "title": "Multi-Regional" },
+  "team": { "title": "Team Management" },
+  "secure": "Bank-level security",
+  "support": "24/7 customer support",
+  "noSetupFee": "No setup fees",
+  "instantSetup": "Instant setup",
+  "smartScheduling": {
+    "title": "Smart Scheduling",
+    "benefit1": "Automatic conflict resolution",
+    "benefit2": "Buffer time between appointments",
+    "benefit3": "Recurring bookings",
+    "benefit4": "Group bookings"
   },
-  "mobile": {
-    "title": "Mobile App",
-    "description": "Manage everything from anywhere"
+  "analytics": { 
+    "title": "Analytics & Reports", 
+    "benefit1": "Track performance metrics", 
+    "benefit2": "Revenue insights", 
+    "benefit3": "Client analytics", 
+    "benefit4": "Growth tracking" 
   },
-  "integration": {
-    "title": "Integrations",
-    "description": "Connect with your favorite tools"
+  "automation": { 
+    "title": "Automation", 
+    "benefit1": "Auto reminders", 
+    "benefit2": "Smart scheduling", 
+    "benefit3": "Workflow automation", 
+    "benefit4": "Time savings" 
+  },
+  "mobile": { 
+    "title": "Mobile First", 
+    "benefit1": "Mobile optimized", 
+    "benefit2": "On-the-go access", 
+    "benefit3": "Native apps coming", 
+    "benefit4": "Push notifications" 
+  },
+  "multiRegional": { 
+    "title": "Multi-Regional", 
+    "benefit1": "Portugal support", 
+    "benefit2": "Brazil support", 
+    "benefit3": "USA support", 
+    "benefit4": "Multi-currency" 
+  },
+  "notifications": { 
+    "title": "Notifications",
+    "benefit1": "Email notifications", 
+    "benefit2": "SMS notifications", 
+    "benefit3": "Push notifications",
+    "benefit4": "WhatsApp coming soon"
+  },
+  "payments": {
+    "title": "Payment Processing",
+    "benefit1": "Online payments",
+    "benefit2": "Multiple currencies",
+    "benefit3": "Invoicing",
+    "benefit4": "Payment reminders"
+  },
+  "security": {
+    "title": "Enterprise Security",
+    "benefit1": "Bank-level encryption",
+    "benefit2": "GDPR compliant",
+    "benefit3": "Regular backups",
+    "benefit4": "99.9% uptime"
+  },
+  "teamManagement": {
+    "title": "Team Management",
+    "benefit1": "Multiple team members",
+    "benefit2": "Role permissions",
+    "benefit3": "Schedule management",
+    "benefit4": "Performance tracking"
   }
 }

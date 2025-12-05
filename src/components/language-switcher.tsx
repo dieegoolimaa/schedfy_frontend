@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
+import { storage } from "../lib/storage";
 
 const languages = [
   { code: "en", name: "English", flag: "🇬🇧" },
@@ -22,7 +23,7 @@ export function LanguageSwitcher() {
   const changeLanguage = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
     // Store preference in localStorage
-    localStorage.setItem("schedfy-language", languageCode);
+    storage.setLanguage(languageCode);
   };
 
   return (

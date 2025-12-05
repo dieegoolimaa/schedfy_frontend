@@ -1,21 +1,9 @@
 {
-  "title": "Sobre a Schedfy",
-  "subtitle": "Conheça nossa missão e valores",
-  "mission": {
-    "title": "Nossa Missão",
-    "description": "Simplificar a gestão de agendamentos para empresas e profissionais"
-  },
-  "stats": {
-    "bookings": "Agendamentos Mensais",
-    "users": "Utilizadores Ativos",
-    "entities": "Entidades Registradas"
-  },
-  "team": {
-    "title": "Nossa Equipa",
-    "description": "Conheça as pessoas por trás da Schedfy"
-  },
-  "contact": {
-    "title": "Entre em Contato",
-    "description": "Estamos aqui para ajudar"
-  }
+  "hero": { "title": "Sobre nós", "getStarted": "Começar", "seePricing": "Ver preços" },
+  "cta": { "title": "Pronto para começar?", "start": "Iniciar teste grátis", "contact": "Contactar vendas" },
+  "mission": { "badge": "A nossa missão" },
+  "stats": { "users": "Utilizadores", "bookings": "Agendamentos", "countries": "Países", "uptime": "Tempo de Atividade" },
+  "values": { "title": "Os nossos valores", "innovation": { "title": "Inovação" }, "customer": { "title": "Foco no cliente" }, "simplicity": { "title": "Simplicidade" }, "trust": { "title": "Confiança" } },
+  "vision": { "badge": "A nossa visão", "ai": { "title": "Potenciado por IA" }, "global": { "title": "Alcance global" }, "community": { "title": "Comunidade" } },
+  "timeline": { "title": "A nossa jornada", "2024": { "title": "2024" }, "future": { "title": "Futuro" }, "q2": { "title": "T2" }, "q3": { "title": "T3" } }
 }

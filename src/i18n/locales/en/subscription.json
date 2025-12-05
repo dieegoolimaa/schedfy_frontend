@@ -1,43 +1,144 @@
 {
   "title": "Subscription Management",
-  "description": "Manage your subscription and billing",
-  "current": {
-    "title": "Current Plan",
-    "status": "Status",
-    "perMonth": "per month",
-    "perYear": "per year",
-    "nextBilling": "Next billing",
-    "billingDate": "Billing date"
+  "subtitle": "Manage your subscription and AI insights add-on",
+  "actions": {
+    "downloadInvoice": "Download Invoice",
+    "updatePayment": "Update Payment",
+    "update": "Update",
+    "download": "Download",
+    "manageBilling": "Manage Billing & Payment Methods",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe",
+    "unsubscribing": "Unsubscribing...",
+    "processing": "Processing..."
   },
-  "billing": {
-    "title": "Billing Information",
-    "period": "Billing Period",
-    "monthly": "Monthly",
-    "yearly": "Yearly",
-    "saveWithYearly": "Save 20% with yearly billing"
+  "plan": {
+    "plan": "Plan",
+    "activeSince": "Active since",
+    "includedFeatures": "Included Features",
+    "activeAddOns": "Active Add-ons",
+    "currentPlan": "Current Plan",
+    "cancellingSoon": "Cancelling Soon",
+    "unknown": "Unknown",
+    "accessUntil": "Access until",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "cancelled": "Cancelled"
+    }
   },
-  "addons": {
-    "title": "Add-ons",
-    "description": "Enhance your subscription with additional features"
+  "usage": {
+    "title": "Usage Overview",
+    "description": "Current month usage statistics",
+    "comingSoon": "Usage statistics coming soon",
+    "comingSoonDesc": "Track your bookings, revenue, and client growth here in future updates.",
+    "bookings": "Bookings",
+    "professionals": "Professionals",
+    "storage": "Storage",
+    "aiInsights": "AI Insights"
+  },
+  "tabs": {
+    "changePlan": "Change Plan",
+    "addOns": "Add-ons",
+    "billing": "Billing",
+    "invoices": "Invoices"
   },
   "plans": {
     "title": "Available Plans",
-    "upgrade": "Upgrade Plan",
     "mostPopular": "Most Popular",
-    "features": "Features"
+    "currentPlan": "Current Plan",
+    "upgrade": "Upgrade",
+    "highestPlan": "You are on the highest plan",
+    "bestPlanTitle": "You have the best plan available!",
+    "bestPlanDesc": "You are currently subscribed to the {{plan}} plan, which gives you access to all features.",
+    "upgradeTo": "Upgrade to {{plan}}",
+    "notAvailableSimple": "Not available for Simple Plan",
+    "simple": {
+      "name": "Simple",
+      "description": "Perfect for getting started"
+    },
+    "individual": {
+      "name": "Individual",
+      "description": "Enhanced features for growing businesses"
+    },
+    "business": {
+      "name": "Business",
+      "description": "Complete solution for teams"
+    }
   },
-  "ai": {
-    "title": "AI Business Insights",
-    "description": "Advanced AI-powered analytics and recommendations"
+  "addOns": {
+    "title": "Available Add-ons",
+    "active": "Active",
+    "aiInsights": {
+      "name": "AI Business Insights",
+      "description": "Advanced AI-powered analytics and recommendations",
+      "features": {
+        "predictive": "Predictive analytics",
+        "clientBehavior": "Client behavior insights",
+        "optimization": "Business optimization tips"
+      }
+    }
+  },
+  "billing": {
+    "perMonth": "per month",
+    "perYear": "per year",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save20": "Save 20%",
+    "nextBilling": "Next billing",
+    "paymentMethod": {
+      "title": "Payment Method",
+      "description": "Manage your payment information",
+      "cardEnding": "Visa ending in 4242",
+      "expires": "Expires"
+    },
+    "information": {
+      "title": "Billing Information",
+      "description": "Update your billing details",
+      "companyName": "Company Name",
+      "vatNumber": "VAT Number",
+      "address": "Address",
+      "update": "Update Billing Information"
+    },
+    "cancelSubscription": "Cancel Subscription",
+    "resumeSubscription": "Resume Subscription",
+    "visitPortal": "To update your payment method or view billing history, visit the billing portal.",
+    "endingOn": "Your subscription will end on {{date}}",
+    "inactive": "Subscription is inactive."
   },
   "invoices": {
-    "title": "Billing History",
+    "title": "Invoice History",
+    "description": "Download and manage your invoices",
+    "notFound": "No invoices found",
     "invoice": "Invoice",
-    "download": "Download"
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "overdue": "Overdue"
+    }
   },
-  "actions": {
-    "changePlan": "Change Plan",
-    "cancelSubscription": "Cancel Subscription",
-    "updatePayment": "Update Payment Method"
+  "messages": {
+    "success": {
+      "cancel": "Subscription cancelled successfully. You will retain access until {{date}}.",
+      "subscribeAi": "Successfully subscribed to AI Business Insights",
+      "unsubscribeAi": "Successfully unsubscribed from AI Business Insights. Access will continue until {{date}}."
+    },
+    "error": {
+      "upgrade": "Failed to upgrade plan",
+      "cancel": "Failed to cancel subscription",
+      "portal": "Failed to get portal URL",
+      "aiSubscribe": "Failed to subscribe to AI Insights",
+      "aiUnsubscribe": "Failed to unsubscribe from AI Insights"
+    }
+  },
+  "dialog": {
+    "cancel": {
+      "title": "Cancel Subscription",
+      "desc": "Are you sure you want to cancel your subscription?",
+      "warning": "Your subscription will remain active until <strong>{{date}}</strong>. After that, you will lose access to premium features.",
+      "keep": "Keep Subscription",
+      "confirm": "Confirm Cancellation",
+      "processing": "Cancelling..."
+    }
   }
 }

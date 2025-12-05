@@ -83,6 +83,7 @@ export function transformBackendUser(backendUser: any): User {
     professionalInfo: backendUser.professionalInfo,
     createdAt: backendUser.createdAt || new Date().toISOString(),
     updatedAt: backendUser.updatedAt || new Date().toISOString(),
+    permissions: backendUser.permissions || [],
   };
 }
 
@@ -95,6 +96,7 @@ interface AuthContextType extends AuthState {
   tempToken?: string | null;
   verify2FA: (code: string) => Promise<User>;
   updateUser: (user: User) => void;
+  updateEntity: (entity: Entity) => void;
 }
 
 type AuthAction =
@@ -103,7 +105,8 @@ type AuthAction =
   | { type: "AUTH_ERROR"; payload: string }
   | { type: "AUTH_LOGOUT" }
   | { type: "CLEAR_ERROR" }
-  | { type: "UPDATE_USER"; payload: User };
+  | { type: "UPDATE_USER"; payload: User }
+  | { type: "UPDATE_ENTITY"; payload: Entity };
 
 const initialState: AuthState & {
   requires2FA?: boolean;
@@ -157,6 +160,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return {
         ...state,
         user: action.payload,
+      };
+    case "UPDATE_ENTITY":
+      return {
+        ...state,
+        entity: action.payload,
       };
     default:
       return state;
@@ -372,6 +380,10 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     dispatch({ type: "UPDATE_USER", payload: user });
   };
 
+  const updateEntity = (entity: Entity) => {
+    dispatch({ type: "UPDATE_ENTITY", payload: entity });
+  };
+
   const value = useMemo(
     () => ({
       ...state,
@@ -383,6 +395,7 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       requires2FA,
       tempToken,
       updateUser,
+      updateEntity,
     }),
     [state, requires2FA, tempToken]
   );

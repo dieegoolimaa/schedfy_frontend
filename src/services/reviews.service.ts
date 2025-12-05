@@ -81,7 +81,7 @@ class ReviewsService {
         page?: number;
         limit?: number;
     } = {}) {
-        const response = await apiClient.get('/api/reviews', { params });
+        const response = await apiClient.get('/api/reviews', params);
         return {
             reviews: (response.data as any).reviews,
             pagination: (response.data as any).pagination,

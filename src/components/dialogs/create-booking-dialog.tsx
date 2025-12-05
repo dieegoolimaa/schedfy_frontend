@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useCurrency } from "../../hooks/useCurrency";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import {
   Dialog,
@@ -68,6 +69,8 @@ interface CreateBookingDialogProps {
   packages?: ServicePackage[]; // Available packages for purchase
   clientSubscriptions?: PackageSubscription[]; // Client's active subscriptions
   onSuccess?: () => void; // Callback for successful booking creation (especially for recurring)
+  planType?: 'simple' | 'individual' | 'business';
+  defaultSlotDuration?: number;
 }
 
 export function CreateBookingDialog({
@@ -80,7 +83,10 @@ export function CreateBookingDialog({
   packages: _packages = [],
   clientSubscriptions = [],
   onSuccess,
+  planType,
+  defaultSlotDuration,
 }: CreateBookingDialogProps) {
+  const { t } = useTranslation("bookings");
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
   const [clientName, setClientName] = useState("");
@@ -329,35 +335,35 @@ export function CreateBookingDialog({
 
   const handleSubmit = async () => {
     if (!clientName || !clientPhone) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("validation.requiredFields"));
       return;
     }
 
-    // Validate booking has service, date and slot
-    if (!serviceId || !date || !selectedSlot) {
-      toast.error("Please select service, date and time");
+    // Validate booking has service (unless simple plan), date and slot
+    if ((planType !== 'simple' && !serviceId) || !date || !selectedSlot) {
+      toast.error(t("validation.selectServiceDate"));
       return;
     }
 
     // Validate professional selection when in professional mode
     if (bookingMode === "professional" && !professionalId) {
-      toast.error("Please select a professional");
+      toast.error(t("validation.selectProfessional"));
       return;
     }
 
     // Validate package usage
     if (usePackage) {
       if (!selectedSubscription) {
-        toast.error("Please select a package subscription");
+        toast.error(t("validation.selectPackage"));
         return;
       }
       if (!serviceInPackage) {
-        toast.error("Selected service is not included in this package");
+        toast.error(t("validation.serviceNotInPackage"));
         return;
       }
       if (!hasEnoughSessions) {
         toast.error(
-          `Not enough sessions. You have ${selectedSubscriptionData?.sessionsRemaining} sessions but need ${requiredSessions}`
+          t("create.notEnoughSessions")
         );
         return;
       }
@@ -373,22 +379,22 @@ export function CreateBookingDialog({
           recurrenceDaysOfWeek.length === 0
         ) {
           toast.error(
-            "Please select at least one day of the week for weekly recurrence"
+            t("validation.selectDay")
           );
           setSubmitting(false);
           return;
         }
 
         if (recurrenceEndType === "date" && !recurrenceEndDate) {
-          toast.error("Please select an end date for recurrence");
+          toast.error(t("validation.selectEndDate"));
           setSubmitting(false);
           return;
         }
 
-        // Validar serviço selecionado
+        // Validar serviço selecionado (se não for simple plan ou se selecionado)
         const selectedService = services.find((s) => s.id === serviceId);
-        if (!selectedService) {
-          toast.error("Service not found");
+        if (planType !== 'simple' && !selectedService) {
+          toast.error(t("validation.serviceNotFound"));
           setSubmitting(false);
           return;
         }
@@ -396,7 +402,7 @@ export function CreateBookingDialog({
         // Validar user ID
         const userId = user?.id || (user as any)?._id || entityId;
         if (!userId) {
-          toast.error("User ID not available");
+          toast.error(t("validation.userIdNotAvailable"));
           setSubmitting(false);
           return;
         }
@@ -416,8 +422,8 @@ export function CreateBookingDialog({
             startDateTime: selectedSlot.startDateTime,
             endDateTime: selectedSlot.endDateTime,
             pricing: {
-              basePrice: selectedService.price || 0,
-              totalPrice: selectedService.price || 0,
+              basePrice: selectedService?.price || 0,
+              totalPrice: selectedService?.price || 0,
               currency: "EUR",
             },
             createdBy: userId,
@@ -460,11 +466,11 @@ export function CreateBookingDialog({
 
         if (errors && errors.length > 0) {
           toast.warning(
-            `Created ${totalCreated} bookings with ${errors.length} conflicts`
+            t("validation.recurringConflicts", { total: totalCreated, conflicts: errors.length })
           );
         } else {
           toast.success(
-            `Created ${totalCreated} recurring bookings successfully!`
+            t("validation.recurringCreated", { total: totalCreated })
           );
         }
 
@@ -493,8 +499,7 @@ export function CreateBookingDialog({
         });
 
         toast.success(
-          `Booking created successfully!${usePackage ? ` 1 session deducted from package.` : ""
-          }`
+          t(usePackage ? "validation.bookingCreatedPackage" : "validation.bookingCreated")
         );
       }
 
@@ -502,7 +507,7 @@ export function CreateBookingDialog({
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error creating booking:", error);
-      toast.error(error.response?.data?.message || "Failed to create booking");
+      toast.error(error.response?.data?.message || t("validation.failedToCreate"));
     } finally {
       setSubmitting(false);
     }
@@ -515,9 +520,9 @@ export function CreateBookingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Booking</DialogTitle>
+          <DialogTitle>{t("create.title")}</DialogTitle>
           <DialogDescription>
-            Add a new appointment to your schedule.
+            {t("create.subtitle")}
           </DialogDescription>
         </DialogHeader>
 
@@ -525,11 +530,11 @@ export function CreateBookingDialog({
           {/* Client Information */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Client Information</h3>
+              <h3 className="text-sm font-semibold">{t("create.clientInfo")}</h3>
               {selectedClientId && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <Check className="h-3 w-3" />
-                  Linked to Client
+                  {t("create.linkedToClient")}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -548,7 +553,7 @@ export function CreateBookingDialog({
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search existing client..."
+                    placeholder={t("create.searchClient")}
                     className="pl-8"
                     value={searchTerm}
                     onChange={(e) => {
@@ -590,37 +595,37 @@ export function CreateBookingDialog({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="client-name">
-                  Client Name <span className="text-destructive">*</span>
+                  {t("create.clientName")} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="client-name"
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
-                  placeholder="Enter client name"
+                  placeholder={t("create.clientNamePlaceholder")}
                   disabled={!!selectedClientId}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="client-phone">
-                  Phone Number <span className="text-destructive">*</span>
+                  {t("create.phone")} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="client-phone"
                   value={clientPhone}
                   onChange={(e) => setClientPhone(e.target.value)}
-                  placeholder="+351 XXX XXX XXX"
+                  placeholder={t("create.phonePlaceholder")}
                   disabled={!!selectedClientId}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="client-email">Email (Optional)</Label>
+              <Label htmlFor="client-email">{t("create.email")}</Label>
               <Input
                 id="client-email"
                 type="email"
                 value={clientEmail}
                 onChange={(e) => setClientEmail(e.target.value)}
-                placeholder="client@example.com"
+                placeholder={t("create.emailPlaceholder")}
                 disabled={!!selectedClientId}
               />
             </div>
@@ -633,7 +638,7 @@ export function CreateBookingDialog({
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4 text-primary" />
                   <Label htmlFor="use-package" className="cursor-pointer">
-                    Use Package Session
+                    {t("create.usePackage")}
                   </Label>
                 </div>
                 <Switch
@@ -652,7 +657,7 @@ export function CreateBookingDialog({
                 <div className="space-y-3 pt-2">
                   <div className="space-y-2">
                     <Label htmlFor="subscription">
-                      Select Package Subscription{" "}
+                      {t("create.selectSubscription")}{" "}
                       <span className="text-destructive">*</span>
                     </Label>
                     <Select
@@ -660,7 +665,7 @@ export function CreateBookingDialog({
                       onValueChange={setSelectedSubscription}
                     >
                       <SelectTrigger id="subscription">
-                        <SelectValue placeholder="Choose a subscription" />
+                        <SelectValue placeholder={t("create.selectSubscriptionPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {clientSubscriptions
@@ -719,7 +724,7 @@ export function CreateBookingDialog({
                   {selectedSubscription && selectedSubscriptionData && (
                     <Alert>
                       <Info className="h-4 w-4" />
-                      <AlertTitle>Package Session Info</AlertTitle>
+                      <AlertTitle>{t("create.packageSessionInfo")}</AlertTitle>
                       <AlertDescription>
                         <div className="space-y-1 text-sm">
                           <p>
@@ -736,14 +741,12 @@ export function CreateBookingDialog({
                           </p>
                           {!hasEnoughSessions && (
                             <p className="text-destructive font-medium mt-2">
-                              ⚠️ Not enough sessions available. Please reduce
-                              booking slots or choose a different package.
+                              {t("create.notEnoughSessions")}
                             </p>
                           )}
                           {hasEnoughSessions && (
                             <p className="text-green-600 font-medium mt-2">
-                              ✓ Sufficient sessions available. No payment
-                              required.
+                              {t("create.sufficientSessions")}
                             </p>
                           )}
                         </div>
@@ -756,11 +759,9 @@ export function CreateBookingDialog({
                     selectedSubscriptionData &&
                     !serviceInPackage && (
                       <Alert variant="destructive">
-                        <AlertTitle>Service Not Included</AlertTitle>
+                        <AlertTitle>{t("create.serviceNotIncluded")}</AlertTitle>
                         <AlertDescription>
-                          Selected service is not included in this package.
-                          Please select a different package or disable package
-                          usage.
+                          {t("create.serviceNotIncludedDesc")}
                         </AlertDescription>
                       </Alert>
                     )}
@@ -769,8 +770,7 @@ export function CreateBookingDialog({
 
               {!usePackage && (
                 <p className="text-xs text-muted-foreground">
-                  Toggle on to use a package session instead of paying per
-                  service
+                  {t("create.togglePackage")}
                 </p>
               )}
             </div>
@@ -778,14 +778,13 @@ export function CreateBookingDialog({
 
           {/* Service, Date and Time */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold">Service & Time</h3>
+            <h3 className="text-sm font-semibold">{t("create.serviceAndTime")}</h3>
 
             {isRecurring && (
               <Alert className="bg-blue-50 border-blue-200">
                 <Info className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800">
-                  Recurring booking will create multiple bookings based on your
-                  selected frequency and schedule
+                  {t("create.recurring.info")}
                 </AlertDescription>
               </Alert>
             )}
@@ -795,7 +794,7 @@ export function CreateBookingDialog({
                 {/* Service Selection */}
                 <div className="space-y-2">
                   <Label>
-                    Service <span className="text-destructive">*</span>
+                    {t("create.service")} {planType !== 'simple' && <span className="text-destructive">*</span>}
                   </Label>
                   <Select
                     value={serviceId}
@@ -805,7 +804,7 @@ export function CreateBookingDialog({
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a service" />
+                      <SelectValue placeholder={t("create.selectService")} />
                     </SelectTrigger>
                     <SelectContent>
                       {services.map((service) => (
@@ -828,7 +827,7 @@ export function CreateBookingDialog({
                 {serviceId && (
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">
-                      Booking Preference
+                      {t("create.bookingPreference")}
                     </Label>
                     <div className="grid grid-cols-2 gap-3">
                       <Card
@@ -844,9 +843,9 @@ export function CreateBookingDialog({
                       >
                         <CardContent className="p-4 text-center">
                           <Clock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                          <h4 className="text-sm font-medium">By Time</h4>
+                          <h4 className="text-sm font-medium">{t("create.byTime")}</h4>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Any professional
+                            {t("create.anyProfessionalDescription")}
                           </p>
                         </CardContent>
                       </Card>
@@ -864,10 +863,10 @@ export function CreateBookingDialog({
                         <CardContent className="p-4 text-center">
                           <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                           <h4 className="text-sm font-medium">
-                            By Professional
+                            {t("create.byProfessional")}
                           </h4>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Choose professional
+                            {t("create.chooseProfessional")}
                           </p>
                         </CardContent>
                       </Card>
@@ -881,7 +880,7 @@ export function CreateBookingDialog({
                   availableProfessionalsForService.length > 0 && (
                     <div className="space-y-2">
                       <Label>
-                        Select Professional{" "}
+                        {t("create.selectProfessional")}{" "}
                         <span className="text-destructive">*</span>
                       </Label>
                       <Select
@@ -892,7 +891,7 @@ export function CreateBookingDialog({
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a professional" />
+                          <SelectValue placeholder={t("create.selectProfessionalPlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableProfessionalsForService.map(
@@ -926,15 +925,14 @@ export function CreateBookingDialog({
                   availableProfessionalsForService.length === 0 && (
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                       <p className="text-sm text-amber-800">
-                        ⚠️ No professionals available for this service. Please
-                        use "By Time" mode.
+                        {t("create.noProfessionals")}
                       </p>
                     </div>
                   )}
 
                 <div className="space-y-2">
                   <Label>
-                    Date <span className="text-destructive">*</span>
+                    {t("create.date")} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     type="date"
@@ -947,7 +945,7 @@ export function CreateBookingDialog({
                   />
                 </div>
 
-                {serviceId && date && (
+                {(serviceId || planType === 'simple') && date && (
                   <TimeSlotPicker
                     entityId={entityId}
                     serviceId={serviceId}
@@ -960,6 +958,7 @@ export function CreateBookingDialog({
                     selectedSlot={selectedSlot}
                     onSelectSlot={(slot) => setSelectedSlot(slot)}
                     includeOverbooking={true}
+                    duration={!serviceId ? defaultSlotDuration : undefined}
                   />
                 )}
 
@@ -976,12 +975,12 @@ export function CreateBookingDialog({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">{t("create.notes")}</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any special requirements..."
+              placeholder={t("create.notesPlaceholder")}
               rows={3}
             />
           </div>
@@ -997,10 +996,10 @@ export function CreateBookingDialog({
                       htmlFor="recurring"
                       className="text-base font-semibold"
                     >
-                      Recurring Booking
+                      {t("create.recurring.title")}
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Create multiple bookings automatically
+                      {t("create.recurring.description")}
                     </p>
                   </div>
                 </div>
@@ -1016,7 +1015,7 @@ export function CreateBookingDialog({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Frequency */}
                     <div className="space-y-2">
-                      <Label>Repeat</Label>
+                      <Label>{t("create.recurring.repeat")}</Label>
                       <Select
                         value={recurrenceFrequency}
                         onValueChange={(
@@ -1027,16 +1026,16 @@ export function CreateBookingDialog({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="daily">{t("create.recurring.daily")}</SelectItem>
+                          <SelectItem value="weekly">{t("create.recurring.weekly")}</SelectItem>
+                          <SelectItem value="monthly">{t("create.recurring.monthly")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     {/* Interval */}
                     <div className="space-y-2">
-                      <Label>Every</Label>
+                      <Label>{t("create.recurring.every")}</Label>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
@@ -1050,11 +1049,11 @@ export function CreateBookingDialog({
                         />
                         <span className="text-sm text-muted-foreground">
                           {recurrenceFrequency === "daily" &&
-                            `day${recurrenceInterval > 1 ? "s" : ""}`}
+                            t(recurrenceInterval > 1 ? "create.recurring.days" : "create.recurring.day")}
                           {recurrenceFrequency === "weekly" &&
-                            `week${recurrenceInterval > 1 ? "s" : ""}`}
+                            t(recurrenceInterval > 1 ? "create.recurring.weeks" : "create.recurring.week")}
                           {recurrenceFrequency === "monthly" &&
-                            `month${recurrenceInterval > 1 ? "s" : ""}`}
+                            t(recurrenceInterval > 1 ? "create.recurring.months" : "create.recurring.month")}
                         </span>
                       </div>
                     </div>
@@ -1063,10 +1062,10 @@ export function CreateBookingDialog({
                   {/* Days of Week (for weekly) */}
                   {recurrenceFrequency === "weekly" && (
                     <div className="space-y-2">
-                      <Label>Repeat on</Label>
+                      <Label>{t("create.recurring.repeatOn")}</Label>
                       <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                          (day, index) => (
+                        {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map(
+                          (dayKey, index) => (
                             <Button
                               key={index}
                               type="button"
@@ -1079,7 +1078,7 @@ export function CreateBookingDialog({
                               className="w-full h-10 sm:h-12 p-0"
                               onClick={() => toggleDayOfWeek(index)}
                             >
-                              {day}
+                              {t(`weekDaysShort.${dayKey}`)}
                             </Button>
                           )
                         )}
@@ -1089,7 +1088,7 @@ export function CreateBookingDialog({
 
                   {/* End Options */}
                   <div className="space-y-3">
-                    <Label>Ends</Label>
+                    <Label>{t("create.recurring.ends")}</Label>
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <input
@@ -1103,7 +1102,7 @@ export function CreateBookingDialog({
                           htmlFor="end-occurrences"
                           className="cursor-pointer flex items-center gap-2 whitespace-nowrap"
                         >
-                          After
+                          {t("create.recurring.after")}
                           <Input
                             type="number"
                             min="2"
@@ -1115,7 +1114,7 @@ export function CreateBookingDialog({
                             disabled={recurrenceEndType !== "occurrences"}
                             className="w-20 h-8"
                           />
-                          occurrences
+                          {t("create.recurring.occurrences")}
                         </Label>
                       </div>
 
@@ -1131,7 +1130,7 @@ export function CreateBookingDialog({
                           htmlFor="end-date"
                           className="cursor-pointer flex items-center gap-2 whitespace-nowrap"
                         >
-                          On date
+                          {t("create.recurring.onDate")}
                           <Input
                             type="date"
                             value={recurrenceEndDate}
@@ -1150,40 +1149,36 @@ export function CreateBookingDialog({
                   {/* Preview */}
                   <Alert>
                     <Info className="h-4 w-4" />
-                    <AlertTitle>Preview</AlertTitle>
+                    <AlertTitle>{t("create.recurring.preview")}</AlertTitle>
                     <AlertDescription>
-                      {recurrenceFrequency === "daily" &&
-                        `Repeats every ${recurrenceInterval} day${recurrenceInterval > 1 ? "s" : ""
-                        }`}
-                      {recurrenceFrequency === "weekly" &&
-                        `Repeats every ${recurrenceInterval} week${recurrenceInterval > 1 ? "s" : ""
-                        }${recurrenceDaysOfWeek.length > 0
-                          ? ` on ${recurrenceDaysOfWeek
-                            .map(
-                              (d) =>
-                                [
-                                  "Sun",
-                                  "Mon",
-                                  "Tue",
-                                  "Wed",
-                                  "Thu",
-                                  "Fri",
-                                  "Sat",
-                                ][d]
-                            )
-                            .join(", ")}`
-                          : ""
-                        }`}
-                      {recurrenceFrequency === "monthly" &&
-                        `Repeats every ${recurrenceInterval} month${recurrenceInterval > 1 ? "s" : ""
-                        }`}
-                      {recurrenceEndType === "occurrences" &&
-                        `, ${recurrenceOccurrences} times`}
-                      {recurrenceEndType === "date" &&
-                        recurrenceEndDate &&
-                        `, until ${new Date(
-                          recurrenceEndDate
-                        ).toLocaleDateString()}`}
+                      {(() => {
+                        const daysShortKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+                        let message = "";
+
+                        if (recurrenceFrequency === "daily") {
+                          const unit = t(recurrenceInterval > 1 ? "create.recurring.days" : "create.recurring.day");
+                          message = t("create.recurring.repeatsEvery", { interval: recurrenceInterval, unit });
+                        } else if (recurrenceFrequency === "weekly") {
+                          const unit = t(recurrenceInterval > 1 ? "create.recurring.weeks" : "create.recurring.week");
+                          if (recurrenceDaysOfWeek.length > 0) {
+                            const daysStr = recurrenceDaysOfWeek.map(d => t(`weekDaysShort.${daysShortKeys[d]}`)).join(", ");
+                            message = t("create.recurring.repeatsEveryOn", { interval: recurrenceInterval, unit, days: daysStr });
+                          } else {
+                            message = t("create.recurring.repeatsEvery", { interval: recurrenceInterval, unit });
+                          }
+                        } else if (recurrenceFrequency === "monthly") {
+                          const unit = t(recurrenceInterval > 1 ? "create.recurring.months" : "create.recurring.month");
+                          message = t("create.recurring.repeatsEvery", { interval: recurrenceInterval, unit });
+                        }
+
+                        if (recurrenceEndType === "occurrences") {
+                          message += t("create.recurring.times", { count: recurrenceOccurrences });
+                        } else if (recurrenceEndType === "date" && recurrenceEndDate) {
+                          message += t("create.recurring.until", { date: new Date(recurrenceEndDate).toLocaleDateString() });
+                        }
+
+                        return message;
+                      })()}
                     </AlertDescription>
                   </Alert>
                 </div>
@@ -1202,14 +1197,14 @@ export function CreateBookingDialog({
             }}
             disabled={submitting}
           >
-            Cancel
+            {t("create.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={
               !clientName ||
               !clientPhone ||
-              !serviceId ||
+              (planType !== 'simple' && !serviceId) ||
               !date ||
               !selectedSlot ||
               (bookingMode === "professional" && !professionalId) ||
@@ -1220,9 +1215,9 @@ export function CreateBookingDialog({
             }
           >
             {submitting ? (
-              "Creating..."
+              t("create.submitting")
             ) : (
-              <>{usePackage ? "Use Package Session" : "Create Booking"}</>
+              <>{usePackage ? t("create.usePackage") : t("create.submit")}</>
             )}
           </Button>
         </div>
