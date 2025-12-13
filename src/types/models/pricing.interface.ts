@@ -14,10 +14,8 @@ export interface PricingEntry {
         yearly: number;
     };
     features: {
-        maxUsers?: number;
-        maxServices?: number;
-        maxBookingsPerMonth?: number;
-        maxClients?: number;
+        // maxUsers?: number; // Removed as it might be maxProfessionals
+        // Keeping boolean flags here if they are not in root
         hasCalendar: boolean;
         hasReports: boolean;
         hasIntegrations: boolean;
@@ -27,6 +25,11 @@ export interface PricingEntry {
     };
     trialDays?: number;
     isActive: boolean;
+    isFeatured?: boolean;
+    displayPrice?: string;
+    maxBookings?: number;
+    maxProfessionals?: number;
+    maxClients?: number;
     createdAt: string;
     updatedAt: string;
 }

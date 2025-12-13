@@ -8,21 +8,15 @@ import { LoginPage } from "./pages/login";
 import { RegisterPage } from "./pages/register";
 import { OnboardingPage } from "./pages/onboarding";
 import { AuthCallbackPage } from "./pages/auth-callback";
+import { ResetPasswordPage } from "./pages/reset-password";
+import { ForgotPasswordPage } from "./pages/forgot-password";
+import { ChangePasswordPage } from "./pages/change-password";
 import { AcceptInvitationPage } from "./pages/accept-invitation";
 import { NotFoundPage } from "./pages/not-found";
 import { UnauthorizedPage } from "./pages/unauthorized";
 import { UpgradePage } from "./pages/upgrade";
 
-// Simple Plan pages
-// (All consolidated in /common)
 
-// Individual Plan pages
-// (All consolidated in /common)
-
-// Business/Entity Plan pages
-// (All consolidated in /common)
-
-// Common pages (shared across all plan types)
 import { ClientProfilePage } from "./pages/common/client-profile";
 import { EntityProfilePage } from "./pages/common/entity-profile";
 
@@ -43,6 +37,7 @@ import SimpleServicesPage from "./pages/simple/services";
 import { SimpleSubscriptionPage } from "./pages/simple/subscription";
 import { IndividualSubscriptionPage } from "./pages/individual/subscription";
 import { EntitySubscriptionPage } from "./pages/entity/subscription";
+import { SupportPage } from "./pages/common/support";
 
 // Professional pages
 import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
@@ -106,6 +101,16 @@ function App() {
                   element={<AcceptInvitationPage />}
                 />
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route
+                  path="/change-password"
+                  element={
+                    <ProtectedRoute>
+                      <ChangePasswordPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/book/:slug"
                   element={<PublicEntityProfilePage />}
@@ -242,6 +247,18 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/simple/support"
+                  element={
+                    <ProtectedRoute allowedPlans={["simple"]}>
+                      <OnboardingGuard>
+                        <Layout>
+                          <SupportPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Individual Plan Routes */}
                 <Route
@@ -336,6 +353,19 @@ function App() {
                       <OnboardingGuard>
                         <Layout>
                           <IndividualSubscriptionPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+
+                <Route
+                  path="/individual/support"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <SupportPage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
@@ -467,6 +497,16 @@ function App() {
                         <EntitySubscriptionPage />
                       </Layout>
                     </BusinessRoute>
+                  }
+                />
+                <Route
+                  path="/entity/support"
+                  element={
+                    <EntityRoute>
+                      <Layout>
+                        <SupportPage />
+                      </Layout>
+                    </EntityRoute>
                   }
                 />
                 <Route

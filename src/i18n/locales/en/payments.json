@@ -14,11 +14,37 @@
     "registerPayment": "Register Payment",
     "cancel": "Cancel",
     "register": "Register",
-    "export": "Export"
+    "export": "Export",
+    "markAsPaid": "Mark as Paid",
+    "completePayment": "Complete Payment",
+    "retryPayment": "Retry Payment",
+    "sendInvoice": "Send Invoice",
+    "viewReceipt": "View Receipt",
+    "refund": "Refund",
+    "close": "Close",
+    "edit": "Edit"
   },
   "dialog": {
     "title": "Register New Payment",
-    "description": "Register payments made in cash, PIX or other offline methods"
+    "description": "Register payments made in cash, PIX or other offline methods",
+    "paymentManagement": "Payment Management",
+    "processPaymentFor": "Process payment for booking",
+    "totalAmount": "Total Amount",
+    "remainingAmount": "Remaining",
+    "ofTotal": "of",
+    "selectPaymentMethod": "Select Payment Method",
+    "completeRemainingPayment": "Complete Remaining Payment",
+    "taxIdOptional": "NIF / Tax ID (Optional)",
+    "paymentNotesOptional": "Payment Notes (Optional)",
+    "addDetailsAbout": "Add details about the",
+    "payment": "payment",
+    "priceBreakdown": "Price Breakdown",
+    "basePrice": "Base Price",
+    "voucherDiscount": "Voucher Discount",
+    "discount": "Discount",
+    "commission": "Commission",
+    "additionalCharges": "Additional Charges",
+    "total": "Total"
   },
   "form": {
     "amount": "Amount",
@@ -44,7 +70,51 @@
     "pending": "Pending",
     "refunded": "Refunded",
     "failed": "Failed",
-    "completed": "Completed"
+    "completed": "Completed",
+    "partial": "Partial"
+  },
+  "paymentStates": {
+    "paid": {
+      "title": "Payment Completed",
+      "description": "This booking has been fully paid. You can now issue a receipt or invoice."
+    },
+    "refunded": {
+      "title": "Payment Refunded",
+      "description": "This payment has been fully refunded to the client."
+    },
+    "partial": {
+      "title": "Partial Payment Received",
+      "description": "A deposit or partial payment has been made",
+      "paymentProgress": "Payment Progress",
+      "percentPaid": "% paid",
+      "remaining": "remaining"
+    },
+    "failed": {
+      "title": "Payment Failed",
+      "description": "The payment attempt was unsuccessful. You can retry below.",
+      "errorLabel": "Error"
+    },
+    "pending": {
+      "title": "Payment Pending",
+      "description": "Select a payment method and complete the transaction."
+    }
+  },
+  "paymentDetails": {
+    "paymentDate": "Payment Date",
+    "method": "Method",
+    "transactionId": "Transaction ID",
+    "refundAmount": "Refund Amount",
+    "refundDate": "Refund Date",
+    "reason": "Reason"
+  },
+  "bookingStatus": {
+    "title": "Booking Status",
+    "pending": "Awaiting confirmation from professional",
+    "confirmed": "Booking confirmed, ready for appointment",
+    "in_progress": "Appointment is currently ongoing",
+    "completed": "Appointment has been completed",
+    "cancelled": "This booking has been cancelled",
+    "no_show": "Client did not show up for appointment"
   },
   "stats": {
     "totalRevenue": "Total Revenue",
@@ -85,7 +155,16 @@
     "success": "Payment registered successfully",
     "error": "Failed to register payment",
     "loadError": "Failed to load payments",
-    "invalidAmount": "Please enter a valid amount"
+    "invalidAmount": "Please enter a valid amount",
+    "paymentRecorded": "Payment recorded successfully",
+    "remainingPaymentRecorded": "Remaining payment recorded successfully",
+    "invoiceSent": "Invoice sent to client email",
+    "invoiceFailed": "Failed to send invoice",
+    "refundProcessing": "Processing refund...",
+    "refundSuccess": "Payment refunded successfully",
+    "refundFailed": "Failed to refund payment",
+    "paymentIdNotFound": "Payment ID not found. Cannot refund.",
+    "confirmRefund": "Are you sure you want to refund this payment? This action cannot be undone."
   },
   "success": {
     "title": "Processing payment",

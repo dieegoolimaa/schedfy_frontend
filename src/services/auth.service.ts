@@ -145,6 +145,17 @@ export const authService = {
     },
 
     /**
+     * Change password for authenticated user
+     */
+    changePassword: async (userId: string, currentPassword: string, newPassword: string): Promise<ApiResponse<any>> => {
+        return await apiClient.patch('/api/auth/change-password', {
+            userId,
+            currentPassword,
+            newPassword
+        });
+    },
+
+    /**
      * Refresh authentication token
      */
     refreshToken: async (refreshToken: string): Promise<ApiResponse<RefreshTokenResponse>> => {
@@ -175,6 +186,23 @@ export const authService = {
      */
     isAuthenticated: (): boolean => {
         return !!storage.getToken();
+    },
+
+    /**
+     * Request password reset email
+     */
+    requestPasswordReset: async (email: string): Promise<ApiResponse<{ message: string }>> => {
+        return await apiClient.post('/api/auth/forgot-password', { email });
+    },
+
+    /**
+     * Reset password with token
+     */
+    resetPassword: async (token: string, newPassword: string): Promise<ApiResponse<{ message: string }>> => {
+        return await apiClient.post('/api/auth/reset-password', {
+            token,
+            newPassword
+        });
     },
 
     /**

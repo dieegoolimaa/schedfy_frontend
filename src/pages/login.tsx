@@ -58,6 +58,12 @@ export function LoginPage() {
       const user = await login(data);
       toast.success(t("auth.loginSuccess", "Welcome back!"));
 
+      // Check for forced password change
+      if (user.mustChangePassword) {
+        navigate("/change-password");
+        return;
+      }
+
       // Get redirect from URL params or determine based on user role and plan
       const redirectParam = searchParams.get("redirect");
       if (redirectParam) {

@@ -339,7 +339,9 @@ export function CalendarView({
                         booking.status === "pending" &&
                         "bg-yellow-100 text-yellow-800",
                         booking.status === "cancelled" &&
-                        "bg-red-100 text-red-800"
+                        "bg-red-100 text-red-800",
+                        booking.status === "blocked" &&
+                        "bg-gray-200 text-gray-800"
                       )}
                       title={`${new Date(booking.startTime).toLocaleTimeString(
                         "en-US",
@@ -475,7 +477,9 @@ export function CalendarView({
                                 booking.status === "pending" &&
                                 "bg-amber-50 border-amber-500 hover:bg-amber-100",
                                 booking.status === "cancelled" &&
-                                "bg-red-50 border-red-500 hover:bg-red-100"
+                                "bg-red-50 border-red-500 hover:bg-red-100",
+                                booking.status === "blocked" &&
+                                "bg-gray-100 border-gray-500 hover:bg-gray-200"
                               )}
                             >
                               {/* Time Badge */}
@@ -490,7 +494,9 @@ export function CalendarView({
                                     booking.status === "pending" &&
                                     "bg-amber-200 text-amber-900",
                                     booking.status === "cancelled" &&
-                                    "bg-red-200 text-red-900"
+                                    "bg-red-200 text-red-900",
+                                    booking.status === "blocked" &&
+                                    "bg-gray-300 text-gray-900"
                                   )}
                                 >
                                   {new Date(
@@ -505,16 +511,22 @@ export function CalendarView({
 
                               {/* Client Name - Most Important */}
                               <div className="font-bold text-[10px] leading-tight truncate mb-0.5 text-gray-900">
-                                {typeof booking.client === "object"
-                                  ? booking.client?.name
-                                  : booking.client || "Client"}
+                                {booking.status === 'blocked'
+                                  ? (booking.internalNotes || "Blocked Time")
+                                  : (typeof booking.client === "object"
+                                    ? booking.client?.name
+                                    : booking.client || "Client")
+                                }
                               </div>
 
                               {/* Service Name */}
                               <div className="text-[9px] leading-tight truncate text-gray-700 mb-0.5">
-                                {typeof booking.service === "object"
-                                  ? booking.service?.name
-                                  : "Service"}
+                                {booking.status === 'blocked'
+                                  ? ""
+                                  : (typeof booking.service === "object"
+                                    ? booking.service?.name
+                                    : "Service")
+                                }
                               </div>
 
                               {/* Professional - Small text at bottom */}
@@ -606,7 +618,8 @@ export function CalendarView({
                           booking.status === "confirmed" && "bg-blue-50/50",
                           booking.status === "completed" && "bg-green-50/50",
                           booking.status === "pending" && "bg-yellow-50/50",
-                          booking.status === "cancelled" && "bg-red-50/50"
+                          booking.status === "cancelled" && "bg-red-50/50",
+                          booking.status === "blocked" && "bg-gray-100/50"
                         )}
                       >
                         <div className="flex items-start gap-3">
@@ -666,7 +679,9 @@ export function CalendarView({
                               booking.status === "pending" &&
                               "bg-yellow-100 text-yellow-800 border-yellow-200",
                               booking.status === "cancelled" &&
-                              "bg-red-100 text-red-800 border-red-200"
+                              "bg-red-100 text-red-800 border-red-200",
+                              booking.status === "blocked" &&
+                              "bg-gray-200 text-gray-800 border-gray-400"
                             )}
                           >
                             {booking.status}
@@ -785,7 +800,9 @@ export function CalendarView({
                                 booking.status === "pending" &&
                                 "bg-amber-50 border-amber-500 hover:bg-amber-100",
                                 booking.status === "cancelled" &&
-                                "bg-red-50 border-red-500 hover:bg-red-100"
+                                "bg-red-50 border-red-500 hover:bg-red-100",
+                                booking.status === "blocked" &&
+                                "bg-gray-100 border-gray-500 hover:bg-gray-200"
                               )}
                             >
                               {/* Left: Time with Icon */}

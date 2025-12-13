@@ -91,9 +91,11 @@ import {
     Loader2,
     RotateCcw,
     X,
+    Lock,
 } from "lucide-react";
 import { LiveActivityWidget } from "../../components/dashboard/LiveActivityWidget";
 import { RecentActivitiesWidget } from "../../components/dashboard/RecentActivitiesWidget";
+import { BlockTimeDialog } from "../../components/dialogs/block-time-dialog";
 
 interface CommandCenterProps {
     forcedProfessionalId?: string;
@@ -101,7 +103,7 @@ interface CommandCenterProps {
 }
 
 export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
-    const { t } = useTranslation("bookings");
+    const { t } = useTranslation(["bookings", "payments"]);
     const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
     const { user } = useAuth();
     const { entity: fullEntity } = useEntity({ autoFetch: true }); // Fetch full entity profile
@@ -165,6 +167,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     );
     const [isRecurringSeriesDialogOpen, setIsRecurringSeriesDialogOpen] =
         useState(false);
+    const [isBlockTimeDialogOpen, setIsBlockTimeDialogOpen] = useState(false);
 
     // Additional filter states
     const [serviceFilter, setServiceFilter] = useState("all");
@@ -184,6 +187,14 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const hasActiveFilters = searchTerm || statusFilter !== "all" || dateFilter !== "all" || serviceFilter !== "all" || professionalFilter !== "all" || paymentFilter !== "all";
 
     const handlePaymentClick = (booking: any) => {
+        // Reset all payment-related state for a clean slate
+        setPaymentMethod("card");
+        setTaxId("");
+        setCustomPaymentAmount("");
+        setIsEditingAmount(false);
+        setPaymentLoading(false);
+
+        // Set the booking and open dialog
         setSelectedBookingForPayment(booking);
         setPaymentDialogOpen(true);
     };
@@ -315,6 +326,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                 return "bg-blue-100 text-blue-800 border-blue-200";
             case "cancelled":
                 return "bg-red-100 text-red-800 border-red-200";
+            case "blocked":
+                return "bg-gray-300 text-gray-900 border-gray-400";
             case "no-show":
                 return "bg-gray-100 text-gray-800 border-gray-200";
 
@@ -351,6 +364,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
             case "cancelled":
             case "no-show":
                 return <XCircle className="h-4 w-4" />;
+            case "blocked":
+                return <Lock className="h-4 w-4" />;
 
             case "in_progress":
                 return <Play className="h-4 w-4" />;
@@ -374,14 +389,19 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
         (async () => {
             try {
                 // Correct endpoint: /api/users with isProfessional=true
-                const res: any = await apiClient.get("/api/users", {
-                    entityId,
-                    isProfessional: true,
-                });
+                const res: any = await apiClient.get(`/api/users/entity/${entityId}/professionals`);
 
 
                 const data = res?.data || [];
-                if (mounted) setProfessionalsList(Array.isArray(data) ? data : []);
+                // Map users to include 'name' property for dropdowns
+                const mappedData = Array.isArray(data)
+                    ? data.map((u: any) => ({
+                        ...u,
+                        name: u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
+                    }))
+                    : [];
+
+                if (mounted) setProfessionalsList(mappedData);
             } catch (e) {
                 console.error("[BookingManagement] Error loading professionals:", e);
                 if (mounted) setProfessionalsList([]);
@@ -678,7 +698,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                         <div className="flex flex-wrap items-center gap-2">
 
 
-                            {/* View Mode Toggle */}
                             <div className="flex items-center border rounded-lg bg-white/80 dark:bg-gray-900/80">
                                 <Button
                                     variant={viewMode === "list" ? "default" : "ghost"}
@@ -702,6 +721,16 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                             <Button
                                 size="sm"
+                                variant="outline"
+                                onClick={() => setIsBlockTimeDialogOpen(true)}
+                                className="border-orange-200 hover:bg-orange-50 text-orange-700"
+                            >
+                                <Lock className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Block Time</span>
+                            </Button>
+
+                            <Button
+                                size="sm"
                                 onClick={() => setIsCreateDialogOpen(true)}
                                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                             >
@@ -715,6 +744,18 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl -z-0"></div>
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-400/20 to-blue-400/20 rounded-full blur-3xl -z-0"></div>
             </div>
+
+            {/* Block Time Dialog */}
+            <BlockTimeDialog
+                open={isBlockTimeDialogOpen}
+                onOpenChange={setIsBlockTimeDialogOpen}
+                entityId={entityId}
+                professionals={professionalsList}
+                onSuccess={() => {
+                    fetchBookings();
+                    toast.success("Time blocked successfully");
+                }}
+            />
 
             {/* Quick Actions Bar */}
 
@@ -1081,9 +1122,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                     </div>
                                                     <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
                                                         <User className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                                        <span>{booking.professional?.name}</span>
+                                                        <span>{booking.professional?.name || "N/A"}</span>
                                                         <span className="text-gray-300">•</span>
-                                                        <span>{(booking.service as any)?.duration} min</span>
+                                                        <span>{typeof (booking.service as any)?.duration === 'object' ? (booking.service as any)?.duration?.duration || 60 : (booking.service as any)?.duration || 60} min</span>
                                                         {(booking.service as any)?.category && (
                                                             <>
                                                                 <span className="text-gray-300">•</span>
@@ -1138,7 +1179,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                         </Badge>
                                                     )}
 
-                                                    {canViewPricing && (
+                                                    {canViewPricing && booking.status !== 'blocked' && !(booking.status === 'cancelled' && booking.client?.name === 'Blocked Time') && (
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <span className="font-bold text-gray-900">
                                                                 {formatCurrency(
@@ -1217,7 +1258,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                         </Button>
                                                     )}
 
-                                                    {canViewPaymentDetails && booking.paymentStatus === 'pending' && booking.status !== 'cancelled' && (
+                                                    {canViewPaymentDetails && booking.paymentStatus === 'pending' && booking.status !== 'cancelled' && booking.status !== 'blocked' && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -1279,7 +1320,21 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                                                             <DropdownMenuItem
                                                                 onClick={() => {
-                                                                    setEditingBooking(booking);
+                                                                    const mappedBooking: any = {
+                                                                        id: booking.id,
+                                                                        clientName: typeof booking.client === 'object' ? booking.client?.name : booking.client,
+                                                                        clientEmail: typeof booking.client === 'object' ? booking.client?.email : '',
+                                                                        serviceName: typeof booking.service === 'object' ? booking.service?.name : 'Service',
+                                                                        professionalName: typeof booking.professional === 'object' ? booking.professional?.name : booking.professional,
+                                                                        professionalId: typeof booking.professional === 'object' ? booking.professional?.id : undefined,
+                                                                        date: new Date(booking.startTime).toISOString().split('T')[0],
+                                                                        time: new Date(booking.startTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                                                                        duration: typeof (booking.service as any)?.duration === 'object' ? (booking.service as any)?.duration?.duration || 60 : (booking.service as any)?.duration || 60,
+                                                                        price: typeof booking.service === 'object' ? (booking.service as any)?.price : 0,
+                                                                        status: booking.status,
+                                                                        notes: booking.notes
+                                                                    };
+                                                                    setEditingBooking(mappedBooking);
                                                                     setIsEditDialogOpen(true);
                                                                 }}
                                                             >
@@ -1297,7 +1352,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                 </DropdownMenuItem>
                                                             )}
 
-                                                            {booking.status !== 'completed' && booking.status !== 'cancelled' && (
+                                                            {booking.status !== 'completed' && booking.status !== 'cancelled' && booking.status !== 'blocked' && (
                                                                 <DropdownMenuItem
                                                                     onClick={async () => {
                                                                         if (confirm(t("confirmations.markCompleted", "Are you sure you want to mark this booking as completed?"))) {
@@ -1317,7 +1372,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                 </DropdownMenuItem>
                                                             )}
 
-                                                            {canViewPaymentDetails && (
+                                                            {canViewPaymentDetails && booking.status !== 'blocked' && (
                                                                 <>
                                                                     <DropdownMenuSeparator />
                                                                     <DropdownMenuItem
@@ -1391,8 +1446,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             professionalId: typeof booking.professional === 'object' ? booking.professional?.id : undefined,
                                             date: new Date(booking.startTime).toISOString().split('T')[0],
                                             time: new Date(booking.startTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-                                            duration: typeof booking.service === 'object' ? booking.service?.duration : 60,
-                                            price: typeof booking.service === 'object' ? booking.service?.price : 0,
+                                            duration: typeof (booking.service as any)?.duration === 'object' ? (booking.service as any)?.duration?.duration || 60 : (booking.service as any)?.duration || 60,
+                                            price: typeof booking.service === 'object' ? (booking.service as any)?.price : 0,
                                             status: booking.status,
                                             notes: booking.notes
                                         };
@@ -1404,394 +1459,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             </CardContent>
                         </Card>
                     )}
-
-                    {/* Payment Dialog */}
-                    <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-                        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
-                            <div className="p-6 bg-primary/5 border-b">
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                                        <CreditCard className="w-5 h-5 text-primary" />
-                                        Payment Management
-                                    </DialogTitle>
-                                    <DialogDescription className="text-muted-foreground">
-                                        Process payment for booking #{selectedBookingForPayment?.id?.slice(-6)}
-                                    </DialogDescription>
-                                </DialogHeader>
-                            </div>
-
-                            {selectedBookingForPayment && (
-                                <div className="p-6 space-y-8">
-                                    {/* Booking Summary Card */}
-                                    <div className="bg-card border rounded-xl p-4 shadow-sm flex flex-col md:flex-row justify-between gap-4">
-                                        <div className="space-y-1">
-                                            <h3 className="font-medium text-lg">{selectedBookingForPayment.service?.name || "Service"}</h3>
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                <User className="w-4 h-4" />
-                                                {selectedBookingForPayment.client?.name || "Client"}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                <CalendarIcon className="w-4 h-4" />
-                                                {selectedBookingForPayment.startTime
-                                                    ? new Date(selectedBookingForPayment.startTime).toLocaleDateString()
-                                                    : "N/A"}
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col items-end justify-center border-l pl-4 min-w-[150px]">
-                                            <span className="text-sm text-muted-foreground">Total Amount</span>
-                                            {selectedBookingForPayment.paymentStatus === 'paid' ? (
-                                                <span className="text-3xl font-bold text-primary">
-                                                    €{selectedBookingForPayment.payment?.paidAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
-                                                </span>
-                                            ) : (
-                                                isEditingAmount ? (
-                                                    <div className="flex items-center gap-1">
-                                                        <span className="text-xl font-bold text-primary">€</span>
-                                                        <Input
-                                                            type="number"
-                                                            className="w-24 text-right text-xl font-bold h-10"
-                                                            value={customPaymentAmount}
-                                                            onChange={(e) => setCustomPaymentAmount(e.target.value)}
-                                                            autoFocus
-                                                        />
-                                                        <div className="flex flex-col gap-1">
-                                                            <Button size="sm" variant="ghost" onClick={() => setIsEditingAmount(false)}>✓</Button>
-                                                            <Button size="sm" variant="ghost" onClick={() => { setIsEditingAmount(false); setCustomPaymentAmount(""); }}>✕</Button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="relative group">
-                                                        <span className="text-3xl font-bold text-primary">
-                                                            €{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
-                                                        </span>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="absolute -right-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                                                            onClick={() => {
-                                                                setCustomPaymentAmount((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0).toString());
-                                                                setIsEditingAmount(true);
-                                                            }}
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                    </div>
-                                                )
-                                            )}
-                                            <Badge variant={selectedBookingForPayment.paymentStatus === 'paid' ? 'success' : 'outline'} className="mt-1 capitalize">
-                                                {selectedBookingForPayment.paymentStatus || "pending"}
-                                            </Badge>
-                                        </div>
-                                    </div>
-
-                                    {/* Cost Breakdown */}
-                                    {selectedBookingForPayment.paymentStatus !== 'paid' && (
-                                        <div className="bg-muted/30 p-4 rounded-lg border text-sm space-y-2 mb-4">
-                                            <h4 className="font-semibold mb-2">Price Breakdown</h4>
-                                            <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Base Price</span>
-                                                <span>€{selectedBookingForPayment.pricing?.basePrice || selectedBookingForPayment.service?.price || 0}</span>
-                                            </div>
-                                            {selectedBookingForPayment.pricing?.voucherDiscount > 0 && (
-                                                <div className="flex justify-between text-green-600">
-                                                    <span>Voucher Discount</span>
-                                                    <span>-€{selectedBookingForPayment.pricing.voucherDiscount}</span>
-                                                </div>
-                                            )}
-                                            {selectedBookingForPayment.pricing?.discountAmount > 0 && (
-                                                <div className="flex justify-between text-green-600">
-                                                    <span>Discount</span>
-                                                    <span>-€{selectedBookingForPayment.pricing.discountAmount}</span>
-                                                </div>
-                                            )}
-                                            {selectedBookingForPayment.pricing?.commissionAmount > 0 && (
-                                                <div className="flex justify-between text-blue-600">
-                                                    <span>Commission</span>
-                                                    <span>€{selectedBookingForPayment.pricing.commissionAmount}</span>
-                                                </div>
-                                            )}
-                                            {selectedBookingForPayment.pricing?.additionalCharges > 0 && (
-                                                <div className="flex justify-between text-orange-600">
-                                                    <span>Additional Charges</span>
-                                                    <span>+€{selectedBookingForPayment.pricing.additionalCharges}</span>
-                                                </div>
-                                            )}
-                                            <div className="border-t pt-2 flex justify-between font-bold">
-                                                <span>Total</span>
-                                                <span>€{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Payment Status Handling */}
-                                    {selectedBookingForPayment.paymentStatus === "paid" ? (
-                                        <div className="flex flex-col items-center justify-center py-8 space-y-6 text-center animate-in fade-in zoom-in duration-300">
-                                            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2 shadow-sm">
-                                                <CheckCircle2 className="w-10 h-10" />
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <h3 className="text-2xl font-bold tracking-tight">Payment Completed</h3>
-                                                <p className="text-muted-foreground max-w-xs mx-auto">
-                                                    This booking has been fully paid. You can now issue a receipt or invoice.
-                                                </p>
-                                            </div>
-
-                                            {/* Payment Details Grid */}
-                                            <div className="grid grid-cols-2 gap-4 w-full max-w-md bg-muted/30 p-4 rounded-lg border text-sm">
-                                                <div className="flex flex-col items-start gap-1">
-                                                    <span className="text-muted-foreground text-xs uppercase tracking-wider">Payment Date</span>
-                                                    <span className="font-medium">
-                                                        {selectedBookingForPayment.payment?.paidAmount
-                                                            ? new Date().toLocaleDateString() // Fallback if date not available
-                                                            : new Date().toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col items-start gap-1">
-                                                    <span className="text-muted-foreground text-xs uppercase tracking-wider">Method</span>
-                                                    <span className="font-medium capitalize">
-                                                        {selectedBookingForPayment.payment?.method || "Card"}
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col items-start gap-1 col-span-2">
-                                                    <span className="text-muted-foreground text-xs uppercase tracking-wider">Transaction ID</span>
-                                                    <span className="font-mono text-xs text-muted-foreground break-all text-left">
-                                                        {selectedBookingForPayment.payment?.transactionIds?.[0] ||
-                                                            selectedBookingForPayment.payment?.stripePaymentIntentId ||
-                                                            "N/A"}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-wrap justify-center gap-3 pt-4 w-full">
-                                                <Button variant="outline" className="gap-2 min-w-[140px]" onClick={async () => {
-                                                    try {
-                                                        toast.loading("Sending invoice...");
-                                                        await apiClient.post(`/api/payments/send-invoice-by-booking/${selectedBookingForPayment.id}`);
-                                                        toast.dismiss();
-                                                        toast.success("Invoice sent to client email");
-                                                    } catch (err) {
-                                                        toast.dismiss();
-                                                        toast.error("Failed to send invoice");
-                                                    }
-                                                }}>
-                                                    <Mail className="w-4 h-4" />
-                                                    Send Invoice
-                                                </Button>
-
-                                                {/* View Receipt Button */}
-                                                {selectedBookingForPayment.payment?.transactionIds?.[0] && (
-                                                    <Button variant="secondary" className="gap-2 min-w-[140px]" onClick={() => {
-                                                        const paymentId = selectedBookingForPayment.payment.transactionIds[0];
-                                                        window.open(`/payments/${paymentId}/receipt`, '_blank');
-                                                    }}>
-                                                        <FileText className="w-4 h-4" />
-                                                        View Receipt
-                                                    </Button>
-                                                )}
-
-                                                <Button variant="destructive" className="gap-2 min-w-[140px]" onClick={async () => {
-                                                    const paymentId = selectedBookingForPayment.payment?.transactionIds?.[0];
-
-                                                    if (!paymentId) {
-                                                        toast.error("Payment ID not found. Cannot refund.");
-                                                        return;
-                                                    }
-
-                                                    if (!confirm("Are you sure you want to refund this payment? This action cannot be undone.")) return;
-
-                                                    try {
-                                                        toast.loading("Processing refund...");
-                                                        await apiClient.patch(`/api/payments/${paymentId}/refund`, {
-                                                            reason: 'Requested by professional'
-                                                        });
-                                                        toast.dismiss();
-                                                        toast.success("Payment refunded successfully");
-                                                        await fetchBookings();
-                                                        setPaymentDialogOpen(false);
-                                                    } catch (err) {
-                                                        toast.dismiss();
-                                                        console.error(err);
-                                                        toast.error("Failed to refund payment");
-                                                    }
-                                                }}>
-                                                    <RotateCcw className="w-4 h-4" />
-                                                    Refund
-                                                </Button>
-
-                                                <Button variant="ghost" className="min-w-[100px]" onClick={() => {
-                                                    setPaymentDialogOpen(false);
-                                                    setSelectedBookingForPayment(null);
-                                                    setTaxId("");
-                                                    setPaymentMethod("card");
-                                                }}>
-                                                    Close
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                    ) : (
-                                        <div className="space-y-6">
-                                            <div className="space-y-3">
-                                                <Label className="text-base font-medium">Select Payment Method</Label>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                    {[
-                                                        { id: 'card', label: 'Card', icon: CreditCard },
-                                                        { id: 'cash', label: 'Cash', icon: Banknote },
-                                                        { id: 'mbway', label: 'MB Way', icon: Smartphone },
-                                                        { id: 'transfer', label: 'Transfer', icon: Building2 },
-                                                    ].map((method) => (
-                                                        <button
-                                                            key={method.id}
-                                                            onClick={() => setPaymentMethod(method.id)}
-                                                            className={`
-                                                            flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
-                                                            ${paymentMethod === method.id
-                                                                    ? 'border-primary bg-primary/5 text-primary shadow-sm'
-                                                                    : 'border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 text-muted-foreground'}
-                                                          `}
-                                                        >
-                                                            <method.icon className="w-6 h-6 mb-2" />
-                                                            <span className="text-sm font-medium">{method.label}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-4 border-t">
-                                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="tax-id">NIF / Tax ID (Optional)</Label>
-                                                        <Input
-                                                            id="tax-id"
-                                                            placeholder="123 456 789"
-                                                            value={taxId}
-                                                            onChange={(e) => setTaxId(e.target.value)}
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="payment-notes">Payment Notes (Optional)</Label>
-                                                        <Textarea
-                                                            id="payment-notes"
-                                                            placeholder={`Add details about the ${paymentMethod} payment...`}
-                                                            className="resize-none"
-                                                            rows={3}
-                                                        />
-                                                    </div>
-                                                    <div className="flex justify-end gap-3 pt-2">
-                                                        <Button variant="ghost" onClick={() => setPaymentDialogOpen(false)}>
-                                                            Cancel
-                                                        </Button>
-                                                        <Button
-                                                            className="min-w-[140px]"
-                                                            disabled={paymentLoading}
-                                                            onClick={async () => {
-                                                                setPaymentLoading(true);
-                                                                console.log('[Payment] Starting payment process...');
-                                                                console.log('[Payment] Booking ID:', selectedBookingForPayment.id);
-                                                                console.log('[Payment] Tax ID:', taxId);
-                                                                console.log('[Payment] Payment Method:', paymentMethod);
-
-                                                                try {
-                                                                    const payload: any = {
-                                                                        taxId,
-                                                                        paymentMethod
-                                                                    };
-
-                                                                    // Only send custom amount if it was edited
-                                                                    if (customPaymentAmount && parseFloat(customPaymentAmount) > 0) {
-                                                                        payload.amount = parseFloat(customPaymentAmount);
-                                                                    }
-                                                                    // Call API to complete booking
-                                                                    console.log('[Payment] Calling completeBooking API with payload:', payload);
-                                                                    const response = await apiClient.patch(`/api/bookings/${selectedBookingForPayment.id}/complete`, payload);
-                                                                    console.log('[Payment] API Response:', response);
-
-                                                                    // Reload bookings
-                                                                    console.log('[Payment] Fetching updated bookings...');
-                                                                    await fetchBookings();
-                                                                    console.log('[Payment] Bookings refreshed successfully');
-
-                                                                    // Show success
-                                                                    toast.success("Payment recorded successfully");
-
-                                                                    // Update local state to show success view instead of closing
-                                                                    console.log('[Payment] Updating local state for success view...');
-
-                                                                    if (response.data) {
-                                                                        console.log('[Payment] Response data:', response.data);
-
-                                                                        // Update the selected booking with fresh data from backend
-                                                                        const responseData = response.data as any;
-                                                                        const updatedData = {
-                                                                            ...selectedBookingForPayment,
-                                                                            paymentStatus: 'paid',
-                                                                            status: 'completed',
-                                                                            payment: {
-                                                                                status: 'paid',
-                                                                                paidAmount: parseFloat(customPaymentAmount) || responseData?.pricing?.totalPrice || selectedBookingForPayment.pricing?.totalPrice,
-                                                                                method: paymentMethod,
-                                                                                transactionIds: responseData?.payment?.transactionIds || [],
-                                                                                stripePaymentIntentId: responseData?.payment?.stripePaymentIntentId
-                                                                            }
-                                                                        };
-
-                                                                        setSelectedBookingForPayment(updatedData);
-                                                                    } else {
-                                                                        // Fallback if no data returned (shouldn't happen)
-                                                                        setSelectedBookingForPayment({
-                                                                            ...selectedBookingForPayment,
-                                                                            paymentStatus: 'paid',
-                                                                            status: 'completed'
-                                                                        });
-                                                                    }
-
-                                                                    // Don't close dialog
-                                                                    // setPaymentDialogOpen(false); 
-                                                                    console.log('[Payment] Payment process completed successfully');
-                                                                } catch (err: any) {
-                                                                    console.error('[Payment] Payment process failed:', err);
-                                                                    console.error('[Payment] Error details:', {
-                                                                        message: err.message,
-                                                                        response: err.response?.data,
-                                                                        status: err.response?.status,
-                                                                        stack: err.stack
-                                                                    });
-
-                                                                    // Show detailed error to user
-                                                                    const errorMessage = err.response?.data?.message
-                                                                        || err.message
-                                                                        || "Failed to record payment. Please try again.";
-
-                                                                    toast.error(`Payment Error: ${errorMessage}`);
-
-                                                                    // Don't close dialog on error so user can retry
-                                                                } finally {
-                                                                    setPaymentLoading(false);
-                                                                }
-                                                            }}
-                                                        >
-                                                            {paymentLoading ? (
-                                                                <>
-                                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                                    Processing...
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                                                                    Mark as Paid
-                                                                </>
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </DialogContent>
-                    </Dialog>
 
                     {/* Edit Dialog */}
                     <EditBookingDialog
@@ -1869,10 +1536,21 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
             {/* Payment Dialog */}
             <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
                 <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
-                    <div className="p-6 bg-primary/5 border-b">
+                    {/* Dynamic Header based on payment status */}
+                    <div className={`p-6 border-b ${selectedBookingForPayment?.paymentStatus === 'paid' ? 'bg-green-50' :
+                        selectedBookingForPayment?.paymentStatus === 'refunded' ? 'bg-orange-50' :
+                            selectedBookingForPayment?.paymentStatus === 'partial' ? 'bg-blue-50' :
+                                selectedBookingForPayment?.paymentStatus === 'failed' ? 'bg-red-50' :
+                                    'bg-primary/5'
+                        }`}>
                         <DialogHeader>
                             <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                                <CreditCard className="w-5 h-5 text-primary" />
+                                <CreditCard className={`w-5 h-5 ${selectedBookingForPayment?.paymentStatus === 'paid' ? 'text-green-600' :
+                                    selectedBookingForPayment?.paymentStatus === 'refunded' ? 'text-orange-600' :
+                                        selectedBookingForPayment?.paymentStatus === 'partial' ? 'text-blue-600' :
+                                            selectedBookingForPayment?.paymentStatus === 'failed' ? 'text-red-600' :
+                                                'text-primary'
+                                    }`} />
                                 Payment Management
                             </DialogTitle>
                             <DialogDescription className="text-muted-foreground">
@@ -1882,7 +1560,49 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     </div>
 
                     {selectedBookingForPayment && (
-                        <div className="p-6 space-y-8">
+                        <div className="p-6 space-y-6">
+                            {/* Booking Status Indicator Banner */}
+                            <div className={`flex items-center gap-3 p-3 rounded-lg border ${selectedBookingForPayment.status === 'pending' ? 'bg-yellow-50 border-yellow-200' :
+                                selectedBookingForPayment.status === 'confirmed' ? 'bg-blue-50 border-blue-200' :
+                                    selectedBookingForPayment.status === 'in_progress' ? 'bg-purple-50 border-purple-200' :
+                                        selectedBookingForPayment.status === 'completed' ? 'bg-green-50 border-green-200' :
+                                            selectedBookingForPayment.status === 'cancelled' ? 'bg-red-50 border-red-200' :
+                                                selectedBookingForPayment.status === 'no_show' ? 'bg-gray-50 border-gray-200' :
+                                                    'bg-muted/50 border-muted'
+                                }`}>
+                                <div className={`w-3 h-3 rounded-full animate-pulse ${selectedBookingForPayment.status === 'pending' ? 'bg-yellow-500' :
+                                    selectedBookingForPayment.status === 'confirmed' ? 'bg-blue-500' :
+                                        selectedBookingForPayment.status === 'in_progress' ? 'bg-purple-500' :
+                                            selectedBookingForPayment.status === 'completed' ? 'bg-green-500' :
+                                                selectedBookingForPayment.status === 'cancelled' ? 'bg-red-500' :
+                                                    selectedBookingForPayment.status === 'no_show' ? 'bg-gray-500' :
+                                                        'bg-muted-foreground'
+                                    }`} />
+                                <div className="flex-1">
+                                    <span className="text-sm font-medium capitalize">
+                                        Booking Status: {selectedBookingForPayment.status?.replace('_', ' ')}
+                                    </span>
+                                    <p className="text-xs text-muted-foreground">
+                                        {selectedBookingForPayment.status === 'pending' && 'Awaiting confirmation from professional'}
+                                        {selectedBookingForPayment.status === 'confirmed' && 'Booking confirmed, ready for appointment'}
+                                        {selectedBookingForPayment.status === 'in_progress' && 'Appointment is currently ongoing'}
+                                        {selectedBookingForPayment.status === 'completed' && 'Appointment has been completed'}
+                                        {selectedBookingForPayment.status === 'cancelled' && 'This booking has been cancelled'}
+                                        {selectedBookingForPayment.status === 'no_show' && 'Client did not show up for appointment'}
+                                    </p>
+                                </div>
+                                <Badge variant="outline" className={`capitalize ${selectedBookingForPayment.status === 'pending' ? 'border-yellow-500 text-yellow-700' :
+                                    selectedBookingForPayment.status === 'confirmed' ? 'border-blue-500 text-blue-700' :
+                                        selectedBookingForPayment.status === 'in_progress' ? 'border-purple-500 text-purple-700' :
+                                            selectedBookingForPayment.status === 'completed' ? 'border-green-500 text-green-700' :
+                                                selectedBookingForPayment.status === 'cancelled' ? 'border-red-500 text-red-700' :
+                                                    selectedBookingForPayment.status === 'no_show' ? 'border-gray-500 text-gray-700' :
+                                                        ''
+                                    }`}>
+                                    {selectedBookingForPayment.status?.replace('_', ' ')}
+                                </Badge>
+                            </div>
+
                             {/* Booking Summary Card */}
                             <div className="bg-card border rounded-xl p-4 shadow-sm flex flex-col md:flex-row justify-between gap-4">
                                 <div className="space-y-1">
@@ -1896,96 +1616,293 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         {selectedBookingForPayment.startTime
                                             ? new Date(selectedBookingForPayment.startTime).toLocaleDateString()
                                             : "N/A"}
+                                        {selectedBookingForPayment.startTime && (
+                                            <span className="text-xs">
+                                                @ {new Date(selectedBookingForPayment.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end justify-center border-l pl-4 min-w-[150px]">
-                                    <span className="text-sm text-muted-foreground">Total Amount</span>
-                                    {selectedBookingForPayment.paymentStatus === 'paid' ? (
-                                        <span className="text-3xl font-bold text-primary">
+                                    <span className="text-sm text-muted-foreground">
+                                        {selectedBookingForPayment.paymentStatus === 'partial' ? 'Remaining' : 'Total Amount'}
+                                    </span>
+                                    {/* Amount Display based on payment status */}
+                                    {selectedBookingForPayment.paymentStatus === 'paid' || selectedBookingForPayment.paymentStatus === 'refunded' ? (
+                                        <span className={`text-3xl font-bold ${selectedBookingForPayment.paymentStatus === 'refunded' ? 'text-orange-600 line-through' : 'text-green-600'
+                                            }`}>
                                             €{selectedBookingForPayment.payment?.paidAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
                                         </span>
+                                    ) : selectedBookingForPayment.paymentStatus === 'partial' ? (
+                                        <div className="text-right">
+                                            <span className="text-3xl font-bold text-blue-600">
+                                                €{(selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) - (selectedBookingForPayment.payment?.paidAmount || 0)}
+                                            </span>
+                                            <div className="text-xs text-muted-foreground">
+                                                of €{selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0} total
+                                            </div>
+                                        </div>
+                                    ) : isEditingAmount ? (
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xl font-bold text-primary">€</span>
+                                            <Input
+                                                type="number"
+                                                className="w-24 text-right text-xl font-bold h-10"
+                                                value={customPaymentAmount}
+                                                onChange={(e) => setCustomPaymentAmount(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <div className="flex flex-col gap-1">
+                                                <Button size="sm" variant="ghost" onClick={() => setIsEditingAmount(false)}>✓</Button>
+                                                <Button size="sm" variant="ghost" onClick={() => { setIsEditingAmount(false); setCustomPaymentAmount(""); }}>✕</Button>
+                                            </div>
+                                        </div>
                                     ) : (
-                                        isEditingAmount ? (
-                                            <div className="flex items-center gap-1">
-                                                <span className="text-xl font-bold text-primary">€</span>
-                                                <Input
-                                                    type="number"
-                                                    className="w-24 text-right text-xl font-bold h-10"
-                                                    value={customPaymentAmount}
-                                                    onChange={(e) => setCustomPaymentAmount(e.target.value)}
-                                                    autoFocus
-                                                />
-                                                <div className="flex flex-col gap-1">
-                                                    <Button size="sm" variant="ghost" onClick={() => setIsEditingAmount(false)}>✓</Button>
-                                                    <Button size="sm" variant="ghost" onClick={() => { setIsEditingAmount(false); setCustomPaymentAmount(""); }}>✕</Button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="relative group">
-                                                <span className="text-3xl font-bold text-primary">
-                                                    €{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
-                                                </span>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="absolute -right-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                                                    onClick={() => {
-                                                        setCustomPaymentAmount((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0).toString());
-                                                        setIsEditingAmount(true);
-                                                    }}
-                                                >
-                                                    Edit
-                                                </Button>
-                                            </div>
-                                        )
+                                        <div className="relative group">
+                                            <span className="text-3xl font-bold text-primary">
+                                                €{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="absolute -right-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                                                onClick={() => {
+                                                    setCustomPaymentAmount((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0).toString());
+                                                    setIsEditingAmount(true);
+                                                }}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </div>
                                     )}
-                                    <Badge variant={selectedBookingForPayment.paymentStatus === 'paid' ? 'success' : 'outline'} className="mt-1 capitalize">
+                                    {/* Payment Status Badge with appropriate styling */}
+                                    <Badge
+                                        variant={
+                                            selectedBookingForPayment.paymentStatus === 'paid' ? 'default' :
+                                                selectedBookingForPayment.paymentStatus === 'refunded' ? 'destructive' :
+                                                    selectedBookingForPayment.paymentStatus === 'partial' ? 'secondary' :
+                                                        selectedBookingForPayment.paymentStatus === 'failed' ? 'destructive' :
+                                                            'outline'
+                                        }
+                                        className={`mt-1 capitalize ${selectedBookingForPayment.paymentStatus === 'paid' ? 'bg-green-500' :
+                                            selectedBookingForPayment.paymentStatus === 'refunded' ? 'bg-orange-500' :
+                                                selectedBookingForPayment.paymentStatus === 'partial' ? 'bg-blue-500 text-white' :
+                                                    selectedBookingForPayment.paymentStatus === 'failed' ? 'bg-red-500' :
+                                                        ''
+                                            }`}
+                                    >
                                         {selectedBookingForPayment.paymentStatus || "pending"}
                                     </Badge>
                                 </div>
                             </div>
 
-                            {/* Cost Breakdown */}
-                            {selectedBookingForPayment.paymentStatus !== 'paid' && (
-                                <div className="bg-muted/30 p-4 rounded-lg border text-sm space-y-2 mb-4">
-                                    <h4 className="font-semibold mb-2">Price Breakdown</h4>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Base Price</span>
-                                        <span>€{selectedBookingForPayment.pricing?.basePrice || selectedBookingForPayment.service?.price || 0}</span>
+                            {/* REFUNDED STATE */}
+                            {selectedBookingForPayment.paymentStatus === "refunded" && (
+                                <div className="flex flex-col items-center justify-center py-8 space-y-6 text-center animate-in fade-in zoom-in duration-300">
+                                    <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-2 shadow-sm">
+                                        <RotateCcw className="w-10 h-10" />
                                     </div>
-                                    {selectedBookingForPayment.pricing?.voucherDiscount > 0 && (
-                                        <div className="flex justify-between text-green-600">
-                                            <span>Voucher Discount</span>
-                                            <span>-€{selectedBookingForPayment.pricing.voucherDiscount}</span>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-bold tracking-tight text-orange-700">Payment Refunded</h3>
+                                        <p className="text-muted-foreground max-w-xs mx-auto">
+                                            This payment has been fully refunded to the client.
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 w-full max-w-md bg-orange-50 p-4 rounded-lg border border-orange-200 text-sm">
+                                        <div className="flex flex-col items-start gap-1">
+                                            <span className="text-muted-foreground text-xs uppercase tracking-wider">Refund Amount</span>
+                                            <span className="font-medium text-orange-700">
+                                                €{selectedBookingForPayment.payment?.refundAmount || selectedBookingForPayment.payment?.paidAmount || 0}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-start gap-1">
+                                            <span className="text-muted-foreground text-xs uppercase tracking-wider">Refund Date</span>
+                                            <span className="font-medium">
+                                                {selectedBookingForPayment.payment?.refundedAt
+                                                    ? new Date(selectedBookingForPayment.payment.refundedAt).toLocaleDateString()
+                                                    : new Date().toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        {selectedBookingForPayment.payment?.refundReason && (
+                                            <div className="flex flex-col items-start gap-1 col-span-2">
+                                                <span className="text-muted-foreground text-xs uppercase tracking-wider">Reason</span>
+                                                <span className="font-medium text-left">{selectedBookingForPayment.payment.refundReason}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <Button variant="ghost" className="min-w-[100px]" onClick={() => {
+                                        setPaymentDialogOpen(false);
+                                        setSelectedBookingForPayment(null);
+                                    }}>
+                                        Close
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* FAILED STATE */}
+                            {selectedBookingForPayment.paymentStatus === "failed" && (
+                                <div className="flex flex-col items-center justify-center py-8 space-y-6 text-center animate-in fade-in zoom-in duration-300">
+                                    <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-2 shadow-sm">
+                                        <XCircle className="w-10 h-10" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-bold tracking-tight text-red-700">Payment Failed</h3>
+                                        <p className="text-muted-foreground max-w-xs mx-auto">
+                                            The payment attempt was unsuccessful. You can retry below.
+                                        </p>
+                                    </div>
+                                    {selectedBookingForPayment.payment?.failureReason && (
+                                        <div className="bg-red-50 p-4 rounded-lg border border-red-200 text-sm w-full max-w-md">
+                                            <span className="text-red-700 font-medium">Error: </span>
+                                            <span className="text-red-600">{selectedBookingForPayment.payment.failureReason}</span>
                                         </div>
                                     )}
-                                    {selectedBookingForPayment.pricing?.discountAmount > 0 && (
-                                        <div className="flex justify-between text-green-600">
-                                            <span>Discount</span>
-                                            <span>-€{selectedBookingForPayment.pricing.discountAmount}</span>
-                                        </div>
-                                    )}
-                                    {selectedBookingForPayment.pricing?.commissionAmount > 0 && (
-                                        <div className="flex justify-between text-blue-600">
-                                            <span>Commission</span>
-                                            <span>€{selectedBookingForPayment.pricing.commissionAmount}</span>
-                                        </div>
-                                    )}
-                                    {selectedBookingForPayment.pricing?.additionalCharges > 0 && (
-                                        <div className="flex justify-between text-orange-600">
-                                            <span>Additional Charges</span>
-                                            <span>+€{selectedBookingForPayment.pricing.additionalCharges}</span>
-                                        </div>
-                                    )}
-                                    <div className="border-t pt-2 flex justify-between font-bold">
-                                        <span>Total</span>
-                                        <span>€{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}</span>
+                                    <div className="flex gap-3">
+                                        <Button
+                                            className="gap-2"
+                                            onClick={() => {
+                                                // Reset to pending to allow retry
+                                                setSelectedBookingForPayment({
+                                                    ...selectedBookingForPayment,
+                                                    paymentStatus: 'pending'
+                                                });
+                                            }}
+                                        >
+                                            <CreditCard className="w-4 h-4" />
+                                            Retry Payment
+                                        </Button>
+                                        <Button variant="ghost" onClick={() => setPaymentDialogOpen(false)}>
+                                            Close
+                                        </Button>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Payment Status Handling */}
-                            {selectedBookingForPayment.paymentStatus === "paid" ? (
+                            {/* PARTIAL PAYMENT STATE */}
+                            {selectedBookingForPayment.paymentStatus === "partial" && (
+                                <div className="space-y-6 animate-in fade-in duration-300">
+                                    {/* Partial Payment Info Banner */}
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                                                <CreditCard className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-blue-800">Partial Payment Received</h4>
+                                                <p className="text-sm text-blue-600">A deposit or partial payment has been made</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Payment Progress Bar */}
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-blue-700">Payment Progress</span>
+                                                <span className="font-medium text-blue-800">
+                                                    €{selectedBookingForPayment.payment?.paidAmount || 0} of €{selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-blue-200 rounded-full h-3">
+                                                <div
+                                                    className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                                                    style={{
+                                                        width: `${Math.min(100, ((selectedBookingForPayment.payment?.paidAmount || 0) / (selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 1)) * 100)}%`
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between text-xs text-blue-600">
+                                                <span>
+                                                    {Math.round(((selectedBookingForPayment.payment?.paidAmount || 0) / (selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 1)) * 100)}% paid
+                                                </span>
+                                                <span>
+                                                    €{(selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) - (selectedBookingForPayment.payment?.paidAmount || 0)} remaining
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Payment Method Selection for remaining amount */}
+                                    <div className="space-y-3">
+                                        <Label className="text-base font-medium">Complete Remaining Payment</Label>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            {[
+                                                { id: 'card', label: 'Card', icon: CreditCard },
+                                                { id: 'cash', label: 'Cash', icon: Banknote },
+                                                { id: 'mbway', label: 'MB Way', icon: Smartphone },
+                                                { id: 'transfer', label: 'Transfer', icon: Building2 },
+                                            ].map((method) => (
+                                                <button
+                                                    key={method.id}
+                                                    onClick={() => setPaymentMethod(method.id)}
+                                                    className={`
+                                                        flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
+                                                        ${paymentMethod === method.id
+                                                            ? 'border-blue-500 bg-blue-50 text-blue-600 shadow-sm'
+                                                            : 'border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 text-muted-foreground'}
+                                                    `}
+                                                >
+                                                    <method.icon className="w-6 h-6 mb-2" />
+                                                    <span className="text-sm font-medium">{method.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end gap-3 pt-2">
+                                        <Button variant="ghost" onClick={() => setPaymentDialogOpen(false)}>
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            className="min-w-[160px] bg-blue-600 hover:bg-blue-700"
+                                            disabled={paymentLoading}
+                                            onClick={async () => {
+                                                setPaymentLoading(true);
+                                                try {
+                                                    const remainingAmount = (selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) - (selectedBookingForPayment.payment?.paidAmount || 0);
+                                                    const response = await apiClient.patch(`/api/bookings/${selectedBookingForPayment.id}/complete`, {
+                                                        taxId,
+                                                        paymentMethod,
+                                                        amount: remainingAmount
+                                                    });
+                                                    await fetchBookings();
+                                                    toast.success("Remaining payment recorded successfully");
+                                                    const responseData = response.data as any;
+                                                    setSelectedBookingForPayment({
+                                                        ...selectedBookingForPayment,
+                                                        paymentStatus: 'paid',
+                                                        status: 'completed',
+                                                        payment: {
+                                                            ...selectedBookingForPayment.payment,
+                                                            status: 'paid',
+                                                            paidAmount: selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price,
+                                                            method: paymentMethod,
+                                                            transactionIds: responseData?.payment?.transactionIds || selectedBookingForPayment.payment?.transactionIds || [],
+                                                        }
+                                                    });
+                                                } catch (err: any) {
+                                                    toast.error(`Payment Error: ${err.response?.data?.message || err.message || "Failed to record payment"}`);
+                                                } finally {
+                                                    setPaymentLoading(false);
+                                                }
+                                            }}
+                                        >
+                                            {paymentLoading ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                                    Complete Payment
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* PAID STATE */}
+                            {selectedBookingForPayment.paymentStatus === "paid" && (
                                 <div className="flex flex-col items-center justify-center py-8 space-y-6 text-center animate-in fade-in zoom-in duration-300">
                                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2 shadow-sm">
                                         <CheckCircle2 className="w-10 h-10" />
@@ -2003,8 +1920,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         <div className="flex flex-col items-start gap-1">
                                             <span className="text-muted-foreground text-xs uppercase tracking-wider">Payment Date</span>
                                             <span className="font-medium">
-                                                {selectedBookingForPayment.payment?.paidAmount
-                                                    ? new Date().toLocaleDateString() // Fallback if date not available
+                                                {selectedBookingForPayment.payment?.paidAt
+                                                    ? new Date(selectedBookingForPayment.payment.paidAt).toLocaleDateString()
                                                     : new Date().toLocaleDateString()}
                                             </span>
                                         </div>
@@ -2069,7 +1986,17 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                 toast.dismiss();
                                                 toast.success("Payment refunded successfully");
                                                 await fetchBookings();
-                                                setPaymentDialogOpen(false);
+                                                // Update local state to show refunded view
+                                                setSelectedBookingForPayment({
+                                                    ...selectedBookingForPayment,
+                                                    paymentStatus: 'refunded',
+                                                    payment: {
+                                                        ...selectedBookingForPayment.payment,
+                                                        refundedAt: new Date().toISOString(),
+                                                        refundAmount: selectedBookingForPayment.payment?.paidAmount,
+                                                        refundReason: 'Requested by professional'
+                                                    }
+                                                });
                                             } catch (err) {
                                                 toast.dismiss();
                                                 console.error(err);
@@ -2090,164 +2017,205 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         </Button>
                                     </div>
                                 </div>
+                            )}
 
-                            ) : (
-                                <div className="space-y-6">
-                                    <div className="space-y-3">
-                                        <Label className="text-base font-medium">Select Payment Method</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            {[
-                                                { id: 'card', label: 'Card', icon: CreditCard },
-                                                { id: 'cash', label: 'Cash', icon: Banknote },
-                                                { id: 'mbway', label: 'MB Way', icon: Smartphone },
-                                                { id: 'transfer', label: 'Transfer', icon: Building2 },
-                                            ].map((method) => (
-                                                <button
-                                                    key={method.id}
-                                                    onClick={() => setPaymentMethod(method.id)}
-                                                    className={`
-                            flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
-                            ${paymentMethod === method.id
-                                                            ? 'border-primary bg-primary/5 text-primary shadow-sm'
-                                                            : 'border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 text-muted-foreground'}
-                          `}
-                                                >
-                                                    <method.icon className="w-6 h-6 mb-2" />
-                                                    <span className="text-sm font-medium">{method.label}</span>
-                                                </button>
-                                            ))}
+                            {/* PENDING STATE (default) */}
+                            {(!selectedBookingForPayment.paymentStatus || selectedBookingForPayment.paymentStatus === "pending") && (
+                                <>
+                                    {/* Cost Breakdown */}
+                                    <div className="bg-muted/30 p-4 rounded-lg border text-sm space-y-2">
+                                        <h4 className="font-semibold mb-2">Price Breakdown</h4>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Base Price</span>
+                                            <span>€{selectedBookingForPayment.pricing?.basePrice || selectedBookingForPayment.service?.price || 0}</span>
+                                        </div>
+                                        {selectedBookingForPayment.pricing?.voucherDiscount > 0 && (
+                                            <div className="flex justify-between text-green-600">
+                                                <span>Voucher Discount</span>
+                                                <span>-€{selectedBookingForPayment.pricing.voucherDiscount}</span>
+                                            </div>
+                                        )}
+                                        {selectedBookingForPayment.pricing?.discountAmount > 0 && (
+                                            <div className="flex justify-between text-green-600">
+                                                <span>Discount</span>
+                                                <span>-€{selectedBookingForPayment.pricing.discountAmount}</span>
+                                            </div>
+                                        )}
+                                        {selectedBookingForPayment.pricing?.commissionAmount > 0 && (
+                                            <div className="flex justify-between text-blue-600">
+                                                <span>Commission</span>
+                                                <span>€{selectedBookingForPayment.pricing.commissionAmount}</span>
+                                            </div>
+                                        )}
+                                        {selectedBookingForPayment.pricing?.additionalCharges > 0 && (
+                                            <div className="flex justify-between text-orange-600">
+                                                <span>Additional Charges</span>
+                                                <span>+€{selectedBookingForPayment.pricing.additionalCharges}</span>
+                                            </div>
+                                        )}
+                                        <div className="border-t pt-2 flex justify-between font-bold">
+                                            <span>Total</span>
+                                            <span>€{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}</span>
                                         </div>
                                     </div>
 
-                                    <div className="pt-4 border-t">
-                                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="tax-id">NIF / Tax ID (Optional)</Label>
-                                                <Input
-                                                    id="tax-id"
-                                                    placeholder="123 456 789"
-                                                    value={taxId}
-                                                    onChange={(e) => setTaxId(e.target.value)}
-                                                />
+                                    {/* Payment Method Selection */}
+                                    <div className="space-y-6">
+                                        <div className="space-y-3">
+                                            <Label className="text-base font-medium">Select Payment Method</Label>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                {[
+                                                    { id: 'card', label: 'Card', icon: CreditCard },
+                                                    { id: 'cash', label: 'Cash', icon: Banknote },
+                                                    { id: 'mbway', label: 'MB Way', icon: Smartphone },
+                                                    { id: 'transfer', label: 'Transfer', icon: Building2 },
+                                                ].map((method) => (
+                                                    <button
+                                                        key={method.id}
+                                                        onClick={() => setPaymentMethod(method.id)}
+                                                        className={`
+                                                            flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
+                                                            ${paymentMethod === method.id
+                                                                ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                                                                : 'border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 text-muted-foreground'}
+                                                        `}
+                                                    >
+                                                        <method.icon className="w-6 h-6 mb-2" />
+                                                        <span className="text-sm font-medium">{method.label}</span>
+                                                    </button>
+                                                ))}
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="payment-notes">Payment Notes (Optional)</Label>
-                                                <Textarea
-                                                    id="payment-notes"
-                                                    placeholder={`Add details about the ${paymentMethod} payment...`}
-                                                    className="resize-none"
-                                                    rows={3}
-                                                />
-                                            </div>
-                                            <div className="flex justify-end gap-3 pt-2">
-                                                <Button variant="ghost" onClick={() => setPaymentDialogOpen(false)}>
-                                                    Cancel
-                                                </Button>
-                                                <Button
-                                                    className="min-w-[140px]"
-                                                    disabled={paymentLoading}
-                                                    onClick={async () => {
-                                                        setPaymentLoading(true);
-                                                        console.log('[Payment] Starting payment process...');
-                                                        console.log('[Payment] Booking ID:', selectedBookingForPayment.id);
-                                                        console.log('[Payment] Tax ID:', taxId);
-                                                        console.log('[Payment] Payment Method:', paymentMethod);
+                                        </div>
 
-                                                        try {
-                                                            const payload: any = {
-                                                                taxId,
-                                                                paymentMethod
-                                                            };
+                                        <div className="pt-4 border-t">
+                                            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="tax-id">NIF / Tax ID (Optional)</Label>
+                                                    <Input
+                                                        id="tax-id"
+                                                        placeholder="123 456 789"
+                                                        value={taxId}
+                                                        onChange={(e) => setTaxId(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="payment-notes">Payment Notes (Optional)</Label>
+                                                    <Textarea
+                                                        id="payment-notes"
+                                                        placeholder={`Add details about the ${paymentMethod} payment...`}
+                                                        className="resize-none"
+                                                        rows={3}
+                                                    />
+                                                </div>
+                                                <div className="flex justify-end gap-3 pt-2">
+                                                    <Button variant="ghost" onClick={() => setPaymentDialogOpen(false)}>
+                                                        Cancel
+                                                    </Button>
+                                                    <Button
+                                                        className="min-w-[140px]"
+                                                        disabled={paymentLoading}
+                                                        onClick={async () => {
+                                                            setPaymentLoading(true);
+                                                            console.log('[Payment] Starting payment process...');
+                                                            console.log('[Payment] Booking ID:', selectedBookingForPayment.id);
+                                                            console.log('[Payment] Tax ID:', taxId);
+                                                            console.log('[Payment] Payment Method:', paymentMethod);
 
-                                                            // Only send custom amount if it was edited
-                                                            if (customPaymentAmount && parseFloat(customPaymentAmount) > 0) {
-                                                                payload.amount = parseFloat(customPaymentAmount);
-                                                            }
-                                                            // Call API to complete booking
-                                                            console.log('[Payment] Calling completeBooking API with payload:', payload);
-                                                            const response = await apiClient.patch(`/api/bookings/${selectedBookingForPayment.id}/complete`, payload);
-                                                            console.log('[Payment] API Response:', response);
-
-                                                            // Reload bookings
-                                                            console.log('[Payment] Fetching updated bookings...');
-                                                            await fetchBookings();
-                                                            console.log('[Payment] Bookings refreshed successfully');
-
-                                                            // Show success
-                                                            toast.success("Payment recorded successfully");
-
-                                                            // Update local state to show success view instead of closing
-                                                            console.log('[Payment] Updating local state for success view...');
-
-                                                            if (response.data) {
-                                                                console.log('[Payment] Response data:', response.data);
-
-                                                                // Update the selected booking with fresh data from backend
-                                                                const responseData = response.data as any;
-                                                                const updatedData = {
-                                                                    ...selectedBookingForPayment,
-                                                                    paymentStatus: 'paid',
-                                                                    status: 'completed',
-                                                                    payment: {
-                                                                        status: 'paid',
-                                                                        paidAmount: parseFloat(customPaymentAmount) || responseData?.pricing?.totalPrice || selectedBookingForPayment.pricing?.totalPrice,
-                                                                        method: paymentMethod,
-                                                                        transactionIds: responseData?.payment?.transactionIds || [],
-                                                                        stripePaymentIntentId: responseData?.payment?.stripePaymentIntentId
-                                                                    }
+                                                            try {
+                                                                const payload: any = {
+                                                                    taxId,
+                                                                    paymentMethod
                                                                 };
 
-                                                                setSelectedBookingForPayment(updatedData);
-                                                            } else {
-                                                                // Fallback if no data returned (shouldn't happen)
-                                                                setSelectedBookingForPayment({
-                                                                    ...selectedBookingForPayment,
-                                                                    paymentStatus: 'paid',
-                                                                    status: 'completed'
+                                                                // Only send custom amount if it was edited
+                                                                if (customPaymentAmount && parseFloat(customPaymentAmount) > 0) {
+                                                                    payload.amount = parseFloat(customPaymentAmount);
+                                                                }
+                                                                // Call API to complete booking
+                                                                console.log('[Payment] Calling completeBooking API with payload:', payload);
+                                                                const response = await apiClient.patch(`/api/bookings/${selectedBookingForPayment.id}/complete`, payload);
+                                                                console.log('[Payment] API Response:', response);
+
+                                                                // Reload bookings
+                                                                console.log('[Payment] Fetching updated bookings...');
+                                                                await fetchBookings();
+                                                                console.log('[Payment] Bookings refreshed successfully');
+
+                                                                // Show success
+                                                                toast.success("Payment recorded successfully");
+
+                                                                // Update local state to show success view instead of closing
+                                                                console.log('[Payment] Updating local state for success view...');
+
+                                                                if (response.data) {
+                                                                    console.log('[Payment] Response data:', response.data);
+
+                                                                    // Update the selected booking with fresh data from backend
+                                                                    const responseData = response.data as any;
+                                                                    const updatedData = {
+                                                                        ...selectedBookingForPayment,
+                                                                        paymentStatus: 'paid',
+                                                                        status: 'completed',
+                                                                        payment: {
+                                                                            status: 'paid',
+                                                                            paidAmount: parseFloat(customPaymentAmount) || responseData?.pricing?.totalPrice || selectedBookingForPayment.pricing?.totalPrice,
+                                                                            method: paymentMethod,
+                                                                            paidAt: new Date().toISOString(),
+                                                                            transactionIds: responseData?.payment?.transactionIds || [],
+                                                                            stripePaymentIntentId: responseData?.payment?.stripePaymentIntentId
+                                                                        }
+                                                                    };
+
+                                                                    setSelectedBookingForPayment(updatedData);
+                                                                } else {
+                                                                    // Fallback if no data returned (shouldn't happen)
+                                                                    setSelectedBookingForPayment({
+                                                                        ...selectedBookingForPayment,
+                                                                        paymentStatus: 'paid',
+                                                                        status: 'completed'
+                                                                    });
+                                                                }
+
+                                                                console.log('[Payment] Payment process completed successfully');
+                                                            } catch (err: any) {
+                                                                console.error('[Payment] Payment process failed:', err);
+                                                                console.error('[Payment] Error details:', {
+                                                                    message: err.message,
+                                                                    response: err.response?.data,
+                                                                    status: err.response?.status,
+                                                                    stack: err.stack
                                                                 });
+
+                                                                // Show detailed error to user
+                                                                const errorMessage = err.response?.data?.message
+                                                                    || err.message
+                                                                    || "Failed to record payment. Please try again.";
+
+                                                                toast.error(`Payment Error: ${errorMessage}`);
+
+                                                                // Don't close dialog on error so user can retry
+                                                            } finally {
+                                                                setPaymentLoading(false);
                                                             }
-
-                                                            // Don't close dialog
-                                                            // setPaymentDialogOpen(false); 
-                                                            console.log('[Payment] Payment process completed successfully');
-                                                        } catch (err: any) {
-                                                            console.error('[Payment] Payment process failed:', err);
-                                                            console.error('[Payment] Error details:', {
-                                                                message: err.message,
-                                                                response: err.response?.data,
-                                                                status: err.response?.status,
-                                                                stack: err.stack
-                                                            });
-
-                                                            // Show detailed error to user
-                                                            const errorMessage = err.response?.data?.message
-                                                                || err.message
-                                                                || "Failed to record payment. Please try again.";
-
-                                                            toast.error(`Payment Error: ${errorMessage}`);
-
-                                                            // Don't close dialog on error so user can retry
-                                                        } finally {
-                                                            setPaymentLoading(false);
-                                                        }
-                                                    }}
-                                                >
-                                                    {paymentLoading ? (
-                                                        <>
-                                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                            Processing...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                                                            Mark as Paid
-                                                        </>
-                                                    )}
-                                                </Button>
+                                                        }}
+                                                    >
+                                                        {paymentLoading ? (
+                                                            <>
+                                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                Processing...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                                                Mark as Paid
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </>
                             )}
                         </div>
                     )}
@@ -2291,7 +2259,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         Client
                                     </Label>
                                     <p className="text-sm font-medium">
-                                        {selectedBookingDetails.client?.name || "N/A"}
+                                        {selectedBookingDetails.status === 'blocked'
+                                            ? t('status.blockedTime', 'Blocked Time')
+                                            : (selectedBookingDetails.client?.name || "N/A")}
                                     </p>
                                     {selectedBookingDetails.client?.email && (
                                         <p className="text-xs text-muted-foreground">
@@ -2369,178 +2339,202 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             : "N/A"}
                                     </p>
                                 </div>
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">
-                                        Payment Status
-                                    </Label>
-                                    <div className="mt-1">
-                                        <Badge
-                                            variant="outline"
-                                            className={getPaymentStatusColor(
-                                                selectedBookingDetails.paymentStatus
-                                            )}
-                                        >
-                                            {selectedBookingDetails.paymentStatus || "pending"}
-                                        </Badge>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label className="text-sm font-medium text-muted-foreground">
+                                            Time
+                                        </Label>
+                                        <p className="text-sm font-medium">
+                                            {selectedBookingDetails.endTime
+                                                ? new Date(
+                                                    selectedBookingDetails.endTime
+                                                ).toLocaleTimeString("en-US", {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })
+                                                : "N/A"}
+                                        </p>
                                     </div>
+                                    {canViewPaymentDetails && selectedBookingDetails.status?.toLowerCase() !== 'blocked' && (
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">
+                                                Payment Status
+                                            </Label>
+                                            <div className="mt-1">
+                                                <Badge
+                                                    variant="secondary"
+                                                    className={getPaymentStatusColor(
+                                                        selectedBookingDetails.paymentStatus
+                                                    )}
+                                                >
+                                                    {selectedBookingDetails.paymentStatus || "pending"}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            {selectedBookingDetails.notes && (
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">
-                                        Notes
-                                    </Label>
-                                    <p className="text-sm mt-1 p-3 bg-muted rounded-lg">
-                                        {selectedBookingDetails.notes}
-                                    </p>
-                                </div>
-                            )}
+                            {
+                                selectedBookingDetails.notes && (
+                                    <div>
+                                        <Label className="text-sm font-medium text-muted-foreground">
+                                            Notes
+                                        </Label>
+                                        <p className="text-sm mt-1 p-3 bg-muted rounded-lg">
+                                            {selectedBookingDetails.notes}
+                                        </p>
+                                    </div>
+                                )
+                            }
 
                             {/* Recurring Booking Information */}
-                            {selectedBookingDetails.recurrence?.isRecurring && (
-                                <div className="border-t pt-4">
-                                    <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <svg
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                            />
-                                        </svg>
-                                        Recurring Booking
-                                    </Label>
-                                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-muted-foreground">Frequency:</span>
-                                            <Badge
-                                                variant="outline"
-                                                className="bg-blue-100 text-blue-800 border-blue-300"
+                            {
+                                selectedBookingDetails.recurrence?.isRecurring && (
+                                    <div className="border-t pt-4">
+                                        <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                            <svg
+                                                className="h-4 w-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
                                             >
-                                                {selectedBookingDetails.recurrence.frequency ===
-                                                    "weekly"
-                                                    ? "Weekly"
-                                                    : selectedBookingDetails.recurrence.frequency ===
-                                                        "daily"
-                                                        ? "Daily"
-                                                        : selectedBookingDetails.recurrence.frequency ===
-                                                            "monthly"
-                                                            ? "Monthly"
-                                                            : selectedBookingDetails.recurrence.frequency}
-                                            </Badge>
-                                        </div>
-                                        {selectedBookingDetails.recurrence.interval &&
-                                            selectedBookingDetails.recurrence.interval > 1 && (
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-muted-foreground">
-                                                        Interval:
-                                                    </span>
-                                                    <span className="font-medium">
-                                                        Every {selectedBookingDetails.recurrence.interval}{" "}
-                                                        {selectedBookingDetails.recurrence.frequency ===
-                                                            "weekly"
-                                                            ? "weeks"
-                                                            : selectedBookingDetails.recurrence.frequency ===
-                                                                "daily"
-                                                                ? "days"
-                                                                : "months"}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        {selectedBookingDetails.recurrence.daysOfWeek &&
-                                            selectedBookingDetails.recurrence.daysOfWeek.length >
-                                            0 && (
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-muted-foreground">Days:</span>
-                                                    <span className="font-medium">
-                                                        {selectedBookingDetails.recurrence.daysOfWeek
-                                                            .map(
-                                                                (day: number) =>
-                                                                    [
-                                                                        "Sun",
-                                                                        "Mon",
-                                                                        "Tue",
-                                                                        "Wed",
-                                                                        "Thu",
-                                                                        "Fri",
-                                                                        "Sat",
-                                                                    ][day]
-                                                            )
-                                                            .join(", ")}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        {selectedBookingDetails.recurrence.currentOccurrence &&
-                                            selectedBookingDetails.recurrence.totalOccurrences && (
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-muted-foreground">
-                                                        Occurrence:
-                                                    </span>
-                                                    <span className="font-medium">
-                                                        {
-                                                            selectedBookingDetails.recurrence
-                                                                .currentOccurrence
-                                                        }{" "}
-                                                        of{" "}
-                                                        {selectedBookingDetails.recurrence.totalOccurrences}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        {selectedBookingDetails.recurrence.endDate && (
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                                />
+                                            </svg>
+                                            Recurring Booking
+                                        </Label>
+                                        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Ends on:</span>
-                                                <span className="font-medium">
-                                                    {new Date(
-                                                        selectedBookingDetails.recurrence.endDate
-                                                    ).toLocaleDateString("en-US", {
-                                                        year: "numeric",
-                                                        month: "short",
-                                                        day: "numeric",
-                                                    })}
-                                                </span>
+                                                <span className="text-muted-foreground">Frequency:</span>
+                                                <Badge
+                                                    variant="outline"
+                                                    className="bg-blue-100 text-blue-800 border-blue-300"
+                                                >
+                                                    {selectedBookingDetails.recurrence.frequency ===
+                                                        "weekly"
+                                                        ? "Weekly"
+                                                        : selectedBookingDetails.recurrence.frequency ===
+                                                            "daily"
+                                                            ? "Daily"
+                                                            : selectedBookingDetails.recurrence.frequency ===
+                                                                "monthly"
+                                                                ? "Monthly"
+                                                                : selectedBookingDetails.recurrence.frequency}
+                                                </Badge>
                                             </div>
-                                        )}
-                                        {selectedBookingDetails.recurrence.parentBookingId &&
-                                            !selectedBookingDetails.recurrence.currentOccurrence && (
-                                                <div className="text-xs text-blue-700 mt-2">
-                                                    ℹ️ This is the first booking in a recurring series
+                                            {selectedBookingDetails.recurrence.interval &&
+                                                selectedBookingDetails.recurrence.interval > 1 && (
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-muted-foreground">
+                                                            Interval:
+                                                        </span>
+                                                        <span className="font-medium">
+                                                            Every {selectedBookingDetails.recurrence.interval}{" "}
+                                                            {selectedBookingDetails.recurrence.frequency ===
+                                                                "weekly"
+                                                                ? "weeks"
+                                                                : selectedBookingDetails.recurrence.frequency ===
+                                                                    "daily"
+                                                                    ? "days"
+                                                                    : "months"}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            {selectedBookingDetails.recurrence.daysOfWeek &&
+                                                selectedBookingDetails.recurrence.daysOfWeek.length >
+                                                0 && (
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-muted-foreground">Days:</span>
+                                                        <span className="font-medium">
+                                                            {selectedBookingDetails.recurrence.daysOfWeek
+                                                                .map(
+                                                                    (day: number) =>
+                                                                        [
+                                                                            "Sun",
+                                                                            "Mon",
+                                                                            "Tue",
+                                                                            "Wed",
+                                                                            "Thu",
+                                                                            "Fri",
+                                                                            "Sat",
+                                                                        ][day]
+                                                                )
+                                                                .join(", ")}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            {selectedBookingDetails.recurrence.currentOccurrence &&
+                                                selectedBookingDetails.recurrence.totalOccurrences && (
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-muted-foreground">
+                                                            Occurrence:
+                                                        </span>
+                                                        <span className="font-medium">
+                                                            {
+                                                                selectedBookingDetails.recurrence
+                                                                    .currentOccurrence
+                                                            }{" "}
+                                                            of{" "}
+                                                            {selectedBookingDetails.recurrence.totalOccurrences}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            {selectedBookingDetails.recurrence.endDate && (
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-muted-foreground">Ends on:</span>
+                                                    <span className="font-medium">
+                                                        {new Date(
+                                                            selectedBookingDetails.recurrence.endDate
+                                                        ).toLocaleDateString("en-US", {
+                                                            year: "numeric",
+                                                            month: "short",
+                                                            day: "numeric",
+                                                        })}
+                                                    </span>
                                                 </div>
                                             )}
-                                        {selectedBookingDetails.recurrence.parentBookingId &&
-                                            selectedBookingDetails.recurrence.currentOccurrence &&
-                                            selectedBookingDetails.recurrence.currentOccurrence >
-                                            1 && (
-                                                <div className="text-xs text-blue-700 mt-2">
-                                                    ℹ️ Part of recurring booking series
-                                                </div>
-                                            )}
+                                            {selectedBookingDetails.recurrence.parentBookingId &&
+                                                !selectedBookingDetails.recurrence.currentOccurrence && (
+                                                    <div className="text-xs text-blue-700 mt-2">
+                                                        ℹ️ This is the first booking in a recurring series
+                                                    </div>
+                                                )}
+                                            {selectedBookingDetails.recurrence.parentBookingId &&
+                                                selectedBookingDetails.recurrence.currentOccurrence &&
+                                                selectedBookingDetails.recurrence.currentOccurrence >
+                                                1 && (
+                                                    <div className="text-xs text-blue-700 mt-2">
+                                                        ℹ️ Part of recurring booking series
+                                                    </div>
+                                                )}
 
-                                        {/* View Series Button */}
-                                        <div className="mt-3 pt-2 border-t border-blue-200">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full"
-                                                onClick={() => {
-                                                    const parentId =
-                                                        selectedBookingDetails.recurrence.parentBookingId ||
-                                                        selectedBookingDetails.id;
-                                                    handleViewRecurringSeries(parentId);
-                                                }}
-                                            >
-                                                <CalendarIcon className="h-4 w-4 mr-2" />
-                                                View All Bookings in Series
-                                            </Button>
+                                            {/* View Series Button */}
+                                            <div className="mt-3 pt-2 border-t border-blue-200">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full"
+                                                    onClick={() => {
+                                                        const parentId =
+                                                            selectedBookingDetails.recurrence.parentBookingId ||
+                                                            selectedBookingDetails.id;
+                                                        handleViewRecurringSeries(parentId);
+                                                    }}
+                                                >
+                                                    <CalendarIcon className="h-4 w-4 mr-2" />
+                                                    View All Bookings in Series
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )
+                            }
 
                             <div className="flex justify-end gap-2 pt-4">
                                 <Button
@@ -2562,9 +2556,10 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     </Button>
                                 )}
                             </div>
-                        </div>
-                    )}
-                </DialogContent>
+                        </div >
+                    )
+                    }
+                </DialogContent >
             </Dialog >
 
             {/* Create Booking Dialog */}

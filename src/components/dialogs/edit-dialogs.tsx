@@ -156,187 +156,251 @@ export function EditBookingDialog({
       <DialogContent className="sm:max-w-[600px] z-[120]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {t("entity.bookings.editBooking", "Edit Booking")}
+            {formData.status === 'blocked'
+              ? t("entity.bookings.editBlock", "Edit Blocked Time")
+              : t("entity.bookings.editBooking", "Edit Booking")}
           </DialogTitle>
           <DialogDescription>
             {t(
               "entity.bookings.editBookingDesc",
-              "Update booking details and status"
+              formData.status === 'blocked'
+                ? "Update blocked time details"
+                : "Update booking details and status"
             )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {/* Client Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Client Information</h3>
-            <div className="grid grid-cols-2 gap-4">
+          {formData.status === 'blocked' ? (
+            /* Blocked Time Edit View */
+            <div className="space-y-6">
               <div className="grid gap-2">
-                <Label htmlFor="clientName">Client Name</Label>
+                <Label htmlFor="professionalName">Professional</Label>
                 <Input
-                  id="clientName"
-                  value={formData.clientName}
-                  onChange={(e) => updateField("clientName", e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="clientEmail">Client Email</Label>
-                <Input
-                  id="clientEmail"
-                  type="email"
-                  value={formData.clientEmail}
-                  onChange={(e) => updateField("clientEmail", e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Service Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Service Details</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="serviceName">Service</Label>
-                <Input
-                  id="serviceName"
-                  value={formData.serviceName || "N/A"}
+                  id="professionalName"
+                  value={formData.professionalName || "N/A"}
                   disabled
                   className="bg-muted"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="professionalName">Professional</Label>
-                {Array.isArray(professionalsList) &&
-                  professionalsList.length > 0 ? (
-                  <Select
-                    value={formData.professionalId || ""}
-                    onValueChange={(value) => {
-                      // Find the selected professional
-                      const selected = professionalsList.find(
-                        (p) => p.id === value
-                      );
-                      if (selected) {
-                        const fullName =
-                          `${selected.firstName} ${selected.lastName}`.trim();
-                        updateField("professionalName", fullName);
-                        setFormData({
-                          ...formData,
-                          professionalId: selected.id,
-                          professionalName: fullName,
-                        });
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select professional">
-                        {formData.professionalName || "Select professional"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="z-[130]">
-                      {professionalsList.map((prof) => {
-                        const fullName =
-                          `${prof.firstName} ${prof.lastName}`.trim();
-                        return (
-                          <SelectItem key={prof.id} value={prof.id}>
-                            {fullName}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    id="professionalName"
-                    value={formData.professionalName || "N/A"}
-                    disabled
-                    className="bg-muted"
-                  />
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* Schedule */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Schedule</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => updateField("date", e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => updateField("date", e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="time">Time</Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) => updateField("time", e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="time">Time</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={formData.time}
-                  onChange={(e) => updateField("time", e.target.value)}
-                />
-              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="duration">Duration (min)</Label>
                 <Input
                   id="duration"
                   type="number"
                   value={formData.duration}
-                  onChange={(e) =>
-                    updateField("duration", Number.parseInt(e.target.value))
-                  }
+                  onChange={(e) => updateField("duration", Number.parseInt(e.target.value))}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Reason / Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  placeholder="Reason for blocking this time..."
+                  rows={3}
                 />
               </div>
             </div>
-          </div>
+          ) : (
+            /* Standard Booking Edit View */
+            <>
+              {/* Client Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Client Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="clientName">Client Name</Label>
+                    <Input
+                      id="clientName"
+                      value={formData.clientName}
+                      onChange={(e) => updateField("clientName", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="clientEmail">Client Email</Label>
+                    <Input
+                      id="clientEmail"
+                      type="email"
+                      value={formData.clientEmail}
+                      onChange={(e) => updateField("clientEmail", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
 
-          {/* Booking Details */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="price">Price (€)</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) =>
-                  updateField("price", Number.parseFloat(e.target.value))
-                }
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => updateField("status", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="z-[130]">
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="no_show">No Show</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+              {/* Service Details */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Service Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="serviceName">Service</Label>
+                    <Input
+                      id="serviceName"
+                      value={formData.serviceName || "N/A"}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="professionalName">Professional</Label>
+                    {Array.isArray(professionalsList) &&
+                      professionalsList.length > 0 ? (
+                      <Select
+                        value={formData.professionalId || ""}
+                        onValueChange={(value) => {
+                          // Find the selected professional
+                          const selected = professionalsList.find(
+                            (p) => p.id === value
+                          );
+                          if (selected) {
+                            const fullName =
+                              `${selected.firstName} ${selected.lastName}`.trim();
+                            updateField("professionalName", fullName);
+                            setFormData({
+                              ...formData,
+                              professionalId: selected.id,
+                              professionalName: fullName,
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select professional">
+                            {formData.professionalName || "Select professional"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="z-[130]">
+                          {professionalsList.map((prof) => {
+                            const fullName =
+                              `${prof.firstName} ${prof.lastName}`.trim();
+                            return (
+                              <SelectItem key={prof.id} value={prof.id}>
+                                {fullName}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="professionalName"
+                        value={formData.professionalName || "N/A"}
+                        disabled
+                        className="bg-muted"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes || ""}
-              onChange={(e) => updateField("notes", e.target.value)}
-              placeholder="Additional notes about the booking..."
-              rows={3}
-            />
-          </div>
+              {/* Schedule */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Schedule</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="date">Date</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => updateField("date", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="time">Time</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={formData.time}
+                      onChange={(e) => updateField("time", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="duration">Duration (min)</Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      value={formData.duration}
+                      onChange={(e) =>
+                        updateField("duration", Number.parseInt(e.target.value))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="price">Price (€)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) =>
+                      updateField("price", Number.parseFloat(e.target.value))
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => updateField("status", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="z-[130]">
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="no_show">No Show</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes || ""}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  placeholder="Additional notes about the booking..."
+                  rows={3}
+                />
+              </div>
+            </>
+          )}
         </div>
 
         <DialogFooter className="gap-2">

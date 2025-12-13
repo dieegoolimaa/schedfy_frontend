@@ -14,11 +14,37 @@
     "registerPayment": "Registrar Pagamento",
     "cancel": "Cancelar",
     "register": "Registrar",
-    "export": "Exportar"
+    "export": "Exportar",
+    "markAsPaid": "Marcar como Pago",
+    "completePayment": "Completar Pagamento",
+    "retryPayment": "Tentar Novamente",
+    "sendInvoice": "Enviar Fatura",
+    "viewReceipt": "Ver Recibo",
+    "refund": "Reembolsar",
+    "close": "Fechar",
+    "edit": "Editar"
   },
   "dialog": {
     "title": "Registrar Novo Pagamento",
-    "description": "Registre pagamentos feitos em dinheiro, PIX ou outras formas offline"
+    "description": "Registre pagamentos feitos em dinheiro, PIX ou outras formas offline",
+    "paymentManagement": "Gestão de Pagamento",
+    "processPaymentFor": "Processar pagamento da reserva",
+    "totalAmount": "Valor Total",
+    "remainingAmount": "Restante",
+    "ofTotal": "de",
+    "selectPaymentMethod": "Selecionar Método de Pagamento",
+    "completeRemainingPayment": "Completar Pagamento Restante",
+    "taxIdOptional": "NIF / CPF (Opcional)",
+    "paymentNotesOptional": "Notas do Pagamento (Opcional)",
+    "addDetailsAbout": "Adicionar detalhes sobre o",
+    "payment": "pagamento",
+    "priceBreakdown": "Detalhes do Preço",
+    "basePrice": "Preço Base",
+    "voucherDiscount": "Desconto de Voucher",
+    "discount": "Desconto",
+    "commission": "Comissão",
+    "additionalCharges": "Encargos Adicionais",
+    "total": "Total"
   },
   "form": {
     "amount": "Valor",
@@ -44,7 +70,51 @@
     "pending": "Pendente",
     "refunded": "Reembolsado",
     "failed": "Falhou",
-    "completed": "Completo"
+    "completed": "Completo",
+    "partial": "Parcial"
+  },
+  "paymentStates": {
+    "paid": {
+      "title": "Pagamento Concluído",
+      "description": "Esta reserva foi totalmente paga. Pode agora emitir um recibo ou fatura."
+    },
+    "refunded": {
+      "title": "Pagamento Reembolsado",
+      "description": "Este pagamento foi totalmente reembolsado ao cliente."
+    },
+    "partial": {
+      "title": "Pagamento Parcial Recebido",
+      "description": "Um depósito ou pagamento parcial foi efetuado",
+      "paymentProgress": "Progresso do Pagamento",
+      "percentPaid": "% pago",
+      "remaining": "restante"
+    },
+    "failed": {
+      "title": "Pagamento Falhou",
+      "description": "A tentativa de pagamento não foi bem sucedida. Pode tentar novamente abaixo.",
+      "errorLabel": "Erro"
+    },
+    "pending": {
+      "title": "Pagamento Pendente",
+      "description": "Selecione um método de pagamento e complete a transação."
+    }
+  },
+  "paymentDetails": {
+    "paymentDate": "Data do Pagamento",
+    "method": "Método",
+    "transactionId": "ID da Transação",
+    "refundAmount": "Valor do Reembolso",
+    "refundDate": "Data do Reembolso",
+    "reason": "Motivo"
+  },
+  "bookingStatus": {
+    "title": "Estado da Reserva",
+    "pending": "Aguardando confirmação do profissional",
+    "confirmed": "Reserva confirmada, pronta para o atendimento",
+    "in_progress": "Atendimento em andamento",
+    "completed": "Atendimento foi concluído",
+    "cancelled": "Esta reserva foi cancelada",
+    "no_show": "Cliente não compareceu ao atendimento"
   },
   "stats": {
     "totalRevenue": "Receita Total",
@@ -85,7 +155,16 @@
     "success": "Pagamento registrado com sucesso",
     "error": "Não foi possível registrar o pagamento",
     "loadError": "Não foi possível carregar os pagamentos",
-    "invalidAmount": "Informe um valor válido"
+    "invalidAmount": "Informe um valor válido",
+    "paymentRecorded": "Pagamento registrado com sucesso",
+    "remainingPaymentRecorded": "Pagamento restante registrado com sucesso",
+    "invoiceSent": "Fatura enviada para o email do cliente",
+    "invoiceFailed": "Não foi possível enviar a fatura",
+    "refundProcessing": "Processando reembolso...",
+    "refundSuccess": "Pagamento reembolsado com sucesso",
+    "refundFailed": "Não foi possível reembolsar o pagamento",
+    "paymentIdNotFound": "ID do pagamento não encontrado. Não é possível reembolsar.",
+    "confirmRefund": "Tem certeza que deseja reembolsar este pagamento? Esta ação não pode ser desfeita."
   },
   "success": {
     "title": "A processar pagamento",

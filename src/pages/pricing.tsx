@@ -15,11 +15,17 @@ import { useRegion } from "@/contexts/region-context";
 
 export default function Pricing() {
   const { t } = useTranslation("pricing");
-  const { getPriceDisplay } = useRegion();
+  const { getPriceDisplay, pricing } = useRegion();
 
+  // Helper to find pricing entry by plan type
+  const getPlanData = (type: string) => pricing.find(p => p.planType === type);
+
+  // Dynamic plans
   const plans = [
     {
+      id: "simple",
       name: t("pricing.simple.name", "Simple"),
+      type: "simple",
       price: getPriceDisplay("simple", "monthly"),
       period: t("pricing.period", "/month"),
       description: t(
@@ -29,7 +35,7 @@ export default function Pricing() {
       popular: false,
       features: [
         {
-          name: t("pricing.simple.feature1", "Up to 50 bookings/month"),
+          name: t("pricing.simple.feature1", "Up to {{count}} bookings/month", { count: getPlanData("simple")?.maxBookings || 50 }),
           included: true,
         },
         {
@@ -70,7 +76,9 @@ export default function Pricing() {
       link: "/register?plan=simple",
     },
     {
+      id: "individual",
       name: t("pricing.individual.name", "Individual"),
+      type: "individual",
       price: getPriceDisplay("individual", "monthly"),
       period: t("pricing.period", "/month"),
       description: t(
@@ -80,7 +88,7 @@ export default function Pricing() {
       popular: true,
       features: [
         {
-          name: t("pricing.individual.feature1", "Up to 200 bookings/month"),
+          name: t("pricing.individual.feature1", "Up to {{count}} bookings/month", { count: getPlanData("individual")?.maxBookings || 200 }),
           included: true,
         },
         {
@@ -127,7 +135,9 @@ export default function Pricing() {
       link: "/register?plan=individual",
     },
     {
+      id: "business",
       name: t("pricing.business.name", "Business"),
+      type: "business",
       price: getPriceDisplay("business", "monthly"),
       period: t("pricing.period", "/month"),
       description: t(
@@ -138,7 +148,7 @@ export default function Pricing() {
       features: [
         {
           name: t("pricing.business.feature1", "Unlimited bookings"),
-          included: true,
+          included: !getPlanData("business")?.maxBookings, // Included (true) if maxBookings is null/undefined (unlimited)
         },
         {
           name: t("pricing.business.feature2", "Multi-location support"),
@@ -256,11 +266,10 @@ export default function Pricing() {
             {plans.map((plan, index) => (
               <Card
                 key={index}
-                className={`relative flex flex-col ${
-                  plan.popular
-                    ? "border-primary shadow-xl scale-105"
-                    : "border-border"
-                }`}
+                className={`relative flex flex-col ${plan.popular
+                  ? "border-primary shadow-xl scale-105"
+                  : "border-border"
+                  }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -291,11 +300,10 @@ export default function Pricing() {
                           <X className="w-5 h-5 text-muted-foreground/50 flex-shrink-0 mt-0.5" />
                         )}
                         <span
-                          className={`text-sm ${
-                            feature.included
-                              ? "text-foreground"
-                              : "text-muted-foreground/70"
-                          }`}
+                          className={`text-sm ${feature.included
+                            ? "text-foreground"
+                            : "text-muted-foreground/70"
+                            }`}
                         >
                           {feature.name}
                         </span>

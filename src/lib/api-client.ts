@@ -3,7 +3,11 @@ import { storage } from './storage';
 
 // In development, use empty string to leverage Vite proxy
 // In production, use the full API URL from env variable
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || '';
+// In development, use empty string to leverage Vite proxy
+// In production, use the full API URL from env variable
+const envApiUrl = (import.meta as any).env?.VITE_API_URL || (import.meta as any).env?.VITE_API_BASE_URL || '';
+// Strip trailing /api to avoid duplication with service paths that include it
+const API_BASE_URL = envApiUrl.endsWith('/api') ? envApiUrl.slice(0, -4) : envApiUrl;
 
 export class ApiClient {
     private readonly baseURL: string;

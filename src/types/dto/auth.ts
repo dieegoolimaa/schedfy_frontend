@@ -31,6 +31,7 @@ export interface User {
     createdAt: string;
     updatedAt: string;
     permissions?: string[];
+    mustChangePassword?: boolean;
 }
 
 export interface AuthEntity {

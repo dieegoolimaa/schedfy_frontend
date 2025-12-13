@@ -1,0 +1,747 @@
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "../../components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../../components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/table";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../../components/ui/tabs";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
+    MessageSquare,
+    Search,
+    Plus,
+    MoreHorizontal,
+    Eye,
+    AlertCircle,
+    MessageCircle,
+    Star,
+    X,
+    User,
+    Globe,
+    BookOpen
+} from "lucide-react";
+import { useToast } from "../../hooks/use-toast";
+import { supportService, SupportTicket, KnowledgeBaseArticle } from "../../services/support.service";
+
+export function SupportPage() {
+    const { t } = useTranslation();
+    const { toast } = useToast();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedPriority, setSelectedPriority] = useState<string>("all");
+    const [selectedStatus, setSelectedStatus] = useState<string>("all");
+    const [isCreateTicketDialogOpen, setIsCreateTicketDialogOpen] = useState(false);
+    const [newTicket, setNewTicket] = useState({
+        subject: "",
+        category: "",
+        priority: "",
+        description: ""
+    });
+
+    const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
+    const [knowledgeBaseArticles, setKnowledgeBaseArticles] = useState<KnowledgeBaseArticle[]>([]);
+    const [_loading, setLoading] = useState(true);
+    const [selectedArticle, setSelectedArticle] = useState<KnowledgeBaseArticle | null>(null);
+    const [isViewArticleOpen, setIsViewArticleOpen] = useState(false);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const handleViewArticle = (article: KnowledgeBaseArticle) => {
+        setSelectedArticle(article);
+        setIsViewArticleOpen(true);
+    };
+
+    // Ticket View Logic
+    const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+    const [isViewTicketDialogOpen, setIsViewTicketDialogOpen] = useState(false);
+    const [newMessage, setNewMessage] = useState("");
+
+    const handleViewTicket = (ticket: SupportTicket) => {
+        setSelectedTicket(ticket);
+        setIsViewTicketDialogOpen(true);
+    };
+
+    const handleSendMessage = async () => {
+        if (!selectedTicket || !newMessage.trim()) return;
+
+        try {
+            const id = selectedTicket._id || selectedTicket.id;
+            if (!id) return;
+
+            // If user replies, maybe reopen ticket if it was resolved
+            // Backend handles dynamic status updates (e.g. reopen if resolved)
+            const updatedTicket = await supportService.addMessage(id, newMessage); // Pass undefined implies dynamic logic
+
+            setSelectedTicket(updatedTicket);
+            setNewMessage("");
+            toast({
+                title: t("platform.support.messageSent", "Message Sent"),
+            });
+            loadData();
+        } catch (error) {
+            console.error("Failed to send message", error);
+            toast({
+                variant: 'destructive',
+                title: t("common.error", "Error"),
+                description: t("messages.opFailed", "Failed to send message")
+            });
+        }
+    };
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const [tickets, articles] = await Promise.all([
+                supportService.getTickets(),
+                supportService.getArticles()
+            ]);
+            setSupportTickets(tickets);
+            setKnowledgeBaseArticles(articles);
+        } catch (error) {
+            console.error("Failed to load support data", error);
+            toast({
+                variant: 'destructive',
+                title: t("common.error", "Error"),
+                description: t("messages.loadFailed", "Failed to load data")
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateTicket = async () => {
+        if (!newTicket.subject || !newTicket.category || !newTicket.priority || !newTicket.description) {
+            toast({
+                variant: 'destructive',
+                title: t("common.error", "Error"),
+                description: t("messages.fillAllFields", "Please fill all required fields")
+            });
+            return;
+        }
+
+        try {
+            await supportService.createTicket(newTicket);
+            toast({
+                title: t("platform.support.ticketCreated", "Ticket Created"),
+                description: t("platform.support.ticketCreatedDesc", "Your support ticket has been created successfully."),
+            });
+            setIsCreateTicketDialogOpen(false);
+            setNewTicket({ subject: "", category: "", priority: "", description: "" });
+            loadData(); // Reload tickets
+        } catch (error) {
+            console.error("Failed to create ticket", error);
+            toast({
+                variant: 'destructive',
+                title: t("common.error", "Error"),
+                description: t("messages.createFailed", "Failed to create ticket")
+            });
+        }
+    };
+
+
+    const getPriorityBadgeColor = (priority: string) => {
+        switch (priority) {
+            case "urgent":
+                return "bg-red-100 text-red-800 border-red-200";
+            case "high":
+                return "bg-orange-100 text-orange-800 border-orange-200";
+            case "medium":
+                return "bg-yellow-100 text-yellow-800 border-yellow-200";
+            case "low":
+                return "bg-green-100 text-green-800 border-green-200";
+            default:
+                return "bg-gray-100 text-gray-800 border-gray-200";
+        }
+    };
+
+    const getStatusBadgeColor = (status: string) => {
+        switch (status) {
+            case "open":
+                return "bg-blue-100 text-blue-800 border-blue-200";
+            case "in_progress":
+                return "bg-purple-100 text-purple-800 border-purple-200";
+            case "waiting_customer":
+                return "bg-yellow-100 text-yellow-800 border-yellow-200";
+            case "resolved":
+                return "bg-green-100 text-green-800 border-green-200";
+            case "closed":
+                return "bg-gray-100 text-gray-800 border-gray-200";
+            default:
+                return "bg-gray-100 text-gray-800 border-gray-200";
+        }
+    };
+
+    const getCategoryIcon = (category: string) => {
+        switch (category) {
+            case "technical":
+                return <AlertCircle className="h-4 w-4" />;
+            case "billing":
+                return <MessageSquare className="h-4 w-4" />;
+            case "feature_request":
+                return <Star className="h-4 w-4" />;
+            case "bug_report":
+                return <X className="h-4 w-4" />;
+            case "account":
+                return <User className="h-4 w-4" />;
+            default:
+                return <MessageCircle className="h-4 w-4" />;
+        }
+    };
+
+    const filteredTickets = supportTickets.filter((ticket) => {
+        const matchesSearch =
+            ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (ticket.id || ticket._id).toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesPriority =
+            selectedPriority === "all" || ticket.priority === selectedPriority;
+        const matchesStatus =
+            selectedStatus === "all" || ticket.status === selectedStatus;
+
+        return (
+            matchesSearch &&
+            matchesPriority &&
+            matchesStatus
+        );
+    });
+
+    return (
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        {t("platform.support.title", "Customer Support")}
+                    </h1>
+                    <p className="text-muted-foreground">
+                        {t(
+                            "platform.support.subtitle",
+                            "Manage support tickets and knowledge base"
+                        )}
+                    </p>
+                </div>
+                <div className="flex space-x-2">
+                    <Dialog
+                        open={isCreateTicketDialogOpen}
+                        onOpenChange={setIsCreateTicketDialogOpen}
+                    >
+                        <DialogTrigger asChild>
+                            <Button>
+                                <Plus className="h-4 w-4 mr-2" />
+                                {t("platform.support.createTicket", "Create Ticket")}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle>
+                                    {t(
+                                        "platform.support.ticketDialog.title",
+                                        "Create Support Ticket"
+                                    )}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    {t(
+                                        "platform.support.ticketDialog.description",
+                                        "Create a new support ticket"
+                                    )}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="ticket-subject" className="text-right">
+                                        {t("platform.support.ticket.subject", "Subject")}
+                                    </Label>
+                                    <Input
+                                        id="ticket-subject"
+                                        className="col-span-3"
+                                        value={newTicket.subject}
+                                        onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
+                                        placeholder="Brief summary of the issue"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="ticket-priority" className="text-right">
+                                        {t("platform.support.ticket.priority", "Priority")}
+                                    </Label>
+                                    <Select value={newTicket.priority} onValueChange={(val) => setNewTicket({ ...newTicket, priority: val })}>
+                                        <SelectTrigger className="col-span-3">
+                                            <SelectValue placeholder={t("platform.support.placeholders.selectPriority", "Select priority")} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="low">{t("platform.support.priorities.low", "Low")}</SelectItem>
+                                            <SelectItem value="medium">{t("platform.support.priorities.medium", "Medium")}</SelectItem>
+                                            <SelectItem value="high">{t("platform.support.priorities.high", "High")}</SelectItem>
+                                            <SelectItem value="urgent">{t("platform.support.priorities.urgent", "Urgent")}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="ticket-category" className="text-right">
+                                        {t("platform.support.ticket.category", "Category")}
+                                    </Label>
+                                    <Select value={newTicket.category} onValueChange={(val) => setNewTicket({ ...newTicket, category: val })}>
+                                        <SelectTrigger className="col-span-3">
+                                            <SelectValue placeholder={t("platform.support.placeholders.selectCategory", "Select category")} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="technical">{t("platform.support.categories.technical", "Technical")}</SelectItem>
+                                            <SelectItem value="billing">{t("platform.support.categories.billing", "Billing")}</SelectItem>
+                                            <SelectItem value="feature_request">{t("platform.support.categories.feature_request", "Feature Request")}</SelectItem>
+                                            <SelectItem value="bug_report">{t("platform.support.categories.bug_report", "Bug Report")}</SelectItem>
+                                            <SelectItem value="account">{t("platform.support.categories.account", "Account")}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="ticket-description" className="text-right">
+                                        {t("platform.support.ticket.description", "Description")}
+                                    </Label>
+                                    <Textarea
+                                        id="ticket-description"
+                                        rows={4}
+                                        className="col-span-3"
+                                        value={newTicket.description}
+                                        onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                                        placeholder="Please describe the issue in detail"
+                                    />
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button type="submit" onClick={handleCreateTicket}>{t("common.create", "Create")}</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <Tabs defaultValue="tickets" className="space-y-4">
+                <TabsList>
+                    <TabsTrigger value="tickets">
+                        {t("platform.support.tabs.tickets", "My Tickets")}
+                    </TabsTrigger>
+                    <TabsTrigger value="knowledge">
+                        {t("platform.support.tabs.knowledge", "Knowledge Base")}
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="tickets" className="space-y-4">
+                    {/* Filters */}
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+                                <div className="flex-1">
+                                    <div className="relative">
+                                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder={t(
+                                                "platform.support.search",
+                                                "Search tickets..."
+                                            )}
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="pl-8"
+                                        />
+                                    </div>
+                                </div>
+                                <Select
+                                    value={selectedPriority}
+                                    onValueChange={setSelectedPriority}
+                                >
+                                    <SelectTrigger className="w-[150px]">
+                                        <SelectValue placeholder={t("platform.support.placeholders.priority", "Priority")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">{t("platform.support.filters.allPriorities", "All Priorities")}</SelectItem>
+                                        <SelectItem value="urgent">{t("platform.support.priorities.urgent", "Urgent")}</SelectItem>
+                                        <SelectItem value="high">{t("platform.support.priorities.high", "High")}</SelectItem>
+                                        <SelectItem value="medium">{t("platform.support.priorities.medium", "Medium")}</SelectItem>
+                                        <SelectItem value="low">{t("platform.support.priorities.low", "Low")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select
+                                    value={selectedStatus}
+                                    onValueChange={setSelectedStatus}
+                                >
+                                    <SelectTrigger className="w-[150px]">
+                                        <SelectValue placeholder={t("platform.support.placeholders.status", "Status")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">{t("platform.support.filters.allStatus", "All Status")}</SelectItem>
+                                        <SelectItem value="open">{t("platform.support.status.open", "Open")}</SelectItem>
+                                        <SelectItem value="in_progress">{t("platform.support.status.in_progress", "In Progress")}</SelectItem>
+                                        <SelectItem value="waiting_customer">
+                                            {t("platform.support.status.waiting_customer", "Waiting Customer")}
+                                        </SelectItem>
+                                        <SelectItem value="resolved">{t("platform.support.status.resolved", "Resolved")}</SelectItem>
+                                        <SelectItem value="closed">{t("platform.support.status.closed", "Closed")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Tickets Table */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <MessageSquare className="h-5 w-5 mr-2" />
+                                {t("platform.support.ticketsList", "Support Tickets")} (
+                                {filteredTickets.length})
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto -mx-4 sm:mx-0">
+                                <div className="inline-block min-w-full align-middle">
+                                    <div className="overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>
+                                                        {t("platform.support.ticket.id", "ID")}
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        {t("platform.support.ticket.subject", "Subject")}
+                                                    </TableHead>
+                                                    {/* Removed Customer Column */}
+                                                    <TableHead>
+                                                        {t("platform.support.ticket.priority", "Priority")}
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        {t("platform.support.ticket.status", "Status")}
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        {t("platform.support.ticket.category", "Category")}
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        {t("platform.support.ticket.created", "Created")}
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                        {t("common.actions", "Actions")}
+                                                    </TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {filteredTickets.map((ticket) => (
+                                                    <TableRow key={ticket.id || ticket._id}>
+                                                        <TableCell className="font-medium">
+                                                            {(ticket.id || ticket._id).substring(0, 8).toUpperCase()}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="space-y-1">
+                                                                <div className="font-medium text-sm">
+                                                                    {ticket.subject}
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={getPriorityBadgeColor(
+                                                                    ticket.priority
+                                                                )}
+                                                            >
+                                                                {t(`platform.support.priorities.${ticket.priority}`, ticket.priority)}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={getStatusBadgeColor(ticket.status)}
+                                                            >
+                                                                {t(`platform.support.status.${ticket.status}`, ticket.status.replace("_", " "))}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center space-x-2">
+                                                                {getCategoryIcon(ticket.category)}
+                                                                <span className="text-sm">
+                                                                    {t(`platform.support.categories.${ticket.category}`, ticket.category.replace("_", " "))}
+                                                                </span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="text-sm">
+                                                                {new Date(
+                                                                    ticket.createdAt
+                                                                ).toLocaleDateString()}
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        className="h-8 w-8 p-0"
+                                                                    >
+                                                                        <span className="sr-only">Open menu</span>
+                                                                        <MoreHorizontal className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuLabel>
+                                                                        {t("common.actions", "Actions")}
+                                                                    </DropdownMenuLabel>
+                                                                    <DropdownMenuItem onClick={() => handleViewTicket(ticket)}>
+                                                                        <Eye className="mr-2 h-4 w-4" />
+                                                                        {t("common.view", "View")}
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                {filteredTickets.length === 0 && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={7} className="h-24 text-center">
+                                                            {t("common.noResults", "No results found.")}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="knowledge" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{t("platform.support.knowledgeBase.title", "Help Articles")}</CardTitle>
+                            <CardDescription>{t("platform.support.knowledgeBase.subtitle", "Browse our knowledge base to find answers to common questions.")}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>{t("common.title", "Title")}</TableHead>
+                                        <TableHead>{t("common.category", "Category")}</TableHead>
+                                        <TableHead>{t("common.language", "Language")}</TableHead>
+                                        <TableHead className="text-right">{t("common.actions", "Actions")}</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {knowledgeBaseArticles.map((article) => (
+                                        <TableRow key={article._id}>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                                                    {article.title}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="secondary" className="font-normal">
+                                                    {article.category}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Globe className="h-3 w-3 text-muted-foreground" />
+                                                    <span className="text-sm">
+                                                        {article.language === "en" ? "English" : "Português"}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleViewArticle(article)}
+                                                >
+                                                    <Eye className="h-4 w-4 mr-2" />
+                                                    {t("common.read", "Read")}
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {knowledgeBaseArticles.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="h-24 text-center">
+                                                {t("common.noResults", "No articles found.")}
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+
+            {/* View Article Dialog */}
+            <Dialog open={isViewArticleOpen} onOpenChange={setIsViewArticleOpen}>
+                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl">{selectedArticle?.title}</DialogTitle>
+                        <div className="text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2 mt-2">
+                                <Badge>{selectedArticle?.category}</Badge>
+                                <span className="text-xs text-muted-foreground">
+                                    {selectedArticle?.language === "en" ? "English" : "Português"}
+                                </span>
+                            </div>
+                        </div>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-4">
+                        <div className="prose dark:prose-invert max-w-none">
+                            {selectedArticle?.content.split('\n').map((paragraph, idx) => (
+                                <p key={idx}>{paragraph}</p>
+                            ))}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setIsViewArticleOpen(false)}>
+                            {t("common.close", "Close")}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* View Ticket Dialog */}
+            <Dialog open={isViewTicketDialogOpen} onOpenChange={setIsViewTicketDialogOpen}>
+                <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <span className="text-muted-foreground">#{(selectedTicket?._id || selectedTicket?.id || '').substring(0, 8).toUpperCase()}</span>
+                            <span>{selectedTicket?.subject}</span>
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    {selectedTicket && (
+                        <div className="flex-1 space-y-6 py-4">
+                            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg border">
+                                <div>
+                                    <Label className="text-xs text-muted-foreground uppercase">{t("platform.support.ticket.status", "Status")}</Label>
+                                    <div className="mt-1">
+                                        <Badge variant="outline" className={getStatusBadgeColor(selectedTicket.status)}>
+                                            {t(`platform.support.status.${selectedTicket.status}`, selectedTicket.status.replace("_", " "))}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label className="text-xs text-muted-foreground uppercase">{t("platform.support.ticket.priority", "Priority")}</Label>
+                                    <div className="mt-1">
+                                        <Badge variant="outline" className={getPriorityBadgeColor(selectedTicket.priority)}>
+                                            {t(`platform.support.priorities.${selectedTicket.priority}`, selectedTicket.priority)}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div className="col-span-2">
+                                    <Label className="text-base font-semibold">{t("platform.support.ticket.description", "Description")}</Label>
+                                    <div className="mt-2 text-sm text-foreground/90 whitespace-pre-wrap">{selectedTicket.description}</div>
+                                </div>
+                            </div>
+
+                            <div className="border-t pt-4">
+                                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                    <MessageCircle className="h-4 w-4" />
+                                    {t("platform.support.ticket.timeline", "Conversation")}
+                                </h3>
+
+                                <div className="space-y-4 max-h-[300px] overflow-y-auto p-2 pr-4 custom-scrollbar">
+                                    {selectedTicket.history?.map((item, idx) => (
+                                        <div key={idx} className={`flex flex-col ${item.type === 'status_change' ? 'items-center my-4' : 'items-start'}`}>
+                                            {item.type === 'status_change' ? (
+                                                <span className="text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
+                                                    {item.content} - {new Date(item.createdAt).toLocaleString()}
+                                                </span>
+                                            ) : (
+                                                <div className={`w-full flex flex-col ${item.senderId === selectedTicket.userId ? 'items-end' : 'items-start'}`}>
+                                                    <div className={`max-w-[85%] rounded-lg p-3 ${item.senderId === selectedTicket.userId ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                                        <p className="text-sm whitespace-pre-wrap">{item.content}</p>
+                                                    </div>
+                                                    <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                                                        {item.senderName} • {new Date(item.createdAt).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {(!selectedTicket.history || selectedTicket.history.length === 0) && (
+                                        <div className="text-center text-sm text-muted-foreground py-8">
+                                            {t("platform.support.noHistory", "No messages yet.")}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {['resolved', 'closed'].includes(selectedTicket.status) ? (
+                                    <div className="bg-muted p-4 rounded-lg text-center text-muted-foreground mt-4">
+                                        {t("platform.support.ticketResolved", "This ticket is resolved. No further replies can be sent.")}
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="mt-4 flex gap-2 items-start">
+                                            <Textarea
+                                                placeholder={t("platform.support.placeholders.reply", "Type your reply...")}
+                                                value={newMessage}
+                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                className="min-h-[80px]"
+                                            />
+                                        </div>
+                                        <div className="mt-2 flex justify-end gap-2">
+                                            <Button size="sm" onClick={handleSendMessage} disabled={!newMessage.trim()}>
+                                                {t("common.send", "Send Reply")}
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsViewTicketDialogOpen(false)}>
+                            {t("common.close", "Close")}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}

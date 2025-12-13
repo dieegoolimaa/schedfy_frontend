@@ -13,8 +13,9 @@ export interface Booking {
     // Backend também pode retornar startDateTime/endDateTime
     startDateTime?: string;
     endDateTime?: string;
-    status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no-show';
+    status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no-show' | 'blocked';
     notes?: string;
+    internalNotes?: string;
     createdAt: string;
     updatedAt: string;
     // Pricing information (from backend)
@@ -83,7 +84,7 @@ export interface ProfessionalInfo {
 
 export interface CreateBookingDto {
     entityId: string;
-    serviceId: string;
+    serviceId?: string;
     professionalId?: string;
     clientId?: string;
     clientInfo?: {
@@ -94,7 +95,7 @@ export interface CreateBookingDto {
     };
     startDateTime: string;
     endDateTime: string;
-    status?: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+    status?: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'blocked';
     notes?: string;
     internalNotes?: string;
     pricing: {

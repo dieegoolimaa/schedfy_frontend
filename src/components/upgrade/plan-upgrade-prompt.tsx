@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Lock, Sparkles, Check } from "lucide-react";
+import { useRegion } from "@/contexts/region-context";
 
 interface PlanUpgradePromptProps {
     currentPlan?: string;
@@ -21,17 +22,18 @@ export function PlanUpgradePrompt({
     benefits = [],
 }: PlanUpgradePromptProps) {
     const navigate = useNavigate();
+    const { getPriceDisplay } = useRegion();
 
     const planInfo: Record<string, { label: string; color: string; price: string }> = {
         simple: {
             label: 'Simple',
             color: 'bg-blue-500',
-            price: '€29/month',
+            price: getPriceDisplay('simple', 'monthly') + '/month',
         },
         business: {
             label: 'Business',
             color: 'bg-green-500',
-            price: '€79/month',
+            price: getPriceDisplay('business', 'monthly') + '/month',
         },
     };
 

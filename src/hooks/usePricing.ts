@@ -75,15 +75,15 @@ export function usePricing(region?: 'PT' | 'BR' | 'US'): UsePricingReturn {
             setLoading(true);
             setError(null);
 
-            // Try to load from cache first
+            // Try to load from cache first for immediate display
             const cachedMatrix = loadFromCache();
             if (cachedMatrix) {
                 setMatrix(cachedMatrix);
+                // Show cached data immediately, then revalidate in background
                 setLoading(false);
-                return;
             }
 
-            // Fetch from API
+            // Always fetch from API to get fresh data (Stale-While-Revalidate)
             const response = await apiClient.get<PricingMatrix>('/api/pricing/matrix');
             if (response.data) {
                 setMatrix(response.data);
@@ -91,17 +91,15 @@ export function usePricing(region?: 'PT' | 'BR' | 'US'): UsePricingReturn {
             }
         } catch (err) {
             console.error('Error fetching pricing matrix:', err);
-            setError('Failed to load pricing data');
-
-            // Fallback to cached data even if expired
+            // If we have cached data, don't show error
             const cachedMatrix = loadFromCache();
-            if (cachedMatrix) {
-                setMatrix(cachedMatrix);
+            if (!cachedMatrix) {
+                setError('Failed to load pricing data');
             }
         } finally {
             setLoading(false);
         }
-    }, [loadFromCache, saveToCache]);
+    }, [loadFromCache, saveToCache]); // Removed 'matrix' to prevent infinite loop
 
     // Fetch pricing by region
     const getPriceByRegion = useCallback(async (regionCode: 'PT' | 'BR' | 'US'): Promise<PricingEntry[]> => {
@@ -126,10 +124,26 @@ export function usePricing(region?: 'PT' | 'BR' | 'US'): UsePricingReturn {
             const regionData = matrix[regionCode];
             if (!regionData) return null;
 
-            const planData = regionData[planType];
-            if (!planData) return null;
+            // Backend returns { monthly: { price: ... }, yearly: { price: ... } }
+            const planDataRaw: any = regionData[planType];
+            if (!planDataRaw) return null;
 
-            return planData;
+            // Transform raw backend structure to frontend PricingEntry interface
+            const monthlyData = planDataRaw.monthly;
+            const yearlyData = planDataRaw.yearly;
+
+            // Use available data for base properties
+            const baseData = monthlyData || yearlyData;
+            if (!baseData) return null;
+
+            return {
+                ...baseData,
+                // Ensure price follows { monthly, yearly } structure expected by consumers
+                price: {
+                    monthly: monthlyData?.price, // Raw price number from backend
+                    yearly: yearlyData?.price,   // Raw price number from backend
+                }
+            } as PricingEntry;
         },
         [matrix]
     );
@@ -140,10 +154,11 @@ export function usePricing(region?: 'PT' | 'BR' | 'US'): UsePricingReturn {
         await fetchPricingMatrix();
     }, [fetchPricingMatrix]);
 
-    // Initial load
+    // Initial load - only run once on mount
     useEffect(() => {
         fetchPricingMatrix();
-    }, [fetchPricingMatrix]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run only once on mount
 
     // Load pricing for specific region if provided
     useEffect(() => {

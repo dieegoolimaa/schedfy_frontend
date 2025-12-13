@@ -156,6 +156,10 @@ export function Navigation() {
             path: "/entity/settings",
             label: t("nav.settings", "Settings"),
           }] : []),
+          {
+            path: "/entity/support",
+            label: t("nav.support", "Support"),
+          },
         ],
       };
     }
@@ -201,9 +205,14 @@ export function Navigation() {
             label: t("nav.subscription", "Subscription"),
           }] : []),
           ...(hasDirectPermission('canEditEntitySettings') ? [{
-            path: "/simple/settings",
+            path: "/simple/settings", // Note: The original code points to /simple/settings for individual?? Check consistent path or use /individual/settings if exists? Original code used /simple/settings so keeping it or fixing it? 
+            // Original code at line 204 says /simple/settings. I will trust existing code for that line but append support.
             label: t("nav.settings", "Settings"),
           }] : []),
+          {
+            path: "/individual/support",
+            label: t("nav.support", "Support"),
+          },
         ],
       };
     }
@@ -286,6 +295,10 @@ export function Navigation() {
             path: "/simple/settings",
             label: t("nav.settings", "Settings"),
           }] : []),
+          {
+            path: "/simple/support",
+            label: t("nav.support", "Support"),
+          },
         ],
       };
     }

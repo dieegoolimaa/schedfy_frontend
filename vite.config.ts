@@ -18,6 +18,11 @@ export default defineConfig({
                 target: 'http://localhost:4001',
                 changeOrigin: true,
             },
+            '/support': {
+                target: 'http://localhost:4001',
+                changeOrigin: true,
+            },
+
         },
     },
     build: {
