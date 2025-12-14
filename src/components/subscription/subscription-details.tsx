@@ -520,7 +520,7 @@ export function SubscriptionDetails() {
                                     <Button
                                         className="w-full"
                                         variant={subscription?.aiInsightsSubscribed ? "destructive" : "default"}
-                                        disabled={subscription?.plan === 'simple' || aiInsightsMutation.isPending || unsubscribeAiInsightsMutation.isPending}
+                                        disabled={aiInsightsMutation.isPending || unsubscribeAiInsightsMutation.isPending}
                                         onClick={() => {
                                             if (subscription?.aiInsightsSubscribed) {
                                                 // Using browser native confirm since translated confirm isn't straightforward without a dialog
@@ -535,7 +535,7 @@ export function SubscriptionDetails() {
                                         {subscription?.aiInsightsSubscribed ? (
                                             unsubscribeAiInsightsMutation.isPending ? t("actions.unsubscribing") : t("actions.unsubscribe")
                                         ) : (
-                                            subscription?.plan === 'simple' ? t("plans.notAvailableSimple") : (aiInsightsMutation.isPending ? t("actions.processing") : t("actions.subscribe"))
+                                            aiInsightsMutation.isPending ? t("actions.processing") : t("actions.subscribe")
                                         )}
                                     </Button>
                                 </CardContent>

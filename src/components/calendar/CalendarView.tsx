@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
+import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import {
   Dialog,
   DialogContent,
@@ -158,7 +160,9 @@ export function CalendarView({
       (_, i) => start + i
     );
   };
+  const { t } = useTranslation(["common", "bookings"]);
   const { formatCurrency } = useCurrency();
+  const { isSimplePlan } = usePlanRestrictions();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>(defaultView);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -971,8 +975,8 @@ export function CalendarView({
                       )}
 
                       {/* Price */}
-                      {typeof booking.service === "object" &&
-                        booking.service?.price && (
+                      {!isSimplePlan && typeof booking.service === "object" &&
+                        (booking.service?.price || 0) > 0 && (
                           <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
                             <DollarSign className="h-4 w-4" />€
                             {booking.service.price}
@@ -1120,20 +1124,22 @@ export function CalendarView({
               {bookings.filter((b) => b.status === "completed").length}
             </span>
           </div>
-          <div className="flex flex-col items-center justify-center p-2 bg-background rounded shadow-sm col-span-2 md:col-span-1">
-            <span className="text-xs text-muted-foreground uppercase font-semibold">Est. Revenue</span>
-            <span className="text-xl font-bold text-primary">
-              {formatCurrency(
-                bookings.reduce((sum, b) => {
-                  const price =
-                    typeof b.service === "object"
-                      ? (b.service as any)?.price || 0
-                      : 0;
-                  return sum + price;
-                }, 0)
-              )}
-            </span>
-          </div>
+          {!isSimplePlan && (
+            <div className="flex flex-col items-center justify-center p-2 bg-background rounded shadow-sm col-span-2 md:col-span-1">
+              <span className="text-xs text-muted-foreground uppercase font-semibold">Est. Revenue</span>
+              <span className="text-xl font-bold text-primary">
+                {formatCurrency(
+                  bookings.reduce((sum, b) => {
+                    const price =
+                      typeof b.service === "object"
+                        ? (b.service as any)?.price || 0
+                        : 0;
+                    return sum + price;
+                  }, 0)
+                )}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -1280,8 +1286,8 @@ export function CalendarView({
                 </div>
 
                 {/* Price */}
-                {typeof selectedBooking.service === "object" &&
-                  selectedBooking.service?.price && (
+                {!isSimplePlan && typeof selectedBooking.service === "object" &&
+                  (selectedBooking.service?.price || 0) > 0 && (
                     <div className="space-y-2">
                       <h3 className="font-semibold flex items-center gap-2">
                         <DollarSign className="h-4 w-4" />
@@ -1533,8 +1539,8 @@ export function CalendarView({
               </div>
 
               {/* Price */}
-              {typeof selectedBooking.service === "object" &&
-                selectedBooking.service?.price && (
+              {!isSimplePlan && typeof selectedBooking.service === "object" &&
+                (selectedBooking.service?.price || 0) > 0 && (
                   <div className="space-y-2">
                     <h3 className="font-semibold flex items-center gap-2">
                       <DollarSign className="h-4 w-4" />

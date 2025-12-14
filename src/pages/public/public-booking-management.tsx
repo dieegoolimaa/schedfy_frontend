@@ -312,17 +312,19 @@ export function PublicBookingManagementPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <Label className="text-muted-foreground text-xs uppercase tracking-wider">
-                                    Price
-                                </Label>
-                                <div className="flex items-center gap-2 font-medium">
-                                    <CreditCard className="w-4 h-4 text-primary" />
-                                    {booking.pricing?.totalPrice
-                                        ? formatCurrency(booking.pricing.totalPrice)
-                                        : "Free / Consult"}
+                            {booking.entityId?.plan !== 'simple' && (
+                                <div className="space-y-1">
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">
+                                        Price
+                                    </Label>
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <CreditCard className="w-4 h-4 text-primary" />
+                                        {booking.pricing?.totalPrice
+                                            ? formatCurrency(booking.pricing.totalPrice)
+                                            : "Free / Consult"}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {booking.notes && (

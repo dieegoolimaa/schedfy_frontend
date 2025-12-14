@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useServices } from "../../hooks/useServices";
+import { useEntity } from "../../hooks/useEntity";
 import { useGoals } from "../../hooks/useGoals";
 import { useCurrency } from "../../hooks/useCurrency";
 import { BookingCreator } from "../../components/booking";
@@ -120,6 +121,8 @@ const ConsolidatedDashboard = () => {
     entityId,
     autoFetch: true,
   });
+
+  const { entity } = useEntity({ autoFetch: true });
 
   // Goals hook (Individual & Business)
   const { goals, fetchCurrentMonthGoals, createDefaultMonthlyGoals } = useGoals(
@@ -431,16 +434,27 @@ const ConsolidatedDashboard = () => {
     ];
 
     if (plan === "simple") {
+      const maxBookings = (entity as any)?.maxBookings || (entity as any)?.subscription?.maxBookings || 150;
+      const bookingsUsed = entityStats?.bookings?.thisMonth || 0;
+      const usagePercentage = Math.round((bookingsUsed / maxBookings) * 100);
+
       return (
-        <StatsGrid columns={3}>
+        <StatsGrid columns={4}>
           {baseStats.map((stat) => (
             <StatCard key={stat.title} {...stat} />
           ))}
           <StatCard
+            title="Bookings Limit"
+            value={`${bookingsUsed} / ${maxBookings}`}
+            subtitle={`${usagePercentage}% used this month`}
+            icon={BarChart3}
+            variant={usagePercentage >= 90 ? "destructive" : "default"}
+          />
+          <StatCard
             title="Upcoming"
-            value={upcomingBookings.length}
+            value={upcomingBookings.length.toString()}
             subtitle="Next appointments"
-            icon={CalendarDays}
+            icon={Clock}
             variant="default"
           />
         </StatsGrid>

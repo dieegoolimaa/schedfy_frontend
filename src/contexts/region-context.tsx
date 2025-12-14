@@ -111,7 +111,7 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
               return new Intl.NumberFormat(regionConfig.locale, {
                 style: "currency",
                 currency: currency,
-              }).format(price);
+              }).format(price / 100);
             } catch (e) {
               // Fallback if formatting fails
               return `${currency} ${price}`;
@@ -122,7 +122,7 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
       // Fallback to static pricing from region config
       return (
         regionConfig.priceFormat[
-          planType as keyof typeof regionConfig.priceFormat
+        planType as keyof typeof regionConfig.priceFormat
         ] || "N/A"
       );
     },

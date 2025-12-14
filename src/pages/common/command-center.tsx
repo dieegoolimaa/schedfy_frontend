@@ -18,6 +18,7 @@ import {
     CardHeader,
     CardTitle,
 } from "../../components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { StatCard } from "../../components/ui/stat-card";
 import { StatsGrid } from "../../components/ui/stats-grid";
 import { Button } from "../../components/ui/button";
@@ -104,7 +105,7 @@ interface CommandCenterProps {
 
 export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const { t } = useTranslation(["bookings", "payments"]);
-    const { canViewPricing, canViewPaymentDetails } = usePlanRestrictions();
+    const { canViewPricing, canViewPaymentDetails, isSimplePlan } = usePlanRestrictions();
     const { user } = useAuth();
     const { entity: fullEntity } = useEntity({ autoFetch: true }); // Fetch full entity profile
     const { formatCurrency } = useCurrency();
@@ -145,6 +146,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const [customPaymentAmount, setCustomPaymentAmount] = useState<string>(""); // State for custom amount
     const [isEditingAmount, setIsEditingAmount] = useState(false); // State for edit mode
     const [paymentLoading, setPaymentLoading] = useState(false);
+    const [expiredPromotionsCount, setExpiredPromotionsCount] = useState(0);
 
     // View mode state (list or calendar)
     const [viewMode, setViewMode] = useState<"list" | "calendar">(() => {
@@ -156,6 +158,22 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     useEffect(() => {
         localStorage.setItem("bookingsViewMode", viewMode);
     }, [viewMode]);
+
+    // Check for expired promotions
+    useEffect(() => {
+        if (entityId) {
+            apiClient.get(`/promotions/discounts?entityId=${entityId}`)
+                .then(res => {
+                    if (res.data && Array.isArray(res.data)) {
+                        const expired = res.data.filter((d: any) =>
+                            d.status === 'active' && d.validUntil && new Date(d.validUntil) < new Date()
+                        );
+                        setExpiredPromotionsCount(expired.length);
+                    }
+                })
+                .catch(err => console.error("Failed to fetch promotions status", err));
+        }
+    }, [entityId]);
 
     // Dialog state
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -811,6 +829,16 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                 )}
             </div>
 
+            {expiredPromotionsCount > 0 && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Expired Promotions Warning</AlertTitle>
+                    <AlertDescription>
+                        You have {expiredPromotionsCount} active promotion(s) that have expired. Please update them in the Promotions module.
+                    </AlertDescription>
+                </Alert>
+            )}
+
             {/* Interactive Stats Cards */}
             <StatsGrid columns={5}>
                 <StatCard
@@ -1052,7 +1080,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     {t("completeList")}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="p-0 sm:p-6 bg-gray-50/50">
+                            <CardContent className="p-4 sm:p-6 bg-gray-50/50">
                                 <div className="space-y-3">
                                     {filteredBookings.map((booking) => (
                                         <div
@@ -1183,8 +1211,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                         <div className="flex items-center gap-2 text-sm">
                                                             <span className="font-bold text-gray-900">
                                                                 {formatCurrency(
-                                                                    (booking.service as any)?.pricing?.basePrice ||
-                                                                    (booking.service as any)?.price ||
+                                                                    (booking as any).pricing?.totalPrice ??
+                                                                    (booking.service as any)?.pricing?.basePrice ??
+                                                                    (booking.service as any)?.price ??
                                                                     0
                                                                 )}
                                                             </span>
@@ -2027,36 +2056,39 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         <h4 className="font-semibold mb-2">Price Breakdown</h4>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Base Price</span>
-                                            <span>€{selectedBookingForPayment.pricing?.basePrice || selectedBookingForPayment.service?.price || 0}</span>
+                                            <span>€{(selectedBookingForPayment.pricing?.basePrice ?? selectedBookingForPayment.service?.price ?? 0).toFixed(2)}</span>
                                         </div>
-                                        {selectedBookingForPayment.pricing?.voucherDiscount > 0 && (
-                                            <div className="flex justify-between text-green-600">
-                                                <span>Voucher Discount</span>
-                                                <span>-€{selectedBookingForPayment.pricing.voucherDiscount}</span>
-                                            </div>
-                                        )}
+
+                                        {/* Discounts */}
                                         {selectedBookingForPayment.pricing?.discountAmount > 0 && (
                                             <div className="flex justify-between text-green-600">
-                                                <span>Discount</span>
-                                                <span>-€{selectedBookingForPayment.pricing.discountAmount}</span>
+                                                <span>Discount {selectedBookingForPayment.pricing?.discountReason ? `(${selectedBookingForPayment.pricing.discountReason})` : ''}</span>
+                                                <span>-€{Number(selectedBookingForPayment.pricing.discountAmount).toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {selectedBookingForPayment.pricing?.commissionAmount > 0 && (
-                                            <div className="flex justify-between text-blue-600">
-                                                <span>Commission</span>
-                                                <span>€{selectedBookingForPayment.pricing.commissionAmount}</span>
-                                            </div>
-                                        )}
-                                        {selectedBookingForPayment.pricing?.additionalCharges > 0 && (
+
+                                        {/* Additional Charges (Sum) */}
+                                        {Array.isArray(selectedBookingForPayment.pricing?.additionalCharges) && selectedBookingForPayment.pricing.additionalCharges.length > 0 && (
                                             <div className="flex justify-between text-orange-600">
                                                 <span>Additional Charges</span>
-                                                <span>+€{selectedBookingForPayment.pricing.additionalCharges}</span>
+                                                <span>+€{(selectedBookingForPayment.pricing.additionalCharges.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0)).toFixed(2)}</span>
                                             </div>
                                         )}
+
                                         <div className="border-t pt-2 flex justify-between font-bold">
                                             <span>Total</span>
-                                            <span>€{customPaymentAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}</span>
+                                            <span>€{(parseFloat(customPaymentAmount) || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0).toFixed(2)}</span>
                                         </div>
+
+                                        {/* Internal Info - Commission (Separate section or clearly marked) */}
+                                        {selectedBookingForPayment.commission?.commissionAmount > 0 && (
+                                            <div className="mt-2 pt-2 border-t border-dashed text-xs text-muted-foreground">
+                                                <div className="flex justify-between">
+                                                    <span>Professional Commission {selectedBookingForPayment.commission?.commissionPercentage ? `(${selectedBookingForPayment.commission.commissionPercentage}%)` : ''}</span>
+                                                    <span>€{Number(selectedBookingForPayment.commission.commissionAmount).toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Payment Method Selection */}
@@ -2575,6 +2607,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     }))
                 }
                 planType={(user?.plan as 'simple' | 'individual' | 'business') || 'business'}
+                showPricing={!isSimplePlan}
                 onSuccess={async () => {
                     await fetchBookings();
                 }}

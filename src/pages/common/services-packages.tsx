@@ -75,11 +75,13 @@ import { PackageRecurrence } from "../../types/enums/package-recurrence.enum";
 
 import { useNavigate } from "react-router-dom";
 import { usePromotions } from "../../hooks/usePromotions";
+import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 
 const ServicesAndPackages: React.FC = () => {
   const { t } = useTranslation("services");
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
+  const { isSimplePlan } = usePlanRestrictions();
   const navigate = useNavigate();
   const { getActiveCommissions, getVouchers, getDiscounts } = usePromotions();
 
@@ -513,7 +515,8 @@ const ServicesAndPackages: React.FC = () => {
         !serviceFormData.name ||
         !serviceFormData.category ||
         !serviceFormData.duration ||
-        !serviceFormData.price
+        !serviceFormData.duration ||
+        (!serviceFormData.price && !isSimplePlan)
       ) {
         toast.error("Preencha todos os campos obrigatórios");
         return;
@@ -530,7 +533,7 @@ const ServicesAndPackages: React.FC = () => {
           duration: parseInt(serviceFormData.duration),
         },
         pricing: {
-          basePrice: parseFloat(serviceFormData.price),
+          basePrice: parseFloat(isSimplePlan ? "0" : serviceFormData.price),
           currency: "EUR",
         },
         bookingSettings: {
@@ -581,7 +584,7 @@ const ServicesAndPackages: React.FC = () => {
           duration: parseInt(serviceFormData.duration),
         },
         pricing: {
-          basePrice: parseFloat(serviceFormData.price),
+          basePrice: parseFloat(isSimplePlan ? "0" : serviceFormData.price),
           currency: "EUR",
         },
         bookingSettings: {
@@ -1003,23 +1006,25 @@ const ServicesAndPackages: React.FC = () => {
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="service-price">Preço (€) *</Label>
-                        <Input
-                          id="service-price"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={serviceFormData.price}
-                          onChange={(e) =>
-                            setServiceFormData({
-                              ...serviceFormData,
-                              price: e.target.value,
-                            })
-                          }
-                          placeholder="Ex: 25.00"
-                        />
-                      </div>
+                      {!isSimplePlan && (
+                        <div className="space-y-2">
+                          <Label htmlFor="service-price">Preço (€) *</Label>
+                          <Input
+                            id="service-price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={serviceFormData.price}
+                            onChange={(e) =>
+                              setServiceFormData({
+                                ...serviceFormData,
+                                price: e.target.value,
+                              })
+                            }
+                            placeholder="Ex: 25.00"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center space-x-4">
@@ -1113,7 +1118,7 @@ const ServicesAndPackages: React.FC = () => {
                     <TableHead>{t("services.table.name")}</TableHead>
                     <TableHead>{t("services.table.category")}</TableHead>
                     <TableHead>{t("services.table.duration")}</TableHead>
-                    <TableHead>{t("services.table.price")}</TableHead>
+                    {!isSimplePlan && <TableHead>{t("services.table.price")}</TableHead>}
                     <TableHead>{t("services.table.status")}</TableHead>
                     <TableHead className="text-right">{t("services.table.actions")}</TableHead>
                   </TableRow>
@@ -1122,7 +1127,7 @@ const ServicesAndPackages: React.FC = () => {
                   {filteredServices.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={isSimplePlan ? 5 : 6}
                         className="text-center py-8 text-muted-foreground"
                       >
                         {t("services.noServices")}
@@ -1179,9 +1184,11 @@ const ServicesAndPackages: React.FC = () => {
                               : service.duration || "-"}{" "}
                             min
                           </TableCell>
-                          <TableCell>
-                            {formatCurrency(service.pricing.basePrice)}
-                          </TableCell>
+                          {!isSimplePlan && (
+                            <TableCell>
+                              {formatCurrency(service.pricing.basePrice)}
+                            </TableCell>
+                          )}
                           <TableCell>
                             {(service as any).status !== "inactive" ? (
                               <Badge variant="default">{t("services.status.active")}</Badge>

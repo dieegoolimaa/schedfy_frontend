@@ -824,7 +824,7 @@ export function CreateBookingDialog({
                 </div>
 
                 {/* Booking Mode Selection - show when service is selected */}
-                {serviceId && (
+                {serviceId && planType !== 'simple' && (
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">
                       {t("create.bookingPreference")}

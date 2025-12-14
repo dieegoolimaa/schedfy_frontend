@@ -223,7 +223,7 @@ export function PublicEntityProfilePage() {
           {
             serviceId: selectedService,
             date: format(selectedDate, "yyyy-MM-dd"),
-            professionalId: selectedProfessional,
+            professionalId: selectedProfessional || undefined,
           }
         );
         setAvailableSlots(response.data);
@@ -680,9 +680,11 @@ export function PublicEntityProfilePage() {
                                     <span>{service.duration} min</span>
                                   </div>
                                 </div>
-                                <div className="text-lg font-bold">
-                                  {formatCurrency(service.price)}
-                                </div>
+                                {entity?.plan !== 'simple' && (
+                                  <div className="text-lg font-bold">
+                                    {formatCurrency(service.price)}
+                                  </div>
+                                )}
                               </div>
                               {selectedService === service.id && (
                                 <Badge className="mt-3 w-full justify-center">
@@ -776,7 +778,7 @@ export function PublicEntityProfilePage() {
                                       </CardDescription>
                                     )}
                                   </div>
-                                  {pkg.pricing.discount > 0 && (
+                                  {pkg.pricing.discount > 0 && entity?.plan !== 'simple' && (
                                     <Badge
                                       variant="destructive"
                                       className="text-sm"
@@ -818,22 +820,24 @@ export function PublicEntityProfilePage() {
                                     }
                                   )}
                                 </div>
-                                <div className="flex items-center justify-between pt-4 border-t">
-                                  <div>
-                                    <div className="text-sm text-muted-foreground line-through">
-                                      {formatCurrency(
-                                        pkg.pricing.originalPrice
-                                      )}
+                                {entity?.plan !== 'simple' && (
+                                  <div className="flex items-center justify-between pt-4 border-t">
+                                    <div>
+                                      <div className="text-sm text-muted-foreground line-through">
+                                        {formatCurrency(
+                                          pkg.pricing.originalPrice
+                                        )}
+                                      </div>
+                                      <div className="text-2xl font-bold text-primary">
+                                        {formatCurrency(pkg.pricing.packagePrice)}
+                                      </div>
                                     </div>
-                                    <div className="text-2xl font-bold text-primary">
-                                      {formatCurrency(pkg.pricing.packagePrice)}
+                                    <div className="text-right text-sm text-muted-foreground">
+                                      <div>{pkg.sessionsIncluded} sessions</div>
+                                      <div>{pkg.validity} days validity</div>
                                     </div>
                                   </div>
-                                  <div className="text-right text-sm text-muted-foreground">
-                                    <div>{pkg.sessionsIncluded} sessions</div>
-                                    <div>{pkg.validity} days validity</div>
-                                  </div>
-                                </div>
+                                )}
                                 {selectedPackage === pkg._id && (
                                   <Badge className="w-full justify-center">
                                     <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -1262,7 +1266,7 @@ export function PublicEntityProfilePage() {
                     <h3 className="text-xl font-semibold">{t("profile.bookingDetails")}</h3>
 
                     {/* Professional Selection (optional) */}
-                    {availableProfessionals.length > 0 && (
+                    {entity?.plan !== 'simple' && availableProfessionals.length > 0 && (
                       <div className="space-y-2">
                         <Label>{t("profile.chooseProfessional")}</Label>
                         <div className="grid sm:grid-cols-2 gap-3">
@@ -1441,57 +1445,59 @@ export function PublicEntityProfilePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4 pt-6 border-t">
-                      <h4 className="font-semibold">{t("profile.promotion")}</h4>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder={t("profile.form.voucher")}
-                          value={voucherCode}
-                          onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                          disabled={!!appliedDiscount}
-                        />
-                        {appliedDiscount ? (
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setAppliedDiscount(null);
-                              setVoucherCode("");
-                            }}
-                          >
-                            {t("profile.remove")}
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="secondary"
-                            onClick={handleValidateVoucher}
-                            disabled={!voucherCode || validatingVoucher}
-                          >
-                            {validatingVoucher ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              t("profile.form.apply")
-                            )}
-                          </Button>
+                    {entity?.plan !== 'simple' && (
+                      <div className="space-y-4 pt-6 border-t">
+                        <h4 className="font-semibold">{t("profile.promotion")}</h4>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder={t("profile.form.voucher")}
+                            value={voucherCode}
+                            onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                            disabled={!!appliedDiscount}
+                          />
+                          {appliedDiscount ? (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setAppliedDiscount(null);
+                                setVoucherCode("");
+                              }}
+                            >
+                              {t("profile.remove")}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="secondary"
+                              onClick={handleValidateVoucher}
+                              disabled={!voucherCode || validatingVoucher}
+                            >
+                              {validatingVoucher ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                t("profile.form.apply")
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                        {appliedDiscount && (
+                          <div className="flex justify-between items-center text-sm bg-green-50 text-green-700 p-3 rounded-md border border-green-200">
+                            <span>{t("profile.discountApplied")}</span>
+                            <span className="font-bold">
+                              -{formatCurrency(appliedDiscount.amount)}
+                            </span>
+                          </div>
                         )}
-                      </div>
-                      {appliedDiscount && (
-                        <div className="flex justify-between items-center text-sm bg-green-50 text-green-700 p-3 rounded-md border border-green-200">
-                          <span>{t("profile.discountApplied")}</span>
-                          <span className="font-bold">
-                            -{formatCurrency(appliedDiscount.amount)}
+                        {/* Total Price Display */}
+                        <div className="flex justify-between items-center text-lg font-bold pt-2">
+                          <span>{t("profile.total")}</span>
+                          <span>
+                            {formatCurrency(
+                              Math.max(0, (services.find(s => s.id === selectedService)?.price || 0) - (appliedDiscount?.amount || 0))
+                            )}
                           </span>
                         </div>
-                      )}
-                      {/* Total Price Display */}
-                      <div className="flex justify-between items-center text-lg font-bold pt-2">
-                        <span>{t("profile.total")}</span>
-                        <span>
-                          {formatCurrency(
-                            Math.max(0, (services.find(s => s.id === selectedService)?.price || 0) - (appliedDiscount?.amount || 0))
-                          )}
-                        </span>
                       </div>
-                    </div>
+                    )}
 
                     {/* Book Button */}
                     <Button

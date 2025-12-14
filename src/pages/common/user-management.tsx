@@ -9,6 +9,7 @@ import {
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
 import { Label } from "../../components/ui/label";
 import {
     Select,
@@ -122,6 +123,8 @@ export default function TeamManagementPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
 
+    const [newInviteSpecialty, setNewInviteSpecialty] = useState("");
+
     const [inviteForm, setInviteForm] = useState({
         firstName: "",
         lastName: "",
@@ -132,6 +135,7 @@ export default function TeamManagementPage() {
         professionalInfo: {
             jobFunction: "",
             specialties: [] as string[],
+            bio: "",
         },
     });
 
@@ -162,6 +166,29 @@ export default function TeamManagementPage() {
         }
     };
 
+    const handleAddInviteSpecialty = () => {
+        if (newInviteSpecialty.trim() && !inviteForm.professionalInfo.specialties.includes(newInviteSpecialty.trim())) {
+            setInviteForm({
+                ...inviteForm,
+                professionalInfo: {
+                    ...inviteForm.professionalInfo,
+                    specialties: [...inviteForm.professionalInfo.specialties, newInviteSpecialty.trim()]
+                }
+            });
+            setNewInviteSpecialty("");
+        }
+    };
+
+    const handleRemoveInviteSpecialty = (specialty: string) => {
+        setInviteForm({
+            ...inviteForm,
+            professionalInfo: {
+                ...inviteForm.professionalInfo,
+                specialties: inviteForm.professionalInfo.specialties.filter(s => s !== specialty)
+            }
+        });
+    };
+
     const handleInviteUser = async () => {
         if (!currentUser?.entityId) {
             toast.error("No entity ID found");
@@ -185,6 +212,7 @@ export default function TeamManagementPage() {
                     specialties: inviteForm.professionalInfo.specialties.length > 0
                         ? inviteForm.professionalInfo.specialties
                         : undefined,
+                    bio: inviteForm.professionalInfo.bio || undefined,
                 } : undefined,
             };
 
@@ -203,8 +231,10 @@ export default function TeamManagementPage() {
                 professionalInfo: {
                     jobFunction: "",
                     specialties: [],
+                    bio: "",
                 },
             });
+            setNewInviteSpecialty("");
             fetchUsers();
         } catch (error: any) {
             console.error("[TeamManagement] Invite failed:", error);
@@ -677,6 +707,49 @@ export default function TeamManagementPage() {
                                 }
                             />
                         </div>
+
+                        {inviteForm.isProfessional && (
+                            <div className="space-y-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                    <Label htmlFor="bio">{t("invite.bio", "Professional Bio")}</Label>
+                                    <Textarea
+                                        id="bio"
+                                        placeholder={t("invite.bioPlaceholder", "Describe the professional...")}
+                                        value={inviteForm.professionalInfo.bio}
+                                        onChange={(e) => setInviteForm({
+                                            ...inviteForm,
+                                            professionalInfo: { ...inviteForm.professionalInfo, bio: e.target.value }
+                                        })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>{t("invite.specialties", "Specialties")}</Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={newInviteSpecialty}
+                                            onChange={(e) => setNewInviteSpecialty(e.target.value)}
+                                            placeholder={t("invite.addSpecialty", "Add specialty")}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleAddInviteSpecialty()}
+                                        />
+                                        <Button type="button" variant="outline" onClick={handleAddInviteSpecialty}>
+                                            Add
+                                        </Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {inviteForm.professionalInfo.specialties.map((specialty, index) => (
+                                            <Badge
+                                                key={index}
+                                                variant="secondary"
+                                                className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                                                onClick={() => handleRemoveInviteSpecialty(specialty)}
+                                            >
+                                                {specialty} ×
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>

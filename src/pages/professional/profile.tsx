@@ -239,7 +239,8 @@ export default function ProfessionalProfilePage() {
         breaks: breaks || []
       }));
 
-      const updatePayload = {
+      const updatePayload: any = {
+        isProfessional: entityPlan === 'simple' ? true : profileData?.isProfessional,
         firstName,
         lastName,
         phone,
@@ -396,7 +397,7 @@ export default function ProfessionalProfilePage() {
       <Tabs defaultValue="personal" className="space-y-6">
         <TabsList>
           <TabsTrigger value="personal">Personal Information</TabsTrigger>
-          {profileData?.isProfessional && (
+          {(profileData?.isProfessional || (canEdit && entityPlan === 'simple')) && (
             <>
               <TabsTrigger value="professional">Professional Details</TabsTrigger>
               <TabsTrigger value="schedule">Schedule & Availability</TabsTrigger>
@@ -494,7 +495,7 @@ export default function ProfessionalProfilePage() {
         </TabsContent>
 
         {/* Professional Details Tab */}
-        {profileData?.isProfessional && (
+        {(profileData?.isProfessional || (canEdit && entityPlan === 'simple')) && (
           <TabsContent value="professional" className="space-y-6">
             <Card>
               <CardHeader>
@@ -686,7 +687,7 @@ export default function ProfessionalProfilePage() {
 
         {/* Schedule & Availability Tab */}
         {
-          profileData?.isProfessional && (
+          (profileData?.isProfessional || (canEdit && entityPlan === 'simple')) && (
             <TabsContent value="schedule" className="space-y-6">
               <Card>
                 <CardHeader>
