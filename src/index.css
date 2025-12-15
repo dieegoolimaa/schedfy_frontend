@@ -271,37 +271,44 @@
   }
 }
 
-/* Neumorphic / Soft 3D Design System */
+/* Modern Clean Luxury 3D System */
 @layer components {
-  /* Cards & Containers - Elevated "Soft" Look */
+  /* Cards - Professional, Crisp, Subtle Depth */
   .bg-card {
-    border: none !important; /* Remove borders to rely on shadow depth */
+    /* Solid White for Cleanliness */
+    background-color: #ffffff;
     
-    /* Light Mode */
-    background: linear-gradient(145deg, #ffffff, #f3f4f6);
+    /* Dual Shadow Stack: 
+       1. Precise Ring: Defines the edge without a heavy border (0,0,0,0.04)
+       2. Ambient: Soft, wide dispersion for 'Luxury' float (0,0,0,0.06) 
+    */
     box-shadow: 
-      8px 8px 20px rgba(0, 0, 0, 0.06), /* Main soft shadow */
-      -8px -8px 20px rgba(255, 255, 255, 1.0), /* Top-left light source */
-       inset 0 0 0 1px rgba(255,255,255, 0.5); /* Subtle rim */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+      0 0 0 1px rgba(0,0,0,0.04),
+      0 2px 8px rgba(0,0,0,0.04),
+      0 10px 30px -10px rgba(0,0,0,0.06);
+      
+    /* Remove default border if we use shadow ring, or keep extremely subtle one */
+    border: none !important; 
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
   }
 
   .dark .bg-card {
-    /* Dark Mode - Soft Dark UI */
+    /* Dark Mode - Maintained as requested (Perfect) */
     background: linear-gradient(145deg, hsl(0 0% 12%), hsl(0 0% 9%));
     box-shadow: 
-      10px 10px 20px rgba(0, 0, 0, 0.6), /* Deep shadow */
-      -4px -4px 10px rgba(255, 255, 255, 0.03), /* Faint light source */
-      inset 0 1px 0 0 rgba(255,255,255, 0.05); /* Bevel */
+      10px 10px 20px rgba(0, 0, 0, 0.6),
+      -4px -4px 10px rgba(255, 255, 255, 0.03),
+      inset 0 1px 0 0 rgba(255,255,255, 0.05);
   }
 
   /* Interactive Cards Hover */
   .bg-card[onClick]:hover, 
   a:hover .bg-card {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: 
-      12px 12px 25px rgba(0, 0, 0, 0.08),
-      -8px -8px 20px rgba(255, 255, 255, 1.0);
+      0 0 0 1px rgba(0,0,0,0.04),
+      0 10px 30px -5px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.02);
   }
   .dark .bg-card[onClick]:hover, 
   .dark a:hover .bg-card {
@@ -310,54 +317,54 @@
       -4px -4px 12px rgba(255, 255, 255, 0.05);
   }
 
-  /* Buttons - 3D "Pop" Effect */
+  /* Buttons - Clean Modern */
   button:not([disabled]), 
   .button {
     transition: all 0.2s ease;
-    /* We selectively apply this to avoid breaking ghost buttons, 
-       but standard filled buttons usually benefit */
   }
   
-  /* Primary/Filled Buttons */
+  /* Primary/Filled Buttons - Subtle elevation */
   button[class*="bg-primary"],
   button[class*="bg-destructive"] {
     box-shadow: 
-      4px 4px 10px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2); /* Top inner highlight */
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
   
   button[class*="bg-primary"]:active {
     transform: translateY(1px);
-    box-shadow: 
-      2px 2px 5px rgba(0, 0, 0, 0.2),
-      inset 0 2px 4px rgba(0, 0, 0, 0.1); /* Pressed look */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
-  /* Inputs - "Pressed" / Debossed Look */
+  /* Inputs - Clean Modern (Reset from Neumorphic) */
   input:not([type="checkbox"]):not([type="radio"]), 
   textarea, 
   select {
-    border: none !important;
-    background-color: #f3f4f6; /* Light gray for contrast */
-    box-shadow: 
-      inset 3px 3px 6px rgba(0, 0, 0, 0.06), /* Inner shadow top-left */
-      inset -2px -2px 4px rgba(255, 255, 255, 1.0); /* Inner light bottom-right */
+    border: 1px solid #e2e8f0 !important; /* Standard border */
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Tiny shadow */
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):focus, 
+  textarea:focus, 
+  select:focus {
+    border-color: #0ea5e9 !important; /* Primary Blue-ish */
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1); /* Focus Ring */
+    outline: none;
   }
 
   .dark input:not([type="checkbox"]):not([type="radio"]), 
   .dark textarea, 
   .dark select {
     background-color: hsl(0 0% 7%);
-    box-shadow: 
-      inset 4px 4px 10px rgba(0, 0, 0, 0.5),
-      inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: none;
   }
 
   .dark input:focus, 
   .dark textarea:focus, 
   .dark select:focus {
-    box-shadow: 
-      inset 4px 4px 10px rgba(0, 0, 0, 0.5),
-      0 0 0 1px hsl(0 0% 30%); /* Subtle focus ring */
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
   }
 }

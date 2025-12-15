@@ -315,7 +315,7 @@ const SimpleServicesPage: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Sparkles className="w-6 h-6 sm:w-8 sm:h-8" />
-            {t("title")}
+            Services
           </h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             {t("subtitle")}
@@ -582,24 +582,7 @@ const SimpleServicesPage: React.FC = () => {
                         </Label>
                       </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="service-manual-confirm"
-                          checked={serviceFormData.requireManualConfirmation}
-                          onCheckedChange={(checked) =>
-                            setServiceFormData({
-                              ...serviceFormData,
-                              requireManualConfirmation: checked as boolean,
-                            })
-                          }
-                        />
-                        <Label
-                          htmlFor="service-manual-confirm"
-                          className="cursor-pointer"
-                        >
-                          {t("services.form.requireManualConfirmation")}
-                        </Label>
-                      </div>
+
                     </div>
                   </div>
 
@@ -856,24 +839,7 @@ const SimpleServicesPage: React.FC = () => {
                     </Label>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="edit-service-manual-confirm"
-                      checked={serviceFormData.requireManualConfirmation}
-                      onCheckedChange={(checked) =>
-                        setServiceFormData({
-                          ...serviceFormData,
-                          requireManualConfirmation: checked as boolean,
-                        })
-                      }
-                    />
-                    <Label
-                      htmlFor="edit-service-manual-confirm"
-                      className="cursor-pointer"
-                    >
-                      {t("services.form.requireManualConfirmation")}
-                    </Label>
-                  </div>
+
                 </div>
               </div>
             </div>
