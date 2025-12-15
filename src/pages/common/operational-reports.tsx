@@ -405,7 +405,7 @@ export function OperationalReportsPage() {
       </div>
 
       {/* Key Metrics */}
-      <StatsGrid columns={4}>
+      <StatsGrid columns={plan === "simple" ? 3 : 4}>
         <StatCard
           title={t("stats.totalBookings")}
           value={stats.total}
@@ -430,13 +430,15 @@ export function OperationalReportsPage() {
           variant="danger"
           subtitle={`${stats.cancelled} ${t("stats.cancelled")}`}
         />
-        <StatCard
-          title={t("stats.newClients")}
-          value={stats.newClients}
-          icon={Users}
-          variant="info"
-          subtitle={t("stats.inSelectedPeriod")}
-        />
+        {plan !== "simple" && (
+          <StatCard
+            title={t("stats.newClients")}
+            value={stats.newClients}
+            icon={Users}
+            variant="info"
+            subtitle={t("stats.inSelectedPeriod")}
+          />
+        )}
       </StatsGrid>
 
       {/* AI Insights */}

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "./button";
+
 
 export interface DateRange {
   from: Date | undefined;
@@ -31,8 +31,8 @@ export function Calendar({
     mode === "single" && selected instanceof Date
       ? selected
       : mode === "range" && selected && "from" in selected && selected.from
-      ? selected.from
-      : new Date()
+        ? selected.from
+        : new Date()
   );
 
   const getDaysInMonth = (date: Date) => {
@@ -189,136 +189,104 @@ export function Calendar({
   });
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {/* Calendar Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-700 dark:to-gray-900 px-4 py-4 sm:px-6 sm:py-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg sm:text-xl font-semibold text-white">
-              {monthName}
-            </h3>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goToToday}
-                className="hidden sm:flex bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-sm text-xs sm:text-sm"
-              >
-                Today
-              </Button>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateMonth("prev")}
-                  className="bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-sm h-8 w-8 sm:h-9 sm:w-9 p-0"
-                >
-                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateMonth("next")}
-                  className="bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-sm h-8 w-8 sm:h-9 sm:w-9 p-0"
-                >
-                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-              </div>
-            </div>
+    <div className={cn("w-full max-w-sm mx-auto", className)}>
+      <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-white/5">
+
+        {/* Header - Clean & Minimal */}
+        <div className="flex items-center justify-between mb-6 px-1">
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white pl-1">
+            {monthName}
+          </h3>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => navigateMonth("prev")}
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => navigateMonth("next")}
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400 transition-colors"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
-        {/* Calendar Body */}
-        <div className="p-4 sm:p-6">
-          {/* Weekday Headers */}
-          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-3">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div
-                key={day}
-                className="text-center text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 py-2"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
+        {/* Weekday Headers - Subtle */}
+        <div className="grid grid-cols-7 mb-2">
+          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+            <div
+              key={day}
+              className="h-8 flex items-center justify-center text-[13px] font-medium text-gray-400 dark:text-gray-500"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
 
-          {/* Calendar Days Grid */}
-          <div className="grid grid-cols-7 gap-1 sm:gap-2">
-            {calendarDays.map((day, index) => {
-              if (day === null) {
-                return <div key={`empty-${index}`} className="aspect-square" />;
-              }
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-y-2">
+          {calendarDays.map((day, index) => {
+            if (day === null) {
+              return <div key={`empty-${index}`} />;
+            }
 
-              const isDayToday = isToday(day);
-              const isDaySelected = isSelected(day);
-              const isDayInRange = isInRange(day);
-              const isDayDisabled = isDateDisabled(day);
+            const isDayToday = isToday(day);
+            const isDaySelected = isSelected(day);
+            const isDayInRange = isInRange(day);
+            const isDayDisabled = isDateDisabled(day);
 
-              return (
+            return (
+              <div key={day} className="relative flex items-center justify-center">
                 <button
-                  key={day}
                   type="button"
                   onClick={() => handleDateClick(day)}
                   disabled={isDayDisabled}
                   className={cn(
-                    "aspect-square rounded-lg sm:rounded-xl transition-all duration-200 text-sm sm:text-base font-medium relative overflow-hidden",
-                    "focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100 focus:ring-offset-2 dark:focus:ring-offset-gray-800",
-                    // Default state
-                    !isDaySelected &&
-                      !isDayToday &&
-                      !isDayDisabled &&
-                      !isDayInRange &&
-                      "bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600/50 hover:scale-105 hover:shadow-md",
-                    // In range (between start and end)
-                    isDayInRange &&
-                      !isDayDisabled &&
-                      "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100",
-                    // Today
-                    isDayToday &&
-                      !isDaySelected &&
-                      !isDayDisabled &&
-                      !isDayInRange &&
-                      "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 text-gray-900 dark:text-white font-bold ring-2 ring-gray-400 dark:ring-gray-500 hover:scale-105 hover:shadow-md",
-                    // Selected (start or end date)
-                    isDaySelected &&
-                      !isDayDisabled &&
-                      "bg-gradient-to-br from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 text-white dark:text-gray-900 font-bold shadow-lg scale-105 ring-2 ring-gray-900 dark:ring-gray-100",
-                    // Disabled
-                    isDayDisabled &&
-                      "bg-gray-100/50 dark:bg-gray-800/30 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-40"
+                    "w-9 h-9 flex items-center justify-center rounded-full text-sm font-medium transition-all relative z-10",
+
+                    // Selected State (Solid Black/White circle)
+                    isDaySelected && !isDayDisabled
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-sm"
+                      : "",
+
+                    // Today State (Subtle dot or ring if not selected)
+                    !isDaySelected && isDayToday && !isDayDisabled
+                      ? "text-blue-600 dark:text-blue-400 font-semibold"
+                      : "",
+
+                    // Default Interactive State
+                    !isDaySelected && !isDayDisabled && !isDayToday
+                      ? "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10"
+                      : "",
+
+                    // Disabled State
+                    isDayDisabled && "text-gray-300 dark:text-gray-700 cursor-not-allowed",
+
+                    // Range styling (if needed in future, currently background is better)
+                    isDayInRange && !isDaySelected && "bg-gray-50 dark:bg-white/5 rounded-none"
                   )}
                 >
-                  {/* Subtle gradient overlay for selected date */}
-                  {isDaySelected && (
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 dark:from-transparent dark:via-black/5 dark:to-black/10" />
-                  )}
-                  <span className="relative z-10">{day}</span>
-                  {/* Today indicator dot */}
+                  {day}
+                  {/* Tiny dot for Today if not selected */}
                   {isDayToday && !isDaySelected && (
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gray-900 dark:bg-white" />
+                    <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400" />
                   )}
                 </button>
-              );
-            })}
-          </div>
-
-          {/* Footer with legend */}
-          <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gradient-to-br from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300" />
-              <span className="text-gray-600 dark:text-gray-400">Selected</span>
-            </div>
-            {mode === "range" && (
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-200 dark:bg-gray-600" />
-                <span className="text-gray-600 dark:text-gray-400">Range</span>
               </div>
-            )}
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 ring-2 ring-gray-400 dark:ring-gray-500" />
-              <span className="text-gray-600 dark:text-gray-400">Today</span>
-            </div>
-          </div>
+            );
+          })}
+        </div>
+
+        {/* Optional Footer: Today Button */}
+        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 flex justify-center">
+          <button
+            onClick={goToToday}
+            className="text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+          >
+            Jump to Today
+          </button>
         </div>
       </div>
     </div>
