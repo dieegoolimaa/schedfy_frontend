@@ -65,6 +65,25 @@ export function usePermissions() {
             return true;
         }
 
+        // Owner has all permissions
+        if (user.role === 'owner') {
+            return true;
+        }
+
+        // Admin in Simple Plan has all permissions
+        if (user.role === 'admin' && user.plan === 'simple') {
+            return true;
+        }
+
+        // Restrict specific pages for Professional on Simple Plan
+        if (user.role === 'professional' && user.plan === 'simple') {
+            // Professionals on Simple plan cannot access Clients or Financial/Earnings pages
+            const restrictedPages = ['clients', 'reports', 'earnings', 'financial-reports'];
+            if (restrictedPages.includes(check.page)) {
+                return false;
+            }
+        }
+
         const pagePermissions = permissions[check.page] || [];
 
         // Check if role has 'manage' (grants all permissions)
@@ -123,7 +142,14 @@ export function usePermissions() {
      */
     const hasDirectPermission = (permission: string): boolean => {
         if (!user) return false;
+
+        // Owner and Platform Admin always have full access
         if (user.role === 'owner' || user.role === 'platform_admin') return true;
+
+        // Admin in Simple Plan has full access (same as Owner)
+        // In Business Plan, Admin has specific permissions
+        if (user.role === 'admin' && user.plan === 'simple') return true;
+
         return (user.permissions || []).includes(permission);
     };
 
@@ -162,23 +188,7 @@ function getRolePermissions(role: string): Record<string, string[]> {
             users: ['view', 'create', 'update'],
             reports: ['view', 'export'],
             settings: ['view', 'update'],
-        },
-        manager: {
-            bookings: ['view', 'create', 'update'],
-            clients: ['view', 'create', 'update'],
-            services: ['view'],
-            users: ['view'],
-            reports: ['view'],
-            settings: ['view'],
-        },
-        hr: {
-            users: ['view', 'create', 'update'],
-            reports: ['view'],
-        },
-        attendant: {
-            bookings: ['view', 'create', 'update'],
-            clients: ['view', 'create', 'update'],
-            services: ['view'],
+            // Note: In simple plan, this should be treated as 'manage' everywhere
         },
         professional: {
             bookings: ['view'], // Own bookings only

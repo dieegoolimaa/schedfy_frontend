@@ -18,7 +18,7 @@ import { storage } from "../lib/storage";
 type Entity = AuthEntity;
 
 // Transform backend user response to frontend User type
-export function transformBackendUser(backendUser: any): User {
+export function transformBackendUser(backendUser: any, entity?: any): User {
   // Normalize plan names from backend
   const normalizePlan = (
     plan: string
@@ -55,10 +55,12 @@ export function transformBackendUser(backendUser: any): User {
     return "simple";
   };
 
-  const normalizedPlan = normalizePlan(backendUser.plan);
+  // Prioritize entity plan if available, otherwise fallback to user plan
+  const effectivePlan = entity?.plan || backendUser.plan;
+  const normalizedPlan = normalizePlan(effectivePlan);
 
   console.log(
-    `[AuthContext] Transforming user - Original plan: "${backendUser.plan}", Normalized: "${normalizedPlan}"`
+    `[AuthContext] Transforming user - Original user plan: "${backendUser.plan}", Entity plan: "${entity?.plan}", Effective Normalized: "${normalizedPlan}"`
   );
   console.log("[AuthContext] Full backend user object:", backendUser);
 
@@ -199,8 +201,8 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
             const userData = (response.data as any).user || response.data;
             const entityData = (response.data as any).entity || null;
 
-            // Transform backend user to frontend User type
-            const transformedUser = transformBackendUser(userData);
+            // Transform backend user to frontend User type, passing entity data to resolve plan
+            const transformedUser = transformBackendUser(userData, entityData);
             console.log(
               "[AuthProvider] Transformed user on reload:",
               transformedUser
@@ -255,8 +257,8 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("Login failed - no user in response");
       }
 
-      // Transform backend user to frontend User type
-      const transformedUser = transformBackendUser(user);
+      // Transform backend user to frontend User type, passing entity to resolve plan
+      const transformedUser = transformBackendUser(user, entity);
       console.log("Transformed user:", transformedUser);
 
       // Clear 2FA state on successful login
@@ -304,8 +306,8 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
         throw new Error("2FA verification failed - no user in response");
       }
 
-      // Transform backend user to frontend User type
-      const transformedUser = transformBackendUser(user);
+      // Transform backend user to frontend User type, passing entity to resolve plan
+      const transformedUser = transformBackendUser(user, entity);
 
       // Clear 2FA state
       setRequires2FA(false);

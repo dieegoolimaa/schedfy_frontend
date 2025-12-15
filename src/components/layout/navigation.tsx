@@ -232,13 +232,6 @@ export function Navigation() {
       };
 
       // Add pages based on permissions
-      // if (canViewPage("bookings")) {
-      //   navItems.operations.push({
-      //     path: "/professional/bookings",
-      //     label: t("nav.bookings", "My Appointments"),
-      //   });
-      // }
-
       if (canViewPage("clients")) {
         navItems.operations.push({
           path: "/entity/client-profile",
@@ -253,12 +246,20 @@ export function Navigation() {
         });
       }
 
-      if (canViewPage("earnings") || canViewPage("reports")) {
-        navItems.financial.push({
-          path: "/professional/earnings",
-          label: t("nav.earnings", "Earnings"),
-        });
-      }
+      // Allow professionals to view operational reports
+      // Using generic /reports route or /professional/reports if created
+      navItems.operations.push({
+        path: "/professional/reports",
+        label: t("nav.operationalReports", "Operational Analysis"),
+      });
+
+      // Financial section hidden for professionals as requested
+      // if (canViewPage("earnings") || canViewPage("reports")) {
+      //   navItems.financial.push({
+      //     path: "/professional/earnings",
+      //     label: t("nav.earnings", "Earnings"),
+      //   });
+      // }
 
       return navItems;
     }
@@ -357,8 +358,8 @@ export function Navigation() {
               key={item.path}
               to={item.path}
               className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${location.pathname === item.path
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 }`}
             >
               {item.label}
@@ -366,7 +367,7 @@ export function Navigation() {
           ))}
 
           {/* Management/Operations Dropdown */}
-          {(navItems.management || navItems.operations) && (
+          {(navItems.management || navItems.operations) && (navItems.management?.length > 0 || navItems.operations?.length > 0) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-sm font-medium h-10">
@@ -392,7 +393,7 @@ export function Navigation() {
           )}
 
           {/* Financial Dropdown (Business plan only) */}
-          {navItems.financial && (
+          {navItems.financial && navItems.financial.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-sm font-medium h-10">
@@ -416,7 +417,7 @@ export function Navigation() {
           )}
 
           {/* Features Dropdown (Admin only) */}
-          {navItems.features && (
+          {navItems.features && navItems.features.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-sm font-medium h-10">

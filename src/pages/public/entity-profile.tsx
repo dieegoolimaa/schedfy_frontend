@@ -50,6 +50,7 @@ export function PublicEntityProfilePage() {
   const { formatCurrency } = useCurrency();
 
   const [loading, setLoading] = useState(true);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [booking, setBooking] = useState(false);
   const [entity, setEntity] = useState<PublicEntity | null>(null);
   const [services, setServices] = useState<PublicService[]>([]);
@@ -66,6 +67,13 @@ export function PublicEntityProfilePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+
+  // Clear selected service if disabled
+  useEffect(() => {
+    if (professionals.length === 0 && selectedService) {
+      setSelectedService("");
+    }
+  }, [professionals, selectedService]);
 
   // Package bookings - array to hold multiple appointments
   const [packageBookings, setPackageBookings] = useState<
@@ -212,11 +220,23 @@ export function PublicEntityProfilePage() {
   // Fetch available slots when dependencies change
   useEffect(() => {
     const fetchSlots = async () => {
-      if (!selectedDate || !entity?.id || !selectedService) {
+      if (!selectedDate || !selectedService || !entity) {
         setAvailableSlots([]);
         return;
       }
 
+      // If no professionals, force empty slots
+      if (!professionals || professionals.length === 0) {
+        setAvailableSlots([]);
+        return;
+      }
+
+      // Assuming setLoadingSlots is defined elsewhere, e.g., as a useState hook
+      // const [loadingSlots, setLoadingSlots] = useState(false);
+      // If not, this line will cause an error.
+      // For the purpose of this edit, we'll assume it exists.
+      // If it doesn't, it should be added as a new state variable.
+      setLoadingSlots(true);
       try {
         const response = await publicService.getAvailableSlots(
           entity.id,
@@ -641,9 +661,23 @@ export function PublicEntityProfilePage() {
                     </div>
                   )}
 
+
+                  {/* Warning for No Professionals (Any Plan) */}
+                  {professionals && professionals.length === 0 && (
+                    <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md flex items-start gap-3">
+                      <div className="h-5 w-5 rounded-full bg-yellow-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-yellow-700 font-bold">!</span>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-yellow-800">{t("profile.bookingsDisabled")}</h4>
+                        <p className="text-sm text-yellow-700 mt-1">{t("profile.noProfessionalsMessage", "Bookings are currently disabled because no service providers are available.")}</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Services Tab */}
                   <TabsContent value="services" className="space-y-6">
-                    {services.length === 0 ? (
+                    {!services || services.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground">
                         <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>{t("profile.noServices")}</p>
@@ -656,8 +690,9 @@ export function PublicEntityProfilePage() {
                             className={`cursor-pointer transition-all hover:shadow-md ${selectedService === service.id
                               ? "ring-2 ring-primary"
                               : ""
-                              }`}
+                              } ${(professionals && professionals.length === 0) ? "opacity-60 pointer-events-none grayscale" : ""}`}
                             onClick={() => {
+                              if (!professionals || professionals.length === 0) return;
                               setSelectedService(service.id);
                               setSelectedPackage("");
                             }}
@@ -956,6 +991,16 @@ export function PublicEntityProfilePage() {
 
                                         // Fetch available slots for this date
                                         if (date && entity?.id) {
+                                          if (!professionals || professionals.length === 0) {
+                                            const updatedWithSlots = [...packageBookings];
+                                            updatedWithSlots[index] = {
+                                              ...updatedWithSlots[index],
+                                              date,
+                                              availableSlots: [],
+                                            };
+                                            setPackageBookings(updatedWithSlots);
+                                            return;
+                                          }
                                           try {
                                             const response =
                                               await publicService.getAvailableSlots(
@@ -1328,6 +1373,11 @@ export function PublicEntityProfilePage() {
                                 : undefined;
                               setSelectedDate(date);
                               setSelectedSlot(null);
+                              // If no professionals, clear slots immediately
+                              if (!professionals || professionals.length === 0) {
+                                setAvailableSlots([]);
+                                return;
+                              }
                               // Slots will be fetched by the useEffect
                             }}
                           />

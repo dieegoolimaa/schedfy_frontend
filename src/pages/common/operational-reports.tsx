@@ -97,11 +97,20 @@ export function OperationalReportsPage() {
     const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
     const previousStartDate = new Date(now.getTime() - days * 2 * 24 * 60 * 60 * 1000);
 
-    const currentPeriod = bookings.filter((b) => new Date(b.startTime) >= startDate);
-    const previousPeriod = bookings.filter((b) => {
+    const currentPeriodRaw = bookings.filter((b) => new Date(b.startTime) >= startDate);
+    const previousPeriodRaw = bookings.filter((b) => {
       const date = new Date(b.startTime);
       return date >= previousStartDate && date < startDate;
     });
+
+    // Apply Professional Filter
+    const currentPeriod = user?.role === "professional"
+      ? currentPeriodRaw.filter((b) => b.professionalId === user.id)
+      : currentPeriodRaw;
+
+    const previousPeriod = user?.role === "professional"
+      ? previousPeriodRaw.filter((b) => b.professionalId === user.id)
+      : previousPeriodRaw;
 
     const currentTotal = currentPeriod.length;
     const previousTotal = previousPeriod.length;
@@ -111,7 +120,7 @@ export function OperationalReportsPage() {
       : currentTotal > 0 ? 100 : 0;
 
     return { filteredBookings: currentPeriod, growth: growthRate };
-  }, [bookings, timeRange]);
+  }, [bookings, timeRange, user]);
 
   // Calculate Operational Stats
   const stats = useMemo(() => {
@@ -456,7 +465,7 @@ export function OperationalReportsPage() {
         <TabsList>
           <TabsTrigger value="overview">{t("tabs.overview")}</TabsTrigger>
           <TabsTrigger value="services">{t("tabs.services")}</TabsTrigger>
-          {plan === "business" && (
+          {plan === "business" && user?.role !== "professional" && (
             <TabsTrigger value="professionals">{t("tabs.professionals")}</TabsTrigger>
           )}
         </TabsList>

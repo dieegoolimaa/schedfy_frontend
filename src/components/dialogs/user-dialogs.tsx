@@ -43,9 +43,6 @@ interface EditUserDialogProps {
 const ROLES = [
     { value: "owner", label: "Owner" },
     { value: "admin", label: "Admin" },
-    { value: "manager", label: "Manager" },
-    { value: "hr", label: "HR" },
-    { value: "attendant", label: "Attendant" },
     { value: "professional", label: "Professional" },
 ];
 

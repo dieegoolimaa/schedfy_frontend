@@ -348,7 +348,7 @@ const SimpleServicesPage: React.FC = () => {
           <h2 className="text-lg font-semibold">{t("services.title")} ({totalServices})</h2>
         </div>
         {/* Search and Filters */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between mb-6">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -406,221 +406,219 @@ const SimpleServicesPage: React.FC = () => {
             >
               {t("services.filters.clear")}
             </Button>
-          </div>
-        </div>
 
-        {/* Create Service Button */}
-        <div className="flex justify-end">
-          {isOwnerOrManager && (
-            <Dialog
-              open={isServiceCreateModalOpen}
-              onOpenChange={setIsServiceCreateModalOpen}
-            >
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t("services.addService")}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>{t("modal.createTitle")}</DialogTitle>
-                  <DialogDescription>
-                    {t("modal.createDescription")}
-                  </DialogDescription>
-                </DialogHeader>
+            {/* Create Service Button - Moved here for alignment */}
+            {isOwnerOrManager && (
+              <Dialog
+                open={isServiceCreateModalOpen}
+                onOpenChange={setIsServiceCreateModalOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button className="ml-2">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t("services.addService")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>{t("modal.createTitle")}</DialogTitle>
+                    <DialogDescription>
+                      {t("modal.createDescription")}
+                    </DialogDescription>
+                  </DialogHeader>
 
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="service-name">{t("services.form.name")} *</Label>
-                      <Input
-                        id="service-name"
-                        value={serviceFormData.name}
-                        onChange={(e) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            name: e.target.value,
-                          })
-                        }
-                        placeholder={t("services.form.namePlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="service-category">{t("services.form.category")} *</Label>
-                      <Select
-                        value={
-                          showCustomCategory
-                            ? "custom"
-                            : serviceFormData.category
-                        }
-                        onValueChange={(value) => {
-                          if (value === "custom") {
-                            setShowCustomCategory(true);
-                            setServiceFormData({
-                              ...serviceFormData,
-                              category: "",
-                            });
-                          } else {
-                            setShowCustomCategory(false);
-                            setServiceFormData({
-                              ...serviceFormData,
-                              category: value,
-                              customCategory: "",
-                            });
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("services.form.categoryPlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="haircut">
-                            {t("categories.haircut")}
-                          </SelectItem>
-                          <SelectItem value="color">{t("categories.color")}</SelectItem>
-                          <SelectItem value="treatment">{t("categories.treatment")}</SelectItem>
-                          <SelectItem value="styling">{t("categories.styling")}</SelectItem>
-                          <SelectItem value="massage">{t("categories.massage")}</SelectItem>
-                          <SelectItem value="facial">{t("categories.facial")}</SelectItem>
-                          <SelectItem value="manicure">{t("categories.manicure")}</SelectItem>
-                          <SelectItem value="pedicure">{t("categories.pedicure")}</SelectItem>
-                          <SelectItem value="other">{t("categories.other")}</SelectItem>
-                          <SelectItem value="custom">
-                            {t("categories.custom")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {showCustomCategory && (
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="service-name">{t("services.form.name")} *</Label>
                         <Input
-                          placeholder={t("services.form.customCategoryPlaceholder")}
-                          value={serviceFormData.customCategory}
+                          id="service-name"
+                          value={serviceFormData.name}
                           onChange={(e) =>
                             setServiceFormData({
                               ...serviceFormData,
-                              customCategory: e.target.value,
-                              category: e.target.value,
+                              name: e.target.value,
                             })
                           }
+                          placeholder={t("services.form.namePlaceholder")}
                         />
-                      )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="service-category">{t("services.form.category")} *</Label>
+                        <Select
+                          value={
+                            showCustomCategory
+                              ? "custom"
+                              : serviceFormData.category
+                          }
+                          onValueChange={(value) => {
+                            if (value === "custom") {
+                              setShowCustomCategory(true);
+                              setServiceFormData({
+                                ...serviceFormData,
+                                category: "",
+                              });
+                            } else {
+                              setShowCustomCategory(false);
+                              setServiceFormData({
+                                ...serviceFormData,
+                                category: value,
+                                customCategory: "",
+                              });
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("services.form.categoryPlaceholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="haircut">
+                              {t("categories.haircut")}
+                            </SelectItem>
+                            <SelectItem value="color">{t("categories.color")}</SelectItem>
+                            <SelectItem value="treatment">{t("categories.treatment")}</SelectItem>
+                            <SelectItem value="styling">{t("categories.styling")}</SelectItem>
+                            <SelectItem value="massage">{t("categories.massage")}</SelectItem>
+                            <SelectItem value="facial">{t("categories.facial")}</SelectItem>
+                            <SelectItem value="manicure">{t("categories.manicure")}</SelectItem>
+                            <SelectItem value="pedicure">{t("categories.pedicure")}</SelectItem>
+                            <SelectItem value="other">{t("categories.other")}</SelectItem>
+                            <SelectItem value="custom">
+                              {t("categories.custom")}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {showCustomCategory && (
+                          <Input
+                            placeholder={t("services.form.customCategoryPlaceholder")}
+                            value={serviceFormData.customCategory}
+                            onChange={(e) =>
+                              setServiceFormData({
+                                ...serviceFormData,
+                                customCategory: e.target.value,
+                                category: e.target.value,
+                              })
+                            }
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="service-description">{t("services.form.description")}</Label>
-                    <Textarea
-                      id="service-description"
-                      value={serviceFormData.description}
-                      onChange={(e) =>
-                        setServiceFormData({
-                          ...serviceFormData,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder={t("services.form.descriptionPlaceholder")}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="service-duration">
-                        {t("services.form.duration")} *
-                      </Label>
-                      <Input
-                        id="service-duration"
-                        type="number"
-                        min="5"
-                        value={serviceFormData.duration}
+                      <Label htmlFor="service-description">{t("services.form.description")}</Label>
+                      <Textarea
+                        id="service-description"
+                        value={serviceFormData.description}
                         onChange={(e) =>
                           setServiceFormData({
                             ...serviceFormData,
-                            duration: e.target.value,
+                            description: e.target.value,
                           })
                         }
-                        placeholder={t("services.form.durationPlaceholder")}
+                        placeholder={t("services.form.descriptionPlaceholder")}
+                        rows={3}
                       />
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="service-duration">
+                          {t("services.form.duration")} *
+                        </Label>
+                        <Input
+                          id="service-duration"
+                          type="number"
+                          min="5"
+                          value={serviceFormData.duration}
+                          onChange={(e) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              duration: e.target.value,
+                            })
+                          }
+                          placeholder={t("services.form.durationPlaceholder")}
+                        />
+                      </div>
+
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="service-active"
+                          checked={serviceFormData.isActive}
+                          onCheckedChange={(checked) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              isActive: checked as boolean,
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor="service-active"
+                          className="cursor-pointer"
+                        >
+                          {t("services.form.isActive")}
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="service-public"
+                          checked={serviceFormData.isPublic}
+                          onCheckedChange={(checked) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              isPublic: checked as boolean,
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor="service-public"
+                          className="cursor-pointer"
+                        >
+                          {t("services.form.isPublic")}
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="service-manual-confirm"
+                          checked={serviceFormData.requireManualConfirmation}
+                          onCheckedChange={(checked) =>
+                            setServiceFormData({
+                              ...serviceFormData,
+                              requireManualConfirmation: checked as boolean,
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor="service-manual-confirm"
+                          className="cursor-pointer"
+                        >
+                          {t("services.form.requireManualConfirmation")}
+                        </Label>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="service-active"
-                        checked={serviceFormData.isActive}
-                        onCheckedChange={(checked) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            isActive: checked as boolean,
-                          })
-                        }
-                      />
-                      <Label
-                        htmlFor="service-active"
-                        className="cursor-pointer"
-                      >
-                        {t("services.form.isActive")}
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="service-public"
-                        checked={serviceFormData.isPublic}
-                        onCheckedChange={(checked) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            isPublic: checked as boolean,
-                          })
-                        }
-                      />
-                      <Label
-                        htmlFor="service-public"
-                        className="cursor-pointer"
-                      >
-                        {t("services.form.isPublic")}
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="service-manual-confirm"
-                        checked={serviceFormData.requireManualConfirmation}
-                        onCheckedChange={(checked) =>
-                          setServiceFormData({
-                            ...serviceFormData,
-                            requireManualConfirmation: checked as boolean,
-                          })
-                        }
-                      />
-                      <Label
-                        htmlFor="service-manual-confirm"
-                        className="cursor-pointer"
-                      >
-                        {t("services.form.requireManualConfirmation")}
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsServiceCreateModalOpen(false);
-                      resetServiceForm();
-                    }}
-                  >
-                    {t("actions.cancel")}
-                  </Button>
-                  <Button onClick={handleCreateService}>{t("services.addService")}</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsServiceCreateModalOpen(false);
+                        resetServiceForm();
+                      }}
+                    >
+                      {t("actions.cancel")}
+                    </Button>
+                    <Button onClick={handleCreateService}>{t("services.addService")}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
 
         <Card>

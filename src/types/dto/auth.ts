@@ -45,6 +45,7 @@ export interface AuthEntity {
         hasServices: boolean;
         hasPaymentMethods: boolean;
     };
+    plan?: "simple" | "individual" | "business";
 }
 
 // Re-export Entity from models for convenience

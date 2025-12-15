@@ -697,7 +697,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     return (
         <div className="space-y-6">
             {/* Modern Header with Gradient */}
-            <div className="relative overflow-hidden rounded-xl border bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950 p-6">
+            {/* Modern Header - Dark Theme Optimized */}
+            <div className="relative overflow-hidden rounded-xl border bg-card p-6">
                 <div className="relative z-10">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
@@ -705,7 +706,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 <div className="p-2 rounded-lg bg-primary/10">
                                     <CalendarIcon className="h-6 w-6 text-primary" />
                                 </div>
-                                <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                <h1 className="text-3xl font-bold tracking-tight text-foreground">
                                     {t("commandCenter.title")}
                                 </h1>
                             </div>
@@ -716,7 +717,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                         <div className="flex flex-wrap items-center gap-2">
 
 
-                            <div className="flex items-center border rounded-lg bg-white/80 dark:bg-gray-900/80">
+                            <div className="flex items-center border rounded-lg bg-background">
                                 <Button
                                     variant={viewMode === "list" ? "default" : "ghost"}
                                     size="sm"
@@ -741,7 +742,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setIsBlockTimeDialogOpen(true)}
-                                className="border-orange-200 hover:bg-orange-50 text-orange-700"
                             >
                                 <Lock className="h-4 w-4 sm:mr-2" />
                                 <span className="hidden sm:inline">Block Time</span>
@@ -750,7 +750,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <Button
                                 size="sm"
                                 onClick={() => setIsCreateDialogOpen(true)}
-                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                             >
                                 <Plus className="h-4 w-4 sm:mr-2" />
                                 <span className="hidden sm:inline">{t("newBooking")}</span>
@@ -758,9 +757,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                         </div>
                     </div>
                 </div>
-                {/* Decorative gradient orbs */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl -z-0"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-400/20 to-blue-400/20 rounded-full blur-3xl -z-0"></div>
             </div>
 
             {/* Block Time Dialog */}
@@ -777,17 +773,20 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
             {/* Quick Actions Bar */}
 
+            {/* Quick Actions Bar */}
+
+            {/* Quick Actions Bar - Monochromatic/Subtle */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <Button
                     variant="outline"
-                    className="h-auto py-4 flex-col gap-2 hover:bg-orange-50 hover:border-orange-200 transition-all"
+                    className="h-auto py-4 flex-col gap-2 hover:bg-accent hover:text-accent-foreground transition-all"
                     onClick={() => {
                         setStatusFilter('pending');
-                        setViewMode('list'); // Auto-switch to list when filtering
+                        setViewMode('list');
                     }}
                 >
-                    <div className="p-2 rounded-lg bg-orange-100">
-                        <AlertCircle className="h-5 w-5 text-orange-600" />
+                    <div className="p-2 rounded-lg bg-primary/10">
+                        <AlertCircle className="h-5 w-5 text-primary" />
                     </div>
                     <div className="text-center">
                         <div className="text-2xl font-bold">{stats.pendingConfirmation}</div>
@@ -797,14 +796,14 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                 <Button
                     variant="outline"
-                    className="h-auto py-4 flex-col gap-2 hover:bg-green-50 hover:border-green-200 transition-all"
+                    className="h-auto py-4 flex-col gap-2 hover:bg-accent hover:text-accent-foreground transition-all"
                     onClick={() => {
                         setDateFilter('today');
-                        setViewMode('list'); // Auto-switch to list when filtering
+                        setViewMode('list');
                     }}
                 >
-                    <div className="p-2 rounded-lg bg-green-100">
-                        <CalendarIcon className="h-5 w-5 text-green-600" />
+                    <div className="p-2 rounded-lg bg-primary/10">
+                        <CalendarIcon className="h-5 w-5 text-primary" />
                     </div>
                     <div className="text-center">
                         <div className="text-2xl font-bold">{stats.today}</div>
@@ -812,22 +811,21 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     </div>
                 </Button>
 
-                {hasActiveFilters && (
-                    <Button
-                        variant="outline"
-                        className="h-auto py-4 flex-col gap-2 hover:bg-red-50 hover:border-red-200 transition-all"
-                        onClick={resetFilters}
-                    >
-                        <div className="p-2 rounded-lg bg-red-100">
-                            <X className="h-5 w-5 text-red-600" />
-                        </div>
-                        <div className="text-center">
-                            <div className="text-2xl font-bold">{t("reset")}</div>
-                            <div className="text-xs text-muted-foreground">{t("activeFilters")}</div>
-                        </div>
-                    </Button>
-                )}
+                <Button
+                    variant="outline"
+                    className="h-auto py-4 flex-col gap-2 hover:bg-accent hover:text-accent-foreground transition-all sm:col-span-1"
+                    onClick={resetFilters}
+                >
+                    <div className="p-2 rounded-lg bg-primary/10">
+                        <X className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-center">
+                        <div className="text-sm font-semibold mt-1">Reset</div>
+                        <div className="text-xs text-muted-foreground">{t("activeFilters")}</div>
+                    </div>
+                </Button>
             </div>
+
 
             {expiredPromotionsCount > 0 && (
                 <Alert variant="destructive" className="mb-6">
@@ -837,7 +835,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                         You have {expiredPromotionsCount} active promotion(s) that have expired. Please update them in the Promotions module.
                     </AlertDescription>
                 </Alert>
-            )}
+            )
+            }
 
             {/* Interactive Stats Cards */}
             <StatsGrid columns={5}>
@@ -1080,17 +1079,17 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     {t("completeList")}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="p-4 sm:p-6 bg-gray-50/50">
+                            <CardContent className="p-4 sm:p-6 bg-transparent">
                                 <div className="space-y-3">
                                     {filteredBookings.map((booking) => (
                                         <div
                                             key={booking.id}
-                                            className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-white border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200"
+                                            className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-card border rounded-xl shadow-sm hover:border-primary/50 transition-all duration-200"
                                         >
                                             {/* Left: Client Info */}
                                             <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto mb-3 sm:mb-0">
                                                 <div className="relative shrink-0">
-                                                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-white shadow-sm">
+                                                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-sm">
                                                         <AvatarImage
                                                             src={
                                                                 booking.client && "avatar" in booking.client
@@ -1108,7 +1107,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     {booking.client?.isFirstTime && (
-                                                        <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] h-4 sm:h-5 min-w-0 bg-blue-500 border-2 border-white shadow-sm">
+                                                        <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] h-4 sm:h-5 min-w-0 bg-blue-500 border-2 border-background shadow-sm">
                                                             {t("status.new", "New")}
                                                         </Badge>
                                                     )}
@@ -1116,7 +1115,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-sm sm:text-base text-gray-900 truncate">
+                                                        <span className="font-semibold text-sm sm:text-base text-foreground truncate">
                                                             {booking.client?.name}
                                                         </span>
                                                     </div>
@@ -1131,12 +1130,12 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             {/* Middle: Service & Time */}
                                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8 w-full sm:w-auto flex-1 sm:px-6">
                                                 <div className="flex flex-col">
-                                                    <div className="font-medium text-sm sm:text-base text-gray-900 flex items-center gap-2">
+                                                    <div className="font-medium text-sm sm:text-base text-foreground flex items-center gap-2">
                                                         {booking.service?.name}
                                                         {(booking as any).recurrence?.isRecurring && (
                                                             <Badge
                                                                 variant="secondary"
-                                                                className="text-[10px] h-5 px-1 bg-purple-50 text-purple-700 border-purple-100 cursor-pointer hover:bg-purple-100"
+                                                                className="text-[10px] h-5 px-1 bg-accent text-accent-foreground border-border cursor-pointer hover:bg-accent/80"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     const parentId = (booking as any).recurrence?.parentBookingId || booking.id;
@@ -1148,166 +1147,44 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                             </Badge>
                                                         )}
                                                     </div>
-                                                    <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
-                                                        <User className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                                        <span>{booking.professional?.name || "N/A"}</span>
-                                                        <span className="text-gray-300">•</span>
-                                                        <span>{typeof (booking.service as any)?.duration === 'object' ? (booking.service as any)?.duration?.duration || 60 : (booking.service as any)?.duration || 60} min</span>
-                                                        {(booking.service as any)?.category && (
-                                                            <>
-                                                                <span className="text-gray-300">•</span>
-                                                                <span>{(booking.service as any)?.category}</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-100 w-fit">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                                                        <span className="font-medium text-gray-700">
-                                                            {booking.startTime
-                                                                ? new Date(booking.startTime).toLocaleDateString("en-US", {
-                                                                    month: "short",
-                                                                    day: "numeric",
-                                                                })
-                                                                : "N/A"}
-                                                        </span>
-                                                    </div>
-                                                    <div className="w-px h-3 sm:h-4 bg-gray-300"></div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                                                        <span className="font-medium text-gray-700">
-                                                            {booking.startTime
-                                                                ? new Date(booking.startTime).toLocaleTimeString("en-US", {
-                                                                    hour: "2-digit",
-                                                                    minute: "2-digit",
-                                                                })
-                                                                : "N/A"}
+                                                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-0.5">
+                                                        <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                                                        <span>
+                                                            {new Date(booking.startTime).toLocaleDateString()} at{" "}
+                                                            {new Date(booking.startTime).toLocaleTimeString([], {
+                                                                hour: "2-digit",
+                                                                minute: "2-digit",
+                                                            })}
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Right: Status & Actions */}
-                                            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                                                <div className="flex flex-col items-end gap-1.5">
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={`${getStatusColor(booking.status)} px-2.5 py-0.5`}
-                                                    >
-                                                        {getStatusIcon(booking.status)}
-                                                        <span className="ml-1.5 capitalize">{booking.status}</span>
-                                                    </Badge>
+                                            {/* Right: Actions & Status */}
+                                            <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-3 sm:gap-4 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-0 border-border">
+                                                {/* Status Badge */}
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`
+                                                      capitalize whitespace-nowrap px-2 py-0.5 h-6 sm:h-7
+                                                      ${getStatusColor(booking.status)}
+                                                    `}
+                                                >
+                                                    {getStatusIcon(booking.status)}
+                                                    <span className="ml-1.5">{t(`status.${booking.status}`, booking.status)}</span>
+                                                </Badge>
 
-                                                    {booking.status === "pending" && (booking as any).service?.bookingSettings?.requireManualConfirmation && (
-                                                        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 text-[10px] px-1.5 py-0.5">
-                                                            <AlertCircle className="h-3 w-3 mr-1" />
-                                                            Awaiting Confirmation
-                                                        </Badge>
-                                                    )}
-
-                                                    {canViewPricing && booking.status !== 'blocked' && !(booking.status === 'cancelled' && booking.client?.name === 'Blocked Time') && (
-                                                        <div className="flex items-center gap-2 text-sm">
-                                                            <span className="font-bold text-gray-900">
-                                                                {formatCurrency(
-                                                                    (booking as any).pricing?.totalPrice ??
-                                                                    (booking.service as any)?.pricing?.basePrice ??
-                                                                    (booking.service as any)?.price ??
-                                                                    0
-                                                                )}
-                                                            </span>
-                                                            {canViewPaymentDetails && (
-                                                                <Badge
-                                                                    variant="secondary"
-                                                                    className={`text-[10px] h-5 px-1.5 capitalize ${getPaymentStatusColor(booking.paymentStatus || 'pending')}`}
-                                                                >
-                                                                    {booking.paymentStatus || "pending"}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-
+                                                {/* Action Buttons */}
                                                 <div className="flex items-center gap-1">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-gray-500 hover:text-gray-900"
-                                                        onClick={() => handleViewDetails(booking)}
-                                                        title="View Details"
-                                                    >
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-
                                                     {booking.status === 'pending' && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50/10"
                                                             onClick={() => handleConfirmBooking(booking.id)}
                                                             title="Confirm Booking"
                                                         >
                                                             <CheckCircle className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-
-                                                    {booking.status === 'confirmed' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                                            onClick={() => handleUpdateStatus(booking.id, 'in_progress')}
-                                                            title="Start Appointment"
-                                                        >
-                                                            <Play className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-
-                                                    {booking.status === 'in_progress' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                            onClick={async () => {
-                                                                if (confirm(t("confirmations.markCompleted", "Are you sure you want to mark this booking as completed?"))) {
-                                                                    try {
-                                                                        await completeBooking(booking.id);
-                                                                        toast.success(t("messages.bookingCompleted", "Booking completed successfully"));
-                                                                        fetchBookings();
-                                                                    } catch (error) {
-                                                                        toast.error(t("messages.failedComplete", "Failed to complete booking"));
-                                                                        console.error(error);
-                                                                    }
-                                                                }
-                                                            }}
-                                                            title="Mark as Completed"
-                                                        >
-                                                            <CheckCircle className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-
-                                                    {canViewPaymentDetails && booking.paymentStatus === 'pending' && booking.status !== 'cancelled' && booking.status !== 'blocked' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-gray-500 hover:text-gray-900"
-                                                            onClick={() => handlePaymentClick(booking)}
-                                                            title="Process Payment"
-                                                        >
-                                                            <CreditCard className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-
-                                                    {canViewPaymentDetails && booking.paymentStatus === 'paid' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                            onClick={() => handlePaymentClick(booking)}
-                                                            title="Payment Details"
-                                                        >
-                                                            <FileText className="h-4 w-4" />
                                                         </Button>
                                                     )}
 
@@ -1316,7 +1193,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="h-8 w-8 text-gray-500 hover:text-gray-900"
+                                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                                             >
                                                                 <MoreHorizontal className="h-4 w-4" />
                                                             </Button>
@@ -1441,12 +1318,12 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     ))}
 
                                     {filteredBookings.length === 0 && (
-                                        <div className="text-center py-12 bg-white rounded-xl border border-dashed">
-                                            <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
-                                                <CalendarIcon className="h-full w-full" />
+                                        <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-card rounded-lg border-2 border-dashed border-border">
+                                            <div className="p-4 rounded-full bg-muted mb-4">
+                                                <CalendarIcon className="h-8 w-8 text-muted-foreground" />
                                             </div>
-                                            <h3 className="text-lg font-medium text-gray-900">{t("noBookingsFound")}</h3>
-                                            <p className="text-sm text-gray-500 mt-1">
+                                            <h3 className="text-lg font-medium text-foreground">{t("noBookingsFound")}</h3>
+                                            <p className="text-sm text-muted-foreground mt-1">
                                                 {t("tryAdjustingFilters")}
                                             </p>
                                         </div>

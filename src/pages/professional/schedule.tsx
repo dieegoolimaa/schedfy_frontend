@@ -113,6 +113,18 @@ export default function ProfessionalSchedulePage() {
   const [breakTime, setBreakTime] = useState(60);
   const [loading, setLoading] = useState(false);
 
+  // Permission check
+  const canEdit = useState(() => {
+    if (!user) return false;
+    // Owner and Admin always have access
+    if (user.role === 'owner' || user.role === 'admin') return true;
+
+    // Simple plan professionals cannot edit their schedule
+    if (user.plan === 'simple') return false;
+
+    return true;
+  })[0];
+
   // Block date dialog state
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [dateRange, setDateRange] = useState<{
@@ -329,11 +341,26 @@ export default function ProfessionalSchedulePage() {
             {t("schedule.description")}
           </p>
         </div>
-        <Button onClick={handleSaveSchedule} disabled={loading} size="lg">
+        <Button onClick={handleSaveSchedule} disabled={loading || !canEdit} size="lg">
           <Save className="h-4 w-4 mr-2" />
           {t("schedule.save")}
         </Button>
       </div>
+
+      {!canEdit && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                Your schedule is managed by the account owner. You cannot make changes directly.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Settings */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -348,6 +375,7 @@ export default function ProfessionalSchedulePage() {
             <Select
               value={bufferTime.toString()}
               onValueChange={(v) => setBufferTime(Number(v))}
+              disabled={!canEdit}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -374,6 +402,7 @@ export default function ProfessionalSchedulePage() {
             <Select
               value={breakTime.toString()}
               onValueChange={(v) => setBreakTime(Number(v))}
+              disabled={!canEdit}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -415,6 +444,7 @@ export default function ProfessionalSchedulePage() {
                         <Switch
                           checked={daySchedule.enabled}
                           onCheckedChange={() => toggleDay(dayKey)}
+                          disabled={!canEdit}
                         />
                         <div>
                           <h3 className="font-semibold">{label}</h3>
@@ -447,6 +477,7 @@ export default function ProfessionalSchedulePage() {
                                     )
                                   }
                                   className="px-3 py-1.5 border rounded-md text-sm"
+                                  disabled={!canEdit}
                                 />
                                 <span className="text-sm text-muted-foreground">
                                   —
@@ -463,6 +494,7 @@ export default function ProfessionalSchedulePage() {
                                     )
                                   }
                                   className="px-3 py-1.5 border rounded-md text-sm"
+                                  disabled={!canEdit}
                                 />
                               </div>
                               <div className="flex items-center gap-2">

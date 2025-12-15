@@ -50,6 +50,7 @@ import { WorkingHours } from "../../types/models/entities.interface";
 import { BookingCreator } from "../../components/booking";
 import { useServices } from "../../hooks/useServices";
 import { toast } from "sonner";
+import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 
 // Helper functions to extract working hours range
 const getEarliestWorkingHour = (workingHours?: WorkingHours): string => {
@@ -90,6 +91,7 @@ export function ProfessionalDashboardPage() {
   const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
   const [, setStatsLoading] = useState(false);
   const { user } = useAuth();
+  const { canViewFinancialReports } = usePlanRestrictions();
 
   // Fetch entity profile to get working hours
   const { entity } = useEntity({ autoFetch: true });
@@ -359,30 +361,32 @@ export function ProfessionalDashboardPage() {
 
       {/* Quick Stats */}
       <StatsGrid columns={4}>
-        <StatCard
-          title="Monthly Revenue"
-          value={
-            entityStats?.revenue.thisMonth
-              ? formatCurrency(entityStats.revenue.thisMonth)
-              : formatCurrency(stats.monthlyRevenue)
-          }
-          subtitle={
-            entityStats?.revenue.change !== undefined
-              ? `${entityStats.revenue.change > 0 ? "+" : ""
-              }${entityStats.revenue.change.toFixed(1)}% vs last month`
-              : undefined
-          }
-          icon={DollarSign}
-          variant="success"
-          trend={
-            entityStats?.revenue.change !== undefined
-              ? {
-                value: `${Math.abs(entityStats.revenue.change).toFixed(1)}% `,
-                isPositive: entityStats.revenue.change > 0,
-              }
-              : undefined
-          }
-        />
+        {canViewFinancialReports && (
+          <StatCard
+            title="Monthly Revenue"
+            value={
+              entityStats?.revenue.thisMonth
+                ? formatCurrency(entityStats.revenue.thisMonth)
+                : formatCurrency(stats.monthlyRevenue)
+            }
+            subtitle={
+              entityStats?.revenue.change !== undefined
+                ? `${entityStats.revenue.change > 0 ? "+" : ""
+                }${entityStats.revenue.change.toFixed(1)}% vs last month`
+                : undefined
+            }
+            icon={DollarSign}
+            variant="success"
+            trend={
+              entityStats?.revenue.change !== undefined
+                ? {
+                  value: `${Math.abs(entityStats.revenue.change).toFixed(1)}% `,
+                  isPositive: entityStats.revenue.change > 0,
+                }
+                : undefined
+            }
+          />
+        )}
         <StatCard
           title="Monthly Bookings"
           value={
@@ -471,18 +475,27 @@ export function ProfessionalDashboardPage() {
                         : booking.service?.name || "N/A"}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      €
-                      {typeof booking.service === "object" &&
-                        booking.service?.price
-                        ? booking.service.price
-                        : 0}
-                    </p>
-                    <Badge variant="outline" className="text-xs">
-                      {booking.status}
-                    </Badge>
-                  </div>
+                  {canViewFinancialReports && (
+                    <div className="text-right">
+                      <p className="text-sm font-medium">
+                        €
+                        {typeof booking.service === "object" &&
+                          booking.service?.price
+                          ? booking.service.price
+                          : 0}
+                      </p>
+                      <Badge variant="outline" className="text-xs">
+                        {booking.status}
+                      </Badge>
+                    </div>
+                  )}
+                  {!canViewFinancialReports && (
+                    <div className="text-right">
+                      <Badge variant="outline" className="text-xs">
+                        {booking.status}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -503,15 +516,17 @@ export function ProfessionalDashboardPage() {
               </div>
               <p className="text-2xl font-bold">{stats.monthlyBookings}</p>
             </div>
-            <div className="flex justify-between items-center p-4 border rounded-lg">
-              <div>
-                <p className="text-sm font-medium">Monthly Revenue</p>
-                <p className="text-xs text-muted-foreground">This month</p>
+            {canViewFinancialReports && (
+              <div className="flex justify-between items-center p-4 border rounded-lg">
+                <div>
+                  <p className="text-sm font-medium">Monthly Revenue</p>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                </div>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(stats.monthlyRevenue)}
+                </p>
               </div>
-              <p className="text-2xl font-bold">
-                {formatCurrency(stats.monthlyRevenue)}
-              </p>
-            </div>
+            )}
             <div className="flex justify-between items-center p-4 border rounded-lg">
               <div>
                 <p className="text-sm font-medium">Weekly Bookings</p>

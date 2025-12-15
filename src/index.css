@@ -27,37 +27,37 @@
   }
 
   .dark {
-    /* Slate Dark - Modern Professional Theme */
-    --background: 222.2 84% 4.9%; /* slate-950 - Deep blue-gray */
-    --foreground: 210 40% 98%; /* slate-50 - Bright text */
+    /* Premium Black/Gray Theme */
+    --background: 0 0% 3.9%; /* #0a0a0a - Deep black */
+    --foreground: 0 0% 98%; /* #fafafa - Bright white */
 
-    --card: 217.2 32.6% 17.5%; /* slate-800 - Elevated surface */
-    --card-foreground: 210 40% 98%; /* slate-50 */
+    --card: 0 0% 8%; /* #141414 - Dark gray surface */
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 47.4% 11.2%; /* slate-900 - Slightly lighter than bg */
-    --popover-foreground: 210 40% 98%; /* slate-50 */
+    --popover: 0 0% 8%; /* #141414 */
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217.2 91.2% 59.8%; /* blue-500 - Vibrant primary */
-    --primary-foreground: 210 40% 98%; /* slate-50 */
+    --primary: 0 0% 98%; /* White primary for high contrast */
+    --primary-foreground: 0 0% 9%; /* Black text on primary */
 
-    --secondary: 215 27.9% 16.9%; /* slate-700/800 mix - Subtle surface */
-    --secondary-foreground: 210 40% 98%; /* slate-50 */
+    --secondary: 0 0% 14.9%; /* #262626 */
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 215.4 16.3% 23.9%; /* slate-700 - Muted background */
-    --muted-foreground: 215.4 16.3% 56.9%; /* slate-400 - Muted text */
+    --muted: 0 0% 14.9%; /* #262626 */
+    --muted-foreground: 0 0% 63.9%; /* #a3a3a3 */
 
-    --accent: 217.2 32.6% 17.5%; /* slate-800 - Accent surface */
-    --accent-foreground: 210 40% 98%; /* slate-50 */
+    --accent: 0 0% 14.9%; /* #262626 */
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%; /* red-500 - Error state */
-    --destructive-foreground: 210 40% 98%; /* slate-50 */
+    --destructive: 0 62.8% 30.6%; /* Deep red */
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 25%; /* Lighter borders for better separation */
-    --input: 217.2 32.6% 20%; /* Slightly lighter input background */
-    --ring: 217.2 91.2% 59.8%; /* blue-500 - Focus ring */
+    --border: 0 0% 14.9%; /* #262626 */
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%; /* #d4d4d4 */
 
-    --success: 142.1 76.2% 36.3%; /* green-600 */
-    --warning: 38 92% 50%; /* yellow-500 */
+    --success: 142 70% 50%;
+    --warning: 48 96% 53%;
   }
 }
 
@@ -114,76 +114,74 @@
   @apply bg-muted-foreground/50;
 }
 
-/* Improved Dialog Styling for Dark Theme */
+/* Improved Dialog Styling for Dark Theme - Black/Gray Update */
 .dark [role="dialog"] {
-  background: hsl(
-    217.2 32.6% 20%
-  ); /* Lighter than card for better separation */
-  border: 1px solid hsl(217.2 32.6% 28%); /* More visible border */
+  background: hsl(0 0% 8%);
+  border: 1px solid hsl(0 0% 15%);
 }
 
 .dark [role="dialog"] input,
 .dark [role="dialog"] textarea,
 .dark [role="dialog"] select {
-  background: hsl(217.2 32.6% 15%); /* Darker input for contrast */
-  border: 1px solid hsl(217.2 32.6% 30%);
-  color: hsl(210 40% 98%);
+  background: hsl(0 0% 12%);
+  border: 1px solid hsl(0 0% 20%);
+  color: hsl(0 0% 98%);
 }
 
 .dark [role="dialog"] input:focus,
 .dark [role="dialog"] textarea:focus,
 .dark [role="dialog"] select:focus {
-  border-color: hsl(217.2 91.2% 59.8%); /* Primary color on focus */
+  border-color: hsl(0 0% 98%);
   outline: none;
   ring: 2px;
-  ring-color: hsl(217.2 91.2% 59.8%);
+  ring-color: hsl(0 0% 98%);
 }
 
 .dark [role="dialog"] label {
-  color: hsl(215.4 16.3% 70%); /* Lighter label text */
+  color: hsl(0 0% 70%);
   font-weight: 500;
 }
 
-/* Better Badge Contrast in Dark Mode */
+/* Better Badge Contrast in Dark Mode - Desaturated */
 .dark .badge-success {
-  background: hsl(142.1 76.2% 25%);
-  color: hsl(142.1 76.2% 85%);
-  border: 1px solid hsl(142.1 76.2% 40%);
+  background: hsl(142 70% 15%);
+  color: hsl(142 70% 85%);
+  border: 1px solid hsl(142 70% 25%);
 }
 
 .dark .badge-warning {
-  background: hsl(38 92% 35%);
-  color: hsl(38 92% 95%);
-  border: 1px solid hsl(38 92% 55%);
+  background: hsl(48 96% 15%);
+  color: hsl(48 96% 85%);
+  border: 1px solid hsl(48 96% 25%);
 }
 
 .dark .badge-error {
-  background: hsl(0 84.2% 40%);
-  color: hsl(0 84.2% 95%);
-  border: 1px solid hsl(0 84.2% 60%);
+  background: hsl(0 80% 15%);
+  color: hsl(0 80% 85%);
+  border: 1px solid hsl(0 80% 25%);
 }
 
 .dark .badge-info {
-  background: hsl(217.2 91.2% 40%);
-  color: hsl(217.2 91.2% 95%);
-  border: 1px solid hsl(217.2 91.2% 60%);
+  background: hsl(220 10% 20%); /* Neutral/Blue-gray */
+  color: hsl(220 10% 90%);
+  border: 1px solid hsl(220 10% 30%);
 }
 
 /* Console/Log Text Improvements */
 .dark .text-muted-foreground {
-  color: hsl(215.4 16.3% 65%); /* Brighter muted text */
+  color: hsl(0 0% 65%);
 }
 
 .dark .text-destructive {
-  color: hsl(0 84.2% 70%); /* Brighter error text */
+  color: hsl(0 80% 70%);
 }
 
 .dark .text-success {
-  color: hsl(142.1 76.2% 60%); /* Brighter success text */
+  color: hsl(142 70% 60%);
 }
 
 .dark .text-warning {
-  color: hsl(38 92% 65%); /* Brighter warning text */
+  color: hsl(48 96% 65%);
 }
 
 /* Mobile-optimized card spacing */
@@ -270,5 +268,96 @@
   .mobile-h3 {
     font-size: 1.25rem;
     line-height: 1.75rem;
+  }
+}
+
+/* Neumorphic / Soft 3D Design System */
+@layer components {
+  /* Cards & Containers - Elevated "Soft" Look */
+  .bg-card {
+    border: none !important; /* Remove borders to rely on shadow depth */
+    
+    /* Light Mode */
+    background: linear-gradient(145deg, #ffffff, #f3f4f6);
+    box-shadow: 
+      8px 8px 20px rgba(0, 0, 0, 0.06), /* Main soft shadow */
+      -8px -8px 20px rgba(255, 255, 255, 1.0), /* Top-left light source */
+       inset 0 0 0 1px rgba(255,255,255, 0.5); /* Subtle rim */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .dark .bg-card {
+    /* Dark Mode - Soft Dark UI */
+    background: linear-gradient(145deg, hsl(0 0% 12%), hsl(0 0% 9%));
+    box-shadow: 
+      10px 10px 20px rgba(0, 0, 0, 0.6), /* Deep shadow */
+      -4px -4px 10px rgba(255, 255, 255, 0.03), /* Faint light source */
+      inset 0 1px 0 0 rgba(255,255,255, 0.05); /* Bevel */
+  }
+
+  /* Interactive Cards Hover */
+  .bg-card[onClick]:hover, 
+  a:hover .bg-card {
+    transform: translateY(-2px);
+    box-shadow: 
+      12px 12px 25px rgba(0, 0, 0, 0.08),
+      -8px -8px 20px rgba(255, 255, 255, 1.0);
+  }
+  .dark .bg-card[onClick]:hover, 
+  .dark a:hover .bg-card {
+    box-shadow: 
+      15px 15px 30px rgba(0, 0, 0, 0.7),
+      -4px -4px 12px rgba(255, 255, 255, 0.05);
+  }
+
+  /* Buttons - 3D "Pop" Effect */
+  button:not([disabled]), 
+  .button {
+    transition: all 0.2s ease;
+    /* We selectively apply this to avoid breaking ghost buttons, 
+       but standard filled buttons usually benefit */
+  }
+  
+  /* Primary/Filled Buttons */
+  button[class*="bg-primary"],
+  button[class*="bg-destructive"] {
+    box-shadow: 
+      4px 4px 10px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2); /* Top inner highlight */
+  }
+  
+  button[class*="bg-primary"]:active {
+    transform: translateY(1px);
+    box-shadow: 
+      2px 2px 5px rgba(0, 0, 0, 0.2),
+      inset 0 2px 4px rgba(0, 0, 0, 0.1); /* Pressed look */
+  }
+
+  /* Inputs - "Pressed" / Debossed Look */
+  input:not([type="checkbox"]):not([type="radio"]), 
+  textarea, 
+  select {
+    border: none !important;
+    background-color: #f3f4f6; /* Light gray for contrast */
+    box-shadow: 
+      inset 3px 3px 6px rgba(0, 0, 0, 0.06), /* Inner shadow top-left */
+      inset -2px -2px 4px rgba(255, 255, 255, 1.0); /* Inner light bottom-right */
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]), 
+  .dark textarea, 
+  .dark select {
+    background-color: hsl(0 0% 7%);
+    box-shadow: 
+      inset 4px 4px 10px rgba(0, 0, 0, 0.5),
+      inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+  }
+
+  .dark input:focus, 
+  .dark textarea:focus, 
+  .dark select:focus {
+    box-shadow: 
+      inset 4px 4px 10px rgba(0, 0, 0, 0.5),
+      0 0 0 1px hsl(0 0% 30%); /* Subtle focus ring */
   }
 }

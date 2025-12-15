@@ -40,7 +40,7 @@ import { EntitySubscriptionPage } from "./pages/entity/subscription";
 import { SupportPage } from "./pages/common/support";
 
 // Professional pages
-import { ProfessionalDashboardPage } from "./pages/professional/professional-dashboard";
+
 import ProfessionalProfilePage from "./pages/professional/profile";
 import ProfessionalSchedulePage from "./pages/professional/schedule";
 import ProfessionalEarningsPage from "./pages/professional/earnings";
@@ -154,7 +154,10 @@ function App() {
                 <Route
                   path="/simple/dashboard"
                   element={
-                    <ProtectedRoute allowedPlans={["simple"]}>
+                    <ProtectedRoute
+                      allowedPlans={["simple"]}
+                      allowedRoles={["owner", "admin", "manager"]}
+                    >
                       <OnboardingGuard>
                         <Layout>
                           <CommandCenter planType="simple" />
@@ -168,6 +171,7 @@ function App() {
                   element={
                     <ProtectedRoute
                       allowedPlans={["simple"]}
+                      allowedRoles={["owner", "admin", "manager"]}
                     >
                       <OnboardingGuard>
                         <Layout>
@@ -182,6 +186,7 @@ function App() {
                   element={
                     <ProtectedRoute
                       allowedPlans={["simple", "individual", "business"]}
+                      allowedRoles={["owner", "admin", "manager"]}
                     >
                       <OnboardingGuard>
                         <Layout>
@@ -196,6 +201,7 @@ function App() {
                   element={
                     <ProtectedRoute
                       allowedPlans={["simple", "individual", "business"]}
+                      allowedRoles={["owner", "admin", "manager"]}
                     >
                       <OnboardingGuard>
                         <Layout>
@@ -210,6 +216,7 @@ function App() {
                   element={
                     <ProtectedRoute
                       allowedPlans={["simple", "individual", "business"]}
+                      allowedRoles={["owner", "admin", "manager"]}
                     >
                       <OnboardingGuard>
                         <Layout>
@@ -225,6 +232,7 @@ function App() {
                   element={
                     <ProtectedRoute
                       allowedPlans={["simple", "individual", "business"]}
+                      allowedRoles={["owner", "admin", "manager"]}
                     >
                       <OnboardingGuard>
                         <Layout>
@@ -238,7 +246,10 @@ function App() {
                 <Route
                   path="/simple/subscription"
                   element={
-                    <ProtectedRoute allowedPlans={["simple"]}>
+                    <ProtectedRoute
+                      allowedPlans={["simple"]}
+                      allowedRoles={["owner", "admin", "manager"]}
+                    >
                       <OnboardingGuard>
                         <Layout>
                           <SimpleSubscriptionPage />
@@ -479,6 +490,16 @@ function App() {
                   }
                 />
                 <Route
+                  path="/entity/users/:userId/profile"
+                  element={
+                    <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                      <Layout>
+                        <ProfessionalProfilePage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/entity/profile"
                   element={
                     <EntityRoute>
@@ -597,7 +618,17 @@ function App() {
                   element={
                     <ProfessionalRoute>
                       <Layout>
-                        <ProfessionalDashboardPage />
+                        <CommandCenter />
+                      </Layout>
+                    </ProfessionalRoute>
+                  }
+                />
+                <Route
+                  path="/professional/reports"
+                  element={
+                    <ProfessionalRoute>
+                      <Layout>
+                        <OperationalReportsPage />
                       </Layout>
                     </ProfessionalRoute>
                   }

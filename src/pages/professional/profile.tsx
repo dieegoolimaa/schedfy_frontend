@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth, transformBackendUser } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
@@ -34,6 +35,8 @@ import {
   Clock,
   Save,
   Camera,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { apiClient } from "../../lib/api-client";
@@ -41,8 +44,13 @@ import { apiClient } from "../../lib/api-client";
 export default function ProfessionalProfilePage() {
   const { t } = useTranslation("professional");
   const { user, updateUser } = useAuth();
+  const { userId } = useParams(); // Get user ID from URL if available
+
+  // Determine if we are viewing another user or ourselves
+  const targetId = userId || user?.id;
+  const isSelf = !userId || userId === user?.id;
+
   const entityId = user?.entityId || "";
-  const professionalId = user?.id || "";
 
   const { bookings } = useBookings({
     entityId,
@@ -81,9 +89,9 @@ export default function ProfessionalProfilePage() {
         typeof b.professional === "string"
           ? b.professional
           : (b.professional as any)?._id || (b.professional as any)?.id;
-      return profId === professionalId || b.professionalId === professionalId;
+      return profId === targetId || b.professionalId === targetId;
     });
-  }, [bookings, professionalId]);
+  }, [bookings, targetId]);
 
   const stats = useMemo(() => {
     const total = myBookings.length;
@@ -109,23 +117,32 @@ export default function ProfessionalProfilePage() {
     if (!user || !entityOwnerId) return true; // Default to true while loading or if data missing
 
     const isOwner = user.id === entityOwnerId;
+    const isAdmin = user.role === 'admin';
     const isSimplePlan = entityPlan === 'simple';
 
-    // Owner can always edit
+    // Owner can always edit anyone
     if (isOwner) return true;
 
-    // If Simple plan and not owner, cannot edit
-    if (isSimplePlan) return false;
+    // Admin can edit anyone (including themselves)
+    if (isAdmin) return true;
 
-    // Default (e.g. Business plan) can edit
+    // If viewing another user and not owner/admin (covered above), assume no edit
+    if (!isSelf) return false;
+
+    // --- Logic for SELF editing below ---
+
+    // Simple plan professional cannot edit themselves
+    if (isSimplePlan && !isOwner && !isAdmin) return false;
+
+    // Default (e.g. Business plan professional) can edit themselves
     return true;
-  }, [user, entityOwnerId, entityPlan]);
+  }, [user, entityOwnerId, entityPlan, isSelf]);
 
   useEffect(() => {
-    if (user?.id) {
+    if (targetId) {
       fetchProfileData();
     }
-  }, [user?.id]);
+  }, [targetId]);
 
   const DAYS = [
     t("days.sunday", "Sunday"),
@@ -142,7 +159,7 @@ export default function ProfessionalProfilePage() {
       setLoading(true);
 
       // Fetch user profile
-      const response = await apiClient.get(`/api/users/${user?.id}`);
+      const response = await apiClient.get(`/api/users/${targetId}`);
       const data = (response.data as any).data || response.data;
       setProfileData(data);
 
@@ -236,11 +253,13 @@ export default function ProfessionalProfilePage() {
         startTime,
         endTime,
         isAvailable,
-        breaks: breaks || []
+        breaks: breaks ? breaks.map((b: any) => ({
+          startTime: b.startTime,
+          endTime: b.endTime
+        })) : []
       }));
 
       const updatePayload: any = {
-        isProfessional: entityPlan === 'simple' ? true : profileData?.isProfessional,
         firstName,
         lastName,
         phone,
@@ -259,11 +278,13 @@ export default function ProfessionalProfilePage() {
         workingHours: sanitizedWorkingHours,
       };
 
-      const response = await apiClient.patch(`/api/users/${user?.id}`, updatePayload);
+      const response = await apiClient.patch(`/api/users/${targetId}`, updatePayload);
       const updatedData = (response as any).data?.data || (response as any).data;
 
-      // Update local user context
-      await updateUser(transformBackendUser(updatedData));
+      // Update local user context ONLY if we are editing ourselves
+      if (isSelf) {
+        await updateUser(transformBackendUser(updatedData));
+      }
 
       // Refresh profile data to ensure UI is in sync
       await fetchProfileData();
@@ -326,7 +347,39 @@ export default function ProfessionalProfilePage() {
     }
 
     newHours[index] = { ...newHours[index], [field]: value };
+    newHours[index] = { ...newHours[index], [field]: value };
     setWorkingHours(newHours);
+  };
+
+  const handleAddBreak = (dayIndex: number) => {
+    if (!canEdit) return;
+    const newHours = [...workingHours];
+    const currentBreaks = newHours[dayIndex].breaks || [];
+    newHours[dayIndex] = {
+      ...newHours[dayIndex],
+      breaks: [...currentBreaks, { startTime: "12:00", endTime: "13:00" }]
+    };
+    setWorkingHours(newHours);
+  };
+
+  const handleRemoveBreak = (dayIndex: number, breakIndex: number) => {
+    if (!canEdit) return;
+    const newHours = [...workingHours];
+    if (newHours[dayIndex].breaks) {
+      newHours[dayIndex].breaks = newHours[dayIndex].breaks.filter((_, i) => i !== breakIndex);
+      setWorkingHours(newHours);
+    }
+  };
+
+  const handleBreakChange = (dayIndex: number, breakIndex: number, field: 'startTime' | 'endTime', value: string) => {
+    if (!canEdit) return;
+    const newHours = [...workingHours];
+    if (newHours[dayIndex].breaks) {
+      const newBreaks = [...newHours[dayIndex].breaks];
+      newBreaks[breakIndex] = { ...newBreaks[breakIndex], [field]: value };
+      newHours[dayIndex].breaks = newBreaks;
+      setWorkingHours(newHours);
+    }
   };
 
   const handleAddSpecialty = () => {
@@ -768,6 +821,62 @@ export default function ProfessionalProfilePage() {
                                 disabled={!canEdit}
                               />
                             </div>
+                          </div>
+                        )}
+
+                        {/* Breaks Section */}
+                        {daySchedule.isAvailable && (daySchedule.breaks?.length > 0 || canEdit) && (
+                          <div className="pl-32 mt-2 space-y-2">
+                            <div className="text-sm font-medium text-muted-foreground mb-1">Breaks</div>
+                            {daySchedule.breaks?.map((breakItem: any, breakIndex: number) => (
+                              <div key={breakIndex} className="flex gap-2 items-center">
+                                <div className="relative w-32">
+                                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+                                  <Input
+                                    type="time"
+                                    value={breakItem.startTime}
+                                    onChange={(e) =>
+                                      handleBreakChange(index, breakIndex, "startTime", e.target.value)
+                                    }
+                                    className="pl-8 h-8 text-xs"
+                                    disabled={!canEdit}
+                                  />
+                                </div>
+                                <span className="text-muted-foreground text-xs">-</span>
+                                <div className="relative w-32">
+                                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+                                  <Input
+                                    type="time"
+                                    value={breakItem.endTime}
+                                    onChange={(e) =>
+                                      handleBreakChange(index, breakIndex, "endTime", e.target.value)
+                                    }
+                                    className="pl-8 h-8 text-xs"
+                                    disabled={!canEdit}
+                                  />
+                                </div>
+                                {canEdit && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveBreak(index, breakIndex)}
+                                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                            {canEdit && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAddBreak(index)}
+                                className="h-7 text-xs flex items-center gap-1 mt-1"
+                              >
+                                <Plus className="h-3 w-3" /> Add Break
+                              </Button>
+                            )}
                           </div>
                         )}
                       </div>

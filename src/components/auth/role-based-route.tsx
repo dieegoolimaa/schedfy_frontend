@@ -101,7 +101,12 @@ export function BusinessRoute({ children }: { children: React.ReactNode }) {
 // Specialized protected route for entity/business plan users
 export function EntityRoute({ children }: { children: React.ReactNode }) {
   return (
-    <ProtectedRoute allowedPlans={["business"]}>{children}</ProtectedRoute>
+    <ProtectedRoute
+      allowedPlans={["business"]}
+      allowedRoles={["owner", "admin", "manager"]}
+    >
+      {children}
+    </ProtectedRoute>
   );
 }
 
@@ -112,7 +117,10 @@ export function IndividualPlusRoute({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute allowedPlans={["individual", "business"]}>
+    <ProtectedRoute
+      allowedPlans={["individual", "business"]}
+      allowedRoles={["owner", "admin", "manager"]}
+    >
       {children}
     </ProtectedRoute>
   );

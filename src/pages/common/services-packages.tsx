@@ -722,7 +722,7 @@ const ServicesAndPackages: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className={hasPackageAccess ? "grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -731,11 +731,34 @@ const ServicesAndPackages: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalServices}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {activeServices.length} {t("stats.active")}
-            </p>
+            {hasPackageAccess && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {activeServices.length} {t("stats.active")}
+              </p>
+            )}
+            {!hasPackageAccess && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("stats.totalCatalog", "Catalog Items")}
+              </p>
+            )}
           </CardContent>
         </Card>
+
+        {!hasPackageAccess && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t("stats.activeServices", "Active Services")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{activeServices.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("stats.availableBooking", "Available for booking")}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {hasPackageAccess && (
           <>
@@ -938,19 +961,28 @@ const ServicesAndPackages: React.FC = () => {
                             <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="haircut">
-                              Corte de Cabelo
-                            </SelectItem>
+                            <SelectItem value="consultation">Consultoria</SelectItem>
+                            <SelectItem value="health">Saúde</SelectItem>
+                            <SelectItem value="beauty">Beleza</SelectItem>
+                            <SelectItem value="haircut">Corte de Cabelo</SelectItem>
                             <SelectItem value="color">Coloração</SelectItem>
                             <SelectItem value="treatment">Tratamento</SelectItem>
                             <SelectItem value="styling">Penteado</SelectItem>
-                            <SelectItem value="massage">Massagem</SelectItem>
-                            <SelectItem value="facial">Facial</SelectItem>
                             <SelectItem value="manicure">Manicure</SelectItem>
                             <SelectItem value="pedicure">Pedicure</SelectItem>
+                            <SelectItem value="massage">Massagem</SelectItem>
+                            <SelectItem value="facial">Facial</SelectItem>
+                            <SelectItem value="fitness">Fitness</SelectItem>
+                            <SelectItem value="education">Educação</SelectItem>
+                            <SelectItem value="events">Eventos</SelectItem>
+                            <SelectItem value="cleaning">Limpeza</SelectItem>
+                            <SelectItem value="repairs">Reparos</SelectItem>
+                            <SelectItem value="legal">Jurídico</SelectItem>
+                            <SelectItem value="pet_care">Cuidados Pet</SelectItem>
+                            <SelectItem value="automotive">Automotivo</SelectItem>
                             <SelectItem value="other">Outro</SelectItem>
                             <SelectItem value="custom">
-                              ➕ Create Custom Category
+                              ➕ Criar Categoria Personalizada
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -1302,17 +1334,28 @@ const ServicesAndPackages: React.FC = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="consultation">Consultoria</SelectItem>
+                            <SelectItem value="health">Saúde</SelectItem>
+                            <SelectItem value="beauty">Beleza</SelectItem>
                             <SelectItem value="haircut">Corte de Cabelo</SelectItem>
                             <SelectItem value="color">Coloração</SelectItem>
                             <SelectItem value="treatment">Tratamento</SelectItem>
                             <SelectItem value="styling">Penteado</SelectItem>
-                            <SelectItem value="massage">Massagem</SelectItem>
-                            <SelectItem value="facial">Facial</SelectItem>
                             <SelectItem value="manicure">Manicure</SelectItem>
                             <SelectItem value="pedicure">Pedicure</SelectItem>
+                            <SelectItem value="massage">Massagem</SelectItem>
+                            <SelectItem value="facial">Facial</SelectItem>
+                            <SelectItem value="fitness">Fitness</SelectItem>
+                            <SelectItem value="education">Educação</SelectItem>
+                            <SelectItem value="events">Eventos</SelectItem>
+                            <SelectItem value="cleaning">Limpeza</SelectItem>
+                            <SelectItem value="repairs">Reparos</SelectItem>
+                            <SelectItem value="legal">Jurídico</SelectItem>
+                            <SelectItem value="pet_care">Cuidados Pet</SelectItem>
+                            <SelectItem value="automotive">Automotivo</SelectItem>
                             <SelectItem value="other">Outro</SelectItem>
                             <SelectItem value="custom">
-                              ➕ Create Custom Category
+                              ➕ Criar Categoria Personalizada
                             </SelectItem>
                           </SelectContent>
                         </Select>

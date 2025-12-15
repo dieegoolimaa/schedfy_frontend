@@ -57,9 +57,11 @@ import {
     XCircle,
     Clock,
     Loader2,
+    UserCog,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
+import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { usersService } from "../../services/users.service";
 import { EditUserDialog, PermissionsDialog } from "../../components/dialogs/user-dialogs";
 
@@ -84,9 +86,6 @@ interface User {
 const ROLES = [
     { value: "owner", label: "Owner" },
     { value: "admin", label: "Admin" },
-    { value: "manager", label: "Manager" },
-    { value: "hr", label: "HR" },
-    { value: "attendant", label: "Attendant" },
     { value: "professional", label: "Professional" },
 ];
 
@@ -110,6 +109,7 @@ const STATUS_CONFIG: Record<string, { icon: any; color: string }> = {
 export default function TeamManagementPage() {
     const { t } = useTranslation("team");
     const { user: currentUser } = useAuth();
+    const { isSimplePlan } = usePlanRestrictions();
 
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -352,6 +352,21 @@ export default function TeamManagementPage() {
                 </Button>
             </div>
 
+            {/* Warning if no professionals */}
+            {!loading && professionals.length === 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 flex items-start gap-3">
+                    <div className="h-5 w-5 rounded-full bg-yellow-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-yellow-700 font-bold">!</span>
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-semibold text-yellow-800">{t("warnings.noProfessionalsTitle", "Bookings Disabled")}</h4>
+                        <p className="text-sm text-yellow-700 mt-1">
+                            {t("warnings.noProfessionalsDesc", "You must enable at least one service provider to receive bookings. Use the toggle in the table below to mark a user (or yourself) as a Professional.")}
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabsList>
@@ -521,13 +536,23 @@ export default function TeamManagementPage() {
                                                             >
                                                                 <Edit className="h-4 w-4" />
                                                             </Button>
+                                                            {!isSimplePlan && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    title="Manage permissions"
+                                                                    onClick={() => handleManagePermissions(user)}
+                                                                >
+                                                                    <Shield className="h-4 w-4" />
+                                                                </Button>
+                                                            )}
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                title="Manage permissions"
-                                                                onClick={() => handleManagePermissions(user)}
+                                                                title="Manage Full Profile"
+                                                                onClick={() => window.open(`/entity/users/${user.id}/profile`, '_blank')}
                                                             >
-                                                                <Shield className="h-4 w-4" />
+                                                                <UserCog className="h-4 w-4" />
                                                             </Button>
                                                         </div>
                                                     </TableCell>

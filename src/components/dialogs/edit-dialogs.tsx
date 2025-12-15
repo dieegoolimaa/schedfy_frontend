@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -61,6 +62,7 @@ export function EditBookingDialog({
   entityId,
 }: Readonly<EditBookingDialogProps>) {
   const { t } = useTranslation();
+  const { isSimplePlan } = usePlanRestrictions();
   const [formData, setFormData] = useState<Booking | null>(booking);
   const [professionalsList, setProfessionalsList] =
     useState<Professional[]>(professionals);
@@ -356,18 +358,20 @@ export function EditBookingDialog({
 
               {/* Booking Details */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="price">Price (€)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) =>
-                      updateField("price", Number.parseFloat(e.target.value))
-                    }
-                  />
-                </div>
+                {!isSimplePlan && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="price">Price (€)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) =>
+                        updateField("price", Number.parseFloat(e.target.value))
+                      }
+                    />
+                  </div>
+                )}
                 <div className="grid gap-2">
                   <Label htmlFor="status">Status</Label>
                   <Select
