@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     plugins: [react()],
     resolve: {
         alias: {
@@ -29,4 +29,8 @@ export default defineConfig({
         outDir: 'dist',
         sourcemap: true,
     },
-})
+    esbuild: {
+        // Remove console.log in production builds
+        drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
+}))

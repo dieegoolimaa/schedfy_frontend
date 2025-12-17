@@ -11,6 +11,7 @@ export interface Entity {
     defaultSlotDuration?: number;
     aiFeaturesEnabled?: boolean;
     aiInsightsEnabled?: boolean;
+    isPremium?: boolean; // AI Insights subscription active
     hasCompletedFirstPayment?: boolean;
     hasPaymentIssue?: boolean;
     paymentIssueType?: string;

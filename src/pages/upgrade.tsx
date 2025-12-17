@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/auth-context";
 import { useRegion } from "../contexts/region-context";
-import { toast } from "sonner";
+import { toast as _toast } from "sonner";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ export function UpgradePage() {
   const { t } = useTranslation("upgrade");
   const { user } = useAuth();
   const { getPriceDisplay, region, regionConfig } = useRegion();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [isLoading, _setIsLoading] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleUpgrade = (planId: string) => {

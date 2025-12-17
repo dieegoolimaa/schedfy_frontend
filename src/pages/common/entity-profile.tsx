@@ -1090,14 +1090,14 @@ export function EntityProfilePage() {
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-base">AI Insights</Label>
+                    <Label className="text-base">Show AI Insights</Label>
                     <p className="text-sm text-muted-foreground">
-                      Enable AI-powered financial and operational insights
+                      Toggle visibility of AI insights in your dashboard
                     </p>
                   </div>
                   <Switch
                     checked={entityData.aiInsightsEnabled !== false}
-                    disabled={!editMode || !entityData.aiFeaturesEnabled}
+                    disabled={!editMode || !entityData.isPremium}
                     onCheckedChange={(checked) => {
                       if (editMode) {
                         setEntityData({
@@ -1108,9 +1108,26 @@ export function EntityProfilePage() {
                     }}
                   />
                 </div>
-                {!entityData.aiFeaturesEnabled && (
+                {!entityData.isPremium && (
                   <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200">
-                    Upgrade to Business plan to enable AI features.
+                    <strong>AI Insights Add-on required.</strong> Subscribe to AI Insights to unlock intelligent business analytics.
+                    <br />
+                    <span className="text-xs">
+                      • Simple plan: Operational insights (efficiency, capacity, trends)
+                      <br />
+                      • Individual/Business: Full insights (financial, management, demand + operational)
+                    </span>
+                  </div>
+                )}
+                {entityData.isPremium && (
+                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
+                    ✅ AI Insights active. Available features based on your plan:
+                    <br />
+                    <span className="text-xs">
+                      {entityData.plan === 'simple'
+                        ? '• Operational insights (efficiency, capacity, booking trends)'
+                        : '• Full insights (financial analytics, management tips, demand forecasting + operational)'}
+                    </span>
                   </div>
                 )}
               </CardContent>

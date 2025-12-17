@@ -30,16 +30,17 @@ import { reportsService } from "../../services/reports.service";
 import { useAIFeatures } from "../../hooks/useAIFeatures";
 
 export function AIFinancialInsights({ revenue = 0, bookings = [] }: AIFinancialInsightsProps) {
-    const { canUse } = useAIFeatures();
+    const { canUseFullInsights } = useAIFeatures();
 
     // Fetch AI insights from backend
     const { data: insightsData, isLoading } = useQuery({
         queryKey: ['ai-financial-insights'],
         queryFn: reportsService.getFinancialInsights,
-        enabled: canUse,
+        enabled: canUseFullInsights,
     });
 
-    if (!canUse) {
+    // Financial insights only available for Individual/Business plans
+    if (!canUseFullInsights) {
         return null;
     }
 
