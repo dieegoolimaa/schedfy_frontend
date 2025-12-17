@@ -7,7 +7,7 @@
   "currentPlanDescription": "Está atualmente no plano {{plan}}",
   "recommended": "Recomendado",
   "upgradeTo": "Atualizar para {{plan}}",
-  "returnToDashboard": "Voltar ao Dashboard",
+  "returnToDashboard": "Acessar Plataforma",
   "highestPlan": {
     "title": "Está no plano mais alto!",
     "description": "Tem acesso a todas as funcionalidades do Schedfy. Obrigado por ser um cliente Business!"

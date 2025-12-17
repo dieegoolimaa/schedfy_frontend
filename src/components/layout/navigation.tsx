@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { useFeatureFlags } from "../../contexts/feature-flags-context";
 import { usePermissions } from "../../hooks/use-permissions";
 import { Button } from "../ui/button";
+import { Logo } from "../ui/logo";
 import { useTheme } from "../theme-provider";
 import { LanguageSwitcher } from "../language-switcher";
 import { NotificationsDropdown } from "../notifications/notifications-dropdown";
@@ -126,6 +127,10 @@ export function Navigation() {
           },
         ],
         financial: [
+          {
+            path: "/entity/payments",
+            label: t("nav.payments", "Payment Management"),
+          },
           {
             path: "/entity/commissions-management",
             label: t("nav.commissions", "Commissions"),
@@ -322,8 +327,8 @@ export function Navigation() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/" className="text-xl font-bold text-primary">
-                Schedfy
+              <Link to="/" className="flex items-center">
+                <Logo size="sm" />
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -657,9 +662,9 @@ export function Navigation() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               to={getDashboardPath()}
-              className="text-lg sm:text-xl font-bold text-primary flex-shrink-0"
+              className="flex-shrink-0"
             >
-              Schedfy
+              <Logo size="sm" />
             </Link>
             {/* Desktop Navigation */}
             <div className="hidden lg:flex space-x-1">{renderDesktopNav()}</div>

@@ -6,14 +6,19 @@ export interface InAppNotification {
     entityId?: string;
     title: string;
     message: string;
-    type: 'info' | 'success' | 'warning' | 'error';
-    category?: 'booking' | 'payment' | 'review' | 'client' | 'system' | 'promotion' | 'subscription' | 'goal' | 'report';
+    type?: 'info' | 'success' | 'warning' | 'error';
+    category: 'booking' | 'system' | 'financial' | 'support' | 'alert';
+    priority: 'low' | 'medium' | 'high';
     isRead: boolean;
     readAt?: string;
-    actionUrl?: string;
-    actionLabel?: string;
+    action?: {
+        type: 'navigate' | 'modal' | 'external';
+        payload: string;
+        label: string;
+    };
+    metadata?: Record<string, any>;
     createdAt: string;
-    updatedAt: string;
+    expiresAt?: string;
 }
 
 class InAppNotificationsService {
@@ -24,17 +29,20 @@ class InAppNotificationsService {
         category?: string;
     } = {}) {
         try {
-            const response = await apiClient.get('/api/notifications', { params });
+            const response = await apiClient.get('/api/notifications', params);
+            // Backend returns: { success: true, notifications: [], total: 0, unread: 0 }
             return {
                 notifications: (response.data as any).notifications,
-                pagination: (response.data as any).pagination,
+                total: (response.data as any).total,
+                unread: (response.data as any).unread,
             };
         } catch (error) {
-            // Return empty array if endpoint not available yet
-            console.warn('Notifications API not available yet');
+            console.error('Failed to fetch notifications:', error);
+            // Return empty state on error
             return {
                 notifications: [],
-                pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+                total: 0,
+                unread: 0,
             };
         }
     }
@@ -44,7 +52,6 @@ class InAppNotificationsService {
             const response = await apiClient.get('/api/notifications/unread-count');
             return (response.data as any).count;
         } catch (error) {
-            // Return 0 if endpoint not available yet
             console.warn('Notifications API not available yet');
             return 0;
         }

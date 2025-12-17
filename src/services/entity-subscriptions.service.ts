@@ -28,6 +28,29 @@ export interface SubscriptionPlan {
     stripePriceId?: string;
 }
 
+export interface UsageLimitItem {
+    used: number;
+    limit: number | null;
+    percentage: number;
+    unlimited: boolean;
+}
+
+export interface UsageLimits {
+    bookings: UsageLimitItem;
+    professionals: UsageLimitItem;
+    clients: UsageLimitItem;
+    storage: UsageLimitItem;
+}
+
+export interface BookingCheckResult {
+    canCreate: boolean;
+    currentUsage: number;
+    limit: number | null;
+    remaining: number | null;
+    percentage: number;
+    message?: string;
+}
+
 export const entitySubscriptionsService = {
     getCurrentSubscription: async () => {
         return apiClient.get<Subscription>("/api/entity-subscriptions/current");
@@ -35,6 +58,14 @@ export const entitySubscriptionsService = {
 
     getAvailablePlans: async () => {
         return apiClient.get<SubscriptionPlan[]>("/api/entity-subscriptions/plans");
+    },
+
+    getUsageLimits: async () => {
+        return apiClient.get<UsageLimits>("/api/entity-subscriptions/usage");
+    },
+
+    canCreateBooking: async () => {
+        return apiClient.get<BookingCheckResult>("/api/entity-subscriptions/can-create-booking");
     },
 
     upgradePlan: async (planId: string, interval: 'month' | 'year') => {
@@ -71,3 +102,4 @@ export const entitySubscriptionsService = {
 
 
 };
+

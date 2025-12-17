@@ -32,11 +32,13 @@ import {
   FileText,
   Settings,
   Shield,
+  Building2,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { Separator } from "../../components/ui/separator";
 import { BOOKING_NOTIFICATION_EVENTS, NotificationEvent } from "../../types/enums/notification-event.enum";
 import { Badge } from "../../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 interface NotificationChannels {
   email: boolean;
@@ -66,8 +68,8 @@ interface NotificationCategory {
   defaultExpanded?: boolean;
 }
 
-// Full list of categories, we will filter this for display
-const ALL_NOTIFICATION_CATEGORIES: NotificationCategory[] = [
+// Client notifications - what the business sends to clients
+const CLIENT_NOTIFICATION_CATEGORIES: NotificationCategory[] = [
   {
     title: "Bookings & Appointments",
     icon: Calendar,
@@ -144,9 +146,14 @@ const ALL_NOTIFICATION_CATEGORIES: NotificationCategory[] = [
       },
     ],
   },
+];
+
+// Business notifications - what the business receives
+const BUSINESS_NOTIFICATION_CATEGORIES: NotificationCategory[] = [
   {
     title: "Payments & Invoices",
     icon: DollarSign,
+    defaultExpanded: true,
     notifications: [
       {
         key: "paymentReceived",
@@ -289,6 +296,7 @@ export default function NotificationPreferencesPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("client");
 
   // Helper to check if a notification key corresponds to a booking event
   const isBookingEvent = (key: string): boolean => {
@@ -296,14 +304,18 @@ export default function NotificationPreferencesPage() {
     return BOOKING_NOTIFICATION_EVENTS.includes(snakeCaseKey as NotificationEvent);
   };
 
-  // Filter categories to only include booking events
-  const filteredCategories = ALL_NOTIFICATION_CATEGORIES.map(category => ({
+  // Filter client categories to only include booking events
+  const filteredClientCategories = CLIENT_NOTIFICATION_CATEGORIES.map(category => ({
     ...category,
     notifications: category.notifications.filter(n => isBookingEvent(n.key))
   })).filter(category => category.notifications.length > 0);
 
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(filteredCategories.map((c) => c.title))
+  const [expandedClientCategories, setExpandedClientCategories] = useState<Set<string>>(
+    new Set(filteredClientCategories.map((c) => c.title))
+  );
+
+  const [expandedBusinessCategories, setExpandedBusinessCategories] = useState<Set<string>>(
+    new Set(BUSINESS_NOTIFICATION_CATEGORIES.filter(c => c.defaultExpanded).map((c) => c.title))
   );
 
   const [preferences, setPreferences] = useState<NotificationPreferences>({
@@ -350,7 +362,7 @@ export default function NotificationPreferencesPage() {
           }
 
           setPreferences({
-            emailEnabled: true, // Always enabled
+            emailEnabled: entityData.notificationSettings.emailEnabled ?? true,
             smsEnabled: entityData.notificationSettings.smsEnabled || false,
             whatsappEnabled:
               entityData.notificationSettings.whatsappEnabled || false,
@@ -404,8 +416,20 @@ export default function NotificationPreferencesPage() {
     }
   };
 
-  const toggleCategory = (title: string) => {
-    setExpandedCategories((prev) => {
+  const toggleClientCategory = (title: string) => {
+    setExpandedClientCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) {
+        next.delete(title);
+      } else {
+        next.add(title);
+      }
+      return next;
+    });
+  };
+
+  const toggleBusinessCategory = (title: string) => {
+    setExpandedBusinessCategories((prev) => {
       const next = new Set(prev);
       if (next.has(title)) {
         next.delete(title);
@@ -448,8 +472,6 @@ export default function NotificationPreferencesPage() {
   };
 
   const isSimplePlan = (currentPlan || "").toLowerCase() === 'simple';
-
-  console.log("Current Plan:", currentPlan, "Is Simple Plan:", isSimplePlan);
 
   if (isSimplePlan) {
     return (
@@ -517,6 +539,219 @@ export default function NotificationPreferencesPage() {
     );
   }
 
+  // Render a category card
+  const renderCategoryCard = (
+    category: NotificationCategory,
+    isClientSection: boolean,
+    expandedCategories: Set<string>,
+    toggleCategory: (title: string) => void
+  ) => {
+    const Icon = category.icon;
+    const isExpanded = expandedCategories.has(category.title);
+
+    return (
+      <Card key={category.title}>
+        <CardHeader
+          className="cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => toggleCategory(category.title)}
+        >
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Icon className="h-5 w-5" />
+              {category.title}
+              <span className="text-sm text-muted-foreground font-normal">
+                ({category.notifications.length})
+              </span>
+            </CardTitle>
+            {isExpanded ? (
+              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+        </CardHeader>
+
+        {isExpanded && (
+          <CardContent className="space-y-1 px-2 sm:px-6">
+            {/* Table Header - Hidden on mobile, shown on desktop */}
+            <div className={`hidden md:grid ${isClientSection ? 'grid-cols-[1fr,100px,100px]' : 'grid-cols-[1fr,100px,100px,100px]'} gap-4 pb-3 border-b font-semibold text-sm`}>
+              <div>Notification</div>
+              {!isClientSection && <div className="text-center">Email</div>}
+              <div className="text-center">SMS</div>
+              <div className="text-center">WhatsApp</div>
+            </div>
+
+            {/* Notification Rows */}
+            {category.notifications.map((notification, index) => {
+              const channels = getNotificationChannels(notification.key);
+              const canUseSms = preferences.smsEnabled;
+              const canUseWhatsapp = preferences.whatsappEnabled;
+
+              return (
+                <div key={notification.key}>
+                  {/* Desktop Layout */}
+                  <div className={`hidden md:grid ${isClientSection ? 'grid-cols-[1fr,100px,100px]' : 'grid-cols-[1fr,100px,100px,100px]'} gap-4 py-4 items-center`}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Label className="text-base font-medium">
+                          {notification.label}
+                        </Label>
+                        {isClientSection && (
+                          <div className="flex gap-1">
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
+                              <Mail className="h-3 w-3" /> Email
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
+                              <Bell className="h-3 w-3" /> In-App
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {notification.description}
+                      </p>
+                    </div>
+
+                    {/* Email Toggle - Only for business notifications */}
+                    {!isClientSection && (
+                      <div className="flex justify-center">
+                        <Switch
+                          checked={channels.email}
+                          onCheckedChange={(checked) =>
+                            updateNotificationChannel(
+                              notification.key,
+                              "email",
+                              checked
+                            )
+                          }
+                        />
+                      </div>
+                    )}
+
+                    {/* SMS Toggle */}
+                    <div className="flex justify-center">
+                      <Switch
+                        checked={channels.sms}
+                        disabled={!canUseSms}
+                        onCheckedChange={(checked) =>
+                          updateNotificationChannel(
+                            notification.key,
+                            "sms",
+                            checked
+                          )
+                        }
+                      />
+                    </div>
+
+                    {/* WhatsApp Toggle */}
+                    <div className="flex justify-center">
+                      <Switch
+                        checked={channels.whatsapp}
+                        disabled={!canUseWhatsapp}
+                        onCheckedChange={(checked) =>
+                          updateNotificationChannel(
+                            notification.key,
+                            "whatsapp",
+                            checked
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mobile Layout */}
+                  <div className="md:hidden py-3 space-y-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Label className="text-sm font-medium">
+                          {notification.label}
+                        </Label>
+                        {isClientSection && (
+                          <div className="flex gap-1">
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
+                              <Mail className="h-3 w-3" /> Email
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
+                              <Bell className="h-3 w-3" /> In-App
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {notification.description}
+                      </p>
+                    </div>
+
+                    {/* Email Toggle - Only for business notifications */}
+                    {!isClientSection && (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">Email</span>
+                        </div>
+                        <Switch
+                          checked={channels.email}
+                          onCheckedChange={(checked) =>
+                            updateNotificationChannel(
+                              notification.key,
+                              "email",
+                              checked
+                            )
+                          }
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">SMS</span>
+                      </div>
+                      <Switch
+                        checked={channels.sms}
+                        disabled={!canUseSms}
+                        onCheckedChange={(checked) =>
+                          updateNotificationChannel(
+                            notification.key,
+                            "sms",
+                            checked
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">WhatsApp</span>
+                      </div>
+                      <Switch
+                        checked={channels.whatsapp}
+                        disabled={!canUseWhatsapp}
+                        onCheckedChange={(checked) =>
+                          updateNotificationChannel(
+                            notification.key,
+                            "whatsapp",
+                            checked
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {/* Line Separator */}
+                  {index < category.notifications.length - 1 && (
+                    <Separator />
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        )}
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto p-2 sm:p-4 md:p-6">
       {/* Header */}
@@ -525,7 +760,7 @@ export default function NotificationPreferencesPage() {
           Notification Preferences
         </h1>
         <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-          Configure optional notification channels (SMS & WhatsApp) for your booking events.
+          Configure notifications for your clients and your business.
         </p>
       </div>
 
@@ -537,17 +772,10 @@ export default function NotificationPreferencesPage() {
             Global Channel Settings
           </CardTitle>
           <CardDescription>
-            Enable or disable optional notification channels globally.
+            Enable or disable notification channels globally.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              Email notifications are mandatory and always sent for all events to ensure you never miss important updates.
-            </AlertDescription>
-          </Alert>
-
+        <CardContent className="space-y-4">
           <div className="space-y-4">
             {/* SMS - Optional */}
             <div className={`flex items-center justify-between p-4 border rounded-lg`}>
@@ -563,7 +791,7 @@ export default function NotificationPreferencesPage() {
                     SMS Notifications
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Send text messages to clients' mobile phones for booking events
+                    Send text messages for booking events
                   </p>
                 </div>
               </div>
@@ -590,7 +818,7 @@ export default function NotificationPreferencesPage() {
                     WhatsApp Notifications
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Send messages via WhatsApp Business for booking events
+                    Send messages via WhatsApp Business
                   </p>
                 </div>
               </div>
@@ -606,161 +834,47 @@ export default function NotificationPreferencesPage() {
         </CardContent>
       </Card>
 
-      {/* Individual Notification Settings */}
-      {filteredCategories.map((category) => {
-        const Icon = category.icon;
-        const isExpanded = expandedCategories.has(category.title);
+      {/* Tabs for Client vs Business Notifications */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="client" className="gap-2">
+            <Users className="h-4 w-4" />
+            Client Notifications
+          </TabsTrigger>
+          <TabsTrigger value="business" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            Business Notifications
+          </TabsTrigger>
+        </TabsList>
 
-        return (
-          <Card key={category.title}>
-            <CardHeader
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => toggleCategory(category.title)}
-            >
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Icon className="h-5 w-5" />
-                  {category.title}
-                  <span className="text-sm text-muted-foreground font-normal">
-                    ({category.notifications.length})
-                  </span>
-                </CardTitle>
-                {isExpanded ? (
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                )}
-              </div>
-            </CardHeader>
+        {/* Client Notifications Tab */}
+        <TabsContent value="client" className="space-y-4">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Configure which notifications your clients receive. Email and In-App notifications are always sent to ensure clients stay informed about their bookings.
+            </AlertDescription>
+          </Alert>
 
-            {isExpanded && (
-              <CardContent className="space-y-1 px-2 sm:px-6">
-                {/* Table Header - Hidden on mobile, shown on desktop */}
-                <div className="hidden md:grid grid-cols-[1fr,100px,100px] gap-4 pb-3 border-b font-semibold text-sm">
-                  <div>Notification</div>
-                  <div className="text-center">SMS</div>
-                  <div className="text-center">WhatsApp</div>
-                </div>
+          {filteredClientCategories.map((category) =>
+            renderCategoryCard(category, true, expandedClientCategories, toggleClientCategory)
+          )}
+        </TabsContent>
 
-                {/* Notification Rows */}
-                {category.notifications.map((notification, index) => {
-                  const channels = getNotificationChannels(notification.key);
-                  const canUseSms = preferences.smsEnabled;
-                  const canUseWhatsapp = preferences.whatsappEnabled;
+        {/* Business Notifications Tab */}
+        <TabsContent value="business" className="space-y-4">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Configure which notifications you receive about your business. You can enable or disable email notifications for each type.
+            </AlertDescription>
+          </Alert>
 
-                  return (
-                    <div key={notification.key}>
-                      {/* Desktop Layout */}
-                      <div className="hidden md:grid grid-cols-[1fr,100px,100px] gap-4 py-4 items-center">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Label className="text-base font-medium">
-                              {notification.label}
-                            </Label>
-                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
-                              <Mail className="h-3 w-3" /> Email
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {notification.description}
-                          </p>
-                        </div>
-
-                        {/* SMS Toggle */}
-                        <div className="flex justify-center">
-                          <Switch
-                            checked={channels.sms}
-                            disabled={!canUseSms}
-                            onCheckedChange={(checked) =>
-                              updateNotificationChannel(
-                                notification.key,
-                                "sms",
-                                checked
-                              )
-                            }
-                          />
-                        </div>
-
-                        {/* WhatsApp Toggle */}
-                        <div className="flex justify-center">
-                          <Switch
-                            checked={channels.whatsapp}
-                            disabled={!canUseWhatsapp}
-                            onCheckedChange={(checked) =>
-                              updateNotificationChannel(
-                                notification.key,
-                                "whatsapp",
-                                checked
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      {/* Mobile Layout */}
-                      <div className="md:hidden py-3 space-y-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Label className="text-sm font-medium">
-                              {notification.label}
-                            </Label>
-                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground font-normal gap-1">
-                              <Mail className="h-3 w-3" /> Email
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {notification.description}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <Smartphone className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">SMS</span>
-                          </div>
-                          <Switch
-                            checked={channels.sms}
-                            disabled={!canUseSms}
-                            onCheckedChange={(checked) =>
-                              updateNotificationChannel(
-                                notification.key,
-                                "sms",
-                                checked
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">WhatsApp</span>
-                          </div>
-                          <Switch
-                            checked={channels.whatsapp}
-                            disabled={!canUseWhatsapp}
-                            onCheckedChange={(checked) =>
-                              updateNotificationChannel(
-                                notification.key,
-                                "whatsapp",
-                                checked
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      {index < category.notifications.length - 1 && (
-                        <Separator />
-                      )}
-                    </div>
-                  );
-                })}
-              </CardContent>
-            )}
-          </Card>
-        );
-      })}
+          {BUSINESS_NOTIFICATION_CATEGORIES.map((category) =>
+            renderCategoryCard(category, false, expandedBusinessCategories, toggleBusinessCategory)
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Save Button */}
       <div className="flex flex-col sm:flex-row justify-end gap-3 sticky bottom-0 sm:bottom-4 bg-background pt-4 pb-2 sm:pb-0 border-t px-2 sm:px-0">

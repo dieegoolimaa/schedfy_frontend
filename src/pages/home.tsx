@@ -5,10 +5,12 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { TiltCard } from "../components/ui/tilt-card";
 import { Navigation } from "../components/layout/navigation";
 import { useRegion } from "../contexts/region-context";
 import {
@@ -122,21 +124,12 @@ export function HomePage() {
         "You can be up and running in less than 5 minutes. No technical knowledge required."
       ),
     },
-    {
-      question: t(
-        "faq.migration.question",
-        "Can I migrate from my current system?"
-      ),
-      answer: t(
-        "faq.migration.answer",
-        "Yes, we offer free migration assistance for all Business plan customers."
-      ),
-    },
+
     {
       question: t("faq.support.question", "What support do you provide?"),
       answer: t(
         "faq.support.answer",
-        "We provide 24/7 email support for all plans, with priority phone support for Business customers."
+        "We provide email support for all plans, with priority handling for Business customers. Our team is ready to help you succeed."
       ),
     },
     {
@@ -144,6 +137,13 @@ export function HomePage() {
       answer: t(
         "faq.mobile.answer",
         "Our web app is fully responsive and works perfectly on mobile. A native app is coming soon."
+      ),
+    },
+    {
+      question: t("faq.cancel.question", "What happens if I cancel?"),
+      answer: t(
+        "faq.cancel.answer",
+        "If you cancel, your subscription will end at the current billing period. All your data is permanently deleted from our system to ensure your privacy."
       ),
     },
   ];
@@ -171,7 +171,7 @@ export function HomePage() {
                 <p className="text-lg md:text-xl text-muted-foreground max-w-lg">
                   {t(
                     "hero.subtitle",
-                    "Professional scheduling platform designed for businesses in Portugal, Brazil, and USA. Powered by AI."
+                    "Professional scheduling platform designed for businesses."
                   )}
                 </p>
               </div>
@@ -202,64 +202,63 @@ export function HomePage() {
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   {t("hero.feature2", "Cancel anytime")}
                 </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  {t("hero.feature3", "Free migration")}
-                </div>
+
               </div>
             </div>
 
             <div className="relative">
               <div className="bg-gradient-to-tr from-primary/20 to-secondary/20 rounded-2xl p-8">
-                <div className="bg-background rounded-xl shadow-2xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">
-                      {t("demo.title", "Today's Schedule")}
-                    </h3>
-                    <Badge variant="secondary">
-                      8 {t("demo.appointments", "appointments")}
-                    </Badge>
-                  </div>
-                  <div className="space-y-3">
-                    {[
-                      {
-                        time: "09:00",
-                        client: "Maria Silva",
-                        service: "Haircut",
-                      },
-                      {
-                        time: "10:30",
-                        client: "João Santos",
-                        service: "Consultation",
-                      },
-                      {
-                        time: "14:00",
-                        client: "Ana Costa",
-                        service: "Massage",
-                      },
-                    ].map((appointment) => (
-                      <div
-                        key={`${appointment.time}-${appointment.client}`}
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
-                          <div>
-                            <p className="font-medium text-sm">
-                              {appointment.client}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {appointment.service}
-                            </p>
+                <TiltCard perspective={2000} scale={1.05} maxRotation={10}>
+                  <div className="bg-background rounded-xl shadow-2xl p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">
+                        {t("demo.title", "Today's Schedule")}
+                      </h3>
+                      <Badge variant="secondary">
+                        8 {t("demo.appointments", "appointments")}
+                      </Badge>
+                    </div>
+                    <div className="space-y-3">
+                      {[
+                        {
+                          time: "09:00",
+                          client: "Maria Silva",
+                          service: "Haircut",
+                        },
+                        {
+                          time: "10:30",
+                          client: "João Santos",
+                          service: "Consultation",
+                        },
+                        {
+                          time: "14:00",
+                          client: "Ana Costa",
+                          service: "Massage",
+                        },
+                      ].map((appointment) => (
+                        <div
+                          key={`${appointment.time}-${appointment.client}`}
+                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted hover:scale-105 transition-all duration-200 cursor-default"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                            <div>
+                              <p className="font-medium text-sm">
+                                {appointment.client}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {appointment.service}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-sm font-medium">
+                            {appointment.time}
                           </div>
                         </div>
-                        <div className="text-sm font-medium">
-                          {appointment.time}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </TiltCard>
               </div>
             </div>
           </div>
@@ -322,216 +321,229 @@ export function HomePage() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Simple Plan */}
-            <Card className="relative">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl">
-                  {t("plans.simple.name", "Simple")}
-                </CardTitle>
-                <CardDescription className="text-base">
-                  {t(
-                    "plans.simple.description",
-                    "Perfect for individual professionals"
-                  )}
-                </CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">
-                    {getPriceDisplay("simple", "monthly")}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t("pricing.perMonth", "/month")}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.simple.features.appointments",
-                        "Up to 50 appointments/month"
-                      )}
+            <TiltCard className="h-full">
+              <Card className="relative h-full flex flex-col mb-0">
+                <CardHeader className="text-center pb-8">
+                  <CardTitle className="text-2xl">
+                    {t("plans.simple.name", "Simple")}
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    {t(
+                      "plans.simple.description",
+                      "Perfect for solo professionals"
+                    )}
+                  </CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">
+                      {getPriceDisplay("simple", "monthly")}
                     </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.simple.features.calendar",
-                        "Basic calendar integration"
-                      )}
+                    <span className="text-muted-foreground">
+                      {t("pricing.perMonth", "/month")}
                     </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t("plans.simple.features.email", "Email notifications")}
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t("plans.simple.features.mobile", "Mobile responsive")}
-                    </span>
-                  </li>
-                </ul>
-                <Button className="w-full mt-6" variant="outline" asChild>
-                  <Link to="/register?plan=simple">
-                    {t("pricing.startFree", "Start Free Trial")}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("pricing.taxNotice", "Prices exclude VAT")}
+                    </p>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 flex-1">
+                  <ul className="space-y-3">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.simple.features.appointments",
+                          "Up to 50 appointments/mo"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.simple.features.calendar",
+                          "Basic calendar integration"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t("plans.simple.features.email", "Email notifications")}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t("plans.simple.features.mobile", "Mobile responsive")}
+                      </span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="p-6 pt-0 w-full mt-auto">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/register?plan=simple">
+                      {t("pricing.startFree", "Start Free Trial")}
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TiltCard>
 
             {/* Individual Plan */}
-            <Card className="relative border-primary shadow-lg scale-105">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-primary text-primary-foreground">
-                  {t("pricing.popular", "Most Popular")}
-                </Badge>
-              </div>
-              <CardHeader className="text-center pb-8 pt-8">
-                <CardTitle className="text-2xl">
-                  {t("plans.individual.name", "Individual")}
-                </CardTitle>
-                <CardDescription className="text-base">
-                  {t(
-                    "plans.individual.description",
-                    "For growing professionals"
-                  )}
-                </CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">
-                    {getPriceDisplay("individual", "monthly")}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t("pricing.perMonth", "/month")}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.individual.features.appointments",
-                        "Unlimited appointments"
-                      )}
+            <TiltCard className="h-full">
+              <Card className="relative h-full flex flex-col mb-0">
+                <CardHeader className="text-center pb-8 pt-8">
+                  <CardTitle className="text-2xl">
+                    {t("plans.individual.name", "Individual")}
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    {t(
+                      "plans.individual.description",
+                      "For growing professionals"
+                    )}
+                  </CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">
+                      {getPriceDisplay("individual", "monthly")}
                     </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.individual.features.calendar",
-                        "Advanced calendar sync"
-                      )}
+                    <span className="text-muted-foreground">
+                      {t("pricing.perMonth", "/month")}
                     </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.individual.features.notifications",
-                        "SMS & Email notifications"
-                      )}
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.individual.features.analytics",
-                        "Basic analytics"
-                      )}
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.individual.features.forms",
-                        "Custom booking forms"
-                      )}
-                    </span>
-                  </li>
-                </ul>
-                <Button className="w-full mt-6" asChild>
-                  <Link to="/register?plan=individual">
-                    {t("pricing.startFree", "Start Free Trial")}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("pricing.taxNotice", "Prices exclude VAT")}
+                    </p>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 flex-1">
+                  <ul className="space-y-3">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.individual.features.appointments",
+                          "Unlimited appointments"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.individual.features.calendar",
+                          "Advanced calendar sync"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.individual.features.notifications",
+                          "SMS & Email notifications"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.individual.features.analytics",
+                          "Basic analytics"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.individual.features.forms",
+                          "Custom booking forms"
+                        )}
+                      </span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="p-6 pt-0 w-full mt-auto">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/register?plan=individual">
+                      {t("pricing.startFree", "Start Free Trial")}
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TiltCard>
 
             {/* Business Plan */}
-            <Card className="relative">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl">
-                  {t("plans.business.name", "Business")}
-                </CardTitle>
-                <CardDescription className="text-base">
-                  {t("plans.business.description", "For teams and businesses")}
-                </CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">
-                    {getPriceDisplay("business", "monthly")}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t("pricing.perMonth", "/month")}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.business.features.everything",
-                        "Everything in Individual"
-                      )}
+            <TiltCard className="h-full">
+              <Card className="relative h-full flex flex-col mb-0">
+                <CardHeader className="text-center pb-8">
+                  <CardTitle className="text-2xl">
+                    {t("plans.business.name", "Business")}
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    {t("plans.business.description", "For teams and businesses")}
+                  </CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">
+                      {getPriceDisplay("business", "monthly")}
                     </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t("plans.business.features.team", "Team management")}
+                    <span className="text-muted-foreground">
+                      {t("pricing.perMonth", "/month")}
                     </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.business.features.analytics",
-                        "Advanced analytics & AI insights"
-                      )}
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t(
-                        "plans.business.features.locations",
-                        "Multi-location support"
-                      )}
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
-                    <span className="text-sm">
-                      {t("plans.business.features.support", "Priority support")}
-                    </span>
-                  </li>
-                </ul>
-                <Button className="w-full mt-6" variant="outline" asChild>
-                  <Link to="/register?plan=business">
-                    {t("pricing.startFree", "Start Free Trial")}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("pricing.taxNotice", "Prices exclude VAT")}
+                    </p>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 flex-1">
+                  <ul className="space-y-3">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.business.features.everything",
+                          "Everything in Individual"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t("plans.business.features.team", "Team management")}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t(
+                          "plans.business.features.analytics",
+                          "Advanced analytics & AI insights"
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t("plans.business.features.locations", "Multi-location support")}
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <span className="text-sm">
+                        {t("plans.business.features.support", "Priority support")}
+                      </span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="p-6 pt-0 w-full mt-auto">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/register?plan=business">
+                      {t("pricing.startFree", "Start Free Trial")}
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TiltCard>
           </div>
         </div>
       </section>
@@ -673,6 +685,11 @@ export function HomePage() {
                   </Link>
                 </li>
                 <li>
+                  <Link to="/discover" className="hover:text-foreground">
+                    {t("footer.discover", "Discover")}
+                  </Link>
+                </li>
+                <li>
                   <Link to="/pricing" className="hover:text-foreground">
                     {t("footer.pricing", "Pricing")}
                   </Link>
@@ -692,26 +709,11 @@ export function HomePage() {
                     {t("footer.about", "About")}
                   </Link>
                 </li>
-                <li>
-                  <Link to="/blog" className="hover:text-foreground">
-                    {t("footer.blog", "Blog")}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/careers" className="hover:text-foreground">
-                    {t("footer.careers", "Careers")}
-                  </Link>
-                </li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-medium">{t("footer.support", "Support")}</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <Link to="/help" className="hover:text-foreground">
-                    {t("footer.help", "Help Center")}
-                  </Link>
-                </li>
                 <li>
                   <Link to="/contact" className="hover:text-foreground">
                     {t("footer.contact", "Contact")}

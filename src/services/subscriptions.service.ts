@@ -29,42 +29,44 @@ export interface SubscriptionPlan {
 
 class SubscriptionsService {
     async getCurrentSubscription(): Promise<Subscription> {
-        const response = await apiClient.get('/entity-subscriptions/current');
+        const response = await apiClient.get('/api/entity-subscriptions/current');
         return response.data as Subscription;
     }
 
     async getAvailablePlans(): Promise<SubscriptionPlan[]> {
-        const response = await apiClient.get('/entity-subscriptions/plans');
+        const response = await apiClient.get('/api/entity-subscriptions/plans');
         return response.data as SubscriptionPlan[];
     }
 
     async upgradePlan(planId: string, interval: 'month' | 'year'): Promise<{ url: string }> {
-        const response = await apiClient.post('/entity-subscriptions/upgrade', { planId, interval });
+        const response = await apiClient.post('/api/entity-subscriptions/upgrade', { planId, interval });
         return response.data as { url: string };
     }
 
     async cancelSubscription(): Promise<void> {
-        await apiClient.post('/entity-subscriptions/cancel');
+        await apiClient.post('/api/entity-subscriptions/cancel');
     }
 
     async resumeSubscription(): Promise<void> {
-        await apiClient.post('/entity-subscriptions/resume');
+        await apiClient.post('/api/entity-subscriptions/resume');
     }
 
     async subscribeToAiInsights(): Promise<void> {
-        await apiClient.post('/entity-subscriptions/ai-insights/subscribe');
+        await apiClient.post('/api/entity-subscriptions/ai-insights/subscribe');
     }
 
     async unsubscribeFromAiInsights(): Promise<void> {
-        await apiClient.post('/entity-subscriptions/ai-insights/unsubscribe');
+        await apiClient.post('/api/entity-subscriptions/ai-insights/unsubscribe');
     }
 
     async updatePaymentMethod(paymentMethodId: string): Promise<void> {
-        await apiClient.post('/entity-subscriptions/payment-method', { paymentMethodId });
+        await apiClient.post('/api/entity-subscriptions/payment-method', { paymentMethodId });
     }
 
     async getInvoices(): Promise<any[]> {
-        const response = await apiClient.get('/entity-subscriptions/invoices');
+        const response = await apiClient.get('/api/entity-subscriptions/invoices');
         return response.data as any[];
     }
-} export const subscriptionsService = new SubscriptionsService();
+}
+
+export const subscriptionsService = new SubscriptionsService();

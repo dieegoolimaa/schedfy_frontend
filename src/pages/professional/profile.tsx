@@ -366,7 +366,7 @@ export default function ProfessionalProfilePage() {
     if (!canEdit) return;
     const newHours = [...workingHours];
     if (newHours[dayIndex].breaks) {
-      newHours[dayIndex].breaks = newHours[dayIndex].breaks.filter((_, i) => i !== breakIndex);
+      newHours[dayIndex].breaks = newHours[dayIndex].breaks.filter((_: any, i: number) => i !== breakIndex);
       setWorkingHours(newHours);
     }
   };

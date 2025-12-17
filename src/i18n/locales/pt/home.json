@@ -3,7 +3,7 @@
     "badge": "Confiado por mais de 10.000 empresas",
     "title": "Simplifique os Seus",
     "highlight": "Agendamentos",
-    "subtitle": "Plataforma profissional de agendamento projetada para empresas em Portugal, Brasil e EUA. Impulsionada por IA.",
+    "subtitle": "Plataforma profissional de agendamento projetada para empresas",
     "feature1": "Sem taxas de configuração",
     "feature2": "Cancele quando quiser",
     "feature3": "Migração gratuita"
@@ -45,7 +45,8 @@
     "subtitle": "Comece grátis e escale conforme cresce. Sem taxas ocultas.",
     "popular": "Mais Popular",
     "startFree": "Iniciar Teste Grátis",
-    "perMonth": "/mês"
+    "perMonth": "/mês",
+    "taxNotice": "Os preços não incluem IVA"
   },
   "plans": {
     "simple": {
@@ -115,7 +116,7 @@
     },
     "support": {
       "question": "Que suporte oferecem?",
-      "answer": "Oferecemos suporte por email 24/7 para todos os planos, com suporte telefónico prioritário para clientes Empresariais."
+      "answer": "Oferecemos suporte via email para todos os planos, com prioridade para clientes Empresariais."
     },
     "mobile": {
       "question": "Existe uma aplicação móvel?",
@@ -132,6 +133,7 @@
     "description": "Plataforma moderna de agendamento para empresas em todo o mundo",
     "product": "Produto",
     "features": "Funcionalidades",
+    "discover": "Descobrir",
     "pricing": "Preços",
     "integrations": "Integrações",
     "company": "Empresa",

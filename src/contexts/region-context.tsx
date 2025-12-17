@@ -100,21 +100,29 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
           region,
           billingPeriod as "monthly" | "yearly"
         );
-        if (apiPrice && apiPrice.price) {
-          const price = apiPrice.price[billingPeriod as "monthly" | "yearly"];
-          const currency = apiPrice.currency;
+        if (apiPrice) {
+          // Use displayPrice from API if available (pre-formatted)
+          const displayPrice = (apiPrice as any).displayPrice;
+          if (displayPrice) {
+            return displayPrice;
+          }
 
-          // Only proceed if price is defined
-          if (price !== undefined && currency) {
-            // Format price using Intl.NumberFormat
-            try {
-              return new Intl.NumberFormat(regionConfig.locale, {
-                style: "currency",
-                currency: currency,
-              }).format(price / 100);
-            } catch (e) {
-              // Fallback if formatting fails
-              return `${currency} ${price}`;
+          // Fallback: format from price in cents
+          if (apiPrice.price) {
+            const price = apiPrice.price[billingPeriod as "monthly" | "yearly"];
+            const currency = apiPrice.currency;
+
+            if (price !== undefined && currency) {
+              try {
+                return new Intl.NumberFormat(regionConfig.locale, {
+                  style: "currency",
+                  currency: currency,
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(price / 100);
+              } catch (e) {
+                return `${currency} ${(price / 100).toFixed(2)}`;
+              }
             }
           }
         }

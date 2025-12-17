@@ -32,7 +32,7 @@ import {
 import {
   ArrowLeft,
   Mail,
-  Phone,
+
   MapPin,
   Clock,
   MessageSquare,
@@ -188,18 +188,7 @@ export function ContactPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Phone</p>
-                      <p className="text-sm text-muted-foreground">
-                        +351 XXX XXX XXX
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Mon-Fri 9AM-6PM CET
-                      </p>
-                    </div>
-                  </div>
+
                   <div className="flex items-start gap-3">
                     <MapPin className="h-5 w-5 text-primary mt-0.5" />
                     <div>
@@ -446,9 +435,8 @@ export function ContactPage() {
                       Do you offer phone support?
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Yes! Phone support is available for Business plan
-                      subscribers during our business hours. Email support is
-                      available for all users.
+                      No, we currently offer support via email to ensure efficiently tracking and resolution of all inquiries.
+                      Our team is dedicated to providing comprehensive assistance through our ticketing system.
                     </p>
                   </div>
                   <div>
@@ -456,19 +444,17 @@ export function ContactPage() {
                       Can I schedule a demo?
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Absolutely! Contact us to schedule a personalized demo of
-                      Schedfy's features and see how it can benefit your
-                      business.
+                      No, that's why we offer a comprehensive free trial period.
+                      You can explore all features at your own pace without any commitment.
                     </p>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2">
-                      Do you provide implementation assistance?
+                      What happens if I cancel my subscription?
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Yes, we offer onboarding assistance and implementation
-                      support to help you get started quickly and efficiently
-                      with Schedfy.
+                      If you cancel your subscription, all your data is permanently deleted from our systems.
+                      We do not retain any business or client data after cancellation, prioritizing your data privacy.
                     </p>
                   </div>
                 </div>
@@ -486,7 +472,7 @@ export function ContactPage() {
             </Link>
           </div>
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }

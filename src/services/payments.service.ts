@@ -115,4 +115,26 @@ export const paymentsService = {
     update: async (id: string, data: Partial<Payment>) => {
         return apiClient.patch<Payment>(`/api/payments/${id}`, data);
     },
+
+    // Stripe Connect
+    getConnectStatus: async (entityId: string) => {
+        return apiClient.get<{
+            isConnected: boolean;
+            detailsSubmitted: boolean;
+            chargesEnabled: boolean;
+            payoutsEnabled: boolean;
+        }>(`/api/payments/connect/${entityId}/status`);
+    },
+
+    createConnectAccount: async (entityId: string) => {
+        return apiClient.post<{ url: string }>(`/api/payments/connect/${entityId}/onboarding`);
+    },
+
+    createAccountSession: async (entityId: string) => {
+        return apiClient.post<{ clientSecret: string }>(`/api/payments/connect/${entityId}/account-session`);
+    },
+
+    getConnectLoginLink: async (entityId: string) => {
+        return apiClient.get<{ url: string }>(`/api/payments/connect/${entityId}/login-link`);
+    },
 };

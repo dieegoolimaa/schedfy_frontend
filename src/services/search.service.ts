@@ -38,6 +38,13 @@ class SearchService {
         });
         return (response.data as any).results;
     }
+
+    async searchEntities(query: string = ''): Promise<any[]> {
+        const response = await apiClient.get('/api/entities/search/public', {
+            params: { q: query }
+        });
+        return response.data as any[];
+    }
 }
 
 export const searchService = new SearchService();

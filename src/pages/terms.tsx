@@ -8,8 +8,11 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { ArrowLeft, Calendar, Shield, Users } from "lucide-react";
+import { useRegion } from "../contexts/region-context";
 
 export function TermsPage() {
+  const { getPriceDisplay } = useRegion();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -142,15 +145,15 @@ export function TermsPage() {
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     <li>
                       <strong>Simple:</strong> Basic appointment management
-                      (€9.99/month)
+                      ({getPriceDisplay("simple", "monthly")}/month)
                     </li>
                     <li>
                       <strong>Individual:</strong> Enhanced features for solo
-                      professionals (€19.99/month)
+                      professionals ({getPriceDisplay("individual", "monthly")}/month)
                     </li>
                     <li>
                       <strong>Business:</strong> Complete business management
-                      suite (€49.99/month)
+                      suite ({getPriceDisplay("business", "monthly")}/month)
                     </li>
                   </ul>
                 </div>

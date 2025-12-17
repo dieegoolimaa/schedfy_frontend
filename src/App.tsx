@@ -15,6 +15,7 @@ import { AcceptInvitationPage } from "./pages/accept-invitation";
 import { NotFoundPage } from "./pages/not-found";
 import { UnauthorizedPage } from "./pages/unauthorized";
 import { UpgradePage } from "./pages/upgrade";
+import { UpgradeCheckoutPage } from "./pages/upgrade-checkout";
 
 
 import { ClientProfilePage } from "./pages/common/client-profile";
@@ -38,6 +39,7 @@ import { SimpleSubscriptionPage } from "./pages/simple/subscription";
 import { IndividualSubscriptionPage } from "./pages/individual/subscription";
 import { EntitySubscriptionPage } from "./pages/entity/subscription";
 import { SupportPage } from "./pages/common/support";
+import { NotificationsPage } from "./pages/common/notifications-page";
 
 // Professional pages
 
@@ -54,6 +56,7 @@ import { TermsPage } from "./pages/terms";
 import { PrivacyPage } from "./pages/privacy";
 import { ContactPage } from "./pages/contact";
 import FeaturesPage from "./pages/features";
+import { DiscoverPage } from "./pages/discover";
 import PricingPage from "./pages/pricing";
 import IntegrationsPage from "./pages/integrations";
 import AboutPage from "./pages/about";
@@ -137,6 +140,7 @@ function App() {
 
                 {/* Public marketing pages */}
                 <Route path="/features" element={<FeaturesPage />} />
+                <Route path="/discover" element={<DiscoverPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/integrations" element={<IntegrationsPage />} />
                 <Route path="/about" element={<AboutPage />} />
@@ -149,6 +153,7 @@ function App() {
                 {/* Special pages */}
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/upgrade/checkout" element={<ProtectedRoute><UpgradeCheckoutPage /></ProtectedRoute>} />
 
                 {/* Simple Plan Routes */}
                 <Route
@@ -582,6 +587,19 @@ function App() {
                   }
                 />
                 <Route
+                  path="/entity/payments"
+                  element={
+                    <ProtectedRoute
+                      allowedPlans={["simple", "individual", "business"]}
+                      allowedRoles={["owner", "admin", "manager"]}
+                    >
+                      <Layout>
+                        <UnifiedPaymentManagement />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/entity/services-packages"
                   element={
                     <EntityRoute>
@@ -713,6 +731,17 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <UnifiedSettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/notifications"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NotificationsPage />
                       </Layout>
                     </ProtectedRoute>
                   }

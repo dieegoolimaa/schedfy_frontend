@@ -22,7 +22,7 @@ import {
 } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import { BusinessProfileManager } from "../../components/business-profile-manager";
-import { User, Shield, Save, Building2, Clock, Sparkles } from "lucide-react";
+import { User, Shield, Save, Building2, Clock } from "lucide-react";
 
 /**
  * Unified Settings Page - Adapts to user's plan (Simple, Individual, Business)
@@ -74,14 +74,6 @@ export default function UnifiedSettingsPage() {
           // Initialize default slot duration
           if (response.data.defaultSlotDuration) {
             setDefaultSlotDuration(response.data.defaultSlotDuration);
-          }
-
-          // Initialize AI features
-          // Use aiInsightsEnabled (preference) if available, otherwise fallback to aiFeaturesEnabled (system)
-          if ((response.data as any).aiInsightsEnabled !== undefined) {
-            setAiFeaturesEnabled((response.data as any).aiInsightsEnabled);
-          } else if (response.data.aiFeaturesEnabled !== undefined) {
-            setAiFeaturesEnabled(response.data.aiFeaturesEnabled);
           }
 
           // Initialize Privacy Settings
@@ -172,9 +164,6 @@ export default function UnifiedSettingsPage() {
   // Default Slot Duration
   const [defaultSlotDuration, setDefaultSlotDuration] = useState(30);
 
-  // AI Features
-  const [aiFeaturesEnabled, setAiFeaturesEnabled] = useState(false);
-
   // Privacy Settings
   const [privacySettings, setPrivacySettings] = useState({
     profileVisible: true,
@@ -223,12 +212,11 @@ export default function UnifiedSettingsPage() {
     try {
       setSaving(true);
 
-      // Save Working Hours, Slot Duration, AI Features, and Privacy Settings
+      // Save Working Hours, Slot Duration, and Privacy Settings
       if (plan === "business" || plan === "individual" || plan === "simple") {
         const response = await entitiesService.updateProfile({
           workingHours,
           defaultSlotDuration,
-          aiInsightsEnabled: aiFeaturesEnabled, // Map local state to preference field
           publicProfile: {
             ...(entity?.publicProfile || {}),
             enabled: privacySettings.profileVisible
@@ -296,10 +284,6 @@ export default function UnifiedSettingsPage() {
               {t("tabs.workingHours")}
             </TabsTrigger>
           )}
-          <TabsTrigger value="features" className="gap-2">
-            <Sparkles className="w-4 h-4" />
-            {t("features.title")}
-          </TabsTrigger>
           <TabsTrigger value="privacy" className="gap-2">
             <Shield className="w-4 h-4" />
             {t("tabs.privacy")}
@@ -536,42 +520,6 @@ export default function UnifiedSettingsPage() {
           </TabsContent>
         )}
 
-        {/* Features Tab */}
-        <TabsContent value="features" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("features.title")}</CardTitle>
-              <CardDescription>
-                {t("features.description")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <Label className="text-base">{t("features.aiInsights")}</Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t("features.aiInsightsDesc")}
-                  </p>
-                </div>
-                <Switch
-                  checked={aiFeaturesEnabled}
-                  onCheckedChange={setAiFeaturesEnabled}
-                  disabled={!isOwnerOrManager}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSettings} disabled={saving || !isOwnerOrManager}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? t("actions.saving") : t("actions.save")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Privacy Tab */}
         <TabsContent value="privacy" className="space-y-6">

@@ -117,14 +117,14 @@ export function usePricing(region?: 'PT' | 'BR' | 'US'): UsePricingReturn {
         (
             planType: 'simple' | 'individual' | 'business',
             regionCode: 'PT' | 'BR' | 'US',
-            _billingPeriod: 'monthly' | 'yearly' = 'monthly'
+            billingPeriod: 'monthly' | 'yearly' = 'monthly'
         ): PricingEntry | null => {
             if (!matrix) return null;
 
             const regionData = matrix[regionCode];
             if (!regionData) return null;
 
-            // Backend returns { monthly: { price: ... }, yearly: { price: ... } }
+            // Backend returns { monthly: { price: ..., displayPrice: ... }, yearly: { price: ..., displayPrice: ... } }
             const planDataRaw: any = regionData[planType];
             if (!planDataRaw) return null;
 
@@ -132,12 +132,15 @@ export function usePricing(region?: 'PT' | 'BR' | 'US'): UsePricingReturn {
             const monthlyData = planDataRaw.monthly;
             const yearlyData = planDataRaw.yearly;
 
-            // Use available data for base properties
-            const baseData = monthlyData || yearlyData;
+            // Use the data for the requested billing period
+            const periodData = billingPeriod === 'monthly' ? monthlyData : yearlyData;
+            const baseData = periodData || monthlyData || yearlyData;
             if (!baseData) return null;
 
             return {
                 ...baseData,
+                // Include displayPrice for the requested billing period
+                displayPrice: periodData?.displayPrice || baseData?.displayPrice,
                 // Ensure price follows { monthly, yearly } structure expected by consumers
                 price: {
                     monthly: monthlyData?.price, // Raw price number from backend

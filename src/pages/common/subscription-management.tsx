@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../hooks/useCurrency";
+import { useRegion } from "../../contexts/region-context";
+import { useAuth } from "../../contexts/auth-context";
 import {
   Card,
   CardContent,
@@ -23,7 +25,6 @@ import { Separator } from "../../components/ui/separator";
 import {
   CreditCard,
   Crown,
-  Star,
   CheckCircle,
   Calendar,
   Download,
@@ -31,72 +32,105 @@ import {
   TrendingUp,
   Users,
   Building,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export function SubscriptionManagementPage() {
   const { t } = useTranslation("subscription");
-  const [billingPeriod, setBillingPeriod] = useState("monthly");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const { formatCurrency } = useCurrency();
+  const { getPriceDisplay } = useRegion();
 
-  // Mock subscription data
+  // Helper to get numeric price for a plan (for calculations)
+  const getNumericPrice = (planType: "simple" | "individual" | "business"): number => {
+    const priceStr = getPriceDisplay(planType, billingPeriod);
+    // Extract numeric value from formatted price (e.g., "€9.99" -> 9.99)
+    const numericMatch = priceStr.match(/[\d,.]+/);
+    if (numericMatch) {
+      return parseFloat(numericMatch[0].replace(",", "."));
+    }
+    // Fallback prices if API fails
+    const fallbackPrices: Record<string, Record<string, number>> = {
+      simple: { monthly: 0, yearly: 0 },
+      individual: { monthly: 34.90, yearly: 349.00 },
+      business: { monthly: 89.90, yearly: 899.00 },
+    };
+    return fallbackPrices[planType]?.[billingPeriod] || 0;
+  };
+
+  const { user } = useAuth();
+  const currentPlan = (user?.plan || "simple") as "simple" | "individual" | "business";
+
+  // Trial calculations
+  const trialDays = 14;
+  const userCreatedAt = new Date(user?.createdAt || Date.now());
+  const trialEndDate = new Date(userCreatedAt.getTime() + trialDays * 24 * 60 * 60 * 1000);
+  const daysRemaining = Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  // Assume on trial if within trial period and not simple (or if simple has trial, adjust here)
+  // User request implies "Start Free Trial" exists for plans.
+  const isOnTrial = currentPlan !== 'simple' && daysRemaining > 0;
+
+  // Mock subscription data (would come from API in real app)
+  const currentPrice = getNumericPrice(currentPlan);
+  const aiInsightsPrice = billingPeriod === "monthly" ? 19.90 : 199.00; // Add-on pricing
+
   const subscriptionData = {
     current: {
-      plan: "Business",
-      status: "active",
-      price: billingPeriod === "monthly" ? 49.99 : 499.9,
+      plan: currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1),
+      status: isOnTrial ? "trialing" : "active",
+      price: isOnTrial ? 0 : currentPrice, // Price is 0 during trial? Usually yes.
+      priceDisplay: isOnTrial ? getPriceDisplay(currentPlan, billingPeriod) : getPriceDisplay(currentPlan, billingPeriod),
       currency: "EUR",
-      startDate: "2023-06-01",
-      nextBilling: "2024-02-01",
+      startDate: userCreatedAt.toISOString(),
+      nextBilling: isOnTrial ? trialEndDate.toISOString() : "2024-02-01",
       features: [
-        "Unlimited bookings",
-        "Multi-professional management",
-        "Advanced analytics",
-        "Priority support",
-        "Custom branding",
-        "Commission tracking",
-        "Performance analytics",
-        "Export capabilities",
+        t("features.unlimitedBookings", "Unlimited bookings"),
+        t("features.multiProfessional", "Multi-professional management"),
+        t("features.advancedAnalytics", "Advanced analytics"),
+        t("features.prioritySupport", "Priority support"),
+        t("features.commissionTracking", "Commission tracking"),
+        t("features.performanceAnalytics", "Performance analytics"),
+        t("features.exportCapabilities", "Export capabilities"),
       ],
-      addOns: [
+      addOns: currentPlan === 'business' ? [
         {
           id: "ai-insights",
-          name: "AI Business Insights",
-          price: billingPeriod === "monthly" ? 19.99 : 199.9,
+          name: t("addOns.aiInsights.name", "AI Business Insights"),
+          price: aiInsightsPrice,
           active: true,
-          description: "AI-powered analytics and business recommendations",
+          description: t("addOns.aiInsights.description", "AI-powered analytics and business recommendations"),
         },
-      ],
+      ] : [],
     },
     usage: {
-      bookings: { current: 156, limit: null, percentage: 0 },
-      professionals: { current: 8, limit: null, percentage: 0 },
-      storage: { current: 2.4, limit: 10, percentage: 24 },
-      aiInsights: { current: 45, limit: 100, percentage: 45 },
+      bookings: { current: 156, limit: currentPlan === 'simple' ? 50 : null, percentage: 0 },
+      professionals: { current: 1, limit: currentPlan === 'simple' ? 1 : null, percentage: 0 },
+      storage: { current: 0.5, limit: 10, percentage: 5 },
+      aiInsights: { current: 12, limit: 100, percentage: 12 },
     },
     billing: {
-      totalAmount: billingPeriod === "monthly" ? 69.98 : 699.8,
+      totalAmount: currentPrice + (currentPlan === 'business' ? aiInsightsPrice : 0),
       nextPayment: "2024-02-01",
       paymentMethod: "**** **** **** 4242",
-      invoices: [
-        { id: "INV-001", date: "2024-01-01", amount: 69.98, status: "paid" },
-        { id: "INV-002", date: "2023-12-01", amount: 69.98, status: "paid" },
-        { id: "INV-003", date: "2023-11-01", amount: 69.98, status: "paid" },
-      ],
+      invoices: [] as { id: string; date: string; amount: number; status: string }[],
     },
   };
 
   const plans = [
     {
       id: "simple",
-      name: "Simple",
-      description: "Perfect for getting started",
-      price: billingPeriod === "monthly" ? 9.99 : 99.9,
+      name: t("plans.simple.name", "Simple"),
+      description: t("plans.simple.description", "Perfect for getting started"),
+      price: getNumericPrice("simple"),
+      priceDisplay: getPriceDisplay("simple", billingPeriod),
       popular: false,
       features: [
-        "Up to 100 bookings/month",
-        "Basic reporting",
-        "Email support",
-        "Essential features",
+        t("plans.simple.feature1", "Up to 100 bookings/month"),
+        t("plans.simple.feature2", "Basic reporting"),
+        t("plans.simple.feature3", "Email support"),
+        t("plans.simple.feature4", "Essential features"),
       ],
       limits: {
         bookings: 100,
@@ -106,16 +140,17 @@ export function SubscriptionManagementPage() {
     },
     {
       id: "individual",
-      name: "Individual",
-      description: "Enhanced features for growing businesses",
-      price: billingPeriod === "monthly" ? 19.99 : 199.9,
-      popular: true,
+      name: t("plans.individual.name", "Individual"),
+      description: t("plans.individual.description", "Enhanced features for growing businesses"),
+      price: getNumericPrice("individual"),
+      priceDisplay: getPriceDisplay("individual", billingPeriod),
+      popular: false,
       features: [
-        "Unlimited bookings",
-        "Advanced calendar",
-        "Client management",
-        "Revenue forecasting",
-        "Priority support",
+        t("plans.individual.feature1", "Unlimited bookings"),
+        t("plans.individual.feature2", "Advanced calendar"),
+        t("plans.individual.feature3", "Client management"),
+        t("plans.individual.feature4", "Revenue forecasting"),
+        t("plans.individual.feature5", "Priority support"),
       ],
       limits: {
         bookings: null,
@@ -125,17 +160,18 @@ export function SubscriptionManagementPage() {
     },
     {
       id: "business",
-      name: "Business",
-      description: "Complete solution for teams",
-      price: billingPeriod === "monthly" ? 49.99 : 499.9,
+      name: t("plans.business.name", "Business"),
+      description: t("plans.business.description", "Complete solution for teams"),
+      price: getNumericPrice("business"),
+      priceDisplay: getPriceDisplay("business", billingPeriod),
       popular: false,
       features: [
-        "Everything in Individual",
-        "Multi-professional management",
-        "Advanced analytics",
-        "Commission tracking",
-        "Custom branding",
-        "Export capabilities",
+        t("plans.business.feature1", "Everything in Individual"),
+        t("plans.business.feature2", "Multi-professional management"),
+        t("plans.business.feature3", "Advanced analytics"),
+        t("plans.business.feature4", "Commission tracking"),
+        t("plans.business.feature5", "Custom branding"),
+        t("plans.business.feature6", "Export capabilities"),
       ],
       limits: {
         bookings: null,
@@ -163,16 +199,18 @@ export function SubscriptionManagementPage() {
             {t("subtitle", "Manage your subscription and AI insights add-on")}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            {t("actions.downloadInvoice", "Download Invoice")}
-          </Button>
-          <Button>
-            <CreditCard className="h-4 w-4 mr-2" />
-            {t("actions.updatePayment", "Update Payment")}
-          </Button>
-        </div>
+        {currentPlan !== 'simple' && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              {t("actions.downloadInvoice", "Download Invoice")}
+            </Button>
+            <Button>
+              <CreditCard className="h-4 w-4 mr-2" />
+              {t("actions.updatePayment", "Update Payment")}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Current Subscription Overview */}
@@ -192,9 +230,17 @@ export function SubscriptionManagementPage() {
                   ).toLocaleDateString()}
                 </CardDescription>
               </div>
+            </div>
+            <div className="flex gap-2">
+              {isOnTrial && (
+                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Trial: {daysRemaining} days left
+                </Badge>
+              )}
               <Badge
                 variant="outline"
-                className="bg-green-100 text-green-800 border-green-200"
+                className={`${subscriptionData.current.status === 'trialing' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200'}`}
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
                 {t(
@@ -215,10 +261,13 @@ export function SubscriptionManagementPage() {
                     ? t("billing.perMonth", "per month")
                     : t("billing.perYear", "per year")}
                 </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {t("billing.taxNotice", "Prices exclude VAT")}
+                </div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  {t("billing.nextBilling", "Next billing")}
+                  {isOnTrial ? "Trial Ends On" : t("billing.nextBilling", "Next billing")}
                 </div>
                 <div className="font-medium">
                   {new Date(
@@ -434,18 +483,9 @@ export function SubscriptionManagementPage() {
             {plans.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative ${
-                  plan.popular ? "border-primary shadow-lg" : ""
-                }`}
+                className={`relative ${plan.popular ? "border-primary shadow-lg" : ""
+                  }`}
               >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary">
-                      <Star className="h-3 w-3 mr-1" />
-                      {t("plans.mostPopular", "Most Popular")}
-                    </Badge>
-                  </div>
-                )}
                 <CardHeader>
                   <div className="text-center">
                     <CardTitle className="text-xl">
@@ -463,6 +503,9 @@ export function SubscriptionManagementPage() {
                           ? t("billing.perMonth", "per month")
                           : t("billing.perYear", "per year")}
                       </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {t("billing.taxNotice", "Prices exclude VAT")}
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -478,15 +521,15 @@ export function SubscriptionManagementPage() {
                   <Button
                     className="w-full"
                     variant={
-                      subscriptionData.current.plan.toLowerCase() === plan.id
+                      currentPlan === plan.id
                         ? "outline"
                         : "default"
                     }
                     disabled={
-                      subscriptionData.current.plan.toLowerCase() === plan.id
+                      currentPlan === plan.id
                     }
                   >
-                    {subscriptionData.current.plan.toLowerCase() === plan.id
+                    {currentPlan === plan.id
                       ? t("plans.currentPlan", "Current Plan")
                       : t("plans.upgrade", "Upgrade")}
                   </Button>
@@ -531,6 +574,9 @@ export function SubscriptionManagementPage() {
                         : t("billing.perYear", "/year")}
                     </span>
                   </div>
+                  <div className="text-xs text-muted-foreground -mt-2 mb-2">
+                    {t("billing.taxNotice", "Prices exclude VAT")}
+                  </div>
                   <ul className="space-y-2">
                     <li className="flex items-center space-x-2">
                       <TrendingUp className="h-3 w-3 text-green-500" />
@@ -560,9 +606,86 @@ export function SubscriptionManagementPage() {
                       </span>
                     </li>
                   </ul>
-                  <Button className="w-full" disabled>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    {t("addOns.active", "Active")}
+                  <Button
+                    className="w-full"
+                    disabled={subscriptionData.current.addOns.some(a => a.id === 'ai-insights')}
+                    onClick={() => {
+                      if (isOnTrial) {
+                        if (confirm("Subscribing to AI Business Insights will end your free trial immediately and you will be charged for the plan + add-on. Do you want to continue?")) {
+                          toast.info("Redirecting to payment...");
+                          // Logic to process immediate charge would go here
+                        }
+                      } else {
+                        toast.success("AI Insights added to your plan!");
+                      }
+                    }}
+                  >
+                    {subscriptionData.current.addOns.some(a => a.id === 'ai-insights') ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        {t("addOns.active", "Active")}
+                      </>
+                    ) : (
+                      t("actions.add", "Add to Plan")
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Booking Capacity Boost Add-on */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-8 w-8 text-blue-500" />
+                    <div>
+                      <CardTitle>
+                        {t("addOns.bookingBoost.name", "Booking Capacity Boost")}
+                      </CardTitle>
+                      <CardDescription>
+                        {t(
+                          "addOns.bookingBoost.description",
+                          "Expand your monthly booking capacity"
+                        )}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(
+                      billingPeriod === "monthly" ? 4.99 : 49.9
+                    )}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">
+                      {billingPeriod === "monthly"
+                        ? t("billing.perMonth", "/month")
+                        : t("billing.perYear", "/year")}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground -mt-2 mb-2">
+                    {t("billing.taxNotice", "Prices exclude VAT")}
+                  </div>
+                  <ul className="space-y-2">
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="h-3 w-3 text-green-500" />
+                      <span className="text-sm">
+                        {t("addOns.bookingBoost.features.extra50", "+50 Bookings per month")}
+                      </span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="h-3 w-3 text-green-500" />
+                      <span className="text-sm">
+                        {t("addOns.bookingBoost.features.flexible", "Flexible - cancel anytime")}
+                      </span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="h-3 w-3 text-green-500" />
+                      <span className="text-sm">
+                        {t("addOns.bookingBoost.features.stackable", "Stackable packages")}
+                      </span>
+                    </li>
+                  </ul>
+                  <Button className="w-full">
+                    {t("actions.add", "Add to Plan")}
                   </Button>
                 </CardContent>
               </Card>
@@ -709,7 +832,7 @@ export function SubscriptionManagementPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </div >
   );
 }
 

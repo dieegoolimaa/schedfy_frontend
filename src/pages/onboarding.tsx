@@ -9,6 +9,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Switch } from "../components/ui/switch";
 import { Textarea } from "../components/ui/textarea";
+import { Logo } from "../components/ui/logo";
 import {
   Select,
   SelectContent,
@@ -73,8 +74,8 @@ export function OnboardingPage() {
     // Step 3
     firstService: {
       name: "",
-      duration: 60,
-      price: 0,
+      duration: "60",
+      price: "",
       description: "",
     },
     // Step 4
@@ -144,20 +145,15 @@ export function OnboardingPage() {
 
   const isStep3Valid =
     formData.firstService.name &&
-    formData.firstService.duration > 0 &&
-    (user?.plan === 'simple' || formData.firstService.price >= 0);
+    Number(formData.firstService.duration) > 0 &&
+    (user?.plan === 'simple' || formData.firstService.price !== "");
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-muted/30 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b px-6 py-4">
+      <header className="bg-background border-b px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
-              S
-            </div>
-            <span className="font-bold text-xl">Schedfy</span>
-          </div>
+          <Logo size="sm" />
           <Button variant="ghost" onClick={() => logout()}>
             {t("signOut")}
           </Button>
@@ -175,25 +171,25 @@ export function OnboardingPage() {
         {/* Steps Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between relative">
-            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 -z-10" />
+            <div className="absolute left-0 top-5 transform -translate-y-1/2 w-full h-1 bg-muted -z-10" />
             {STEPS.map((step) => {
               const isActive = step.id === activeStep;
               const isCompleted = step.id < activeStep;
 
               return (
-                <div key={step.id} className="flex flex-col items-center bg-gray-50 px-2">
+                <div key={step.id} className="flex flex-col items-center px-2">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${isActive
                       ? "bg-primary text-primary-foreground"
                       : isCompleted
                         ? "bg-green-500 text-white"
-                        : "bg-gray-200 text-gray-500"
+                        : "bg-muted text-muted-foreground"
                       }`}
                   >
                     {isCompleted ? <CheckCircle2 className="h-6 w-6" /> : step.id}
                   </div>
                   <span
-                    className={`text-sm mt-2 font-medium ${isActive ? "text-primary" : "text-gray-500"
+                    className={`text-sm mt-2 font-medium ${isActive ? "text-primary" : "text-muted-foreground"
                       }`}
                   >
                     {step.title}
@@ -205,7 +201,7 @@ export function OnboardingPage() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-xl shadow-sm border p-6 md:p-8">
+        <div className="bg-card rounded-xl shadow-sm border p-6 md:p-8">
           {activeStep === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="space-y-4">
@@ -461,7 +457,7 @@ export function OnboardingPage() {
                             ...formData,
                             firstService: {
                               ...formData.firstService,
-                              duration: Number(e.target.value),
+                              duration: e.target.value,
                             },
                           })
                         }
@@ -486,7 +482,7 @@ export function OnboardingPage() {
                                 ...formData,
                                 firstService: {
                                   ...formData.firstService,
-                                  price: Number(e.target.value),
+                                  price: e.target.value,
                                 },
                               })
                             }

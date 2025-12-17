@@ -69,40 +69,7 @@ export default function About() {
     },
   ];
 
-  const milestones = [
-    {
-      year: "2024",
-      title: t("about.timeline.2024.title", "Launch & Growth"),
-      description: t(
-        "about.timeline.2024.desc",
-        "Schedfy launches with support for Portugal, Brazil, and United States. Rapid adoption by small businesses and professionals."
-      ),
-    },
-    {
-      year: "2024 Q2",
-      title: t("about.timeline.q2.title", "AI Integration"),
-      description: t(
-        "about.timeline.q2.desc",
-        "Introduction of AI-powered analytics and smart scheduling features to help businesses optimize operations."
-      ),
-    },
-    {
-      year: "2024 Q3",
-      title: t("about.timeline.q3.title", "Mobile Excellence"),
-      description: t(
-        "about.timeline.q3.desc",
-        "Complete mobile optimization and launch of native mobile features for iOS and Android platforms."
-      ),
-    },
-    {
-      year: "Future",
-      title: t("about.timeline.future.title", "Global Expansion"),
-      description: t(
-        "about.timeline.future.desc",
-        "Planning expansion to additional markets with more integrations and advanced features."
-      ),
-    },
-  ];
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -226,7 +193,7 @@ export default function About() {
                       <p className="text-muted-foreground">
                         {t(
                           "about.vision.global.desc",
-                          "Starting with Portugal, Brazil, and the United States, we're building a truly global scheduling platform."
+                          "Starting in Portugal, we are expanding to Brazil and the United States to build a truly global scheduling platform."
                         )}
                       </p>
                     </div>
@@ -302,42 +269,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* Timeline Section */}
-      <section className="py-16 bg-muted/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              {t("about.timeline.title", "Our Journey")}
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              {t(
-                "about.timeline.subtitle",
-                "Key milestones in the Schedfy story"
-              )}
-            </p>
-          </div>
 
-          <div className="space-y-8">
-            {milestones.map((milestone, index) => (
-              <div key={index} className="flex gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                    {milestone.year}
-                  </div>
-                </div>
-                <Card className="flex-1 p-6">
-                  <h3 className="text-xl font-semibold mb-2">
-                    {milestone.title}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {milestone.description}
-                  </p>
-                </Card>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-16 sm:py-24">

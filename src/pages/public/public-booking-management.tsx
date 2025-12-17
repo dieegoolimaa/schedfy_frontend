@@ -208,7 +208,7 @@ export function PublicBookingManagementPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
@@ -216,7 +216,7 @@ export function PublicBookingManagementPage() {
 
     if (!booking) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+            <div className="min-h-screen flex items-center justify-center bg-background p-4">
                 <Card className="w-full max-w-md text-center">
                     <CardHeader>
                         <CardTitle>{t("notFound.title")}</CardTitle>
@@ -245,19 +245,19 @@ export function PublicBookingManagementPage() {
         new Date(booking.startDateTime) > new Date();
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
                 <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <h1 className="text-3xl font-bold text-foreground">
                         {t("title")}
                     </h1>
-                    <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    <p className="mt-2 text-muted-foreground">
                         {t("subtitle", { entity: booking.entityId?.name || t("us") })}
                     </p>
                 </div>
 
                 <Card className="shadow-lg">
-                    <CardHeader className="border-b bg-gray-50/50 dark:bg-gray-800/50">
+                    <CardHeader className="border-b bg-muted/40">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                                 <CardTitle className="text-xl flex items-center gap-2">
@@ -338,7 +338,7 @@ export function PublicBookingManagementPage() {
                             </div>
                         )}
                     </CardContent>
-                    <CardFooter className="bg-gray-50/50 dark:bg-gray-800/50 border-t p-6 flex justify-between items-center">
+                    <CardFooter className="bg-muted/40 border-t p-6 flex justify-between items-center">
                         <div className="flex gap-2">
                             <Button variant="outline" onClick={() => {
                                 const slug = booking.entityId?.publicProfile?.slug || booking.entityId?.slug || booking.entityId?.username;

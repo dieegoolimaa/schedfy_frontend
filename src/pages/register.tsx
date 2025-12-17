@@ -28,7 +28,7 @@ import {
 } from "../components/ui/select";
 import { Checkbox } from "../components/ui/checkbox";
 import { Progress } from "../components/ui/progress";
-import { Badge } from "../components/ui/badge";
+
 import {
   Eye,
   EyeOff,
@@ -41,6 +41,7 @@ import {
   Check,
   X,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 
 const registerSchema = z
@@ -224,8 +225,7 @@ export function RegisterPage() {
         );
         setVerificationCode(response.data.code);
         toast.success(
-          `${response.data?.message || "Code sent!"}\n🔐 DEV CODE: ${
-            response.data.code
+          `${response.data?.message || "Code sent!"}\n🔐 DEV CODE: ${response.data.code
           }`,
           { duration: 10000 }
         );
@@ -381,11 +381,10 @@ export function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => field.onChange("simple")}
-                    className={`p-6 border-2 rounded-lg text-left transition-all ${
-                      field.value === "simple"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
+                    className={`p-6 border-2 rounded-lg text-left transition-all ${field.value === "simple"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
@@ -401,6 +400,9 @@ export function RegisterPage() {
                             {t("register.steps.plan.simple.perMonth")}
                           </span>
                         </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("pricing.taxNotice", "Prices exclude VAT")}
+                        </p>
                       </div>
                       {field.value === "simple" && (
                         <CheckCircle2 className="h-6 w-6 text-primary" />
@@ -412,15 +414,11 @@ export function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => field.onChange("individual")}
-                    className={`p-6 border-2 rounded-lg text-left transition-all relative ${
-                      field.value === "individual"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
+                    className={`p-6 border-2 rounded-lg text-left transition-all relative ${field.value === "individual"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                      }`}
                   >
-                    <Badge className="absolute top-2 right-2">
-                      {t("register.steps.plan.individual.badge")}
-                    </Badge>
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <h4 className="font-semibold text-lg">
@@ -435,22 +433,24 @@ export function RegisterPage() {
                             {t("register.steps.plan.individual.perMonth")}
                           </span>
                         </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("pricing.taxNotice", "Prices exclude VAT")}
+                        </p>
                       </div>
-                      {field.value === "individual" && (
-                        <CheckCircle2 className="h-6 w-6 text-primary" />
-                      )}
                     </div>
+                    {field.value === "individual" && (
+                      <CheckCircle2 className="h-6 w-6 text-primary" />
+                    )}
                   </button>
 
                   {/* Business Plan */}
                   <button
                     type="button"
                     onClick={() => field.onChange("business")}
-                    className={`p-6 border-2 rounded-lg text-left transition-all ${
-                      field.value === "business"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
+                    className={`p-6 border-2 rounded-lg text-left transition-all ${field.value === "business"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
@@ -466,22 +466,28 @@ export function RegisterPage() {
                             {t("register.steps.plan.business.perMonth")}
                           </span>
                         </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("pricing.taxNotice", "Prices exclude VAT")}
+                        </p>
                       </div>
                       {field.value === "business" && (
                         <CheckCircle2 className="h-6 w-6 text-primary" />
                       )}
                     </div>
                   </button>
-                </div>
-              )}
+                </div >
+              )
+              }
             />
 
-            {errors.plan && (
-              <p className="text-sm text-destructive text-center">
-                {errors.plan.message}
-              </p>
-            )}
-          </div>
+            {
+              errors.plan && (
+                <p className="text-sm text-destructive text-center">
+                  {errors.plan.message}
+                </p>
+              )
+            }
+          </div >
         );
 
       case 2:
@@ -612,9 +618,8 @@ export function RegisterPage() {
                   <Progress value={passwordStrength} className="h-2" />
                   <div className="space-y-1 text-xs text-muted-foreground">
                     <div
-                      className={`flex items-center space-x-2 ${
-                        password.length >= 8 ? "text-green-600" : ""
-                      }`}
+                      className={`flex items-center space-x-2 ${password.length >= 8 ? "text-green-600" : ""
+                        }`}
                     >
                       {password.length >= 8 ? (
                         <Check className="h-3 w-3" />
@@ -626,9 +631,8 @@ export function RegisterPage() {
                       </span>
                     </div>
                     <div
-                      className={`flex items-center space-x-2 ${
-                        /[A-Z]/.test(password) ? "text-green-600" : ""
-                      }`}
+                      className={`flex items-center space-x-2 ${/[A-Z]/.test(password) ? "text-green-600" : ""
+                        }`}
                     >
                       {/[A-Z]/.test(password) ? (
                         <Check className="h-3 w-3" />
@@ -640,9 +644,8 @@ export function RegisterPage() {
                       </span>
                     </div>
                     <div
-                      className={`flex items-center space-x-2 ${
-                        /\d/.test(password) ? "text-green-600" : ""
-                      }`}
+                      className={`flex items-center space-x-2 ${/\d/.test(password) ? "text-green-600" : ""
+                        }`}
                     >
                       {/\d/.test(password) ? (
                         <Check className="h-3 w-3" />
@@ -652,9 +655,8 @@ export function RegisterPage() {
                       <span>{t("passwordStrength.requirements.number")}</span>
                     </div>
                     <div
-                      className={`flex items-center space-x-2 ${
-                        /[^A-Za-z0-9]/.test(password) ? "text-green-600" : ""
-                      }`}
+                      className={`flex items-center space-x-2 ${/[^A-Za-z0-9]/.test(password) ? "text-green-600" : ""
+                        }`}
                     >
                       {/[^A-Za-z0-9]/.test(password) ? (
                         <Check className="h-3 w-3" />
@@ -788,6 +790,14 @@ export function RegisterPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <div className="rounded-md bg-yellow-50 dark:bg-yellow-950/20 p-3 mt-2 border border-yellow-200 dark:border-yellow-900/50">
+                <div className="flex gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500 flex-shrink-0" />
+                  <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                    <strong>{t("register.regionWarning.title", "Important:")}</strong> {t("register.regionWarning.desc", "Accounts are region-specific. An account created for one region cannot be used to manage services in another (e.g., US account for Brazil services).")}
+                  </p>
+                </div>
+              </div>
               {errors.region && (
                 <p className="text-sm text-destructive">
                   {errors.region.message}
@@ -891,11 +901,10 @@ export function RegisterPage() {
                   value={verificationCode}
                   onChange={(e) => handleCodeChange(e.target.value)}
                   disabled={isSubmitting || isVerifyingCode}
-                  className={`text-center text-2xl font-mono tracking-widest ${
-                    isCodeVerified
-                      ? "border-green-500 focus:border-green-500"
-                      : ""
-                  }`}
+                  className={`text-center text-2xl font-mono tracking-widest ${isCodeVerified
+                    ? "border-green-500 focus:border-green-500"
+                    : ""
+                    }`}
                 />
                 {isVerifyingCode && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">

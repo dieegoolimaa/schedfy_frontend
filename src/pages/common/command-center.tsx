@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useEntity } from "../../hooks/useEntity";
 import { useBookings } from "../../hooks/useBookings";
-import { useCurrency } from "../../hooks/useCurrency";
 import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { apiClient } from "../../lib/api-client";
@@ -97,6 +96,7 @@ import {
 import { LiveActivityWidget } from "../../components/dashboard/LiveActivityWidget";
 import { RecentActivitiesWidget } from "../../components/dashboard/RecentActivitiesWidget";
 import { BlockTimeDialog } from "../../components/dialogs/block-time-dialog";
+import { UsageCard } from "../../components/ui/usage-limits";
 
 interface CommandCenterProps {
     forcedProfessionalId?: string;
@@ -105,10 +105,10 @@ interface CommandCenterProps {
 
 export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const { t } = useTranslation(["bookings", "payments"]);
-    const { canViewPricing, canViewPaymentDetails, isSimplePlan } = usePlanRestrictions();
+    const { canViewPaymentDetails, isSimplePlan } = usePlanRestrictions();
     const { user } = useAuth();
     const { entity: fullEntity } = useEntity({ autoFetch: true }); // Fetch full entity profile
-    const { formatCurrency } = useCurrency();
+    // const { formatCurrency } = useCurrency();
     const entityId = user?.entityId || user?.id || "";
 
     // If no forced ID is provided but user is a professional, restrict to their own ID
@@ -202,7 +202,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
         setSearchParams({});
     };
 
-    const hasActiveFilters = searchTerm || statusFilter !== "all" || dateFilter !== "all" || serviceFilter !== "all" || professionalFilter !== "all" || paymentFilter !== "all";
+    // const hasActiveFilters = searchTerm || statusFilter !== "all" || dateFilter !== "all" || serviceFilter !== "all" || professionalFilter !== "all" || paymentFilter !== "all";
 
     const handlePaymentClick = (booking: any) => {
         // Reset all payment-related state for a clean slate
@@ -642,11 +642,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                 matchesPayment
             );
         })
-        .sort((a, b) => {
-            const dateA = new Date(a.startTime || 0).getTime();
-            const dateB = new Date(b.startTime || 0).getTime();
-            return dateA - dateB;
-        });
+        .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
     const stats = {
         total: displayBookings.length,
@@ -725,7 +721,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     className="rounded-r-none"
                                 >
                                     <LayoutList className="h-4 w-4 mr-2" />
-                                    <span className="hidden lg:inline">{t("list")}</span>
+                                    <span className="hidden sm:inline">{t("list")}</span>
                                 </Button>
                                 <Button
                                     variant={viewMode === "calendar" ? "default" : "ghost"}
@@ -734,7 +730,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     className="rounded-l-none"
                                 >
                                     <CalendarIcon className="h-4 w-4 mr-2" />
-                                    <span className="hidden lg:inline">{t("calendar")}</span>
+                                    <span className="hidden sm:inline">{t("calendar")}</span>
                                 </Button>
                             </div>
 
@@ -775,67 +771,20 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
             {/* Quick Actions Bar */}
 
-            {/* Quick Actions Bar - Monochromatic/Subtle */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <Button
-                    variant="outline"
-                    className="h-auto py-4 flex-col gap-2 hover:bg-accent hover:text-accent-foreground transition-all"
-                    onClick={() => {
-                        setStatusFilter('pending');
-                        setViewMode('list');
-                    }}
-                >
-                    <div className="p-2 rounded-lg bg-primary/10">
-                        <AlertCircle className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold">{stats.pendingConfirmation}</div>
-                        <div className="text-xs text-muted-foreground">{t("pendingActions")}</div>
-                    </div>
-                </Button>
-
-                <Button
-                    variant="outline"
-                    className="h-auto py-4 flex-col gap-2 hover:bg-accent hover:text-accent-foreground transition-all"
-                    onClick={() => {
-                        setDateFilter('today');
-                        setViewMode('list');
-                    }}
-                >
-                    <div className="p-2 rounded-lg bg-primary/10">
-                        <CalendarIcon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold">{stats.today}</div>
-                        <div className="text-xs text-muted-foreground">{t("todaysBookings")}</div>
-                    </div>
-                </Button>
-
-                <Button
-                    variant="outline"
-                    className="h-auto py-4 flex-col gap-2 hover:bg-accent hover:text-accent-foreground transition-all sm:col-span-1"
-                    onClick={resetFilters}
-                >
-                    <div className="p-2 rounded-lg bg-primary/10">
-                        <X className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="text-center">
-                        <div className="text-sm font-semibold mt-1">Reset</div>
-                        <div className="text-xs text-muted-foreground">{t("activeFilters")}</div>
-                    </div>
-                </Button>
-            </div>
+            {/* Layout: Usage & Quick Actions */}
 
 
-            {expiredPromotionsCount > 0 && (
-                <Alert variant="destructive" className="mb-6">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Expired Promotions Warning</AlertTitle>
-                    <AlertDescription>
-                        You have {expiredPromotionsCount} active promotion(s) that have expired. Please update them in the Promotions module.
-                    </AlertDescription>
-                </Alert>
-            )
+
+            {
+                expiredPromotionsCount > 0 && (
+                    <Alert variant="destructive" className="mb-6">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Expired Promotions Warning</AlertTitle>
+                        <AlertDescription>
+                            You have {expiredPromotionsCount} active promotion(s) that have expired. Please update them in the Promotions module.
+                        </AlertDescription>
+                    </Alert>
+                )
             }
 
             {/* Interactive Stats Cards */}
@@ -1427,8 +1376,69 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                 {/* Sidebar - Right Panel (Desktop Only) */}
                 <div className="space-y-4 hidden lg:block">
-                    {/* Live Activity Widget */}
+                    {/* Live Activity Widget - Moved to Top */}
                     <LiveActivityWidget entityId={entityId} />
+
+                    {/* Usage Limits */}
+                    <UsageCard />
+
+                    {/* Quick Actions - Compact Sidebar Version */}
+                    <Card>
+                        <CardHeader className="pb-2 pt-4 px-4">
+                            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                                {t("quickActions", "Quick Actions")}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 p-4 pt-0">
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start h-auto py-2"
+                                onClick={() => navigate('/entity/profile')}
+                            >
+                                <Building2 className="mr-2 h-4 w-4 text-primary" />
+                                <div className="flex flex-col items-start">
+                                    <span className="font-medium">{t("companyProfile", "Company Profile")}</span>
+                                </div>
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start h-auto py-2"
+                                onClick={() => {
+                                    setStatusFilter('pending');
+                                    setViewMode('list');
+                                }}
+                            >
+                                <AlertCircle className="mr-2 h-4 w-4 text-orange-500" />
+                                <div className="flex flex-col items-start">
+                                    <span className="font-medium">{stats.pendingConfirmation} {t("pendingActions")}</span>
+                                </div>
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start h-auto py-2"
+                                onClick={() => {
+                                    setDateFilter('today');
+                                    setViewMode('list');
+                                }}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                                <div className="flex flex-col items-start">
+                                    <span className="font-medium">{stats.today} {t("todaysBookings")}</span>
+                                </div>
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-start text-muted-foreground hover:text-destructive"
+                                onClick={resetFilters}
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                {t("actions.clearFilters", "Clear All Filters")}
+                            </Button>
+                        </CardContent>
+                    </Card>
 
                     {/* Recent Activities Widget */}
                     <RecentActivitiesWidget

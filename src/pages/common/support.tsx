@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
     Card,
@@ -86,9 +87,24 @@ export function SupportPage() {
     const [selectedArticle, setSelectedArticle] = useState<KnowledgeBaseArticle | null>(null);
     const [isViewArticleOpen, setIsViewArticleOpen] = useState(false);
 
+    const [searchParams] = useSearchParams();
+
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        if (searchParams.get("action") === "create-ticket") {
+            setNewTicket(prev => ({
+                ...prev,
+                subject: searchParams.get("subject") || prev.subject,
+                category: searchParams.get("category") || prev.category || "billing",
+                priority: "high",
+                description: searchParams.get("description") || prev.description
+            }));
+            setIsCreateTicketDialogOpen(true);
+        }
+    }, [searchParams]);
 
     const handleViewArticle = (article: KnowledgeBaseArticle) => {
         setSelectedArticle(article);

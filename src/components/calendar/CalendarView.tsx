@@ -160,7 +160,7 @@ export function CalendarView({
       (_, i) => start + i
     );
   };
-  const { t } = useTranslation(["common", "bookings"]);
+  useTranslation(["common", "bookings"]);
   const { formatCurrency } = useCurrency();
   const { isSimplePlan } = usePlanRestrictions();
   const [currentDate, setCurrentDate] = useState(new Date());

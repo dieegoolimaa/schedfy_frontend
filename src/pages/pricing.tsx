@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, X } from "lucide-react";
 import { useRegion } from "@/contexts/region-context";
 
@@ -85,7 +84,7 @@ export default function Pricing() {
         "pricing.individual.description",
         "Ideal for growing professionals with expanding client base"
       ),
-      popular: true,
+      popular: false,
       features: [
         {
           name: t("pricing.individual.feature1", "Up to {{count}} bookings/month", { count: getPlanData("individual")?.maxBookings || 200 }),
@@ -271,14 +270,6 @@ export default function Pricing() {
                   : "border-border"
                   }`}
               >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="px-4 py-1">
-                      {t("pricing.popular", "Most Popular")}
-                    </Badge>
-                  </div>
-                )}
-
                 <CardHeader>
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <CardDescription className="text-base mt-2">
@@ -287,6 +278,9 @@ export default function Pricing() {
                   <div className="mt-4">
                     <span className="text-4xl font-bold">{plan.price}</span>
                     <span className="text-muted-foreground">{plan.period}</span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("pricing.taxNotice", "Prices exclude VAT")}
+                    </p>
                   </div>
                 </CardHeader>
 

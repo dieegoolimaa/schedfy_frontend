@@ -85,6 +85,7 @@
     "monthly": "Monthly",
     "yearly": "Yearly",
     "save20": "Save 20%",
+    "taxNotice": "Prices exclude VAT",
     "nextBilling": "Next billing",
     "paymentMethod": {
       "title": "Payment Method",

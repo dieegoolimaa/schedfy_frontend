@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRegion } from "../contexts/region-context";
 import { Loader2 } from "lucide-react";
+import { Logo } from "./ui/logo";
 
 interface RegionInitializerProps {
   children: React.ReactNode;
@@ -34,8 +35,8 @@ export function RegionInitializer({
             <div className="h-16 w-16 rounded-full border-4 border-primary/20"></div>
             <Loader2 className="absolute inset-0 m-auto h-16 w-16 animate-spin text-primary" />
           </div>
-          <div className="text-center space-y-2">
-            <h2 className="text-xl font-semibold">Schedfy</h2>
+          <div className="flex flex-col items-center justify-center space-y-2">
+            <Logo size="lg" className="justify-center" />
             <p className="text-sm text-muted-foreground">
               Detecting your region...
             </p>
@@ -47,3 +48,4 @@ export function RegionInitializer({
 
   return <>{children}</>;
 }
+

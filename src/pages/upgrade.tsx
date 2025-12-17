@@ -12,11 +12,21 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/auth-context";
 import { useRegion } from "../contexts/region-context";
+import { toast } from "sonner";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function UpgradePage() {
   const { t } = useTranslation("upgrade");
   const { user } = useAuth();
-  const { getPriceDisplay } = useRegion();
+  const { getPriceDisplay, region, regionConfig } = useRegion();
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleUpgrade = (planId: string) => {
+    navigate(`/upgrade/checkout?planId=${planId}`);
+  };
 
   const plans = [
     {
@@ -48,7 +58,7 @@ export function UpgradePage() {
         "Priority support",
       ],
       current: user?.plan === "individual",
-      recommended: true,
+      recommended: false,
     },
     {
       id: "business",
@@ -70,7 +80,34 @@ export function UpgradePage() {
   ];
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
-  const availableUpgrades = plans.slice(currentPlanIndex + 1);
+  let availableUpgrades = plans.slice(currentPlanIndex + 1);
+
+  // Special "Unlimited Bookings" add-on for Simple plan users
+  if (user?.plan === "simple") {
+    const unlimitedRawPrice = region === "BR" ? 29.90 : 9.90;
+    const unlimitedPriceDisplay = new Intl.NumberFormat(regionConfig.locale, {
+      style: "currency",
+      currency: regionConfig.currency,
+    }).format(unlimitedRawPrice);
+
+    const simpleUnlimitedPlan = {
+      id: "simple_unlimited",
+      name: t("plans.unlimited.name", "Unlimited Bookings"),
+      price: unlimitedPriceDisplay,
+      period: "/month",
+      description: t("plans.unlimited.description", "Remove booking limits from your Simple plan"),
+      features: [
+        t("plans.unlimited.feature1", "Unlimited bookings"),
+        t("plans.unlimited.feature2", "Keep current features"),
+        t("plans.unlimited.feature3", "No AI features"),
+        t("plans.unlimited.feature4", "Cancel anytime"),
+      ],
+      current: false,
+      recommended: true,
+    };
+
+    availableUpgrades = [simpleUnlimitedPlan, ...availableUpgrades];
+  }
 
   const getPlanIcon = (planId: string) => {
     switch (planId) {
@@ -96,31 +133,22 @@ export function UpgradePage() {
               {t("goBack")}
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("title")}
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold tracking-tight">
+              {t("title")}
+            </h1>
+            {user && (
+              <Badge variant="secondary" className="text-sm font-normal py-1">
+                {t("currentPlan", { plan: user.plan })}
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground mt-2">
             {t("subtitle")}
           </p>
         </div>
 
-        {/* Current Plan */}
-        {user && (
-          <Card className="mb-8 border-primary bg-primary/5">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {getPlanIcon(user.plan)}
-                  <CardTitle className="capitalize">{user.plan} {t("plan")}</CardTitle>
-                  <Badge variant="secondary">{t("current")}</Badge>
-                </div>
-              </div>
-              <CardDescription>
-                {t("currentPlanDescription", { plan: user.plan })}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )}
+
 
         {/* Available Upgrades */}
         {availableUpgrades.length > 0 ? (
@@ -128,7 +156,7 @@ export function UpgradePage() {
             {availableUpgrades.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative ${plan.recommended ? "border-primary" : ""
+                className={`flex flex-col h-full relative ${plan.recommended ? "border-primary" : ""
                   }`}
               >
                 {plan.recommended && (
@@ -149,8 +177,8 @@ export function UpgradePage() {
                   </div>
                   <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
+                <CardContent className="flex-1 flex flex-col space-y-4">
+                  <ul className="space-y-2 flex-1">
                     {plan.features.map((feature) => (
                       <li
                         key={feature}
@@ -161,7 +189,15 @@ export function UpgradePage() {
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full" size="lg">
+                  <Button
+                    className="w-full mt-4"
+                    size="lg"
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={!!isLoading}
+                  >
+                    {isLoading === plan.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
                     {t("upgradeTo", { plan: plan.name })}
                   </Button>
                 </CardContent>

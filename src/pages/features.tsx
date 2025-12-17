@@ -15,7 +15,6 @@ import {
   Smartphone,
   Globe,
   Shield,
-  Clock,
   Bell,
   CreditCard,
   Zap,
@@ -110,20 +109,7 @@ export default function Features() {
         t("features.security.benefit4", "Regular security audits"),
       ],
     },
-    {
-      icon: Clock,
-      title: t("features.automation.title", "Smart Automation"),
-      description: t(
-        "features.automation.desc",
-        "Automate repetitive tasks with intelligent workflows and automated notifications."
-      ),
-      benefits: [
-        t("features.automation.benefit1", "Automated reminders"),
-        t("features.automation.benefit2", "Workflow automation"),
-        t("features.automation.benefit3", "Smart scheduling"),
-        t("features.automation.benefit4", "Auto-confirmation"),
-      ],
-    },
+
     {
       icon: Bell,
       title: t("features.notifications.title", "Smart Notifications"),

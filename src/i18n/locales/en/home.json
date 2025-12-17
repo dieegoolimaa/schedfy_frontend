@@ -45,7 +45,8 @@
     "subtitle": "Start free and scale as you grow. No hidden fees.",
     "popular": "Most Popular",
     "startFree": "Start Free Trial",
-    "perMonth": "/month"
+    "perMonth": "/month",
+    "taxNotice": "Prices exclude VAT"
   },
   "plans": {
     "simple": {
@@ -132,6 +133,7 @@
     "description": "Modern scheduling platform for businesses worldwide",
     "product": "Product",
     "features": "Features",
+    "discover": "Discover",
     "pricing": "Pricing",
     "integrations": "Integrations",
     "company": "Company",

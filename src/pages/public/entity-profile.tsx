@@ -50,7 +50,7 @@ export function PublicEntityProfilePage() {
   const { formatCurrency } = useCurrency();
 
   const [loading, setLoading] = useState(true);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [, setLoadingSlots] = useState(false);
   const [booking, setBooking] = useState(false);
   const [entity, setEntity] = useState<PublicEntity | null>(null);
   const [services, setServices] = useState<PublicService[]>([]);
@@ -444,7 +444,7 @@ export function PublicEntityProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">{t("profile.loading")}</p>
@@ -455,7 +455,7 @@ export function PublicEntityProfilePage() {
 
   if (!entity) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">{t("profile.notFoundTitle")}</CardTitle>
@@ -476,7 +476,7 @@ export function PublicEntityProfilePage() {
 
   if ((entity as any).publicProfile?.enabled === false) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">{t("profile.privateTitle")}</CardTitle>
@@ -496,7 +496,7 @@ export function PublicEntityProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Hero Section with Cover */}
       <div className="relative">
         <div className="h-64 md:h-80 lg:h-96 overflow-hidden relative">
