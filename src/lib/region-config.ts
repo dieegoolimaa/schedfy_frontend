@@ -25,7 +25,7 @@ export const REGIONS: Record<RegionCode, RegionConfig> = {
         phonePrefix: '+351',
         dateFormat: 'DD/MM/YYYY',
         priceFormat: {
-            simple: '€0,00',
+            simple: '€14,90',
             individual: '€34,90',
             business: '€89,90',
         },
@@ -41,7 +41,7 @@ export const REGIONS: Record<RegionCode, RegionConfig> = {
         phonePrefix: '+55',
         dateFormat: 'DD/MM/YYYY',
         priceFormat: {
-            simple: 'R$ 0,00',
+            simple: 'R$ 59,90',
             individual: 'R$ 129,90',
             business: 'R$ 349,90',
         },
@@ -57,7 +57,7 @@ export const REGIONS: Record<RegionCode, RegionConfig> = {
         phonePrefix: '+1',
         dateFormat: 'MM/DD/YYYY',
         priceFormat: {
-            simple: '$0.00',
+            simple: '$14.90',
             individual: '$34.90',
             business: '$89.90',
         },
