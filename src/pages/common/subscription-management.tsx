@@ -53,7 +53,7 @@ export function SubscriptionManagementPage() {
     }
     // Fallback prices if API fails
     const fallbackPrices: Record<string, Record<string, number>> = {
-      simple: { monthly: 0, yearly: 0 },
+      simple: { monthly: 14.90, yearly: 149.00 },
       individual: { monthly: 34.90, yearly: 349.00 },
       business: { monthly: 89.90, yearly: 899.00 },
     };
