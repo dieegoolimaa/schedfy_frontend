@@ -33,6 +33,7 @@ import {
     Building,
     Loader2,
     AlertTriangle,
+    Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -51,7 +52,18 @@ export function SubscriptionDetails() {
     const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
-    // Queries
+    // Trial Calculation (Frontend-side fallback if status is not explicitly 'trialing')
+    const trialDays = 14;
+    // We need user creation date or subscription creation date. subscription.createdAt is best.
+    // If subscription is loading, these will be recalculated later.
+    const getTrialInfo = (sub: any) => {
+        if (!sub) return { isOnTrial: false, daysRemaining: 0, trialEndDate: new Date() };
+        const createdAt = new Date(sub.createdAt || Date.now());
+        const end = new Date(createdAt.getTime() + trialDays * 24 * 60 * 60 * 1000);
+        const days = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const isTrial = sub.plan !== 'simple' && days > 0 && days <= trialDays;
+        return { isOnTrial: isTrial, daysRemaining: days, trialEndDate: end };
+    };
     const { data: subscription, isLoading: isLoadingSubscription } = useQuery({
         queryKey: ['subscription'],
         queryFn: async () => {
@@ -164,7 +176,11 @@ export function SubscriptionDetails() {
     }
 
     const currentPlan = Array.isArray(plans) ? plans.find(p => p.plan === subscription?.plan && p.interval === subscription?.interval) : null;
-    const nextBillingDate = subscription?.nextBillingDate ? new Date(subscription.nextBillingDate) : null;
+    const { isOnTrial, daysRemaining, trialEndDate } = getTrialInfo(subscription);
+
+    // Logic: If on trial, next billing is trial end date.
+    const nextBillingDate = isOnTrial ? trialEndDate : (subscription?.nextBillingDate ? new Date(subscription.nextBillingDate) : null);
+
     const currentAddOnPrice = subscription?.interval === 'year' ? 290 : 29;
     const totalCurrentPrice = (currentPlan?.price || 0) + (subscription?.aiInsightsSubscribed ? currentAddOnPrice : 0);
 
@@ -195,10 +211,12 @@ export function SubscriptionDetails() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={() => portalMutation.mutate()} disabled={portalMutation.isPending}>
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        {portalMutation.isPending ? t("common:loading") : t("actions.manageBilling")}
-                    </Button>
+                    {subscription?.plan !== 'simple' && (
+                        <Button variant="outline" onClick={() => portalMutation.mutate()} disabled={portalMutation.isPending}>
+                            <CreditCard className="h-4 w-4 mr-2" />
+                            {portalMutation.isPending ? t("common:loading") : t("actions.manageBilling")}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -217,15 +235,24 @@ export function SubscriptionDetails() {
                                     {subscription?.createdAt ? new Date(subscription.createdAt).toLocaleDateString() : "-"}
                                 </CardDescription>
                             </div>
+                        </div>
+                        <div className="flex gap-2">
+                            {isOnTrial && (
+                                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    Trial: {daysRemaining} days left
+                                </Badge>
+                            )}
                             <Badge
                                 variant="outline"
                                 className={`px-3 py-1 text-sm font-medium capitalize
-                  ${subscription?.status === 'active' && !subscription.cancelAtPeriodEnd ? 'bg-green-100 text-green-800 border-green-200' : ''}
-                  ${subscription?.status === 'canceled' ? 'bg-red-100 text-red-800 border-red-200' : ''}
-                  ${subscription?.cancelAtPeriodEnd ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : ''}
-                `}
+                      ${isOnTrial ? 'bg-blue-100 text-blue-800 border-blue-200' : ''}
+                      ${!isOnTrial && subscription?.status === 'active' && !subscription.cancelAtPeriodEnd ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                      ${subscription?.status === 'canceled' ? 'bg-red-100 text-red-800 border-red-200' : ''}
+                      ${subscription?.cancelAtPeriodEnd ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : ''}
+                    `}
                             >
-                                {subscription?.cancelAtPeriodEnd ? t("plan.cancellingSoon") : t(`plan.status.${subscription?.status}`, { defaultValue: subscription?.status || "" })}
+                                {isOnTrial ? "Trialing" : (subscription?.cancelAtPeriodEnd ? t("plan.cancellingSoon") : t(`plan.status.${subscription?.status}`, { defaultValue: subscription?.status || "" }))}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -248,7 +275,7 @@ export function SubscriptionDetails() {
                             </div>
                             <div className="text-right">
                                 <div className="text-sm font-medium text-muted-foreground">
-                                    {subscription?.cancelAtPeriodEnd ? t("plan.accessUntil") : t("billing.nextBilling", "Next billing date")}
+                                    {isOnTrial ? "Trial Ends On" : (subscription?.cancelAtPeriodEnd ? t("plan.accessUntil") : t("billing.nextBilling", "Next billing date"))}
                                 </div>
                                 <div className="text-lg font-semibold">
                                     {nextBillingDate ? nextBillingDate.toLocaleDateString() : "-"}
@@ -528,7 +555,13 @@ export function SubscriptionDetails() {
                                                     unsubscribeAiInsightsMutation.mutate();
                                                 }
                                             } else {
-                                                aiInsightsMutation.mutate();
+                                                if (isOnTrial) {
+                                                    if (confirm("Subscribing to AI Business Insights will end your free trial immediately and you will be charged for the plan + add-on. Do you want to continue?")) {
+                                                        aiInsightsMutation.mutate();
+                                                    }
+                                                } else {
+                                                    aiInsightsMutation.mutate();
+                                                }
                                             }
                                         }}
                                     >
@@ -560,7 +593,7 @@ export function SubscriptionDetails() {
                                         <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                                     </div>
                                 ) : Array.isArray(invoices) && invoices.length > 0 ? (
-                                    invoices.map((invoice) => (
+                                    (invoices || []).map((invoice) => (
                                         <div
                                             key={invoice.id}
                                             className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -644,6 +677,6 @@ export function SubscriptionDetails() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 }
