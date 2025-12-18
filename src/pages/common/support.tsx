@@ -62,8 +62,13 @@ import {
     X,
     User,
     Globe,
-    BookOpen
+    BookOpen,
+    Paperclip,
+    FileText,
+    Image as ImageIcon,
+    File,
 } from "lucide-react";
+
 import { useToast } from "../../hooks/use-toast";
 import { supportService, SupportTicket, KnowledgeBaseArticle } from "../../services/support.service";
 
@@ -80,6 +85,8 @@ export function SupportPage() {
         priority: "",
         description: ""
     });
+    const [ticketAttachments, setTicketAttachments] = useState<File[]>([]);
+    const [messageAttachments, setMessageAttachments] = useState<File[]>([]);
 
     const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
     const [knowledgeBaseArticles, setKnowledgeBaseArticles] = useState<KnowledgeBaseArticle[]>([]);
@@ -180,6 +187,8 @@ export function SupportPage() {
         }
 
         try {
+            // TODO: Upload attachments to backend
+            // const attachmentUrls = await Promise.all(ticketAttachments.map(file => uploadFile(file)));
             await supportService.createTicket(newTicket);
             toast({
                 title: t("platform.support.ticketCreated", "Ticket Created"),
@@ -187,6 +196,7 @@ export function SupportPage() {
             });
             setIsCreateTicketDialogOpen(false);
             setNewTicket({ subject: "", category: "", priority: "", description: "" });
+            setTicketAttachments([]);
             loadData(); // Reload tickets
         } catch (error) {
             console.error("Failed to create ticket", error);
@@ -196,6 +206,46 @@ export function SupportPage() {
                 description: t("messages.createFailed", "Failed to create ticket")
             });
         }
+    };
+
+    // File attachment helpers
+    const handleTicketFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            setTicketAttachments(prev => [...prev, ...files]);
+        }
+    };
+
+    const handleMessageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            setMessageAttachments(prev => [...prev, ...files]);
+        }
+    };
+
+    const removeTicketAttachment = (index: number) => {
+        setTicketAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeMessageAttachment = (index: number) => {
+        setMessageAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const formatFileSize = (bytes: number) => {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
+    const getFileIcon = (fileName: string) => {
+        const ext = fileName.split('.').pop()?.toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) {
+            return <ImageIcon className="h-4 w-4" />;
+        }
+        if (['pdf', 'doc', 'docx'].includes(ext || '')) {
+            return <FileText className="h-4 w-4" />;
+        }
+        return <File className="h-4 w-4" />;
     };
 
 
@@ -364,7 +414,61 @@ export function SupportPage() {
                                         placeholder="Please describe the issue in detail"
                                     />
                                 </div>
+                                {/* Attachments Section */}
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label className="text-right">
+                                        {t("platform.support.ticket.attachments", "Attachments")}
+                                    </Label>
+                                    <div className="col-span-3 space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="file"
+                                                id="ticket-attachments"
+                                                multiple
+                                                className="hidden"
+                                                onChange={handleTicketFileSelect}
+                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => document.getElementById('ticket-attachments')?.click()}
+                                            >
+                                                <Paperclip className="h-4 w-4 mr-2" />
+                                                {t("platform.support.attachFile", "Attach Files")}
+                                            </Button>
+                                            <span className="text-xs text-muted-foreground">
+                                                {t("platform.support.attachHint", "Max 10MB per file")}
+                                            </span>
+                                        </div>
+                                        {ticketAttachments.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {ticketAttachments.map((file, index) => (
+                                                    <div
+                                                        key={`${file.name}-${index}`}
+                                                        className="flex items-center gap-2 bg-muted rounded-md px-3 py-1.5 text-sm"
+                                                    >
+                                                        {getFileIcon(file.name)}
+                                                        <span className="max-w-[120px] truncate">{file.name}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            ({formatFileSize(file.size)})
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeTicketAttachment(index)}
+                                                            className="text-muted-foreground hover:text-destructive"
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
+
                             <DialogFooter>
                                 <Button type="submit" onClick={handleCreateTicket}>{t("common.create", "Create")}</Button>
                             </DialogFooter>
@@ -732,13 +836,49 @@ export function SupportPage() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="mt-4 flex gap-2 items-start">
+                                        <div className="mt-4 space-y-3">
                                             <Textarea
                                                 placeholder={t("platform.support.placeholders.reply", "Type your reply...")}
                                                 value={newMessage}
                                                 onChange={(e) => setNewMessage(e.target.value)}
                                                 className="min-h-[80px]"
                                             />
+                                            {/* Message Attachments */}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <input
+                                                    type="file"
+                                                    id="message-attachments"
+                                                    multiple
+                                                    className="hidden"
+                                                    onChange={handleMessageFileSelect}
+                                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => document.getElementById('message-attachments')?.click()}
+                                                >
+                                                    <Paperclip className="h-4 w-4 mr-2" />
+                                                    {t("platform.support.attachFile", "Attach")}
+                                                </Button>
+                                                {messageAttachments.map((file, index) => (
+                                                    <div
+                                                        key={`${file.name}-${index}`}
+                                                        className="flex items-center gap-1 bg-muted rounded-md px-2 py-1 text-xs"
+                                                    >
+                                                        {getFileIcon(file.name)}
+                                                        <span className="max-w-[80px] truncate">{file.name}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeMessageAttachment(index)}
+                                                            className="text-muted-foreground hover:text-destructive"
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                         <div className="mt-2 flex justify-end gap-2">
                                             <Button size="sm" onClick={handleSendMessage} disabled={!newMessage.trim()}>
@@ -746,6 +886,7 @@ export function SupportPage() {
                                             </Button>
                                         </div>
                                     </>
+
                                 )}
                             </div>
                         </div>
