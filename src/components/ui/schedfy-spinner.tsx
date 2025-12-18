@@ -52,7 +52,7 @@ export function SchedfySpinner({ size = "md", className }: SchedfySpinnerProps) 
                         fill="currentColor"
                         className="text-background dark:text-black"
                     >
-                        s
+                        S
                     </text>
                 </svg>
             </div>
