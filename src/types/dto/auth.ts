@@ -1,13 +1,15 @@
+import { EntityPlan, UserRole, Region } from '../enums';
+
 export interface User {
     id: string;
     email: string;
     name: string;
     avatar?: string;
-    plan: "simple" | "individual" | "business";
-    role: "owner" | "admin" | "manager" | "hr" | "attendant" | "professional" | "platform_admin";
+    plan: EntityPlan;
+    role: UserRole;
     platform: "admin" | "client"; // Platform context: admin (schedfy_admin) or client (schedfy_frontend)
     entityId?: string; // MongoDB ObjectId for the entity this user belongs to
-    country: "PT" | "BR" | "US";
+    country: Region;
     timezone: string;
     locale: string;
     isEmailVerified: boolean;
@@ -45,7 +47,7 @@ export interface AuthEntity {
         hasServices: boolean;
         hasPaymentMethods: boolean;
     };
-    plan?: "simple" | "individual" | "business";
+    plan?: EntityPlan;
 }
 
 // Re-export Entity from models for convenience
@@ -71,11 +73,11 @@ export interface RegisterData {
     email: string;
     password: string;
     role?: string;
-    plan?: "simple" | "individual" | "business";
+    plan?: EntityPlan;
     businessName?: string;
     businessType?: string;
     region?: string;
-    country?: "PT" | "BR" | "US";
+    country?: Region;
     acceptTerms?: boolean;
     acceptMarketing?: boolean;
 }

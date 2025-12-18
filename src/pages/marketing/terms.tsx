@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { MarketingHeader } from "../../components/layout/marketing-header";
 import {
   Card,
   CardContent,
@@ -9,34 +10,14 @@ import {
 import { Button } from "../../components/ui/button";
 import { ArrowLeft, Calendar, Shield, Users } from "lucide-react";
 import { useRegion } from "../../contexts/region-context";
+import { EntityPlan, BillingPeriod } from "../../types/enums";
 
 export function TermsPage() {
   const { getPriceDisplay } = useRegion();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-              <ArrowLeft className="h-5 w-5" />
-              Schedfy
-            </Link>
-            <div className="ml-auto">
-              <Link to="/login">
-                <Button variant="ghost" className="mr-2">
-                  Sign In
-                </Button>
-              </Link>
-              <Link to="/register">
-                <Button>Get Started</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
+      <MarketingHeader />
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         <div className="space-y-8">
@@ -145,15 +126,15 @@ export function TermsPage() {
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     <li>
                       <strong>Simple:</strong> Basic appointment management
-                      ({getPriceDisplay("simple", "monthly")}/month)
+                      ({getPriceDisplay(EntityPlan.SIMPLE, BillingPeriod.MONTHLY)}/month)
                     </li>
                     <li>
                       <strong>Individual:</strong> Enhanced features for solo
-                      professionals ({getPriceDisplay("individual", "monthly")}/month)
+                      professionals ({getPriceDisplay(EntityPlan.INDIVIDUAL, BillingPeriod.MONTHLY)}/month)
                     </li>
                     <li>
                       <strong>Business:</strong> Complete business management
-                      suite ({getPriceDisplay("business", "monthly")}/month)
+                      suite ({getPriceDisplay(EntityPlan.BUSINESS, BillingPeriod.MONTHLY)}/month)
                     </li>
                   </ul>
                 </div>

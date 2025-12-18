@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { entitiesService, type Entity } from "../../services/entities.service";
+import { EntityPlan, UserRole } from "../../types/enums";
 import { toast } from "sonner";
 import {
   Card,
@@ -31,11 +32,11 @@ import { User, Shield, Save, Building2, Clock } from "lucide-react";
 export default function UnifiedSettingsPage() {
   const { t } = useTranslation("settings");
   const { user, updateEntity } = useAuth();
-  const plan = user?.plan || "simple";
-  const isOwnerOrManager = user?.role === "owner" || user?.role === "manager" || user?.role === "admin";
+  const plan = user?.plan || EntityPlan.SIMPLE;
+  const isOwnerOrManager = user?.role === UserRole.OWNER || user?.role === UserRole.MANAGER || user?.role === UserRole.ADMIN;
 
   const [activeTab, setActiveTab] = useState(
-    (plan === "business" || plan === "individual" || plan === "simple") ? "business" : "profile"
+    (plan === EntityPlan.BUSINESS || plan === EntityPlan.INDIVIDUAL || plan === EntityPlan.SIMPLE) ? "business" : "profile"
   );
   const [entity, setEntity] = useState<Entity | null>(null);
   const [loadingEntity, setLoadingEntity] = useState(true);
@@ -213,7 +214,7 @@ export default function UnifiedSettingsPage() {
       setSaving(true);
 
       // Save Working Hours, Slot Duration, and Privacy Settings
-      if (plan === "business" || plan === "individual" || plan === "simple") {
+      if (plan === EntityPlan.BUSINESS || plan === EntityPlan.INDIVIDUAL || plan === EntityPlan.SIMPLE) {
         const response = await entitiesService.updateProfile({
           workingHours,
           defaultSlotDuration,
@@ -268,7 +269,7 @@ export default function UnifiedSettingsPage() {
         className="space-y-6"
       >
         <TabsList>
-          {(plan === "business" || plan === "individual" || plan === "simple") && (
+          {(plan === EntityPlan.BUSINESS || plan === EntityPlan.INDIVIDUAL || plan === EntityPlan.SIMPLE) && (
             <TabsTrigger value="business" className="gap-2">
               <Building2 className="w-4 h-4" />
               {t("tabs.business")}
@@ -278,7 +279,7 @@ export default function UnifiedSettingsPage() {
             <User className="w-4 h-4" />
             {t("tabs.profile")}
           </TabsTrigger>
-          {(plan === "business" || plan === "individual" || plan === "simple") && (
+          {(plan === EntityPlan.BUSINESS || plan === EntityPlan.INDIVIDUAL || plan === EntityPlan.SIMPLE) && (
             <TabsTrigger value="hours" className="gap-2">
               <Clock className="w-4 h-4" />
               {t("tabs.workingHours")}
@@ -291,14 +292,14 @@ export default function UnifiedSettingsPage() {
         </TabsList>
 
         {/* Business Profile Tab (All Plans) */}
-        {(plan === "business" || plan === "individual" || plan === "simple") && (
+        {(plan === EntityPlan.BUSINESS || plan === EntityPlan.INDIVIDUAL || plan === EntityPlan.SIMPLE) && (
           <TabsContent value="business" className="space-y-6">
             <Card>
               <CardContent className="pt-6">
                 {entity && (
                   <BusinessProfileManager
                     entityId={entity.id || user?.entityId || ""}
-                    entityType={entity.plan || "business"}
+                    entityType={entity.plan || EntityPlan.BUSINESS}
                     initialData={{
                       businessName: entity.name,
                       username: entity.username,
@@ -411,7 +412,7 @@ export default function UnifiedSettingsPage() {
         </TabsContent>
 
         {/* Working Hours Tab (Business/Individual/Simple) */}
-        {(plan === "business" || plan === "individual" || plan === "simple") && (
+        {(plan === EntityPlan.BUSINESS || plan === EntityPlan.INDIVIDUAL || plan === EntityPlan.SIMPLE) && (
           <TabsContent value="hours" className="space-y-6">
             <Card>
               <CardHeader>

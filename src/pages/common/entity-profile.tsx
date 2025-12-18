@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { EntityPlan } from "../../types/enums";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -185,9 +186,9 @@ export function EntityProfilePage() {
   ];
 
   const subscriptionColors = {
-    Simple: "bg-blue-100 text-blue-800 border-blue-200",
-    Individual: "bg-purple-100 text-purple-800 border-purple-200",
-    Business: "bg-gold-100 text-gold-800 border-gold-200",
+    [EntityPlan.SIMPLE]: "bg-blue-100 text-blue-800 border-blue-200",
+    [EntityPlan.INDIVIDUAL]: "bg-purple-100 text-purple-800 border-purple-200",
+    [EntityPlan.BUSINESS]: "bg-gold-100 text-gold-800 border-gold-200",
   };
 
   return (
@@ -298,12 +299,11 @@ export function EntityProfilePage() {
                         variant="outline"
                         className={
                           subscriptionColors[
-                          entityData.subscription
-                            .plan as keyof typeof subscriptionColors
+                          entityData.subscription.plan as EntityPlan
                           ] || "bg-gray-100 text-gray-800 border-gray-200"
                         }
                       >
-                        {entityData.subscription.plan} Plan
+                        {entityData.subscription.plan.charAt(0).toUpperCase() + entityData.subscription.plan.slice(1)} Plan
                       </Badge>
                     )}
                   </div>
@@ -376,7 +376,7 @@ export function EntityProfilePage() {
             <TabsTrigger value="hours" className="whitespace-nowrap">
               Business Hours
             </TabsTrigger>
-            {entityData?.subscription?.plan !== 'simple' && (
+            {entityData?.subscription?.plan !== EntityPlan.SIMPLE && (
               <TabsTrigger value="team" className="whitespace-nowrap">
                 Team
               </TabsTrigger>
@@ -696,7 +696,7 @@ export function EntityProfilePage() {
         </TabsContent>
 
         {/* Team Tab */}
-        {entityData?.subscription?.plan !== 'simple' && (
+        {entityData?.subscription?.plan !== EntityPlan.SIMPLE && (
           <TabsContent value="team">
             <Card>
               <CardHeader>

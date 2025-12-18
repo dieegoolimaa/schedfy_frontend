@@ -2,13 +2,15 @@
  * Payments Module Interfaces - Frontend
  */
 
+import { PaymentMethod, PaymentStatus } from '../enums';
+
 export interface Payment {
     id: string;
     entityId: string;
     bookingId?: string;
     amount: number;
-    status: string;
-    method: string;
+    status: PaymentStatus;
+    method: PaymentMethod;
     description?: string;
     createdAt: string;
 }

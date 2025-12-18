@@ -13,6 +13,7 @@ import {
 } from "../types/dto/auth";
 import { authService } from "../services/auth.service";
 import { storage } from "../lib/storage";
+import { EntityPlan, Region, UserRole } from "../types/enums";
 
 // Use AuthEntity as Entity for this context
 type Entity = AuthEntity;
@@ -22,7 +23,7 @@ export function transformBackendUser(backendUser: any, entity?: any): User {
   // Normalize plan names from backend
   const normalizePlan = (
     plan: string
-  ): "simple" | "individual" | "business" => {
+  ): EntityPlan => {
     const planLower = (plan || "simple").toLowerCase();
 
     // Map various plan names to our three types
@@ -31,14 +32,14 @@ export function transformBackendUser(backendUser: any, entity?: any): User {
       planLower === "free" ||
       planLower === "basic"
     ) {
-      return "simple";
+      return EntityPlan.SIMPLE;
     }
     if (
       planLower === "individual" ||
       planLower === "pro" ||
       planLower === "professional"
     ) {
-      return "individual";
+      return EntityPlan.INDIVIDUAL;
     }
     if (
       planLower === "business" ||
@@ -46,13 +47,13 @@ export function transformBackendUser(backendUser: any, entity?: any): User {
       planLower === "enterprise" ||
       planLower === "team"
     ) {
-      return "business";
+      return EntityPlan.BUSINESS;
     }
 
     console.warn(
       `[AuthContext] Unknown plan type "${plan}", defaulting to "simple"`
     );
-    return "simple";
+    return EntityPlan.SIMPLE;
   };
 
   // Prioritize entity plan if available, otherwise fallback to user plan
@@ -73,10 +74,10 @@ export function transformBackendUser(backendUser: any, entity?: any): User {
     lastName: backendUser.lastName,
     avatar: backendUser.avatar,
     plan: normalizedPlan,
-    role: backendUser.role,
+    role: backendUser.role as UserRole,
     platform: backendUser.platform || "client", // Default to client platform
     entityId: backendUser.entityId,
-    country: backendUser.country || "PT",
+    country: backendUser.country || Region.PORTUGAL,
     timezone: backendUser.timezone || "Europe/Lisbon",
     locale: backendUser.locale || "en",
     isEmailVerified: backendUser.isEmailVerified || false,
@@ -195,7 +196,6 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
           dispatch({ type: "AUTH_LOADING" });
           // Verify token with backend
           const response = await authService.getProfile();
-          console.log("[AuthProvider] Profile response:", response);
           if (response.data) {
             // Check if response.data has user and entity properties
             const userData = (response.data as any).user || response.data;
@@ -203,11 +203,6 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
 
             // Transform backend user to frontend User type, passing entity data to resolve plan
             const transformedUser = transformBackendUser(userData, entityData);
-            console.log(
-              "[AuthProvider] Transformed user on reload:",
-              transformedUser
-            );
-            console.log("[AuthProvider] Entity on reload:", entityData);
             dispatch({
               type: "AUTH_SUCCESS",
               payload: { user: transformedUser, entity: entityData },
@@ -232,9 +227,6 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
 
       const response = await authService.login(credentials);
 
-      console.log("Login response:", response);
-      console.log("Response data:", response.data);
-
       if (!response.data) {
         throw new Error("Login failed - no data received");
       }
@@ -250,16 +242,12 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
 
       const { user, entity } = response.data;
 
-      console.log("User from response:", user);
-      console.log("Entity from response:", entity);
-
       if (!user) {
         throw new Error("Login failed - no user in response");
       }
 
       // Transform backend user to frontend User type, passing entity to resolve plan
       const transformedUser = transformBackendUser(user, entity);
-      console.log("Transformed user:", transformedUser);
 
       // Clear 2FA state on successful login
       setRequires2FA(false);

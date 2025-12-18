@@ -13,6 +13,8 @@ import { Badge } from "../../components/ui/badge";
 import { TiltCard } from "../../components/ui/tilt-card";
 import { Navigation } from "../../components/layout/navigation";
 import { useRegion } from "../../contexts/region-context";
+import { useAuth } from "../../contexts/auth-context";
+import { getDashboardRoute } from "../../lib/utils";
 import {
   Calendar,
   Users,
@@ -29,6 +31,9 @@ import {
 export function HomePage() {
   const { t } = useTranslation("home");
   const { getPriceDisplay } = useRegion();
+  const { user } = useAuth();
+
+  const dashboardRoute = user ? getDashboardRoute(user) : "/";
 
   // No automatic redirect - users can view the home page even when authenticated
 
@@ -177,20 +182,31 @@ export function HomePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="text-lg px-8">
-                  <Link to="/register">
-                    {t("common.getStarted", "Get Started")}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="text-lg px-8"
-                  asChild
-                >
-                  <Link to="/login">{t("common.signIn", "Sign In")}</Link>
-                </Button>
+                {user ? (
+                  <Button asChild size="lg" className="text-lg px-8">
+                    <Link to={dashboardRoute}>
+                      {t("common.accessApp", "Access App")}
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="text-lg px-8">
+                      <Link to="/register">
+                        {t("common.getStarted", "Get Started")}
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="text-lg px-8"
+                      asChild
+                    >
+                      <Link to="/login">{t("common.signIn", "Sign In")}</Link>
+                    </Button>
+                  </>
+                )}
               </div>
 
               <div className="flex items-center space-x-6 text-sm text-muted-foreground">
@@ -640,25 +656,41 @@ export function HomePage() {
             )}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="text-lg px-8"
-            >
-              <Link to="/register">
-                {t("cta.start", "Start Free Trial")}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-            >
-              <Link to="/contact">{t("cta.contact", "Contact Sales")}</Link>
-            </Button>
+            {user ? (
+              <Button
+                asChild
+                size="lg"
+                variant="secondary"
+                className="text-lg px-8"
+              >
+                <Link to={dashboardRoute}>
+                  {t("cta.access", "Go to Dashboard")}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="secondary"
+                  className="text-lg px-8"
+                >
+                  <Link to="/register">
+                    {t("cta.start", "Start Free Trial")}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="text-lg px-8 bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                >
+                  <Link to="/contact">{t("cta.contact", "Contact Sales")}</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </section>

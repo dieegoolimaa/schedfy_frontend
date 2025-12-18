@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { MarketingHeader } from "../../components/layout/marketing-header";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -127,28 +128,7 @@ export function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-              <ArrowLeft className="h-5 w-5" />
-              Schedfy
-            </Link>
-            <div className="ml-auto">
-              <Link to="/login">
-                <Button variant="ghost" className="mr-2">
-                  {t("header.signIn")}
-                </Button>
-              </Link>
-              <Link to="/register">
-                <Button>{t("header.getStarted")}</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
+      <MarketingHeader />
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="space-y-8">

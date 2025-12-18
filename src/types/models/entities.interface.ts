@@ -1,12 +1,10 @@
-/**
- * Entities Module Interfaces - Frontend
- */
+import { EntityPlan, EntityStatus, Region } from '../enums';
 
 export interface Entity {
     id: string;
     name: string;
     email: string;
-    plan: 'simple' | 'individual' | 'business';
+    plan: EntityPlan;
     allowConcurrentBookings: boolean;
     defaultSlotDuration?: number;
     aiFeaturesEnabled?: boolean;
@@ -15,15 +13,16 @@ export interface Entity {
     hasCompletedFirstPayment?: boolean;
     hasPaymentIssue?: boolean;
     paymentIssueType?: string;
-    username?: string;
+    slug?: string; // Standardized slug
+    username?: string; // Legacy support
     description?: string;
     address?: string;
     phone?: string;
     website?: string;
     logo?: string;
     banner?: string;
-    region?: string;
-    status?: string;
+    region?: Region;
+    status?: EntityStatus;
     createdAt?: string;
     updatedAt?: string;
     notificationSettings?: {

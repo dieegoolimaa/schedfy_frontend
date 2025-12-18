@@ -85,6 +85,7 @@ import {
 import { OnboardingGuard } from "./components/auth/onboarding-guard";
 import { DashboardRedirect } from "./components/auth/dashboard-redirect";
 import { ThemeProvider } from "./components/theme-provider";
+import { ScrollToTop } from "./components/layout/scroll-to-top";
 import { AuthProvider } from "./contexts/auth-context";
 import { RegionProvider } from "./contexts/region-context";
 import { RegionInitializer } from "./components/region-initializer";
@@ -102,6 +103,7 @@ function App() {
         <RegionInitializer>
           <AuthProvider>
             <FeatureFlagsProvider>
+              <ScrollToTop />
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<HomePage />} />

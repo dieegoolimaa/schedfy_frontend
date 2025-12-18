@@ -1,3 +1,8 @@
+/**
+ * Status de uma entidade/empresa
+ *
+ * @enum {string}
+ */
 export enum EntityStatus {
     /** Entidade ativa com acesso total */
     ACTIVE = 'active',

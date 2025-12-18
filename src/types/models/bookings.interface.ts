@@ -2,6 +2,8 @@
  * Bookings Module Interfaces - Frontend
  */
 
+import { BookingStatus, PaymentStatus, PaymentMethod } from '../enums';
+
 export interface Booking {
     id: string;
     entityId: string | { _id: string;[key: string]: any };
@@ -13,7 +15,7 @@ export interface Booking {
     // Backend também pode retornar startDateTime/endDateTime
     startDateTime?: string;
     endDateTime?: string;
-    status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no-show' | 'blocked';
+    status: BookingStatus;
     notes?: string;
     internalNotes?: string;
     createdAt: string;
@@ -33,8 +35,8 @@ export interface Booking {
     };
     // Payment information (from backend)
     payment?: {
-        status: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
-        method?: string;
+        status: PaymentStatus;
+        method?: PaymentMethod;
         depositRequired?: boolean;
         depositAmount?: number;
         depositPaid?: boolean;
@@ -45,7 +47,7 @@ export interface Booking {
     // Additional computed/display properties
     date?: string;
     time?: string;
-    paymentStatus?: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
+    paymentStatus?: PaymentStatus;
     // Populated fields (from backend)
     service?: ServiceInfo;
     client?: ClientInfo;
@@ -95,7 +97,7 @@ export interface CreateBookingDto {
     };
     startDateTime: string;
     endDateTime: string;
-    status?: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'blocked';
+    status?: BookingStatus;
     notes?: string;
     internalNotes?: string;
     pricing: {
@@ -111,8 +113,8 @@ export interface CreateBookingDto {
         currency: string;
     };
     payment?: {
-        status?: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
-        method?: string;
+        status?: PaymentStatus;
+        method?: PaymentMethod;
         depositRequired?: boolean;
         depositAmount?: number;
         depositPaid?: boolean;
@@ -136,7 +138,7 @@ export interface UpdateBookingDto {
     endDateTime?: string;
     notes?: string;
     internalNotes?: string;
-    status?: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+    status?: BookingStatus;
     pricing?: {
         basePrice?: number;
         discountAmount?: number;
@@ -150,8 +152,8 @@ export interface UpdateBookingDto {
         currency?: string;
     };
     payment?: {
-        status?: 'pending' | 'partial' | 'paid' | 'refunded' | 'failed';
-        method?: string;
+        status?: PaymentStatus;
+        method?: PaymentMethod;
         depositRequired?: boolean;
         depositAmount?: number;
         depositPaid?: boolean;

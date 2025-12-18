@@ -1,9 +1,10 @@
 import { apiClient } from "@/lib/api-client";
+import { EntityPlan } from "@/types/enums";
 
 export interface Subscription {
     id: string;
     entityId: string;
-    plan: 'simple' | 'individual' | 'business';
+    plan: EntityPlan;
     status: 'active' | 'canceled' | 'past_due' | 'trialing';
     interval: 'month' | 'year';
     currentPeriodStart: string;
@@ -20,7 +21,7 @@ export interface Subscription {
 export interface SubscriptionPlan {
     id: string;
     name: string;
-    plan: 'simple' | 'individual' | 'business';
+    plan: EntityPlan;
     interval: 'month' | 'year';
     price: number;
     currency: string;

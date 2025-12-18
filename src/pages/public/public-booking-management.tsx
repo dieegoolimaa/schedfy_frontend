@@ -338,8 +338,11 @@ export function PublicBookingManagementPage() {
                             </div>
                         )}
                     </CardContent>
-                    <CardFooter className="bg-muted/40 border-t p-6 flex justify-between items-center">
-                        <div className="flex gap-2">
+                    <CardFooter className="bg-muted/40 border-t p-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                        <div className="flex flex-wrap gap-2">
+                            <Button variant="outline" onClick={() => navigate("/")}>
+                                <ArrowLeft className="w-4 h-4 mr-2" /> {t("notFound.goHome", "Back to Home")}
+                            </Button>
                             <Button variant="outline" onClick={() => {
                                 const slug = booking.entityId?.publicProfile?.slug || booking.entityId?.slug || booking.entityId?.username;
                                 if (slug) {
@@ -348,7 +351,7 @@ export function PublicBookingManagementPage() {
                                     navigate(-1);
                                 }
                             }}>
-                                <ArrowLeft className="w-4 h-4 mr-2" /> Back to {booking.entityId?.name || "Business"}
+                                <ArrowLeft className="w-4 h-4 mr-2" /> {t("backToBusiness", "Back to")} {booking.entityId?.name || "Business"}
                             </Button>
                             {canReschedule && (
                                 <Dialog open={rescheduleDialogOpen} onOpenChange={setRescheduleDialogOpen}>

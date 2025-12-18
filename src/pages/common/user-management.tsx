@@ -61,6 +61,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
+import { UserRole } from "../../types/enums";
 import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { usersService } from "../../services/users.service";
 import { EditUserDialog, PermissionsDialog } from "../../components/dialogs/user-dialogs";
@@ -84,18 +85,15 @@ interface User {
 }
 
 const ROLES = [
-    { value: "owner", label: "Owner" },
-    { value: "admin", label: "Admin" },
-    { value: "professional", label: "Professional" },
+    { value: UserRole.ENTITY_OWNER, label: "Owner" },
+    { value: UserRole.ENTITY_ADMIN, label: "Admin" },
+    { value: UserRole.ENTITY_PROFESSIONAL, label: "Professional" },
 ];
 
 const ROLE_COLORS: Record<string, string> = {
-    owner: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-    admin: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-    manager: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    hr: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    attendant: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-    professional: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
+    [UserRole.ENTITY_OWNER]: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    [UserRole.ENTITY_ADMIN]: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    [UserRole.ENTITY_PROFESSIONAL]: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
 };
 
 const STATUS_CONFIG: Record<string, { icon: any; color: string }> = {
@@ -130,7 +128,7 @@ export default function TeamManagementPage() {
         lastName: "",
         email: "",
         phone: "",
-        role: "professional" as string,
+        role: UserRole.ENTITY_PROFESSIONAL as string,
         isProfessional: true,
         professionalInfo: {
             jobFunction: "",
@@ -226,7 +224,7 @@ export default function TeamManagementPage() {
                 lastName: "",
                 email: "",
                 phone: "",
-                role: "professional",
+                role: UserRole.ENTITY_PROFESSIONAL,
                 isProfessional: true,
                 professionalInfo: {
                     jobFunction: "",

@@ -521,7 +521,7 @@ export function PublicEntityProfilePage() {
             onClick={() => navigate("/")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common:back")}
+            {t("common:backToHome", "Back to Home")}
           </Button>
 
           <Button

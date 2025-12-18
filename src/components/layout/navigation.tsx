@@ -321,6 +321,11 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
+  // If on home page and logged in, do not show navigation as requested
+  if (user && location.pathname === "/") {
+    return null;
+  }
+
   if (!user) {
     return (
       <nav className="border-b">

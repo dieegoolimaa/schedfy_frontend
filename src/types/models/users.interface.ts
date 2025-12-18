@@ -5,6 +5,8 @@
  * This file contains user management specific interfaces
  */
 
+import { Region, UserRole } from '../enums';
+
 // Re-export User from auth for convenience
 export type { User } from '../dto/auth';
 
@@ -14,8 +16,8 @@ export interface UserProfile {
     name: string;
     firstName?: string;
     lastName?: string;
-    role: string;
-    region?: string;
+    role: UserRole;
+    region?: Region;
     entityId?: string;
     phone?: string;
     createdAt?: string;
@@ -28,8 +30,8 @@ export interface CreateUserData {
     name: string;
     firstName?: string;
     lastName?: string;
-    role?: string;
-    region?: string;
+    role?: UserRole;
+    region?: Region;
     phone?: string;
 }
 
@@ -39,5 +41,5 @@ export interface UpdateUserData {
     lastName?: string;
     email?: string;
     phone?: string;
-    region?: string;
+    region?: Region;
 }

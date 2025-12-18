@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Search, MapPin, Star, ArrowRight, Loader2 } from "lucide-react";
-import { Navigation } from "../../components/layout/navigation";
+import { Search, MapPin, ArrowRight, Loader2 } from "lucide-react";
+import { MarketingHeader } from "../../components/layout/marketing-header";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
@@ -52,8 +52,7 @@ export function DiscoverPage() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Navigation />
-
+            <MarketingHeader />
             {/* Search Header */}
             <section className="bg-muted/30 py-12 px-4 border-b">
                 <div className="max-w-7xl mx-auto space-y-6">

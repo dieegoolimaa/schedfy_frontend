@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useRegion } from "@/contexts/region-context";
 import { entitySubscriptionsService } from "@/services/entity-subscriptions.service";
+import { EntityPlan } from "@/types/enums";
 import {
     Card,
     CardContent,
@@ -63,7 +64,7 @@ export function SubscriptionDetails() {
         const createdAt = new Date(sub.createdAt || Date.now());
         const end = new Date(createdAt.getTime() + trialDays * 24 * 60 * 60 * 1000);
         const days = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-        const isTrial = sub.plan !== 'simple' && days > 0 && days <= trialDays;
+        const isTrial = sub.plan !== EntityPlan.SIMPLE && days > 0 && days <= trialDays;
         return { isOnTrial: isTrial, daysRemaining: days, trialEndDate: end };
     };
     const { data: subscription, isLoading: isLoadingSubscription } = useQuery({
@@ -201,8 +202,8 @@ export function SubscriptionDetails() {
     // So if I am on Business, I see nothing? Or maybe just a message "You are on the highest plan".
     const availablePlans = Array.isArray(plans) ? plans.filter(p => {
         if (p.interval !== billingPeriod) return false;
-        if (subscription?.plan === 'business') return false; // Hide all if on business
-        if (subscription?.plan === 'individual' && p.plan === 'simple') return false; // Hide simple if on individual
+        if (subscription?.plan === EntityPlan.BUSINESS) return false; // Hide all if on business
+        if (subscription?.plan === EntityPlan.INDIVIDUAL && p.plan === EntityPlan.SIMPLE) return false; // Hide simple if on individual
         if (subscription?.plan === p.plan) return false; // Hide current plan
         return true;
     }) : [];
@@ -220,7 +221,7 @@ export function SubscriptionDetails() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    {subscription?.plan !== 'simple' && (
+                    {subscription?.plan !== EntityPlan.SIMPLE && (
                         <Button variant="outline" onClick={() => portalMutation.mutate()} disabled={portalMutation.isPending}>
                             <CreditCard className="h-4 w-4 mr-2" />
                             {portalMutation.isPending ? t("common:loading") : t("actions.manageBilling")}
