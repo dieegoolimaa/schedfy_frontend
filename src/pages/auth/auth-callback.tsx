@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { SchedfySpinner } from "../../components/ui/schedfy-spinner";
 import { getDashboardRoute } from "../../lib/utils";
 import { storage } from "../../lib/storage";
 
@@ -120,7 +120,7 @@ export function AuthCallbackPage() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        <SchedfySpinner size="xl" className="mx-auto" />
         <h2 className="text-xl font-semibold">Processing your login...</h2>
         <p className="text-muted-foreground">
           Please wait while we authenticate your session.
