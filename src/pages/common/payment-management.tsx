@@ -187,7 +187,7 @@ function AccountStatusCard({ status, onRefresh }: { status: StripeAccountStatus 
 }
 
 // Error Fallback Component
-function StripeErrorFallback({ error, onRetry }: { error: string; onRetry: () => void }) {
+function StripeErrorFallback({ error: _error, onRetry }: { error: string; onRetry: () => void }) {
   const { t } = useTranslation("payments");
 
   return (
@@ -290,7 +290,7 @@ export default function UnifiedPaymentManagement() {
   const [stripeConnectInstance, setStripeConnectInstance] = useState<any>(null);
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<StripeAccountStatus | null>(null);
-  const [onboardingStep, setOnboardingStep] = useState(1);
+  // const [onboardingStep, setOnboardingStep] = useState(1); // For future use
 
   const defaultCurrency = "BRL";
 
@@ -323,18 +323,17 @@ export default function UnifiedPaymentManagement() {
         appearance: {
           overlays: 'dialog',
           variables: {
-            colorPrimary: isDark ? '#818cf8' : '#4f46e5',
-            colorBackground: isDark ? '#18181b' : '#ffffff',
+            // Theme-matched colors
+            colorPrimary: isDark ? '#a1a1aa' : '#18181b',
+            colorBackground: isDark ? '#09090b' : '#fafafa',
             colorText: isDark ? '#fafafa' : '#09090b',
-            colorSecondaryText: isDark ? '#a1a1aa' : '#71717a',
-            colorBorder: isDark ? '#3f3f46' : '#e4e4e7',
+            colorSecondaryText: isDark ? '#71717a' : '#52525b',
+            colorBorder: isDark ? '#27272a' : '#e4e4e7',
             colorDanger: '#ef4444',
-            borderRadius: '12px',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            fontSizeBase: '15px',
-            spacingUnit: '4px',
-            buttonPrimaryColorBackground: isDark ? '#818cf8' : '#4f46e5',
-            buttonPrimaryColorText: '#ffffff',
+            borderRadius: '8px',
+            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            fontSizeBase: '14px',
+            spacingUnit: '10px',
           },
         },
       });
@@ -359,7 +358,7 @@ export default function UnifiedPaymentManagement() {
         detailsSubmitted: response.data.detailsSubmitted,
         chargesEnabled: response.data.chargesEnabled,
         payoutsEnabled: response.data.payoutsEnabled,
-        requirements: response.data.requirements,
+        requirements: response.data.requirements ?? undefined,
       };
       setAccountStatus(status);
       setIsStripeConnected(response.data.detailsSubmitted);
@@ -415,18 +414,17 @@ export default function UnifiedPaymentManagement() {
         appearance: {
           overlays: 'dialog',
           variables: {
-            colorPrimary: isDark ? '#818cf8' : '#4f46e5',
-            colorBackground: isDark ? '#18181b' : '#ffffff',
+            // Theme-matched colors
+            colorPrimary: isDark ? '#a1a1aa' : '#18181b',
+            colorBackground: isDark ? '#09090b' : '#fafafa',
             colorText: isDark ? '#fafafa' : '#09090b',
-            colorSecondaryText: isDark ? '#a1a1aa' : '#71717a',
-            colorBorder: isDark ? '#3f3f46' : '#e4e4e7',
+            colorSecondaryText: isDark ? '#71717a' : '#52525b',
+            colorBorder: isDark ? '#27272a' : '#e4e4e7',
             colorDanger: '#ef4444',
-            borderRadius: '12px',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            fontSizeBase: '15px',
-            spacingUnit: '4px',
-            buttonPrimaryColorBackground: isDark ? '#818cf8' : '#4f46e5',
-            buttonPrimaryColorText: '#ffffff',
+            borderRadius: '8px',
+            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            fontSizeBase: '14px',
+            spacingUnit: '10px',
           },
         },
       });
@@ -559,7 +557,7 @@ export default function UnifiedPaymentManagement() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <OnboardingProgress currentStep={onboardingStep} />
+              <OnboardingProgress currentStep={1} />
 
               <div className="bg-muted/30 rounded-xl p-6 mt-4">
                 <ConnectAccountOnboarding

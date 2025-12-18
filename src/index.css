@@ -398,81 +398,161 @@
    Stripe Connect Embedded Components Styling
    ======================================== */
 
-/* Wrapper for Stripe onboarding component */
-.stripe-onboarding-wrapper {
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-}
-
-/* Override Stripe component backgrounds for dark mode */
-.dark .stripe-onboarding-wrapper {
-  background: transparent;
-}
-
-/* Stripe Connect iframe styling */
-.dark [data-stripe-class],
-.dark iframe[src*="stripe.com"],
-.dark [class*="StripeConnect"] {
-  color-scheme: dark;
-}
-
-/* Ensure proper spacing for Stripe embedded components */
-[class*="StripeConnect"] > div,
-[data-stripe] > div {
-  min-height: auto !important;
-}
-
-/* Dark mode styling for Stripe Connect containers */
-.dark .stripe-container,
-.dark [data-testid*="stripe"] {
-  background-color: #0a0a0a !important;
-  color: #fafafa !important;
-}
-
-/* Fix Stripe button styling in dark mode */
-.dark button[data-stripe-class] {
-  background-color: #6366f1 !important;
-  color: #ffffff !important;
-}
-
-/* Stripe Connect card wrapper */
-.stripe-connect-card {
-  @apply bg-card rounded-lg;
-  overflow: hidden;
-}
-
-/* Stripe embedded component padding fixes */
-.stripe-connect-card > div,
+/* Base Stripe container styling */
 [class*="ConnectPayouts"],
 [class*="ConnectAccountManagement"],
 [class*="ConnectAccountOnboarding"] {
+  /* Remove any padding as it's managed by parent */
   padding: 0 !important;
+  margin: 0 !important;
 }
 
-/* Dark mode input overrides for Stripe forms rendered in iframe */
-.dark .stripe-onboarding-wrapper input,
-.dark .stripe-onboarding-wrapper select,
-.dark .stripe-onboarding-wrapper textarea {
-  background-color: #171717 !important;
+/* Stripe component wrapper - removes extra borders */
+[class*="ConnectPayouts"] > div,
+[class*="ConnectAccountManagement"] > div,
+[class*="ConnectAccountOnboarding"] > div {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Stripe embedded iframe container */
+[class*="StripeConnect"] iframe {
+  border: none !important;
+}
+
+/* Dark mode: Force backgrounds to match app theme */
+.dark [class*="ConnectPayouts"],
+.dark [class*="ConnectAccountManagement"],
+.dark [class*="ConnectAccountOnboarding"] {
+  background-color: transparent !important;
+}
+
+/* Hide Stripe's default outer border on cards */
+.dark [class*="StripeConnect"] > div > div,
+.dark [class*="Connect"] [class*="Container"] {
+  border-color: #27272a !important;
+}
+
+/* Stripe Connect card wrapper - used in TabsContent */
+.stripe-component-wrapper {
+  background: transparent;
+  padding: 0;
+  margin: -1px; /* Compensate for any border overlap */
+}
+
+.dark .stripe-component-wrapper {
+  background: #09090b;
+}
+
+/* Force Stripe iframe to use proper background */
+.dark iframe[src*="stripe.com"],
+.dark iframe[name*="stripe"] {
+  background-color: #09090b !important;
+}
+
+/* Remove any unwanted margins from Stripe elements */
+[class*="StripeConnect"] > div,
+[data-stripe] > div {
+  min-height: auto !important;
+  margin: 0 !important;
+}
+
+/* Stripe Connect header styling in dark mode */
+.dark [class*="Connect"] h2,
+.dark [class*="Connect"] h3 {
+  color: #fafafa !important;
+}
+
+/* Stripe secondary text */
+.dark [class*="Connect"] p,
+.dark [class*="Connect"] span {
+  color: #a1a1aa !important;
+}
+
+/* Stripe button overrides for consistency */
+.dark [class*="Connect"] button[class*="primary"],
+.dark [class*="Connect"] button[type="submit"] {
+  background-color: #fafafa !important;
+  color: #09090b !important;
+  border: none !important;
+}
+
+.dark [class*="Connect"] button[class*="secondary"],
+.dark [class*="Connect"] button[class*="outline"] {
+  background-color: transparent !important;
+  color: #fafafa !important;
+  border-color: #3f3f46 !important;
+}
+
+/* Stripe input fields in dark mode */
+.dark [class*="Connect"] input,
+.dark [class*="Connect"] select,
+.dark [class*="Connect"] textarea {
+  background-color: #18181b !important;
+  border-color: #3f3f46 !important;
+  color: #fafafa !important;
+}
+
+.dark [class*="Connect"] input:focus,
+.dark [class*="Connect"] select:focus,
+.dark [class*="Connect"] textarea:focus {
+  border-color: #71717a !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(113, 113, 122, 0.2) !important;
+}
+
+/* Stripe table styling */
+.dark [class*="Connect"] table {
+  border-color: #27272a !important;
+}
+
+.dark [class*="Connect"] th,
+.dark [class*="Connect"] td {
   border-color: #27272a !important;
   color: #fafafa !important;
 }
 
-/* Stripe error message styling */
-.dark [class*="stripe-error"],
-.dark [data-error] {
-  color: #ef4444 !important;
+.dark [class*="Connect"] tr:hover {
+  background-color: #18181b !important;
 }
 
-/* Responsive adjustments for Stripe components */
+/* Stripe badge/status styling */
+.dark [class*="Connect"] [class*="badge"],
+.dark [class*="Connect"] [class*="status"] {
+  border-color: #3f3f46 !important;
+}
+
+/* Remove external link icons styling issues */
+.dark [class*="Connect"] a {
+  color: #a1a1aa !important;
+}
+
+.dark [class*="Connect"] a:hover {
+  color: #fafafa !important;
+}
+
+/* Stripe dividers */
+.dark [class*="Connect"] hr,
+.dark [class*="Connect"] [class*="divider"] {
+  border-color: #27272a !important;
+  background-color: #27272a !important;
+}
+
+/* Card-like containers inside Stripe */
+.dark [class*="Connect"] [class*="card"],
+.dark [class*="Connect"] [class*="Card"],
+.dark [class*="Connect"] [class*="section"],
+.dark [class*="Connect"] [class*="Section"] {
+  background-color: #0a0a0a !important;
+  border-color: #27272a !important;
+}
+
+/* Responsive adjustments */
 @media (max-width: 640px) {
-  .stripe-onboarding-wrapper {
-    padding: 1rem;
-  }
-  
-  /* Ensure full width on mobile */
-  [class*="StripeConnect"],
+  [class*="ConnectPayouts"],
+  [class*="ConnectAccountManagement"],
   [class*="ConnectAccountOnboarding"] {
     width: 100% !important;
+    max-width: 100% !important;
   }
 }
