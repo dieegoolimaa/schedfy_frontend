@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 
 import { Booking } from "@/types/models/bookings.interface";
 
@@ -48,6 +49,7 @@ interface PopulatedBooking extends Omit<Booking, 'entityId' | 'serviceId' | 'pro
     serviceId: any;
     professionalId?: any;
 }
+
 
 export function PublicBookingManagementPage() {
     const { t } = useTranslation("publicBooking");
@@ -337,7 +339,23 @@ export function PublicBookingManagementPage() {
                                 </p>
                             </div>
                         )}
+
+                        {/* Add to Calendar Section - Show for confirmed/pending bookings */}
+                        {booking.status !== 'cancelled' && booking.status !== 'completed' && id && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md border border-blue-100 dark:border-blue-900/50">
+                                <Label className="text-blue-800 dark:text-blue-200 text-xs uppercase tracking-wider mb-2 block">
+                                    📅 Save to your calendar
+                                </Label>
+                                <AddToCalendarButton
+                                    bookingId={id}
+                                    isClient={true}
+                                    variant="outline"
+                                    size="sm"
+                                />
+                            </div>
+                        )}
                     </CardContent>
+
                     <CardFooter className="bg-muted/40 border-t p-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
                         <div className="flex flex-wrap gap-2">
                             <Button variant="outline" onClick={() => navigate("/")}>
