@@ -1,9 +1,7 @@
 {
   "title": "Gestão de Pagamentos",
-  "subtitle": {
-    "business": "Rastreie e gerencie todas as transações de pagamento",
-    "individual": "Gerencie e registre pagamentos manuais"
-  },
+  "subtitle": "Gestão e Extrato de Pagamentos",
+
   "upgrade": {
     "title": "Gestão de Pagamentos",
     "description": "A gestão avançada de pagamentos está disponível nos planos Individual e Business. Faça upgrade do seu plano para rastrear e gerenciar transações de pagamento."
