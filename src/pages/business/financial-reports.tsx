@@ -66,10 +66,11 @@ import {
 } from "lucide-react";
 import { usePromotions } from "../../hooks/usePromotions";
 import { PromotionImpactCard } from "../../components/reports/promotion-impact-card";
-import { AIFinancialInsights } from "../../components/reports/ai-financial-insights";
 import { Commission } from "../../types/models/promotions.interface";
 import { professionalsService, Professional } from "../../services/professionals.service";
 import { useAIFeatures } from "../../hooks/useAIFeatures";
+import { AISmartBanner } from "../../components/ai/ai-smart-banner";
+import { useLocalAIInsights } from "../../hooks/useAIInsights";
 
 export function FinancialReportsPage() {
   const { t } = useTranslation(["financial", "common"]);
@@ -77,7 +78,6 @@ export function FinancialReportsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const entityId = user?.entityId || user?.id || "";
-  const { isEnabled: isAIEnabled } = useAIFeatures();
 
   // Fetch bookings data from API
   const { bookings } = useBookings({
@@ -311,6 +311,17 @@ export function FinancialReportsPage() {
       },
     };
   }, [filteredBookings, bookings, getDateRangeFilter, commissions]);
+
+  // AI Features
+  const { hasSubscription } = useAIFeatures();
+  const aiInsights = useLocalAIInsights({
+    pageType: 'financial',
+    period: dateRange === '7days' ? 'week' : 'month',
+    revenue: financialSummary.totalRevenue,
+    revenueGrowth: financialSummary.growth.revenue,
+    averageTicket: financialSummary.averageTransaction,
+    bookingsCount: financialSummary.totalTransactions,
+  });
 
   // Revenue breakdown by service category
   const revenueBreakdown = useMemo(() => {
@@ -710,6 +721,11 @@ export function FinancialReportsPage() {
           />
         </StatsGrid>
 
+        {/* AI Smart Banner */}
+        {hasSubscription && aiInsights.length > 0 && (
+          <AISmartBanner insights={aiInsights} className="mb-2" />
+        )}
+
         {/* Financial Breakdown */}
         <Tabs defaultValue="overview" className="space-y-4">
           <div className="border-b">
@@ -739,14 +755,6 @@ export function FinancialReportsPage() {
           </div>
 
           <TabsContent value="overview" className="space-y-4">
-            {/* AI Financial Insights */}
-            {isAIEnabled && (
-              <AIFinancialInsights
-                revenue={financialSummary.totalRevenue}
-                bookings={filteredBookings}
-              />
-            )}
-
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
                 <CardHeader>

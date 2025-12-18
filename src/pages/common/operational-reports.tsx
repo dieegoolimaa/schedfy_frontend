@@ -40,10 +40,6 @@ import {
   RefreshCw,
   CheckCircle,
   XCircle,
-  Zap,
-  Target,
-  AlertTriangle,
-  Award,
 } from "lucide-react";
 
 import {
@@ -60,8 +56,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs";
-import { AIOperationalInsights } from "../../components/reports/ai-operational-insights";
 import { useAIFeatures } from "../../hooks/useAIFeatures";
+import { AISmartBanner } from "../../components/ai/ai-smart-banner";
+import { useLocalAIInsights } from "../../hooks/useAIInsights";
 
 export function OperationalReportsPage() {
   const { t } = useTranslation("analytics");
@@ -69,7 +66,7 @@ export function OperationalReportsPage() {
   const navigate = useNavigate();
   const entityId = user?.entityId || user?.id || "";
   const plan = user?.plan || "simple";
-  const { canUse: isAIEnabled } = useAIFeatures();
+  const { hasSubscription } = useAIFeatures();
 
   const [timeRange, setTimeRange] = useState("30d");
 
@@ -165,18 +162,16 @@ export function OperationalReportsPage() {
     };
   }, [filteredBookings, clients, timeRange, growth]);
 
-  // Bookings by Service
-  const bookingsByService = useMemo(() => {
-    const map = new Map<string, number>();
-    filteredBookings.forEach((b) => {
-      const name = b.service?.name || "Unknown";
-      map.set(name, (map.get(name) || 0) + 1);
-    });
-    return Array.from(map.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-  }, [filteredBookings]);
+  // AI Insights
+  const aiInsights = useLocalAIInsights({
+    pageType: 'operational',
+    period: timeRange === '7d' ? 'week' : 'month',
+    bookingsCount: stats.total,
+    completedBookings: stats.completed,
+    cancelledBookings: stats.cancelled,
+    noShowCount: stats.noShow,
+    newClientsCount: stats.newClients,
+  });
 
   // Bookings by Professional (Business Only)
   const professionalStats = useMemo(() => {
@@ -286,93 +281,6 @@ export function OperationalReportsPage() {
     ].filter((i) => i.value > 0);
   }, [stats]);
 
-  // Dynamic AI Insights
-  const aiInsights = useMemo(() => {
-    const insights = [];
-
-    // 1. Peak Time Optimization
-    if (busyHours.length > 0) {
-      const peakHour = busyHours.reduce((max, curr) =>
-        curr.bookings > max.bookings ? curr : max
-        , busyHours[0]);
-
-      if (peakHour.bookings > 0) {
-        insights.push({
-          type: "opportunity",
-          title: t("insights.peakTime"),
-          description: t("insights.peakTimeDesc", { time: peakHour.hour }),
-          impact: "high",
-        });
-      }
-    }
-
-    // 2. Cancellation Alert
-    if (stats.cancellationRate > 15) {
-      insights.push({
-        type: "warning",
-        title: t("insights.highCancellation"),
-        description: t("insights.highCancellationDesc", { rate: stats.cancellationRate.toFixed(1) }),
-        impact: "high",
-      });
-    } else if (stats.cancellationRate > 5) {
-      insights.push({
-        type: "warning",
-        title: t("insights.cancellationAlert"),
-        description: t("insights.cancellationAlertDesc", { rate: stats.cancellationRate.toFixed(1) }),
-        impact: "medium",
-      });
-    }
-
-    // 3. Service Performance
-    if (bookingsByService.length > 0) {
-      const topService = bookingsByService[0];
-      insights.push({
-        type: "success",
-        title: t("insights.topService"),
-        description: t("insights.topServiceDesc", { service: topService.name, count: topService.value }),
-        impact: "high",
-      });
-    }
-
-    // 4. Growth Insight (if we had previous data, but we can use total bookings as a proxy for activity)
-    if (stats.total > 0) {
-      insights.push({
-        type: "info",
-        title: t("insights.activity"),
-        description: t("insights.activityDesc", { count: stats.total }),
-        impact: "medium",
-      });
-    }
-
-    return insights.slice(0, 3); // Show top 3 insights
-  }, [busyHours, stats, bookingsByService]);
-
-  const getInsightColor = (type: string) => {
-    switch (type) {
-      case "opportunity":
-        return "bg-blue-50 border-blue-200";
-      case "warning":
-        return "bg-yellow-50 border-yellow-200";
-      case "success":
-        return "bg-green-50 border-green-200";
-      default:
-        return "bg-purple-50 border-purple-200";
-    }
-  };
-
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case "opportunity":
-        return <Target className="h-4 w-4 text-blue-500" />;
-      case "warning":
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case "success":
-        return <Award className="h-4 w-4 text-green-500" />;
-      default:
-        return <Zap className="h-4 w-4 text-purple-500" />;
-    }
-  };
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -403,6 +311,11 @@ export function OperationalReportsPage() {
           </Button>
         </div>
       </div>
+
+      {/* AI Smart Banner */}
+      {hasSubscription && aiInsights.length > 0 && (
+        <AISmartBanner insights={aiInsights} className="mb-2" />
+      )}
 
       {/* Key Metrics */}
       <StatsGrid columns={plan === "simple" ? 3 : 4}>
@@ -441,27 +354,6 @@ export function OperationalReportsPage() {
         )}
       </StatsGrid>
 
-      {/* AI Insights */}
-      {isAIEnabled && (
-        <div className="grid gap-4 md:grid-cols-3">
-          {aiInsights.map((insight, i) => (
-            <Card key={i} className={`border ${getInsightColor(insight.type)}`}>
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  {getInsightIcon(insight.type)}
-                  <div>
-                    <h4 className="font-medium text-sm">{insight.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {insight.description}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
       {/* Charts & Detailed Analysis */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
@@ -473,8 +365,6 @@ export function OperationalReportsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* AI Operational Insights */}
-          {isAIEnabled && <AIOperationalInsights bookings={filteredBookings} />}
 
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Busy Hours */}
