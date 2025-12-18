@@ -95,7 +95,7 @@ export function ContactPage() {
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     try {
-      const { contactsService } = await import("../services/contacts.service");
+      const { contactsService } = await import("../../services/contacts.service");
 
       // Use detected region or fallback to PT
       const region = regionalConfig?.code || SupportedRegion.PORTUGAL;
