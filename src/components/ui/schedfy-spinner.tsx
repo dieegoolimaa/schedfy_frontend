@@ -42,12 +42,12 @@ export function SchedfySpinner({ size = "md", className }: SchedfySpinnerProps) 
                 <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                     <rect x="0" y="0" width="32" height="32" rx="6" fill="currentColor" className="text-foreground dark:text-white" />
                     <text
-                        x="16"
-                        y="14"
-                        dominantBaseline="middle"
+                        x="50%"
+                        y="50%"
+                        dominantBaseline="central"
                         textAnchor="middle"
                         fontFamily="Arial, sans-serif"
-                        fontSize="22"
+                        fontSize="20"
                         fontWeight="bold"
                         fill="currentColor"
                         className="text-background dark:text-black"
