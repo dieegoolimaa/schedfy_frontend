@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/hooks/useCurrency";
+import { useRegion } from "@/contexts/region-context";
 import { entitySubscriptionsService } from "@/services/entity-subscriptions.service";
 import {
     Card,
@@ -48,6 +49,7 @@ import {
 export function SubscriptionDetails() {
     const { t } = useTranslation(["subscription", "common"]);
     const { formatCurrency } = useCurrency();
+    const { getPriceDisplay } = useRegion();
     const queryClient = useQueryClient();
     const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
@@ -181,7 +183,14 @@ export function SubscriptionDetails() {
     // Logic: If on trial, next billing is trial end date.
     const nextBillingDate = isOnTrial ? trialEndDate : (subscription?.nextBillingDate ? new Date(subscription.nextBillingDate) : null);
 
-    const currentAddOnPrice = subscription?.interval === 'year' ? 290 : 29;
+    // AI Insights pricing - fetch from API (monthly only)
+    const aiInsightsPriceDisplay = getPriceDisplay("ai_insights", "monthly");
+    const aiInsightsNumericPrice = (() => {
+        const match = aiInsightsPriceDisplay.match(/[\d,.]+/);
+        if (match) return parseFloat(match[0].replace(",", "."));
+        return 9.90; // Fallback
+    })();
+    const currentAddOnPrice = aiInsightsNumericPrice;
     const totalCurrentPrice = (currentPlan?.price || 0) + (subscription?.aiInsightsSubscribed ? currentAddOnPrice : 0);
 
     // Filter plans: 
@@ -506,13 +515,9 @@ export function SubscriptionDetails() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="text-2xl font-bold">
-                                        {formatCurrency(
-                                            billingPeriod === "month" ? 29 : 290
-                                        )}
+                                        {aiInsightsPriceDisplay}
                                         <span className="text-sm font-normal text-muted-foreground ml-1">
-                                            {billingPeriod === "month"
-                                                ? t("billing.perMonth", "/month")
-                                                : t("billing.perYear", "/year")}
+                                            {t("billing.perMonth", "/month")}
                                         </span>
                                     </div>
                                     <ul className="space-y-2">
