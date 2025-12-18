@@ -11,13 +11,7 @@ interface LogoProps {
  * 
  * Displays the Schedfy brand logo - black rounded square with white "s"
  */
-export function Logo({ className, showText = true, size = "md" }: LogoProps) {
-    const iconSizeClasses = {
-        sm: "h-8 w-8 text-base",
-        md: "h-9 w-9 text-lg",
-        lg: "h-12 w-12 text-2xl",
-    };
-
+export function Logo({ className, size = "md" }: LogoProps) {
     const textSizeClasses = {
         sm: "text-xl",
         md: "text-xl",
@@ -25,28 +19,15 @@ export function Logo({ className, showText = true, size = "md" }: LogoProps) {
     };
 
     return (
-        <div className={cn("flex items-center gap-2", className)}>
-            {/* Logo Icon - Black rounded square with white S */}
-            <div
+        <div className={cn("flex items-center", className)}>
+            <span
                 className={cn(
-                    "flex items-center justify-center rounded-xl bg-black flex-shrink-0",
-                    iconSizeClasses[size]
+                    "font-semibold tracking-tight",
+                    textSizeClasses[size]
                 )}
             >
-                <span className="text-white font-semibold leading-none">s</span>
-            </div>
-
-            {/* Text - Only show if showText is true */}
-            {showText && (
-                <span
-                    className={cn(
-                        "font-semibold tracking-tight",
-                        textSizeClasses[size]
-                    )}
-                >
-                    Schedfy
-                </span>
-            )}
+                Schedfy
+            </span>
         </div>
     );
 }

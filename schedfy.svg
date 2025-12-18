@@ -1,6 +1,6 @@
 <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Black rounded square background -->
   <rect x="0" y="0" width="32" height="32" rx="6" fill="#000000"/>
-  <!-- White lowercase s - adjusted y position for better centering -->
-  <text x="16" y="18" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">s</text>
+  <!-- White lowercase s - moved UP to y=14 for proper centering -->
+  <text x="16" y="14" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white">s</text>
 </svg>

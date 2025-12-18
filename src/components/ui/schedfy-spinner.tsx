@@ -43,11 +43,11 @@ export function SchedfySpinner({ size = "md", className }: SchedfySpinnerProps) 
                     <rect x="0" y="0" width="32" height="32" rx="6" fill="currentColor" className="text-foreground dark:text-white" />
                     <text
                         x="16"
-                        y="18"
-                        dominantBaseline="central"
+                        y="14"
+                        dominantBaseline="middle"
                         textAnchor="middle"
                         fontFamily="Arial, sans-serif"
-                        fontSize="20"
+                        fontSize="22"
                         fontWeight="bold"
                         fill="currentColor"
                         className="text-background dark:text-black"
