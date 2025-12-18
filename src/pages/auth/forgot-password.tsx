@@ -7,10 +7,10 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Mail, KeyRound } from "lucide-react";
 
-import { authService } from "../services/auth.service";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+import { authService } from "../../services/auth.service";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
     Card,
     CardContent,
@@ -18,7 +18,7 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "../components/ui/card";
+} from "../../components/ui/card";
 
 const forgotPasswordSchema = z.object({
     email: z.string().email("Invalid email address").min(1, "Email is required"),

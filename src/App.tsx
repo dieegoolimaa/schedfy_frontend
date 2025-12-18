@@ -2,47 +2,66 @@ import { Routes, Route } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Layout } from "./components/layout/layout";
 
-// Core pages
-import { HomePage } from "./pages/home";
-import { LoginPage } from "./pages/login";
-import { RegisterPage } from "./pages/register";
-import { OnboardingPage } from "./pages/onboarding";
-import { AuthCallbackPage } from "./pages/auth-callback";
-import { ResetPasswordPage } from "./pages/reset-password";
-import { ForgotPasswordPage } from "./pages/forgot-password";
-import { ChangePasswordPage } from "./pages/change-password";
-import { AcceptInvitationPage } from "./pages/accept-invitation";
-import { NotFoundPage } from "./pages/not-found";
-import { UnauthorizedPage } from "./pages/unauthorized";
-import { UpgradePage } from "./pages/upgrade";
-import { UpgradeCheckoutPage } from "./pages/upgrade-checkout";
+// Auth pages
+import { LoginPage } from "./pages/auth/login";
+import { RegisterPage } from "./pages/auth/register";
+import { OnboardingPage } from "./pages/auth/onboarding";
+import { AuthCallbackPage } from "./pages/auth/auth-callback";
+import { ResetPasswordPage } from "./pages/auth/reset-password";
+import { ForgotPasswordPage } from "./pages/auth/forgot-password";
+import { ChangePasswordPage } from "./pages/auth/change-password";
+import { AcceptInvitationPage } from "./pages/auth/accept-invitation";
 
+// Marketing pages
+import { HomePage } from "./pages/marketing/home";
+import { TermsPage } from "./pages/marketing/terms";
+import { PrivacyPage } from "./pages/marketing/privacy";
+import { ContactPage } from "./pages/marketing/contact";
+import FeaturesPage from "./pages/marketing/features";
+import { DiscoverPage } from "./pages/marketing/discover";
+import PricingPage from "./pages/marketing/pricing";
+import IntegrationsPage from "./pages/marketing/integrations";
+import AboutPage from "./pages/marketing/about";
 
+// Error pages
+import { NotFoundPage } from "./pages/errors/not-found";
+import { UnauthorizedPage } from "./pages/errors/unauthorized";
+
+// Upgrade pages
+import { UpgradePage } from "./pages/upgrade/upgrade";
+import { UpgradeCheckoutPage } from "./pages/upgrade/upgrade-checkout";
+
+// Common pages
 import { ClientProfilePage } from "./pages/common/client-profile";
 import { EntityProfilePage } from "./pages/common/entity-profile";
-
-
 import { OperationalReportsPage } from "./pages/common/operational-reports";
 import UnifiedSettingsPage from "./pages/common/settings";
 import CommandCenter from "./pages/common/command-center";
-import SimpleCommandCenter from "./pages/simple/command-center";
 import UnifiedPaymentManagement from "./pages/common/payment-management";
-import { CommissionsManagementPage } from "./pages/business/commissions-management";
-import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
-import { AIPremiumPage } from "./pages/business/ai-premium";
 import NotificationPreferences from "./pages/common/notification-preferences";
 import ServicesAndPackagesPage from "./pages/common/services-packages";
 import ReviewsManagementPage from "./pages/common/reviews-management";
 import UserManagementPage from "./pages/common/user-management";
-import SimpleServicesPage from "./pages/simple/services";
-import { SimpleSubscriptionPage } from "./pages/simple/subscription";
-import { IndividualSubscriptionPage } from "./pages/individual/subscription";
-import { EntitySubscriptionPage } from "./pages/entity/subscription";
 import { SupportPage } from "./pages/common/support";
 import { NotificationsPage } from "./pages/common/notifications-page";
 
-// Professional pages
+// Business pages
+import { CommissionsManagementPage } from "./pages/business/commissions-management";
+import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
+import { AIPremiumPage } from "./pages/business/ai-premium";
 
+// Simple plan pages
+import SimpleCommandCenter from "./pages/simple/command-center";
+import SimpleServicesPage from "./pages/simple/services";
+import { SimpleSubscriptionPage } from "./pages/simple/subscription";
+
+// Individual plan pages
+import { IndividualSubscriptionPage } from "./pages/individual/subscription";
+
+// Entity pages
+import { EntitySubscriptionPage } from "./pages/entity/subscription";
+
+// Professional pages
 import ProfessionalProfilePage from "./pages/professional/profile";
 import ProfessionalSchedulePage from "./pages/professional/schedule";
 import ProfessionalEarningsPage from "./pages/professional/earnings";
@@ -51,20 +70,9 @@ import ProfessionalEarningsPage from "./pages/professional/earnings";
 import { PublicEntityProfilePage } from "./pages/public/entity-profile";
 import { PublicBookingManagementPage } from "./pages/public/public-booking-management";
 
-// Legal and informational pages
-import { TermsPage } from "./pages/terms";
-import { PrivacyPage } from "./pages/privacy";
-import { ContactPage } from "./pages/contact";
-import FeaturesPage from "./pages/features";
-import { DiscoverPage } from "./pages/discover";
-import PricingPage from "./pages/pricing";
-import IntegrationsPage from "./pages/integrations";
-import AboutPage from "./pages/about";
+// Payments pages
 import PaymentsSuccessPage from "./pages/payments/success";
 import ReceiptPage from "./pages/payments/receipt";
-
-// Test/Demo pages
-import { TestPagesPage } from "./pages/test-pages";
 
 // Route protection components
 import {
@@ -144,11 +152,6 @@ function App() {
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/integrations" element={<IntegrationsPage />} />
                 <Route path="/about" element={<AboutPage />} />
-
-                {/* Test/Demo pages - Only available in development */}
-                {import.meta.env.DEV && (
-                  <Route path="/test-pages" element={<TestPagesPage />} />
-                )}
 
                 {/* Special pages */}
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />

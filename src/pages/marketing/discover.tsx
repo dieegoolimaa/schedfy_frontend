@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Search, MapPin, Star, ArrowRight, Loader2 } from "lucide-react";
-import { Navigation } from "../components/layout/navigation";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { TiltCard } from "../components/ui/tilt-card";
-import { searchService } from "../services/search.service";
+import { Navigation } from "../../components/layout/navigation";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
+import { TiltCard } from "../../components/ui/tilt-card";
+import { searchService } from "../../services/search.service";
 
 interface DiscoverBusiness {
     _id: string;

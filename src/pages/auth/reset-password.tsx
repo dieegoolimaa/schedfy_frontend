@@ -6,11 +6,11 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../components/ui/card";
-import { authService } from "../services/auth.service";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
+import { authService } from "../../services/auth.service";
 
 const resetPasswordSchema = z.object({
     newPassword: z.string().min(6, "Password must be at least 6 characters"),

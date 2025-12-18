@@ -5,29 +5,29 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useAuth } from "../contexts/auth-context";
-import { useRegion } from "../contexts/region-context";
-import { REGIONS, RegionCode } from "../lib/region-config";
-import { authService } from "../services/auth.service";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+import { useAuth } from "../../contexts/auth-context";
+import { useRegion } from "../../contexts/region-context";
+import { REGIONS, RegionCode } from "../../lib/region-config";
+import { authService } from "../../services/auth.service";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
+} from "../../components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
-import { Checkbox } from "../components/ui/checkbox";
-import { Progress } from "../components/ui/progress";
+} from "../../components/ui/select";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Progress } from "../../components/ui/progress";
 
 import {
   Eye,

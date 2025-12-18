@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { getDashboardRoute } from "../lib/utils";
-import { storage } from "../lib/storage";
+import { getDashboardRoute } from "../../lib/utils";
+import { storage } from "../../lib/storage";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();

@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useAuth } from "../contexts/auth-context";
-import { entitiesService } from "../services/entities.service";
-import { getDashboardRoute } from "../lib/utils";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Switch } from "../components/ui/switch";
-import { Textarea } from "../components/ui/textarea";
-import { Logo } from "../components/ui/logo";
+import { useAuth } from "../../contexts/auth-context";
+import { entitiesService } from "../../services/entities.service";
+import { getDashboardRoute } from "../../lib/utils";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Switch } from "../../components/ui/switch";
+import { Textarea } from "../../components/ui/textarea";
+import { Logo } from "../../components/ui/logo";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
+} from "../../components/ui/select";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { PaymentMethodStep } from "@/components/onboarding/payment-step";
 import { CompleteOnboardingDto, WorkingHours } from "@/types/models/entities.interface";

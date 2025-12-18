@@ -5,10 +5,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { ArrowLeft, Calendar, Shield, Users } from "lucide-react";
-import { useRegion } from "../contexts/region-context";
+import { useRegion } from "../../contexts/region-context";
 
 export function TermsPage() {
   const { getPriceDisplay } = useRegion();

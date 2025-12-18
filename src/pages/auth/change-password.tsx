@@ -7,13 +7,13 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { useAuth } from "../contexts/auth-context";
-import { authService } from "../services/auth.service";
-import { getDashboardRoute } from "../lib/utils";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { useAuth } from "../../contexts/auth-context";
+import { authService } from "../../services/auth.service";
+import { getDashboardRoute } from "../../lib/utils";
 
 const changePasswordSchema = z.object({
     currentPassword: z.string().min(1, "Current password is required"),

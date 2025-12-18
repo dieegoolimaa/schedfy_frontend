@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/ui/button";
+import { Button } from "../../components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,11 +8,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { TiltCard } from "../components/ui/tilt-card";
-import { Navigation } from "../components/layout/navigation";
-import { useRegion } from "../contexts/region-context";
+} from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
+import { TiltCard } from "../../components/ui/tilt-card";
+import { Navigation } from "../../components/layout/navigation";
+import { useRegion } from "../../contexts/region-context";
 import {
   Calendar,
   Users,
