@@ -126,9 +126,21 @@ export default function UnifiedPaymentManagement() {
   useEffect(() => {
     if (user?.entityId && plan !== 'simple') {
       const fetchClientSecret = async () => {
-        const response = await paymentsService.createAccountSession(user!.entityId);
-        return response.data.clientSecret;
+        try {
+          const entityId = user?.entityId;
+          if (!entityId) throw new Error('No entityId available');
+          const response = await paymentsService.createAccountSession(entityId);
+          return response.data.clientSecret;
+        } catch (error) {
+          console.error('Failed to fetch client secret:', error);
+          throw error;
+        }
       };
+
+      // Determine initial theme
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const effectiveTheme = theme === "system" ? systemTheme : theme;
+      const isDark = effectiveTheme === 'dark';
 
       const instance = loadConnectAndInitialize({
         publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string,
@@ -136,35 +148,45 @@ export default function UnifiedPaymentManagement() {
         appearance: {
           overlays: 'dialog',
           variables: {
-            // Initial variables will be updated by the second effect primarily
-            // But valid initial is needed
-            colorPrimary: '#0f172a',
+            colorPrimary: isDark ? '#6366f1' : '#4f46e5',
+            colorBackground: isDark ? '#0a0a0a' : '#ffffff',
+            colorText: isDark ? '#fafafa' : '#09090b',
+            colorSecondaryText: isDark ? '#a1a1aa' : '#71717a',
+            colorBorder: isDark ? '#27272a' : '#e4e4e7',
+            colorDanger: '#ef4444',
             borderRadius: '8px',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSizeBase: '14px',
+            spacingUnit: '4px',
           },
         },
       });
 
       setStripeConnectInstance(instance);
     }
-  }, [user?.entityId]);
+  }, [user?.entityId, theme]);
 
   // Update Appearance on Theme Change
   useEffect(() => {
     if (stripeConnectInstance) {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
       const effectiveTheme = theme === "system" ? systemTheme : theme;
-      const stripeTheme = effectiveTheme === 'dark' ? 'night' : 'stripe';
-      const buttonColor = effectiveTheme === 'dark' ? '#f8fafc' : '#0f172a';
-      const backgroundColor = effectiveTheme === 'dark' ? '#171717' : '#ffffff';
+      const isDark = effectiveTheme === 'dark';
 
       stripeConnectInstance.update({
         appearance: {
           overlays: 'dialog',
-          theme: stripeTheme as any,
           variables: {
-            colorPrimary: buttonColor,
-            colorBackground: backgroundColor,
+            colorPrimary: isDark ? '#6366f1' : '#4f46e5',
+            colorBackground: isDark ? '#0a0a0a' : '#ffffff',
+            colorText: isDark ? '#fafafa' : '#09090b',
+            colorSecondaryText: isDark ? '#a1a1aa' : '#71717a',
+            colorBorder: isDark ? '#27272a' : '#e4e4e7',
+            colorDanger: '#ef4444',
             borderRadius: '8px',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSizeBase: '14px',
+            spacingUnit: '4px',
           },
         },
       });
@@ -294,18 +316,20 @@ export default function UnifiedPaymentManagement() {
 
         {!isStripeConnected ? (
           // ONBOARDING MODE
-          <Card className="border-2 border-primary/10 bg-slate-50/50">
+          <Card className="border-2 border-primary/20 bg-card">
             <CardHeader>
-              <CardTitle>Ative seus recebimentos</CardTitle>
-              <CardDescription>Para receber pagamentos online, precisamos de algumas informações da sua empresa.</CardDescription>
+              <CardTitle>{t("onboarding.title", "Ative seus recebimentos")}</CardTitle>
+              <CardDescription>{t("onboarding.description", "Para receber pagamentos online, precisamos de algumas informações da sua empresa.")}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ConnectAccountOnboarding
-                onExit={() => {
-                  checkStripeStatus();
-                  toast({ title: "Verificando...", description: "Atualizando status da conta." });
-                }}
-              />
+            <CardContent className="p-0">
+              <div className="stripe-onboarding-wrapper">
+                <ConnectAccountOnboarding
+                  onExit={() => {
+                    checkStripeStatus();
+                    toast({ title: "Verificando...", description: "Atualizando status da conta." });
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -438,15 +462,19 @@ export default function UnifiedPaymentManagement() {
             </TabsContent>
 
             <TabsContent value="payouts" className="mt-4">
-              <div className="p-8">
-                <ConnectPayouts />
-              </div>
+              <Card>
+                <CardContent className="p-6">
+                  <ConnectPayouts />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="settings" className="mt-4">
-              <div className="p-8">
-                <ConnectAccountManagement />
-              </div>
+              <Card>
+                <CardContent className="p-6">
+                  <ConnectAccountManagement />
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         )}

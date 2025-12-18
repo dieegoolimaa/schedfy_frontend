@@ -393,3 +393,86 @@
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
   }
 }
+
+/* ========================================
+   Stripe Connect Embedded Components Styling
+   ======================================== */
+
+/* Wrapper for Stripe onboarding component */
+.stripe-onboarding-wrapper {
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+}
+
+/* Override Stripe component backgrounds for dark mode */
+.dark .stripe-onboarding-wrapper {
+  background: transparent;
+}
+
+/* Stripe Connect iframe styling */
+.dark [data-stripe-class],
+.dark iframe[src*="stripe.com"],
+.dark [class*="StripeConnect"] {
+  color-scheme: dark;
+}
+
+/* Ensure proper spacing for Stripe embedded components */
+[class*="StripeConnect"] > div,
+[data-stripe] > div {
+  min-height: auto !important;
+}
+
+/* Dark mode styling for Stripe Connect containers */
+.dark .stripe-container,
+.dark [data-testid*="stripe"] {
+  background-color: #0a0a0a !important;
+  color: #fafafa !important;
+}
+
+/* Fix Stripe button styling in dark mode */
+.dark button[data-stripe-class] {
+  background-color: #6366f1 !important;
+  color: #ffffff !important;
+}
+
+/* Stripe Connect card wrapper */
+.stripe-connect-card {
+  @apply bg-card rounded-lg;
+  overflow: hidden;
+}
+
+/* Stripe embedded component padding fixes */
+.stripe-connect-card > div,
+[class*="ConnectPayouts"],
+[class*="ConnectAccountManagement"],
+[class*="ConnectAccountOnboarding"] {
+  padding: 0 !important;
+}
+
+/* Dark mode input overrides for Stripe forms rendered in iframe */
+.dark .stripe-onboarding-wrapper input,
+.dark .stripe-onboarding-wrapper select,
+.dark .stripe-onboarding-wrapper textarea {
+  background-color: #171717 !important;
+  border-color: #27272a !important;
+  color: #fafafa !important;
+}
+
+/* Stripe error message styling */
+.dark [class*="stripe-error"],
+.dark [data-error] {
+  color: #ef4444 !important;
+}
+
+/* Responsive adjustments for Stripe components */
+@media (max-width: 640px) {
+  .stripe-onboarding-wrapper {
+    padding: 1rem;
+  }
+  
+  /* Ensure full width on mobile */
+  [class*="StripeConnect"],
+  [class*="ConnectAccountOnboarding"] {
+    width: 100% !important;
+  }
+}
