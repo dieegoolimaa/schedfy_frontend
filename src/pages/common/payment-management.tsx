@@ -172,7 +172,7 @@ function AccountStatusCard({ status, onRefresh }: { status: StripeAccountStatus 
           </Button>
         </div>
 
-        {status.requirements && (status.requirements.currentlyDue.length > 0 || status.requirements.pastDue.length > 0) && (
+        {status.requirements && ((status.requirements.currentlyDue?.length || 0) > 0 || (status.requirements.pastDue?.length || 0) > 0) && (
           <Alert className="mt-4" variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t("status.actionRequired", "Ação Necessária")}</AlertTitle>
