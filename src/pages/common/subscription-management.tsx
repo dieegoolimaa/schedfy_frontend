@@ -74,7 +74,14 @@ export function SubscriptionManagementPage() {
 
   // Mock subscription data (would come from API in real app)
   const currentPrice = getNumericPrice(currentPlan);
-  const aiInsightsPrice = billingPeriod === "monthly" ? 19.90 : 199.00; // Add-on pricing
+
+  // AI Insights pricing (monthly only)
+  const aiInsightsPriceDisplay = getPriceDisplay("ai_insights", "monthly");
+  const aiInsightsNumericPrice = (() => {
+    const match = aiInsightsPriceDisplay.match(/[\d,.]+/);
+    if (match) return parseFloat(match[0].replace(",", "."));
+    return 9.90; // Fallback
+  })();
 
   const subscriptionData = {
     current: {
@@ -98,7 +105,8 @@ export function SubscriptionManagementPage() {
         {
           id: "ai-insights",
           name: t("addOns.aiInsights.name", "AI Business Insights"),
-          price: aiInsightsPrice,
+          price: aiInsightsNumericPrice,
+          priceDisplay: aiInsightsPriceDisplay,
           active: true,
           description: t("addOns.aiInsights.description", "AI-powered analytics and business recommendations"),
         },
@@ -111,7 +119,7 @@ export function SubscriptionManagementPage() {
       aiInsights: { current: 12, limit: 100, percentage: 12 },
     },
     billing: {
-      totalAmount: currentPrice + (currentPlan === 'business' ? aiInsightsPrice : 0),
+      totalAmount: currentPrice + (currentPlan === 'business' ? aiInsightsNumericPrice : 0),
       nextPayment: "2024-02-01",
       paymentMethod: "**** **** **** 4242",
       invoices: [] as { id: string; date: string; amount: number; status: string }[],

@@ -91,7 +91,7 @@ export function AuthCallbackPage() {
       storage.setToken(token);
 
       // Fetch user profile to ensure token is valid and get user details
-      const { authService } = await import("../services/auth.service");
+      const { authService } = await import("../../services/auth.service");
       const response = await authService.getProfile();
 
       if (response.data) {

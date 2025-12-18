@@ -10,7 +10,7 @@ interface UsePricingReturn {
     error: string | null;
     getPriceByRegion: (region: 'PT' | 'BR' | 'US') => Promise<PricingEntry[]>;
     getPriceForPlan: (
-        planType: 'simple' | 'individual' | 'business',
+        planType: 'simple' | 'individual' | 'business' | 'ai_insights',
         region: 'PT' | 'BR' | 'US',
         billingPeriod?: 'monthly' | 'yearly'
     ) => PricingEntry | null;
@@ -115,7 +115,7 @@ export function usePricing(region?: 'PT' | 'BR' | 'US'): UsePricingReturn {
     // Get price for specific plan from matrix
     const getPriceForPlan = useCallback(
         (
-            planType: 'simple' | 'individual' | 'business',
+            planType: 'simple' | 'individual' | 'business' | 'ai_insights',
             regionCode: 'PT' | 'BR' | 'US',
             billingPeriod: 'monthly' | 'yearly' = 'monthly'
         ): PricingEntry | null => {
