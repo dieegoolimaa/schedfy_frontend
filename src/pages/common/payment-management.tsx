@@ -122,7 +122,7 @@ const PAYMENT_METHODS = [
   { value: "bank_transfer", label: "Transferência", icon: Banknote },
 ];
 
-// Quick Action Card Component
+// Quick Action Card Component - Mobile Optimized
 function QuickActionCard({
   icon: Icon,
   title,
@@ -155,25 +155,25 @@ function QuickActionCard({
       className={`cursor-pointer transition-all duration-200 ${variantStyles[variant]}`}
       onClick={onClick}
     >
-      <CardContent className="pt-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconStyles[variant]}`}>
-              <Icon className="h-6 w-6" />
+      <CardContent className="p-4 sm:pt-6 sm:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0 flex items-center justify-center ${iconStyles[variant]}`}>
+              <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold">{title}</h3>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-sm sm:text-base truncate">{title}</h3>
                 {badge && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs flex-shrink-0">
                     {badge}
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 line-clamp-2">{description}</p>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         </div>
       </CardContent>
     </Card>
@@ -225,7 +225,7 @@ function StatusBanner({ status, onRefresh }: { status: StripeAccountStatus | nul
   );
 }
 
-// Stripe Modal Wrapper - uses Stripe's exact colors
+// Stripe Modal Wrapper - uses Stripe's exact colors & Mobile fullscreen
 function StripeModal({
   open,
   onClose,
@@ -242,18 +242,18 @@ function StripeModal({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-[#27272a] dark:bg-[#09090b] bg-[#fafafa]"
+        className="max-w-3xl w-[95vw] sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-0 gap-0 border-[#27272a] dark:bg-[#09090b] bg-[#fafafa] rounded-xl sm:rounded-lg"
       >
         {/* Header with Stripe-matching colors */}
-        <DialogHeader className="p-6 pb-4 border-b border-[#27272a] dark:bg-[#09090b] bg-[#fafafa]">
+        <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-[#27272a] dark:bg-[#09090b] bg-[#fafafa] sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg dark:bg-[#18181b] bg-[#f4f4f5] flex items-center justify-center">
-              <Shield className="h-5 w-5 dark:text-[#a1a1aa] text-[#52525b]" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg dark:bg-[#18181b] bg-[#f4f4f5] flex items-center justify-center flex-shrink-0">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 dark:text-[#a1a1aa] text-[#52525b]" />
             </div>
-            <div>
-              <DialogTitle className="dark:text-[#fafafa] text-[#09090b]">{title}</DialogTitle>
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="dark:text-[#fafafa] text-[#09090b] text-base sm:text-lg">{title}</DialogTitle>
               {description && (
-                <DialogDescription className="dark:text-[#71717a] text-[#52525b]">
+                <DialogDescription className="dark:text-[#71717a] text-[#52525b] text-xs sm:text-sm line-clamp-1">
                   {description}
                 </DialogDescription>
               )}
@@ -262,7 +262,7 @@ function StripeModal({
         </DialogHeader>
 
         {/* Content area with Stripe background */}
-        <div className="p-6 dark:bg-[#09090b] bg-[#fafafa]">
+        <div className="p-4 sm:p-6 dark:bg-[#09090b] bg-[#fafafa] overflow-x-hidden">
           {children}
         </div>
       </DialogContent>
@@ -571,12 +571,12 @@ export default function UnifiedPaymentManagement() {
 
   return (
     <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-3xl font-bold">{t("title", "Gestão de Pagamentos")}</h1>
-            <p className="text-muted-foreground flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold">{t("title", "Gestão de Pagamentos")}</h1>
+            <p className="text-muted-foreground flex items-center gap-2 text-sm sm:text-base">
               {t("subtitle", "Management & Payouts")}
               <Badge variant="outline" className="text-xs">
                 <Shield className="h-3 w-3 mr-1" />
@@ -584,7 +584,12 @@ export default function UnifiedPaymentManagement() {
               </Badge>
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => window.open("https://dashboard.stripe.com", "_blank")}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open("https://dashboard.stripe.com", "_blank")}
+            className="w-full sm:w-auto"
+          >
             <ExternalLink className="h-4 w-4 mr-2" />
             Dashboard Stripe
           </Button>
@@ -593,8 +598,8 @@ export default function UnifiedPaymentManagement() {
         {/* Status Banner */}
         <StatusBanner status={accountStatus} onRefresh={checkStripeStatus} />
 
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* Quick Actions - Stack on mobile */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           {!isStripeConnected ? (
             <QuickActionCard
               icon={CreditCard}
@@ -629,44 +634,45 @@ export default function UnifiedPaymentManagement() {
           )}
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Responsive grid */}
         {isStripeConnected && (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3">
+
             <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                    <ArrowDownLeft className="h-6 w-6 text-emerald-500" />
+              <CardContent className="p-4 sm:pt-6 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                    <ArrowDownLeft className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">{t("stats.totalRevenue", "Receita Total")}</p>
-                    <p className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{t("stats.totalRevenue", "Receita Total")}</p>
+                    <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(stats.totalRevenue)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-amber-500" />
+              <CardContent className="p-4 sm:pt-6 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">{t("stats.pending", "Pendente")}</p>
-                    <p className="text-2xl font-bold">{formatCurrency(stats.pendingAmount)}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{t("stats.pending", "Pendente")}</p>
+                    <p className="text-lg sm:text-2xl font-bold truncate">{formatCurrency(stats.pendingAmount)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Receipt className="h-6 w-6 text-primary" />
+            <Card className="col-span-2 md:col-span-1">
+              <CardContent className="p-4 sm:pt-6 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Receipt className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">{t("stats.transactions", "Transações")}</p>
-                    <p className="text-2xl font-bold">{stats.transactionCount}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{t("stats.transactions", "Transações")}</p>
+                    <p className="text-lg sm:text-2xl font-bold">{stats.transactionCount}</p>
                   </div>
                 </div>
               </CardContent>
@@ -678,20 +684,21 @@ export default function UnifiedPaymentManagement() {
         {isStripeConnected && (
           <>
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Filter className="h-5 w-5" />
-                    <CardTitle>{t("filters.title", "Filtros")}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">{t("filters.title", "Filtros")}</CardTitle>
                   </div>
-                  <Button variant="outline" size="sm" onClick={exportToCSV}>
+                  <Button variant="outline" size="sm" onClick={exportToCSV} className="w-full sm:w-auto">
                     <Download className="h-4 w-4 mr-2" />
                     {t("actions.export", "Exportar")}
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-4">
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-4">
+
                   <div className="space-y-2">
                     <Label>{t("filters.status", "Status")}</Label>
                     <Select value={filters.status} onValueChange={(val) => setFilters({ ...filters, status: val })}>
