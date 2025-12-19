@@ -22,7 +22,10 @@ import {
   User,
   Loader2,
   WifiOff,
-  HelpCircle,
+  ArrowUpRight,
+  ArrowDownLeft,
+  X,
+  ChevronRight,
 } from "lucide-react";
 import {
   Card,
@@ -30,7 +33,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,11 +54,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Alert,
   AlertDescription,
@@ -126,8 +129,66 @@ const PAYMENT_METHODS = [
   { value: "bank_transfer", label: "Transferência", icon: Banknote },
 ];
 
-// Status Card Component - Enhanced Design
-function AccountStatusCard({ status, onRefresh }: { status: StripeAccountStatus | null; onRefresh: () => void }) {
+// Quick Action Card Component
+function QuickActionCard({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+  variant = "default",
+  badge,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  onClick: () => void;
+  variant?: "default" | "success" | "warning";
+  badge?: string;
+}) {
+  const variantStyles = {
+    default: "border-border hover:border-primary/50 hover:bg-primary/5",
+    success: "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10",
+    warning: "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10",
+  };
+
+  const iconStyles = {
+    default: "bg-primary/10 text-primary",
+    success: "bg-emerald-500/20 text-emerald-500",
+    warning: "bg-amber-500/20 text-amber-500",
+  };
+
+  return (
+    <Card
+      className={`cursor-pointer transition-all duration-200 ${variantStyles[variant]}`}
+      onClick={onClick}
+    >
+      <CardContent className="pt-6">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconStyles[variant]}`}>
+              <Icon className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">{title}</h3>
+                {badge && (
+                  <Badge variant="secondary" className="text-xs">
+                    {badge}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Status Banner Component
+function StatusBanner({ status, onRefresh }: { status: StripeAccountStatus | null; onRefresh: () => void }) {
   const { t } = useTranslation("payments");
 
   if (!status) return null;
@@ -135,125 +196,77 @@ function AccountStatusCard({ status, onRefresh }: { status: StripeAccountStatus 
   const isFullyActive = status.chargesEnabled && status.payoutsEnabled;
   const isPending = status.detailsSubmitted && !isFullyActive;
 
-  const getStatusConfig = () => {
-    if (isFullyActive) {
-      return {
-        color: "from-emerald-500/20 to-emerald-500/5",
-        border: "border-emerald-500/30",
-        dot: "bg-emerald-500",
-        text: t("status.active", "Conta Ativa"),
-        icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
-        description: t("status.canReceive", "Pronta para receber pagamentos"),
-      };
-    }
-    if (isPending) {
-      return {
-        color: "from-amber-500/20 to-amber-500/5",
-        border: "border-amber-500/30",
-        dot: "bg-amber-500",
-        text: t("status.pending", "Em Verificação"),
-        icon: <Clock className="h-4 w-4 text-amber-500" />,
-        description: t("status.pendingVerification", "Aguardando análise do Stripe"),
-      };
-    }
-    return {
-      color: "from-red-500/20 to-red-500/5",
-      border: "border-red-500/30",
-      dot: "bg-red-500",
-      text: t("status.incomplete", "Cadastro Incompleto"),
-      icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-      description: t("status.needsAction", "Complete seu cadastro para ativar"),
-    };
+  const config = isFullyActive ? {
+    bg: "bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent",
+    border: "border-emerald-500/20",
+    icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
+    title: t("status.active", "Conta Ativa"),
+    subtitle: t("status.canReceive", "Pronta para receber pagamentos"),
+  } : isPending ? {
+    bg: "bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent",
+    border: "border-amber-500/20",
+    icon: <Clock className="h-5 w-5 text-amber-500" />,
+    title: t("status.pending", "Em Verificação"),
+    subtitle: t("status.pendingVerification", "Aguardando análise do Stripe"),
+  } : {
+    bg: "bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent",
+    border: "border-red-500/20",
+    icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+    title: t("status.incomplete", "Cadastro Incompleto"),
+    subtitle: t("status.needsAction", "Complete seu cadastro para ativar"),
   };
 
-  const config = getStatusConfig();
-
   return (
-    <Card className={`relative overflow-hidden ${config.border} bg-gradient-to-r ${config.color}`}>
-      {/* Subtle accent line at top */}
-      <div className={`absolute top-0 left-0 right-0 h-0.5 ${config.dot}`} />
-
-      <CardContent className="pt-5 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Animated status indicator */}
-            <div className="relative">
-              <div className={`w-10 h-10 rounded-xl ${config.dot}/10 flex items-center justify-center`}>
-                {config.icon}
-              </div>
-              <div className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full ${config.dot} animate-pulse ring-2 ring-background`} />
-            </div>
-
-            <div>
-              <p className="font-semibold text-foreground">{config.text}</p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                {config.description}
-              </p>
-            </div>
-          </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onRefresh}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+    <div className={`flex items-center justify-between p-4 rounded-xl border ${config.border} ${config.bg}`}>
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0">{config.icon}</div>
+        <div>
+          <p className="font-medium">{config.title}</p>
+          <p className="text-sm text-muted-foreground">{config.subtitle}</p>
         </div>
-
-        {status.requirements && ((status.requirements.currentlyDue?.length || 0) > 0 || (status.requirements.pastDue?.length || 0) > 0) && (
-          <Alert className="mt-4 border-amber-500/30 bg-amber-500/5" variant="default">
-            <AlertCircle className="h-4 w-4 text-amber-500" />
-            <AlertTitle className="text-amber-600 dark:text-amber-400">
-              {t("status.actionRequired", "Ação Necessária")}
-            </AlertTitle>
-            <AlertDescription className="text-amber-600/80 dark:text-amber-400/80">
-              {t("status.completeInfo", "Complete as informações pendentes para ativar totalmente sua conta.")}
-            </AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+      <Button variant="ghost" size="sm" onClick={onRefresh}>
+        <RefreshCw className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }
 
-
-// Error Fallback Component
-function StripeErrorFallback({ error: _error, onRetry }: { error: string; onRetry: () => void }) {
-  const { t } = useTranslation("payments");
-
+// Stripe Modal Wrapper
+function StripeModal({
+  open,
+  onClose,
+  title,
+  description,
+  children
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Card className="border-destructive/20 bg-destructive/5">
-      <CardContent className="pt-6">
-        <div className="flex flex-col items-center text-center space-y-4 py-8">
-          <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center">
-            <WifiOff className="h-8 w-8 text-destructive" />
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-4 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Shield className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle>{title}</DialogTitle>
+                {description && <DialogDescription>{description}</DialogDescription>}
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">{t("error.connection", "Erro de Conexão")}</h3>
-            <p className="text-sm text-muted-foreground max-w-md mt-2">
-              {t("error.stripeConnection", "Não foi possível conectar ao serviço de pagamentos. Isso pode ser causado por:")}
-            </p>
-            <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-              <li>• {t("error.adBlocker", "Extensões de bloqueio de anúncios")}</li>
-              <li>• {t("error.vpn", "VPN ou firewall bloqueando a conexão")}</li>
-              <li>• {t("error.network", "Problemas temporários de rede")}</li>
-            </ul>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onRetry}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              {t("actions.retry", "Tentar Novamente")}
-            </Button>
-            <Button variant="secondary" onClick={() => window.open("https://dashboard.stripe.com", "_blank")}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {t("actions.stripeDashboard", "Acessar Dashboard Stripe")}
-            </Button>
-          </div>
+        </DialogHeader>
+        <div className="pt-4">
+          {children}
         </div>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -272,32 +285,30 @@ function LoadingState({ message }: { message?: string }) {
   );
 }
 
-// Onboarding Steps Component
-function OnboardingProgress({ currentStep }: { currentStep: number }) {
-  const steps = [
-    { icon: Building2, label: "Dados da Empresa", complete: currentStep > 1 },
-    { icon: User, label: "Dados Pessoais", complete: currentStep > 2 },
-    { icon: Banknote, label: "Conta Bancária", complete: currentStep > 3 },
-    { icon: Shield, label: "Verificação", complete: currentStep > 4 },
-  ];
+// Error Fallback Component
+function StripeErrorFallback({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation("payments");
 
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
-      {steps.map((step, index) => (
-        <div key={index} className="flex items-center">
-          <div className={`
-            flex items-center justify-center w-10 h-10 rounded-full 
-            ${step.complete ? 'bg-emerald-500 text-white' : index + 1 === currentStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}
-            transition-all duration-300
-          `}>
-            {step.complete ? <CheckCircle2 className="h-5 w-5" /> : <step.icon className="h-5 w-5" />}
+    <Card className="border-destructive/20 bg-destructive/5">
+      <CardContent className="pt-6">
+        <div className="flex flex-col items-center text-center space-y-4 py-8">
+          <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center">
+            <WifiOff className="h-8 w-8 text-destructive" />
           </div>
-          {index < steps.length - 1 && (
-            <div className={`w-8 h-1 mx-1 rounded ${step.complete ? 'bg-emerald-500' : 'bg-muted'}`} />
-          )}
+          <div>
+            <h3 className="text-lg font-semibold">{t("error.connection", "Erro de Conexão")}</h3>
+            <p className="text-sm text-muted-foreground max-w-md mt-2">
+              {t("error.stripeConnection", "Não foi possível conectar ao sistema de pagamentos.")}
+            </p>
+          </div>
+          <Button variant="outline" onClick={onRetry}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {t("actions.retry", "Tentar Novamente")}
+          </Button>
         </div>
-      ))}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -309,6 +320,7 @@ export default function UnifiedPaymentManagement() {
   const navigate = useNavigate();
   const plan = user?.plan || "simple";
 
+  // State
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -323,7 +335,11 @@ export default function UnifiedPaymentManagement() {
   const [stripeConnectInstance, setStripeConnectInstance] = useState<any>(null);
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<StripeAccountStatus | null>(null);
-  // const [onboardingStep, setOnboardingStep] = useState(1); // For future use
+
+  // Modal states
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [showPayoutsModal, setShowPayoutsModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const defaultCurrency = "BRL";
 
@@ -356,7 +372,6 @@ export default function UnifiedPaymentManagement() {
         appearance: {
           overlays: 'dialog',
           variables: {
-            // Theme-matched colors
             colorPrimary: isDark ? '#a1a1aa' : '#18181b',
             colorBackground: isDark ? '#09090b' : '#fafafa',
             colorText: isDark ? '#fafafa' : '#09090b',
@@ -447,7 +462,6 @@ export default function UnifiedPaymentManagement() {
         appearance: {
           overlays: 'dialog',
           variables: {
-            // Theme-matched colors
             colorPrimary: isDark ? '#a1a1aa' : '#18181b',
             colorBackground: isDark ? '#09090b' : '#fafafa',
             colorText: isDark ? '#fafafa' : '#09090b',
@@ -493,6 +507,13 @@ export default function UnifiedPaymentManagement() {
 
   const exportToCSV = () => {
     toast({ title: "Exportando...", description: "O download iniciará em breve" });
+  };
+
+  // Calculate stats
+  const stats = {
+    totalRevenue: payments.filter(p => p.status === 'succeeded' || p.status === 'completed').reduce((sum, p) => sum + p.amount, 0),
+    pendingAmount: payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0),
+    transactionCount: payments.length,
   };
 
   // Render: Simple Plan Restriction
@@ -542,7 +563,7 @@ export default function UnifiedPaymentManagement() {
             <p className="text-muted-foreground">{t("subtitle", "Management & Payouts")}</p>
           </div>
         </div>
-        <StripeErrorFallback error={stripeError || "Unknown error"} onRetry={initializeStripe} />
+        <StripeErrorFallback onRetry={initializeStripe} />
       </div>
     );
   }
@@ -558,240 +579,257 @@ export default function UnifiedPaymentManagement() {
               {t("subtitle", "Management & Payouts")}
               <Badge variant="outline" className="text-xs">
                 <Shield className="h-3 w-3 mr-1" />
-                Stripe Secured
+                Stripe
               </Badge>
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={() => window.open("https://dashboard.stripe.com", "_blank")}>
             <ExternalLink className="h-4 w-4 mr-2" />
-            {t("actions.stripeDashboard", "Stripe Dashboard")}
+            Dashboard Stripe
           </Button>
         </div>
 
-        {/* Account Status */}
+        {/* Status Banner */}
+        <StatusBanner status={accountStatus} onRefresh={checkStripeStatus} />
+
+        {/* Quick Actions */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {!isStripeConnected ? (
+            <QuickActionCard
+              icon={CreditCard}
+              title={t("actions.setupPayments", "Configurar Pagamentos")}
+              description={t("actions.setupDescription", "Complete seu cadastro para receber pagamentos")}
+              onClick={() => setShowOnboardingModal(true)}
+              variant="warning"
+              badge="Pendente"
+            />
+          ) : (
+            <>
+              <QuickActionCard
+                icon={ArrowDownLeft}
+                title={t("actions.viewPayouts", "Saques & Extrato")}
+                description={t("actions.payoutsDescription", "Visualize saques e histórico de transferências")}
+                onClick={() => setShowPayoutsModal(true)}
+                variant="success"
+              />
+              <QuickActionCard
+                icon={Settings}
+                title={t("actions.accountSettings", "Configurações")}
+                description={t("actions.settingsDescription", "Gerencie dados da sua conta Stripe")}
+                onClick={() => setShowSettingsModal(true)}
+              />
+              <QuickActionCard
+                icon={ArrowUpRight}
+                title={t("actions.stripeDashboard", "Dashboard Completo")}
+                description={t("actions.dashboardDescription", "Acesse todas as funcionalidades do Stripe")}
+                onClick={() => window.open("https://dashboard.stripe.com", "_blank")}
+              />
+            </>
+          )}
+        </div>
+
+        {/* Stats Cards */}
         {isStripeConnected && (
-          <AccountStatusCard status={accountStatus} onRefresh={checkStripeStatus} />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                    <ArrowDownLeft className="h-6 w-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("stats.totalRevenue", "Receita Total")}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("stats.pending", "Pendente")}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(stats.pendingAmount)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Receipt className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("stats.transactions", "Transações")}</p>
+                    <p className="text-2xl font-bold">{stats.transactionCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        {!isStripeConnected ? (
-          // ONBOARDING MODE
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <CreditCard className="h-6 w-6 text-primary" />
+        {/* Transactions Table */}
+        {isStripeConnected && (
+          <>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    <CardTitle>{t("filters.title", "Filtros")}</CardTitle>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={exportToCSV}>
+                    <Download className="h-4 w-4 mr-2" />
+                    {t("actions.export", "Exportar")}
+                  </Button>
                 </div>
-                <div>
-                  <CardTitle>{t("onboarding.title", "Configure seus Pagamentos")}</CardTitle>
-                  <CardDescription>
-                    {t("onboarding.description", "Complete as etapas abaixo para começar a receber pagamentos online")}
-                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label>{t("filters.status", "Status")}</Label>
+                    <Select value={filters.status} onValueChange={(val) => setFilters({ ...filters, status: val })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("filters.all", "Todos")}</SelectItem>
+                        <SelectItem value="succeeded">{t("status.paid", "Pago")}</SelectItem>
+                        <SelectItem value="pending">{t("status.pending", "Pendente")}</SelectItem>
+                        <SelectItem value="failed">{t("status.failed", "Falhou")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("filters.method", "Método")}</Label>
+                    <Select value={filters.paymentSource} onValueChange={(val) => setFilters({ ...filters, paymentSource: val })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("filters.all", "Todos")}</SelectItem>
+                        {PAYMENT_METHODS.map(m => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("filters.startDate", "Data Início")}</Label>
+                    <Input type="date" value={filters.startDate} onChange={e => setFilters({ ...filters, startDate: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("filters.endDate", "Data Fim")}</Label>
+                    <Input type="date" value={filters.endDate} onChange={e => setFilters({ ...filters, endDate: e.target.value })} />
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <OnboardingProgress currentStep={1} />
+              </CardContent>
+            </Card>
 
-              <div className="bg-muted/30 rounded-xl p-6 mt-4">
-                <ConnectAccountOnboarding
-                  onExit={() => {
-                    checkStripeStatus();
-                    toast({
-                      title: t("onboarding.updated", "Status Atualizado"),
-                      description: t("onboarding.checkingAccount", "Verificando status da sua conta...")
-                    });
-                  }}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="border-t bg-muted/20 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <HelpCircle className="h-4 w-4" />
-                {t("onboarding.help", "Precisa de ajuda?")}
-              </div>
-              <Button variant="link" size="sm">
-                {t("actions.contactSupport", "Falar com Suporte")}
-              </Button>
-            </CardFooter>
-          </Card>
-        ) : (
-          // DASHBOARD MODE
-          <Tabs defaultValue="transactions" className="space-y-4">
-            <TabsList className="w-full justify-start overflow-x-auto no-scrollbar bg-muted/50 p-1 rounded-lg">
-              <TabsTrigger value="transactions" className="whitespace-nowrap rounded-md">
-                <Receipt className="h-4 w-4 mr-2" />
-                {t("tabs.transactions", "Transações")}
-              </TabsTrigger>
-              <TabsTrigger value="payouts" className="whitespace-nowrap rounded-md">
-                <Banknote className="h-4 w-4 mr-2" />
-                {t("tabs.payouts", "Saques & Extrato")}
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="whitespace-nowrap rounded-md">
-                <Settings className="h-4 w-4 mr-2" />
-                {t("tabs.settings", "Configuração")}
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Transactions Tab */}
-            <TabsContent value="transactions" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Filter className="h-5 w-5" />
-                      <CardTitle>{t("filters.title", "Filtros")}</CardTitle>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={exportToCSV}>
-                      <Download className="h-4 w-4 mr-2" />
-                      {t("actions.export", "Exportar")}
-                    </Button>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>{t("table.title", "Histórico de Pagamentos")}</CardTitle>
+                    <CardDescription>
+                      {payments.length} {t("table.paymentsFound", "pagamentos encontrados")}
+                    </CardDescription>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <div className="space-y-2">
-                      <Label>{t("filters.status", "Status")}</Label>
-                      <Select value={filters.status} onValueChange={(val) => setFilters({ ...filters, status: val })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t("filters.all", "Todos")}</SelectItem>
-                          <SelectItem value="succeeded">{t("status.paid", "Pago")}</SelectItem>
-                          <SelectItem value="pending">{t("status.pending", "Pendente")}</SelectItem>
-                          <SelectItem value="failed">{t("status.failed", "Falhou")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t("filters.method", "Método")}</Label>
-                      <Select value={filters.paymentSource} onValueChange={(val) => setFilters({ ...filters, paymentSource: val })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t("filters.all", "Todos")}</SelectItem>
-                          {PAYMENT_METHODS.map(m => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t("filters.startDate", "Data Início")}</Label>
-                      <Input type="date" value={filters.startDate} onChange={e => setFilters({ ...filters, startDate: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t("filters.endDate", "Data Fim")}</Label>
-                      <Input type="date" value={filters.endDate} onChange={e => setFilters({ ...filters, endDate: e.target.value })} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>{t("table.title", "Histórico de Pagamentos")}</CardTitle>
-                      <CardDescription>
-                        {payments.length} {t("table.paymentsFound", "pagamentos encontrados")}
-                      </CardDescription>
-                    </div>
-                    {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{plan === "business" ? t("table.id", "ID") : t("table.date", "Data")}</TableHead>
-                          {plan === "business" && <TableHead>{t("table.client", "Cliente")}</TableHead>}
-                          <TableHead>{t("table.amount", "Valor")}</TableHead>
-                          <TableHead>{t("table.method", "Método")}</TableHead>
-                          <TableHead>{t("table.status", "Status")}</TableHead>
-                          <TableHead className="text-right">{plan === "business" ? t("table.date", "Data") : ""}</TableHead>
+                  {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{plan === "business" ? t("table.id", "ID") : t("table.date", "Data")}</TableHead>
+                        {plan === "business" && <TableHead>{t("table.client", "Cliente")}</TableHead>}
+                        <TableHead>{t("table.amount", "Valor")}</TableHead>
+                        <TableHead>{t("table.method", "Método")}</TableHead>
+                        <TableHead>{t("table.status", "Status")}</TableHead>
+                        <TableHead className="text-right">{plan === "business" ? t("table.date", "Data") : ""}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {payments.map(payment => (
+                        <TableRow key={payment.id}>
+                          <TableCell>
+                            <div className="font-medium">{plan === 'business' ? payment.id.substring(0, 8) : formatDate(payment.paidAt)}</div>
+                          </TableCell>
+                          {plan === 'business' && (
+                            <TableCell>
+                              <div className="font-medium">{payment.client?.name || "-"}</div>
+                            </TableCell>
+                          )}
+                          <TableCell className="font-semibold">{formatCurrency(payment.amount, payment.currency)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getPaymentMethodIcon(payment.paymentSource)}
+                              <span className="text-sm">{getPaymentMethodLabel(payment.paymentSource)}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getPaymentStatusVariant(payment.status)}>{getPaymentStatusLabel(payment.status)}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {plan === 'business' ? formatDate(payment.paidAt) : ""}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {payments.map(payment => (
-                          <TableRow key={payment.id}>
-                            <TableCell>
-                              <div className="font-medium">{plan === 'business' ? payment.id.substring(0, 8) : formatDate(payment.paidAt)}</div>
-                            </TableCell>
-                            {plan === 'business' && (
-                              <TableCell>
-                                <div className="font-medium">{payment.client?.name || "-"}</div>
-                              </TableCell>
-                            )}
-                            <TableCell className="font-semibold">{formatCurrency(payment.amount, payment.currency)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {getPaymentMethodIcon(payment.paymentSource)}
-                                <span className="text-sm">{getPaymentMethodLabel(payment.paymentSource)}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={getPaymentStatusVariant(payment.status)}>{getPaymentStatusLabel(payment.status)}</Badge>
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {plan === 'business' ? formatDate(payment.paidAt) : ""}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {payments.length === 0 && !loading && (
-                          <TableRow>
-                            <TableCell colSpan={plan === "business" ? 6 : 5} className="text-center py-8">
-                              <div className="flex flex-col items-center gap-2">
-                                <Receipt className="h-8 w-8 text-muted-foreground/50" />
-                                <p className="text-muted-foreground">{t("table.noPayments", "Nenhum pagamento encontrado")}</p>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Payouts Tab */}
-            <TabsContent value="payouts" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Banknote className="h-5 w-5" />
-                    {t("payouts.title", "Saques e Extrato")}
-                  </CardTitle>
-                  <CardDescription>
-                    {t("payouts.description", "Gerencie seus saques e visualize o histórico de transferências")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="border-t">
-                    <ConnectPayouts />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Settings Tab */}
-            <TabsContent value="settings" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    {t("settings.title", "Configuração da Conta")}
-                  </CardTitle>
-                  <CardDescription>
-                    {t("settings.description", "Gerencie os dados da sua conta de pagamentos")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="border-t">
-                    <ConnectAccountManagement />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                      ))}
+                      {payments.length === 0 && !loading && (
+                        <TableRow>
+                          <TableCell colSpan={plan === "business" ? 6 : 5} className="text-center py-8">
+                            <div className="flex flex-col items-center gap-2">
+                              <Receipt className="h-8 w-8 text-muted-foreground/50" />
+                              <p className="text-muted-foreground">{t("table.noPayments", "Nenhum pagamento encontrado")}</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
+
+        {/* Stripe Modals */}
+        <StripeModal
+          open={showOnboardingModal}
+          onClose={() => setShowOnboardingModal(false)}
+          title={t("modals.onboarding.title", "Configurar Pagamentos")}
+          description={t("modals.onboarding.description", "Complete as informações para começar a receber pagamentos")}
+        >
+          <ConnectAccountOnboarding
+            onExit={() => {
+              setShowOnboardingModal(false);
+              checkStripeStatus();
+              toast({
+                title: t("onboarding.updated", "Status Atualizado"),
+                description: t("onboarding.checkingAccount", "Verificando status da sua conta...")
+              });
+            }}
+          />
+        </StripeModal>
+
+        <StripeModal
+          open={showPayoutsModal}
+          onClose={() => setShowPayoutsModal(false)}
+          title={t("modals.payouts.title", "Saques & Extrato")}
+          description={t("modals.payouts.description", "Gerencie seus saques e visualize o histórico")}
+        >
+          <ConnectPayouts />
+        </StripeModal>
+
+        <StripeModal
+          open={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          title={t("modals.settings.title", "Configurações da Conta")}
+          description={t("modals.settings.description", "Gerencie os dados da sua conta de pagamentos")}
+        >
+          <ConnectAccountManagement />
+        </StripeModal>
       </div>
     </ConnectComponentsProvider>
   );
