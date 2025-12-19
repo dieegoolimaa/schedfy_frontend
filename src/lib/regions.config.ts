@@ -8,7 +8,7 @@ import {
     SupportedRegion,
     SupportedLanguage,
     type RegionalConfig
-} from '../types/models/regional.interface';
+} from '@/types/models/regional.interface';
 
 export { SupportedRegion, SupportedLanguage };
 export type { RegionalConfig };
