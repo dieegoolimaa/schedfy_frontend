@@ -18,13 +18,10 @@ import {
   RefreshCw,
   ExternalLink,
   Shield,
-  Building2,
-  User,
   Loader2,
   WifiOff,
   ArrowUpRight,
   ArrowDownLeft,
-  X,
   ChevronRight,
 } from "lucide-react";
 import {
@@ -60,13 +57,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { paymentsService } from "../../services/payments.service";
+
 
 // Stripe Connect Embedded Components
 import { ConnectComponentsProvider, ConnectAccountOnboarding, ConnectPayouts, ConnectAccountManagement } from "@stripe/react-connect-js";
@@ -232,7 +225,7 @@ function StatusBanner({ status, onRefresh }: { status: StripeAccountStatus | nul
   );
 }
 
-// Stripe Modal Wrapper
+// Stripe Modal Wrapper - uses Stripe's exact colors
 function StripeModal({
   open,
   onClose,
@@ -248,27 +241,35 @@ function StripeModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="pb-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <DialogTitle>{title}</DialogTitle>
-                {description && <DialogDescription>{description}</DialogDescription>}
-              </div>
+      <DialogContent
+        className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-[#27272a] dark:bg-[#09090b] bg-[#fafafa]"
+      >
+        {/* Header with Stripe-matching colors */}
+        <DialogHeader className="p-6 pb-4 border-b border-[#27272a] dark:bg-[#09090b] bg-[#fafafa]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg dark:bg-[#18181b] bg-[#f4f4f5] flex items-center justify-center">
+              <Shield className="h-5 w-5 dark:text-[#a1a1aa] text-[#52525b]" />
+            </div>
+            <div>
+              <DialogTitle className="dark:text-[#fafafa] text-[#09090b]">{title}</DialogTitle>
+              {description && (
+                <DialogDescription className="dark:text-[#71717a] text-[#52525b]">
+                  {description}
+                </DialogDescription>
+              )}
             </div>
           </div>
         </DialogHeader>
-        <div className="pt-4">
+
+        {/* Content area with Stripe background */}
+        <div className="p-6 dark:bg-[#09090b] bg-[#fafafa]">
           {children}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 // Loading Component
 function LoadingState({ message }: { message?: string }) {
