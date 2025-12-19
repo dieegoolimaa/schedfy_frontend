@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
@@ -9,7 +9,6 @@ import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
-import { formatDate, formatPrice, formatDateTime } from "../../lib/region-config";
 import { BookingCreator } from "../../components/booking";
 import {
     Card,
@@ -108,6 +107,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const { t } = useTranslation(["bookings", "payments"]);
     const { canViewPaymentDetails, isSimplePlan } = usePlanRestrictions();
     const { user } = useAuth();
+    const navigate = useNavigate();
     const { entity: fullEntity } = useEntity({ autoFetch: true }); // Fetch full entity profile
     // const { formatCurrency } = useCurrency();
     const entityId = user?.entityId || user?.id || "";
@@ -1241,7 +1241,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                 </DropdownMenuItem>
                                                             )}
 
-                                                            {booking.status !== 'completed' && booking.status !== 'cancelled' && booking.status !== 'blocked' && (
+                                                            {booking.status !== 'completed' && booking.status !== 'cancelled' && (
                                                                 <DropdownMenuItem
                                                                     onClick={async () => {
                                                                         if (confirm(t("confirmations.markCompleted", "Are you sure you want to mark this booking as completed?"))) {
@@ -1261,7 +1261,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                 </DropdownMenuItem>
                                                             )}
 
-                                                            {canViewPaymentDetails && booking.status !== 'blocked' && (
+                                                            {canViewPaymentDetails && (
                                                                 <>
                                                                     <DropdownMenuSeparator />
                                                                     <DropdownMenuItem
