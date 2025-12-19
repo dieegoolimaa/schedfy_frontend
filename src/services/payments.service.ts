@@ -123,6 +123,10 @@ export const paymentsService = {
             detailsSubmitted: boolean;
             chargesEnabled: boolean;
             payoutsEnabled: boolean;
+            requirements?: {
+                currentlyDue: string[];
+                pastDue: string[];
+            };
         }>(`/api/payments/connect/${entityId}/status`);
     },
 

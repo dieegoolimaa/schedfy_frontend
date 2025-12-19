@@ -343,7 +343,6 @@ export default function UnifiedPaymentManagement() {
   const [showPayoutsModal, setShowPayoutsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
-  const defaultCurrency = "BRL";
 
   // Get effective theme
   const getEffectiveTheme = useCallback(() => {
