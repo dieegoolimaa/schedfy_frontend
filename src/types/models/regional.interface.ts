@@ -22,7 +22,7 @@ export enum SupportedLanguage {
 
 export type RegionCode = 'PT' | 'BR' | 'US';
 export type CurrencyCode = 'EUR' | 'BRL' | 'USD';
-export type LocaleCode = 'en' | 'pt-BR';
+export type LocaleCode = 'en' | 'en-US' | 'pt-BR' | 'pt-PT';
 
 export interface RegionalConfig {
     code: SupportedRegion;

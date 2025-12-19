@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { paymentsService } from "../../services/payments.service";
+import { formatPrice, formatDate as formatRegionalDate } from "../../lib/region-config";
 
 
 // Stripe Connect Embedded Components
@@ -479,20 +480,13 @@ export default function UnifiedPaymentManagement() {
     }
   }, [theme, stripeConnectInstance, getEffectiveTheme]);
 
-  // Helpers
+  // Helpers - Use regional formatting
   const formatCurrency = (amount: number, currency?: string) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: currency || defaultCurrency,
-    }).format(amount);
+    return formatPrice(amount, currency);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return formatRegionalDate(dateString);
   };
 
   const getPaymentMethodLabel = (method: string) => {

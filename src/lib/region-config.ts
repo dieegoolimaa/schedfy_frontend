@@ -19,7 +19,7 @@ export const REGIONS: Record<RegionCode, RegionConfig> = {
         country: 'Portugal',
         currency: 'EUR',
         currencySymbol: '€',
-        locale: 'en',
+        locale: 'pt-PT',
         timezone: 'Europe/Lisbon',
         flag: '🇵🇹',
         phonePrefix: '+351',
@@ -51,7 +51,7 @@ export const REGIONS: Record<RegionCode, RegionConfig> = {
         country: 'United States',
         currency: 'USD',
         currencySymbol: '$',
-        locale: 'en',
+        locale: 'en-US',
         timezone: 'America/New_York',
         flag: '🇺🇸',
         phonePrefix: '+1',
@@ -142,31 +142,131 @@ export function setUserRegion(region: RegionCode): void {
 }
 
 /**
- * Format price based on region
+ * Format price/currency based on region
  */
-export function formatPrice(amount: number, region?: RegionCode): string {
+export function formatPrice(amount: number, currency?: string, region?: RegionCode): string {
     const config = getRegionConfig(region);
 
     return new Intl.NumberFormat(config.locale, {
         style: 'currency',
-        currency: config.currency,
+        currency: currency || config.currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     }).format(amount);
 }
 
 /**
- * Format date based on region
+ * Format date based on region (short format: DD/MM/YYYY or MM/DD/YYYY)
  */
 export function formatDate(date: Date | string, region?: RegionCode): string {
     const config = getRegionConfig(region);
     const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    if (isNaN(dateObj.getTime())) return '-';
 
     return new Intl.DateTimeFormat(config.locale, {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
     }).format(dateObj);
+}
+
+/**
+ * Format date with time based on region
+ */
+export function formatDateTime(date: Date | string, region?: RegionCode): string {
+    const config = getRegionConfig(region);
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    if (isNaN(dateObj.getTime())) return '-';
+
+    return new Intl.DateTimeFormat(config.locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(dateObj);
+}
+
+/**
+ * Format date in long format (e.g., "19 de dezembro de 2024")
+ */
+export function formatDateLong(date: Date | string, region?: RegionCode): string {
+    const config = getRegionConfig(region);
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    if (isNaN(dateObj.getTime())) return '-';
+
+    return new Intl.DateTimeFormat(config.locale, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    }).format(dateObj);
+}
+
+/**
+ * Format relative date (e.g., "há 2 dias", "in 3 hours")
+ */
+export function formatRelativeDate(date: Date | string, region?: RegionCode): string {
+    const config = getRegionConfig(region);
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    if (isNaN(dateObj.getTime())) return '-';
+
+    const now = new Date();
+    const diffMs = dateObj.getTime() - now.getTime();
+    const diffSecs = Math.round(diffMs / 1000);
+    const diffMins = Math.round(diffSecs / 60);
+    const diffHours = Math.round(diffMins / 60);
+    const diffDays = Math.round(diffHours / 24);
+
+    const rtf = new Intl.RelativeTimeFormat(config.locale, { numeric: 'auto' });
+
+    if (Math.abs(diffDays) >= 1) {
+        return rtf.format(diffDays, 'day');
+    }
+    if (Math.abs(diffHours) >= 1) {
+        return rtf.format(diffHours, 'hour');
+    }
+    if (Math.abs(diffMins) >= 1) {
+        return rtf.format(diffMins, 'minute');
+    }
+    return rtf.format(diffSecs, 'second');
+}
+
+/**
+ * Format number based on region
+ */
+export function formatNumber(value: number, region?: RegionCode): string {
+    const config = getRegionConfig(region);
+    return new Intl.NumberFormat(config.locale).format(value);
+}
+
+/**
+ * Format percentage based on region
+ */
+export function formatPercent(value: number, region?: RegionCode): string {
+    const config = getRegionConfig(region);
+    return new Intl.NumberFormat(config.locale, {
+        style: 'percent',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+    }).format(value);
+}
+
+/**
+ * Get the locale string for the current region
+ */
+export function getLocale(region?: RegionCode): string {
+    return getRegionConfig(region).locale;
+}
+
+/**
+ * Get the currency code for the current region
+ */
+export function getCurrency(region?: RegionCode): CurrencyCode {
+    return getRegionConfig(region).currency;
 }
 
 /**
