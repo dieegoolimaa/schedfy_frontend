@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -103,7 +104,7 @@ const ServicesAndPackages: React.FC = () => {
   // Check user plan
   const userPlan = user?.plan || "simple";
   const hasPackageAccess = userPlan === "individual" || userPlan === "business";
-  const isOwnerOrManager = user?.role === "owner" || user?.role === "manager" || user?.role === "admin";
+  const isOwnerOrManager = user?.role === "owner" || user?.role === "admin" || user?.role === "professional";
 
   // Form state for packages
   const [formData, setFormData] = useState({
@@ -1055,9 +1056,30 @@ const ServicesAndPackages: React.FC = () => {
                             }
                             placeholder="Ex: 25.00"
                           />
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            ℹ️ {t("services.form.vatIncluded", "Price includes VAT/IVA")}
+                          </p>
                         </div>
                       )}
                     </div>
+
+                    {/* VAT Alert for Non-Simple Plans */}
+                    {!isSimplePlan && (
+                      <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+                        <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm">
+                          💡 {t("services.form.vatAlert", "The price you set already includes VAT/IVA. This is the final amount that will be charged to clients.")}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* Simple Plan Alert */}
+                    {isSimplePlan && (
+                      <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+                        <AlertDescription className="text-amber-800 dark:text-amber-300 text-sm">
+                          ⚠️ {t("services.form.simplePlanAlert", "Simple plan does not process payments. Prices are for informational purposes only.")}
+                        </AlertDescription>
+                      </Alert>
+                    )}
 
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
@@ -1424,8 +1446,18 @@ const ServicesAndPackages: React.FC = () => {
                             })
                           }
                         />
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          ℹ️ {t("services.form.vatIncluded", "Price includes VAT/IVA")}
+                        </p>
                       </div>
                     </div>
+
+                    {/* VAT Alert */}
+                    <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+                      <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm">
+                        💡 {t("services.form.vatAlert", "The price you set already includes VAT/IVA. This is the final amount that will be charged to clients.")}
+                      </AlertDescription>
+                    </Alert>
 
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">

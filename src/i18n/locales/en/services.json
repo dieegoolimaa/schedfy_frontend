@@ -53,7 +53,10 @@
       "price": "Price",
       "isActive": "Active",
       "isPublic": "Publicly visible",
-      "requireManualConfirmation": "Manual confirmation"
+      "requireManualConfirmation": "Manual confirmation",
+      "vatIncluded": "Price includes VAT",
+      "vatAlert": "The price you set already includes VAT/IVA. This is the final amount that will be charged to clients.",
+      "simplePlanAlert": "Simple plan does not process payments. Prices are for informational purposes only."
     },
     "status": {
       "active": "Active",
