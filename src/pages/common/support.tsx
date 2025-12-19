@@ -71,6 +71,7 @@ import {
 
 import { useToast } from "../../hooks/use-toast";
 import { supportService, SupportTicket, KnowledgeBaseArticle } from "../../services/support.service";
+import { formatDateTime } from "../../lib/region-config";
 
 export function SupportPage() {
     const { t } = useTranslation();
@@ -809,7 +810,7 @@ export function SupportPage() {
                                         <div key={idx} className={`flex flex-col ${item.type === 'status_change' ? 'items-center my-4' : 'items-start'}`}>
                                             {item.type === 'status_change' ? (
                                                 <span className="text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
-                                                    {item.content} - {new Date(item.createdAt).toLocaleString()}
+                                                    {item.content} - {formatDateTime(item.createdAt)}
                                                 </span>
                                             ) : (
                                                 <div className={`w-full flex flex-col ${item.senderId === selectedTicket.userId ? 'items-end' : 'items-start'}`}>
@@ -817,7 +818,7 @@ export function SupportPage() {
                                                         <p className="text-sm whitespace-pre-wrap">{item.content}</p>
                                                     </div>
                                                     <span className="text-[10px] text-muted-foreground mt-1 px-1">
-                                                        {item.senderName} • {new Date(item.createdAt).toLocaleString()}
+                                                        {item.senderName} • {formatDateTime(item.createdAt)}
                                                     </span>
                                                 </div>
                                             )}

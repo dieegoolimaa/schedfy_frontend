@@ -6,6 +6,7 @@ import { Payment } from "../../types/models/payments.interface";
 import { Loader2, Printer, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { formatPrice, formatDateLong } from "../../lib/region-config";
 
 export function ReceiptPage() {
     const { t } = useTranslation("payments");
@@ -52,10 +53,7 @@ export function ReceiptPage() {
     };
 
     const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-        }).format(value);
+        return formatPrice(value);
     };
 
     const [isEditing, setIsEditing] = useState(false);
@@ -134,12 +132,7 @@ export function ReceiptPage() {
                         </div>
                         <CardTitle className="text-2xl font-bold">{t("receipt.title")}</CardTitle>
                         <p className="text-muted-foreground mt-2">
-                            {new Date(payment.createdAt).toLocaleDateString("pt-BR", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                            })}
+                            {formatDateLong(payment.createdAt)}
                         </p>
                     </CardHeader>
                     <CardContent className="pt-8 space-y-8">

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
 import { apiClient } from "../../lib/api-client";
+import { formatNumber } from "../../lib/region-config";
 import {
   Card,
   CardContent,
@@ -330,7 +331,7 @@ export function EntityProfilePage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {(entityData.stats?.totalBookings || 0).toLocaleString()}
+                      {formatNumber(entityData.stats?.totalBookings || 0)}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Total Bookings
