@@ -9,6 +9,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { useClients } from "../../hooks/useClients";
 import { useBookings } from "../../hooks/useBookings";
 import { toast } from "sonner";
+import { formatDate, formatDateTime } from "../../lib/region-config";
 import {
   Card,
   CardContent,
@@ -985,7 +986,7 @@ export function ClientProfilePage() {
                                 <div className="text-sm text-muted-foreground">
                                   Member since{" "}
                                   {client.createdAt
-                                    ? new Date(client.createdAt).toLocaleDateString()
+                                    ? formatDate(client.createdAt)
                                     : "N/A"}
                                 </div>
                               </div>
@@ -1014,7 +1015,7 @@ export function ClientProfilePage() {
                                 <div className="text-sm text-muted-foreground">
                                   Last:{" "}
                                   {lastVisit
-                                    ? new Date(lastVisit).toLocaleDateString()
+                                    ? formatDate(lastVisit)
                                     : "N/A"}
                                 </div>
                               )}
@@ -1148,7 +1149,7 @@ export function ClientProfilePage() {
                           <div className="space-y-1">
                             <div className="flex items-center">
                               <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                              {booking.date ? new Date(booking.date).toLocaleDateString() : "N/A"}
+                              {booking.date ? formatDate(booking.date) : "N/A"}
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Clock className="h-3 w-3 mr-1" />
@@ -1489,9 +1490,9 @@ export function ClientProfilePage() {
                       </div>
                       <div className="text-lg font-bold truncate">
                         {selectedClient.stats?.lastBookingDate
-                          ? new Date(selectedClient.stats.lastBookingDate).toLocaleDateString()
+                          ? formatDate(selectedClient.stats.lastBookingDate)
                           : (selectedClient.bookings?.length > 0
-                            ? new Date(selectedClient.bookings[0].startDateTime || selectedClient.bookings[0].date).toLocaleDateString()
+                            ? formatDate(selectedClient.bookings[0].startDateTime || selectedClient.bookings[0].date)
                             : "Never")}
                       </div>
                     </CardContent>
@@ -1515,7 +1516,7 @@ export function ClientProfilePage() {
                               <div>
                                 <p className="font-medium text-sm">{booking.service?.name || "Service"}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {new Date(booking.startDateTime || booking.date).toLocaleDateString()} at {new Date(booking.startDateTime || booking.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {formatDateTime(booking.startDateTime || booking.date)}
                                 </p>
                               </div>
                             </div>
@@ -1553,7 +1554,7 @@ export function ClientProfilePage() {
                             <TableRow key={booking.id || booking._id}>
                               <TableCell>
                                 <div className="font-medium">
-                                  {new Date(booking.startDateTime || booking.date).toLocaleDateString()}
+                                  {formatDate(booking.startDateTime || booking.date)}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                   {new Date(booking.startDateTime || booking.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
