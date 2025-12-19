@@ -9,6 +9,7 @@ import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
+import { formatDate, formatPrice, formatDateTime } from "../../lib/region-config";
 import { BookingCreator } from "../../components/booking";
 import {
     Card,
@@ -356,18 +357,51 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
         }
     };
 
+    // Enhanced payment status styling with icons for better UX
     const getPaymentStatusColor = (status: string) => {
         switch (status) {
             case "paid":
-                return "bg-green-100 text-green-800";
+                return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800";
             case "pending":
-                return "bg-yellow-100 text-yellow-800";
+                return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800";
             case "refunded":
-                return "bg-blue-100 text-blue-800";
+                return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800";
             case "failed":
-                return "bg-red-100 text-red-800";
+                return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 border-gray-200 dark:border-gray-700";
+        }
+    };
+
+    // Payment status icon for visual hierarchy
+    const getPaymentStatusIcon = (status: string) => {
+        switch (status) {
+            case "paid":
+                return <CheckCircle2 className="h-3.5 w-3.5" />;
+            case "pending":
+                return <Hourglass className="h-3.5 w-3.5" />;
+            case "refunded":
+                return <RotateCcw className="h-3.5 w-3.5" />;
+            case "failed":
+                return <XCircle className="h-3.5 w-3.5" />;
+            default:
+                return <CreditCard className="h-3.5 w-3.5" />;
+        }
+    };
+
+    // Translated payment status label
+    const getPaymentStatusLabel = (status: string) => {
+        switch (status) {
+            case "paid":
+                return t("payment.status.paid", "Paid");
+            case "pending":
+                return t("payment.status.pending", "Pending");
+            case "refunded":
+                return t("payment.status.refunded", "Refunded");
+            case "failed":
+                return t("payment.status.failed", "Failed");
+            default:
+                return t("payment.status.unpaid", "Unpaid");
         }
     };
 
@@ -1591,23 +1625,13 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             </Button>
                                         </div>
                                     )}
-                                    {/* Payment Status Badge with appropriate styling */}
+                                    {/* Payment Status Badge with enhanced styling */}
                                     <Badge
-                                        variant={
-                                            selectedBookingForPayment.paymentStatus === 'paid' ? 'default' :
-                                                selectedBookingForPayment.paymentStatus === 'refunded' ? 'destructive' :
-                                                    selectedBookingForPayment.paymentStatus === 'partial' ? 'secondary' :
-                                                        selectedBookingForPayment.paymentStatus === 'failed' ? 'destructive' :
-                                                            'outline'
-                                        }
-                                        className={`mt-1 capitalize ${selectedBookingForPayment.paymentStatus === 'paid' ? 'bg-green-500' :
-                                            selectedBookingForPayment.paymentStatus === 'refunded' ? 'bg-orange-500' :
-                                                selectedBookingForPayment.paymentStatus === 'partial' ? 'bg-blue-500 text-white' :
-                                                    selectedBookingForPayment.paymentStatus === 'failed' ? 'bg-red-500' :
-                                                        ''
-                                            }`}
+                                        variant="outline"
+                                        className={`mt-1 flex items-center gap-1.5 ${getPaymentStatusColor(selectedBookingForPayment.paymentStatus)}`}
                                     >
-                                        {selectedBookingForPayment.paymentStatus || "pending"}
+                                        {getPaymentStatusIcon(selectedBookingForPayment.paymentStatus)}
+                                        {getPaymentStatusLabel(selectedBookingForPayment.paymentStatus)}
                                     </Badge>
                                 </div>
                             </div>
@@ -2278,16 +2302,17 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     {canViewPaymentDetails && selectedBookingDetails.status?.toLowerCase() !== 'blocked' && (
                                         <div>
                                             <Label className="text-sm font-medium text-muted-foreground">
-                                                Payment Status
+                                                {t("details.paymentStatus", "Payment Status")}
                                             </Label>
                                             <div className="mt-1">
                                                 <Badge
-                                                    variant="secondary"
-                                                    className={getPaymentStatusColor(
+                                                    variant="outline"
+                                                    className={`${getPaymentStatusColor(
                                                         selectedBookingDetails.paymentStatus
-                                                    )}
+                                                    )} flex items-center gap-1.5`}
                                                 >
-                                                    {selectedBookingDetails.paymentStatus || "pending"}
+                                                    {getPaymentStatusIcon(selectedBookingDetails.paymentStatus)}
+                                                    {getPaymentStatusLabel(selectedBookingDetails.paymentStatus)}
                                                 </Badge>
                                             </div>
                                         </div>
