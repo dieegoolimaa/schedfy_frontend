@@ -556,3 +556,229 @@
     max-width: 100% !important;
   }
 }
+
+/* ========================================
+   Enhanced Stripe Visual Polish
+   ======================================== */
+
+/* Section headers - Better hierarchy */
+.dark [class*="Connect"] h2 {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.dark [class*="Connect"] h3 {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: #d4d4d8 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Enhanced section cards with subtle elevation */
+.dark [class*="Connect"] [class*="card"],
+.dark [class*="Connect"] [class*="Card"],
+.dark [class*="Connect"] [class*="section"],
+.dark [class*="Connect"] [class*="Section"],
+.dark [class*="Connect"] [class*="container"],
+.dark [class*="Connect"] [class*="Container"] {
+  background-color: #0c0c0c !important;
+  border: 1px solid #27272a !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 
+              0 1px 2px -1px rgba(0, 0, 0, 0.3) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.dark [class*="Connect"] [class*="card"]:hover,
+.dark [class*="Connect"] [class*="Card"]:hover {
+  border-color: #3f3f46 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 
+              0 2px 4px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Light mode enhancements */
+[class*="Connect"] [class*="card"],
+[class*="Connect"] [class*="Card"],
+[class*="Connect"] [class*="section"],
+[class*="Connect"] [class*="Section"] {
+  background-color: #fafafa !important;
+  border: 1px solid #e4e4e7 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 
+              0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Edit buttons - consistent styling */
+.dark [class*="Connect"] button:not([class*="primary"]):not([type="submit"]),
+.dark [class*="Connect"] a[class*="edit"],
+.dark [class*="Connect"] a[class*="Edit"],
+.dark [class*="Connect"] [role="button"] {
+  color: #a1a1aa !important;
+  font-weight: 500 !important;
+  transition: color 0.15s ease !important;
+}
+
+.dark [class*="Connect"] button:not([class*="primary"]):not([type="submit"]):hover,
+.dark [class*="Connect"] a[class*="edit"]:hover,
+.dark [class*="Connect"] a[class*="Edit"]:hover {
+  color: #fafafa !important;
+}
+
+/* Badge styling - more vibrant */
+.dark [class*="Connect"] [class*="badge"],
+.dark [class*="Connect"] [class*="Badge"],
+.dark [class*="Connect"] [class*="tag"],
+.dark [class*="Connect"] [class*="Tag"] {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  border-radius: 9999px !important;
+  padding: 0.25rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+}
+
+/* Light mode badges */
+[class*="Connect"] [class*="badge"],
+[class*="Connect"] [class*="Badge"] {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #bbf7d0 !important;
+}
+
+/* Label/Value pairs - better spacing */
+.dark [class*="Connect"] [class*="label"],
+.dark [class*="Connect"] [class*="Label"] {
+  color: #71717a !important;
+  font-size: 0.875rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.dark [class*="Connect"] [class*="value"],
+.dark [class*="Connect"] [class*="Value"] {
+  color: #fafafa !important;
+  font-size: 0.9375rem !important;
+}
+
+/* Row styling - consistent padding */
+.dark [class*="Connect"] [class*="row"],
+.dark [class*="Connect"] [class*="Row"],
+.dark [class*="Connect"] [class*="item"],
+.dark [class*="Connect"] [class*="Item"] {
+  padding: 0.875rem 1rem !important;
+  border-bottom: 1px solid #1f1f23 !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.dark [class*="Connect"] [class*="row"]:last-child,
+.dark [class*="Connect"] [class*="Row"]:last-child,
+.dark [class*="Connect"] [class*="item"]:last-child,
+.dark [class*="Connect"] [class*="Item"]:last-child {
+  border-bottom: none !important;
+}
+
+.dark [class*="Connect"] [class*="row"]:hover,
+.dark [class*="Connect"] [class*="Row"]:hover {
+  background-color: #141418 !important;
+}
+
+/* Bank account cards */
+.dark [class*="Connect"] [class*="bank"],
+.dark [class*="Connect"] [class*="Bank"],
+.dark [class*="Connect"] [class*="payout"],
+.dark [class*="Connect"] [class*="Payout"] {
+  background: linear-gradient(135deg, #0f0f12 0%, #18181b 100%) !important;
+  border: 1px solid #27272a !important;
+  border-radius: 12px !important;
+}
+
+/* Icon containers - subtle backgrounds */
+.dark [class*="Connect"] [class*="icon"],
+.dark [class*="Connect"] [class*="Icon"] {
+  background-color: #18181b !important;
+  border-radius: 8px !important;
+  padding: 0.5rem !important;
+}
+
+/* Amount/currency styling */
+.dark [class*="Connect"] [class*="amount"],
+.dark [class*="Connect"] [class*="Amount"],
+.dark [class*="Connect"] [class*="balance"],
+.dark [class*="Connect"] [class*="Balance"] {
+  font-family: 'SF Mono', ui-monospace, monospace !important;
+  font-weight: 600 !important;
+  color: #fafafa !important;
+}
+
+/* Date styling */
+.dark [class*="Connect"] [class*="date"],
+.dark [class*="Connect"] [class*="Date"] {
+  color: #71717a !important;
+  font-size: 0.8125rem !important;
+}
+
+/* Status indicators */
+.dark [class*="Connect"] [class*="status"][class*="success"],
+.dark [class*="Connect"] [class*="status"][class*="active"],
+.dark [class*="Connect"] [class*="instant"] {
+  color: #4ade80 !important;
+}
+
+.dark [class*="Connect"] [class*="status"][class*="pending"],
+.dark [class*="Connect"] [class*="status"][class*="processing"] {
+  color: #fbbf24 !important;
+}
+
+.dark [class*="Connect"] [class*="status"][class*="error"],
+.dark [class*="Connect"] [class*="status"][class*="failed"] {
+  color: #f87171 !important;
+}
+
+/* Empty state styling */
+.dark [class*="Connect"] [class*="empty"],
+.dark [class*="Connect"] [class*="Empty"],
+.dark [class*="Connect"] [class*="placeholder"],
+.dark [class*="Connect"] [class*="Placeholder"] {
+  color: #52525b !important;
+  text-align: center !important;
+  padding: 2rem !important;
+}
+
+/* Loading states */
+.dark [class*="Connect"] [class*="loading"],
+.dark [class*="Connect"] [class*="Loading"],
+.dark [class*="Connect"] [class*="spinner"],
+.dark [class*="Connect"] [class*="Spinner"] {
+  color: #71717a !important;
+}
+
+/* Improve focus states */
+.dark [class*="Connect"] *:focus-visible {
+  outline: 2px solid #71717a !important;
+  outline-offset: 2px !important;
+}
+
+/* Smooth transitions for all interactive elements */
+.dark [class*="Connect"] button,
+.dark [class*="Connect"] a,
+.dark [class*="Connect"] input,
+.dark [class*="Connect"] select {
+  transition: all 0.15s ease !important;
+}
+
+/* Currency badge in bank details */
+.dark [class*="Connect"] [class*="currency"],
+.dark [class*="Connect"] [class*="Currency"] {
+  background-color: #27272a !important;
+  color: #d4d4d8 !important;
+  padding: 0.125rem 0.375rem !important;
+  border-radius: 4px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+}

@@ -126,57 +126,89 @@ const PAYMENT_METHODS = [
   { value: "bank_transfer", label: "Transferência", icon: Banknote },
 ];
 
-// Status Card Component
+// Status Card Component - Enhanced Design
 function AccountStatusCard({ status, onRefresh }: { status: StripeAccountStatus | null; onRefresh: () => void }) {
   const { t } = useTranslation("payments");
 
   if (!status) return null;
 
-  const getStatusColor = () => {
-    if (status.chargesEnabled && status.payoutsEnabled) return "bg-emerald-500";
-    if (status.detailsSubmitted) return "bg-amber-500";
-    return "bg-red-500";
+  const isFullyActive = status.chargesEnabled && status.payoutsEnabled;
+  const isPending = status.detailsSubmitted && !isFullyActive;
+
+  const getStatusConfig = () => {
+    if (isFullyActive) {
+      return {
+        color: "from-emerald-500/20 to-emerald-500/5",
+        border: "border-emerald-500/30",
+        dot: "bg-emerald-500",
+        text: t("status.active", "Conta Ativa"),
+        icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+        description: t("status.canReceive", "Pronta para receber pagamentos"),
+      };
+    }
+    if (isPending) {
+      return {
+        color: "from-amber-500/20 to-amber-500/5",
+        border: "border-amber-500/30",
+        dot: "bg-amber-500",
+        text: t("status.pending", "Em Verificação"),
+        icon: <Clock className="h-4 w-4 text-amber-500" />,
+        description: t("status.pendingVerification", "Aguardando análise do Stripe"),
+      };
+    }
+    return {
+      color: "from-red-500/20 to-red-500/5",
+      border: "border-red-500/30",
+      dot: "bg-red-500",
+      text: t("status.incomplete", "Cadastro Incompleto"),
+      icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+      description: t("status.needsAction", "Complete seu cadastro para ativar"),
+    };
   };
 
-  const getStatusText = () => {
-    if (status.chargesEnabled && status.payoutsEnabled) return t("status.active", "Conta Ativa");
-    if (status.detailsSubmitted) return t("status.pending", "Verificação Pendente");
-    return t("status.incomplete", "Cadastro Incompleto");
-  };
+  const config = getStatusConfig();
 
   return (
-    <Card className="border-primary/20">
-      <CardContent className="pt-6">
+    <Card className={`relative overflow-hidden ${config.border} bg-gradient-to-r ${config.color}`}>
+      {/* Subtle accent line at top */}
+      <div className={`absolute top-0 left-0 right-0 h-0.5 ${config.dot}`} />
+
+      <CardContent className="pt-5 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className={`w-3 h-3 rounded-full ${getStatusColor()} animate-pulse`} />
+            {/* Animated status indicator */}
+            <div className="relative">
+              <div className={`w-10 h-10 rounded-xl ${config.dot}/10 flex items-center justify-center`}>
+                {config.icon}
+              </div>
+              <div className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full ${config.dot} animate-pulse ring-2 ring-background`} />
+            </div>
+
             <div>
-              <p className="font-semibold">{getStatusText()}</p>
-              <p className="text-sm text-muted-foreground">
-                {status.chargesEnabled ? (
-                  <span className="flex items-center gap-1 text-emerald-600">
-                    <CheckCircle2 className="h-3 w-3" />
-                    {t("status.canReceive", "Pode receber pagamentos")}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-amber-600">
-                    <Clock className="h-3 w-3" />
-                    {t("status.pendingVerification", "Aguardando verificação")}
-                  </span>
-                )}
+              <p className="font-semibold text-foreground">{config.text}</p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                {config.description}
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onRefresh}>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRefresh}
+            className="text-muted-foreground hover:text-foreground"
+          >
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
 
         {status.requirements && ((status.requirements.currentlyDue?.length || 0) > 0 || (status.requirements.pastDue?.length || 0) > 0) && (
-          <Alert className="mt-4" variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t("status.actionRequired", "Ação Necessária")}</AlertTitle>
-            <AlertDescription>
+          <Alert className="mt-4 border-amber-500/30 bg-amber-500/5" variant="default">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <AlertTitle className="text-amber-600 dark:text-amber-400">
+              {t("status.actionRequired", "Ação Necessária")}
+            </AlertTitle>
+            <AlertDescription className="text-amber-600/80 dark:text-amber-400/80">
               {t("status.completeInfo", "Complete as informações pendentes para ativar totalmente sua conta.")}
             </AlertDescription>
           </Alert>
@@ -185,6 +217,7 @@ function AccountStatusCard({ status, onRefresh }: { status: StripeAccountStatus 
     </Card>
   );
 }
+
 
 // Error Fallback Component
 function StripeErrorFallback({ error: _error, onRetry }: { error: string; onRetry: () => void }) {
