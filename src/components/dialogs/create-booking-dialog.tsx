@@ -518,7 +518,7 @@ export function CreateBookingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto z-[200]">
         <DialogHeader>
           <DialogTitle>{t("create.title")}</DialogTitle>
           <DialogDescription>
@@ -570,7 +570,7 @@ export function CreateBookingDialog({
 
                 {/* Search Results Dropdown */}
                 {showClientResults && searchResults.length > 0 && (
-                  <Card className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto shadow-lg">
+                  <Card className="absolute z-[250] w-full mt-1 max-h-60 overflow-y-auto shadow-lg">
                     <CardContent className="p-1">
                       {searchResults.map((client) => (
                         <div
@@ -667,7 +667,7 @@ export function CreateBookingDialog({
                       <SelectTrigger id="subscription">
                         <SelectValue placeholder={t("create.selectSubscriptionPlaceholder")} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-[250]">
                         {clientSubscriptions
                           .filter((sub) => sub.status === "active")
                           .map((subscription) => {
@@ -893,7 +893,7 @@ export function CreateBookingDialog({
                         <SelectTrigger>
                           <SelectValue placeholder={t("create.selectProfessionalPlaceholder")} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="z-[250]">
                           {availableProfessionalsForService.map(
                             (professional) => (
                               <SelectItem
@@ -1025,7 +1025,7 @@ export function CreateBookingDialog({
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="z-[250]">
                           <SelectItem value="daily">{t("create.recurring.daily")}</SelectItem>
                           <SelectItem value="weekly">{t("create.recurring.weekly")}</SelectItem>
                           <SelectItem value="monthly">{t("create.recurring.monthly")}</SelectItem>

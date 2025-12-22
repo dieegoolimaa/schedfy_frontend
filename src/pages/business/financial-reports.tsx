@@ -74,21 +74,27 @@ import { useLocalAIInsights } from "../../hooks/useAIInsights";
 
 export function FinancialReportsPage() {
   const { t } = useTranslation(["financial", "common"]);
-  const { formatCurrency } = useCurrency();
-  const { user } = useAuth();
+  const { formatCurrency: rawFormatCurrency } = useCurrency();
+  const formatCurrency = (amount: number) => rawFormatCurrency(amount);
+  const { user, entity } = useAuth();
   const navigate = useNavigate();
-  const entityId = user?.entityId || user?.id || "";
+
+  // Get entityId with multiple fallbacks
+  const entityId = user?.entityId || entity?.id || (entity as any)?._id || user?.id || "";
+
+  // Debug: log entityId to ensure it's correct
+  console.log('[FinancialReports] entityId:', entityId, 'user:', user?.id, 'entity:', entity?.id);
 
   // Fetch bookings data from API
   const { bookings } = useBookings({
     entityId,
-    autoFetch: true,
+    autoFetch: !!entityId, // Only fetch if we have an entityId
   });
 
   // Fetch clients data
   const { clients } = useClients({
     entityId,
-    autoFetch: true,
+    autoFetch: !!entityId, // Only fetch if we have an entityId
   });
 
   // Goals management
@@ -155,7 +161,12 @@ export function FinancialReportsPage() {
   }, [bookings, dateRange]);
 
   // Helper to calculate commission for a single booking
-  const calculateCommission = (booking: any, commissionsList: Commission[]) => {
+  const calculateCommission = (booking: any, _commissionsList: Commission[]) => {
+    // Priority 1: Use the commission already calculated and stored in the database (historical accuracy)
+    if (booking.commission?.commissionAmount !== undefined) {
+      return booking.commission.commissionAmount;
+    }
+
     const price =
       booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
 
@@ -166,10 +177,10 @@ export function FinancialReportsPage() {
     };
 
     const professionalId = getId(booking.professionalId);
+    // ... rest of fallback logic if needed ... (keep it as fallback for very old bookings)
     const serviceId = getId(booking.serviceId);
 
     // 0. Professional Override (Highest Priority)
-    // Check if the professional has specific commission settings enabled
     if (professionalId) {
       const professional = professionals.find(p => p.id === professionalId);
       if (professional?.commission?.enabled) {
@@ -183,7 +194,7 @@ export function FinancialReportsPage() {
     }
 
     // 1. Service Specific
-    const serviceCommission = commissionsList.find(
+    const serviceCommission = _commissionsList.find(
       (c) =>
         c.appliesTo === "service" && serviceId && c.serviceIds?.includes(serviceId)
     );
@@ -194,7 +205,7 @@ export function FinancialReportsPage() {
     }
 
     // 2. Professional Specific (Rule-based)
-    const profCommission = commissionsList.find(
+    const profCommission = _commissionsList.find(
       (c) =>
         c.appliesTo === "professional" &&
         professionalId &&
@@ -207,7 +218,7 @@ export function FinancialReportsPage() {
     }
 
     // 3. Category Specific
-    const categoryCommission = commissionsList.find(
+    const categoryCommission = _commissionsList.find(
       (c) =>
         c.appliesTo === "service_category" &&
         c.serviceCategoryIds?.includes(booking.service?.category)
@@ -224,12 +235,16 @@ export function FinancialReportsPage() {
   // Calculate financial summary from real data
   const financialSummary = useMemo(() => {
     const completedBookings = filteredBookings.filter(
-      (b) => b.status === "completed"
+      (b) => b.status === "completed" || b.paymentStatus === "paid" || b.paymentStatus === "partial"
     );
 
     const totalRevenue = completedBookings.reduce(
-      (sum, b) =>
-        sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
+      (sum, b) => {
+        const amount = (b.paymentStatus === 'paid' || b.paymentStatus === 'partial')
+          ? (b.payment?.paidAmount || 0)
+          : (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0);
+        return sum + amount;
+      },
       0
     );
 
@@ -262,13 +277,17 @@ export function FinancialReportsPage() {
       return (
         bookingDate >= previousPeriodStart &&
         bookingDate < currentPeriodStart &&
-        b.status === "completed"
+        (b.status === "completed" || b.paymentStatus === "paid" || b.paymentStatus === "partial")
       );
     });
 
     const previousRevenue = previousPeriodBookings.reduce(
-      (sum, b) =>
-        sum + (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0),
+      (sum, b) => {
+        const amount = (b.paymentStatus === 'paid' || b.paymentStatus === 'partial')
+          ? (b.payment?.paidAmount || 0)
+          : (b.pricing?.totalPrice || b.service?.pricing?.basePrice || 0);
+        return sum + amount;
+      },
       0
     );
     const previousTransactions = previousPeriodBookings.length;
@@ -326,7 +345,7 @@ export function FinancialReportsPage() {
   // Revenue breakdown by service category
   const revenueBreakdown = useMemo(() => {
     const completedBookings = filteredBookings.filter(
-      (b) => b.status === "completed"
+      (b) => b.status === "completed" || b.paymentStatus === "paid" || b.paymentStatus === "partial"
     );
 
     const categoryMap = new Map<
@@ -364,7 +383,7 @@ export function FinancialReportsPage() {
   // Revenue by Professional
   const revenueByProfessional = useMemo(() => {
     const completedBookings = filteredBookings.filter(
-      (b) => b.status === "completed"
+      (b) => b.status === "completed" || b.paymentStatus === "paid" || b.paymentStatus === "partial"
     );
 
     const map = new Map<string, { revenue: number; bookings: number }>();
@@ -397,7 +416,7 @@ export function FinancialReportsPage() {
   // Commission details calculated from revenue
   const commissionDetails = useMemo(() => {
     const completedBookings = filteredBookings.filter(
-      (b) => b.status === "completed"
+      (b) => b.status === "completed" || b.paymentStatus === "paid" || b.paymentStatus === "partial"
     );
 
     const commissionMap = new Map<
@@ -406,6 +425,22 @@ export function FinancialReportsPage() {
     >();
 
     completedBookings.forEach((booking) => {
+      // Priority: use stored commission if available
+      if (booking.commission?.commissionAmount !== undefined) {
+        const amount = booking.commission.commissionAmount;
+        const current = commissionMap.get("Stored Commissions") || {
+          amount: 0,
+          rate: 0,
+          description: "Commissions calculated and locked at booking time",
+          type: "fixed",
+        };
+        commissionMap.set("Stored Commissions", {
+          ...current,
+          amount: current.amount + amount
+        });
+        return;
+      }
+
       const price =
         booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
 
@@ -554,7 +589,7 @@ export function FinancialReportsPage() {
   // Transform bookings into transaction format
   const transactions = useMemo(() => {
     return filteredBookings
-      .filter((b) => b.status === "completed")
+      .filter((b) => b.status === "completed" || b.paymentStatus === "paid" || b.paymentStatus === "partial")
       .map((booking) => {
         const gross =
           booking.pricing?.totalPrice || booking.service?.pricing?.basePrice || 0;
@@ -1015,7 +1050,7 @@ export function FinancialReportsPage() {
                           entityId,
                           name: "Monthly Revenue",
                           type: "revenue" as any,
-                          targetValue: parseFloat(goalFormData.revenueTarget),
+                          targetValue: parseFloat(goalFormData.revenueTarget) * 100,
                           period: goalFormData.period as any,
                           startDate,
                           endDate,

@@ -83,14 +83,14 @@ export function EntityProfilePage() {
       try {
         // Fetch entity details
         const entityResponse = await apiClient.get(
-          `/entities/${user.entityId}`
+          `/api/entities/${user.entityId}`
         );
         console.log("Entity data:", entityResponse.data);
         setEntityData(entityResponse.data);
 
         // Fetch professionals
         const professionalsResponse = await apiClient.get(
-          `/users/professionals?entityId=${user.entityId}`
+          `/api/users/professionals?entityId=${user.entityId}`
         );
         console.log("Professionals:", professionalsResponse.data);
         setProfessionals(
@@ -101,7 +101,7 @@ export function EntityProfilePage() {
 
         // Fetch services
         const servicesResponse = await apiClient.get(
-          `/services?entityId=${user.entityId}`
+          `/api/services?entityId=${user.entityId}`
         );
         console.log("Services:", servicesResponse.data);
         setServices(
@@ -144,7 +144,7 @@ export function EntityProfilePage() {
     setSaving(true);
     try {
       await apiClient.put(
-        `/entities/${entityData.id || entityData._id}`,
+        `/api/entities/${entityData.id || entityData._id}`,
         entityData
       );
       toast.success("Entity profile updated successfully");
@@ -466,10 +466,10 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="website"
-                        defaultValue={entityData.contact.website}
+                        defaultValue={entityData.contact?.website || ""}
                         className="flex-1"
                       />
-                    ) : (
+                    ) : entityData.contact?.website ? (
                       <a
                         href={entityData.contact.website}
                         target="_blank"
@@ -478,6 +478,10 @@ export function EntityProfilePage() {
                       >
                         {entityData.contact.website}
                       </a>
+                    ) : (
+                      <span className="flex-1 text-muted-foreground">
+                        Not set
+                      </span>
                     )}
                   </div>
                 </div>
@@ -490,10 +494,10 @@ export function EntityProfilePage() {
                       <Input
                         id="instagram"
                         placeholder="@username"
-                        defaultValue={entityData.contact.instagram}
+                        defaultValue={entityData.contact?.instagram || ""}
                         className="flex-1"
                       />
-                    ) : entityData.contact.instagram ? (
+                    ) : entityData.contact?.instagram ? (
                       <a
                         href={`https://instagram.com/${entityData.contact.instagram.replace(
                           "@",
@@ -524,12 +528,12 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="street"
-                        defaultValue={entityData.contact.address.street}
+                        defaultValue={entityData.contact?.address?.street || ""}
                       />
                     ) : (
                       <div className="flex items-center space-x-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{entityData.contact.address.street}</span>
+                        <span>{entityData.contact?.address?.street || "Not set"}</span>
                       </div>
                     )}
                   </div>
@@ -539,10 +543,10 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="city"
-                        defaultValue={entityData.contact.address.city}
+                        defaultValue={entityData.contact?.address?.city || ""}
                       />
                     ) : (
-                      <span>{entityData.contact.address.city}</span>
+                      <span>{entityData.contact?.address?.city || "Not set"}</span>
                     )}
                   </div>
 
@@ -551,10 +555,10 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="postal"
-                        defaultValue={entityData.contact.address.postalCode}
+                        defaultValue={entityData.contact?.address?.postalCode || ""}
                       />
                     ) : (
-                      <span>{entityData.contact.address.postalCode}</span>
+                      <span>{entityData.contact?.address?.postalCode || "Not set"}</span>
                     )}
                   </div>
 
@@ -562,7 +566,7 @@ export function EntityProfilePage() {
                     <Label htmlFor="country">Country</Label>
                     {editMode ? (
                       <Select
-                        defaultValue={entityData.contact.address.country.toLowerCase()}
+                        defaultValue={(entityData.contact?.address?.country || "portugal").toLowerCase()}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -576,7 +580,7 @@ export function EntityProfilePage() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <span>{entityData.contact.address.country}</span>
+                      <span>{entityData.contact?.address?.country || "Not set"}</span>
                     )}
                   </div>
                 </div>

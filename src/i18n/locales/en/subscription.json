@@ -10,7 +10,9 @@
     "subscribe": "Subscribe",
     "unsubscribe": "Unsubscribe",
     "unsubscribing": "Unsubscribing...",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "upgradeToUnlimited": "Upgrade to Unlimited Bookings",
+    "removeAddOn": "Remove Unlimited Bookings"
   },
   "plan": {
     "plan": "Plan",
@@ -76,6 +78,16 @@
         "predictive": "Predictive analytics",
         "clientBehavior": "Client behavior insights",
         "optimization": "Business optimization tips"
+      }
+    },
+    "unlimitedBookings": {
+      "name": "Unlimited Bookings",
+      "description": "Remove booking limits from your Simple plan",
+      "features": {
+        "unlimited": "Unlimited bookings",
+        "keepFeatures": "Keep current features",
+        "noAi": "No AI features",
+        "cancel": "Cancel anytime"
       }
     }
   },

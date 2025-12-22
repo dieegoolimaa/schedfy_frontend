@@ -129,7 +129,7 @@ export function OperationalReportsPage() {
       (b) => b.status === "cancelled"
     ).length;
     const noShow = filteredBookings.filter(
-      (b) => b.status === "no-show"
+      (b) => b.status === "no_show"
     ).length;
 
     // New Clients (approximate based on creation date)

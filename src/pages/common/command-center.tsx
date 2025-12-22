@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { EntityPlan } from "../../types/enums";
 import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
@@ -7,9 +8,11 @@ import { useEntity } from "../../hooks/useEntity";
 import { useBookings } from "../../hooks/useBookings";
 import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
+import { useCurrency } from "../../hooks/useCurrency";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
 import { BookingCreator } from "../../components/booking";
+import { DirectBookingLinkGenerator } from "../../components/booking/DirectBookingLinkGenerator";
 import {
     Card,
     CardContent,
@@ -92,9 +95,11 @@ import {
     RotateCcw,
     X,
     Lock,
+    Building,
 } from "lucide-react";
 import { LiveActivityWidget } from "../../components/dashboard/LiveActivityWidget";
 import { RecentActivitiesWidget } from "../../components/dashboard/RecentActivitiesWidget";
+import { PendingPaymentsWidget } from "../../components/dashboard/PendingPaymentsWidget";
 import { BlockTimeDialog } from "../../components/dialogs/block-time-dialog";
 import { UsageCard } from "../../components/ui/usage-limits";
 
@@ -106,10 +111,21 @@ interface CommandCenterProps {
 export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const { t } = useTranslation(["bookings", "payments"]);
     const { canViewPaymentDetails, isSimplePlan } = usePlanRestrictions();
-    const { user } = useAuth();
+    const { user, entity: authEntity } = useAuth();
     const navigate = useNavigate();
-    const { entity: fullEntity } = useEntity({ autoFetch: true }); // Fetch full entity profile
-    // const { formatCurrency } = useCurrency();
+
+    // Check for stripe requirements
+    const showStripeAlert = useMemo(() => {
+        if (!authEntity) return false;
+        if (authEntity.plan === EntityPlan.SIMPLE) return false;
+        return !authEntity.onboardingStatus?.hasPaymentMethods;
+    }, [authEntity]);
+
+    const {
+        entity: fullEntity,
+    } = useEntity({ autoFetch: true }); // Fetch full entity profile
+    const { formatCurrency: rawFormatCurrency } = useCurrency();
+    const formatCurrency = (amount: number) => rawFormatCurrency(amount);
     const entityId = user?.entityId || user?.id || "";
 
     // If no forced ID is provided but user is a professional, restrict to their own ID
@@ -178,6 +194,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
     // Dialog state
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isDirectBookingLinkOpen, setIsDirectBookingLinkOpen] = useState(false);
     const [selectedBookingDetails, setSelectedBookingDetails] =
         useState<any>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -726,6 +743,19 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
     return (
         <div className="space-y-6">
+            {showStripeAlert && (
+                <Alert className="border-amber-500 bg-amber-50">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <AlertTitle className="text-amber-800">Setup Payments Required</AlertTitle>
+                    <AlertDescription className="text-amber-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span>Your plan requires payment processing configuration. Please setup Stripe to accept payments.</span>
+                        <Button variant="outline" size="sm" className="border-amber-600 text-amber-900 hover:bg-amber-100" onClick={() => navigate(authEntity?.plan === EntityPlan.INDIVIDUAL ? '/individual/payment-management' : '/entity/payment-management')}>
+                            Configure Now
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
             {/* Modern Header with Gradient */}
             {/* Modern Header - Dark Theme Optimized */}
             <div className="relative overflow-hidden rounded-xl border bg-card p-6">
@@ -743,6 +773,15 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <p className="text-muted-foreground">
                                 {t("commandCenter.subtitle")}
                             </p>
+                            <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10">
+                                    <Building className="w-3 h-3 mr-1" />
+                                    {authEntity?.name || "Company Name"}
+                                </Badge>
+                                <Badge variant="outline" className="capitalize text-xs font-semibold">
+                                    {authEntity?.plan || "Plan"} Plan
+                                </Badge>
+                            </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
 
@@ -777,6 +816,12 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 <span className="hidden sm:inline">Block Time</span>
                             </Button>
 
+                            <DirectBookingLinkGenerator
+                                entityId={entityId}
+                                entitySlug={fullEntity?.slug || ""}
+                                professionals={professionalsList}
+                                services={services}
+                            />
                             <Button
                                 size="sm"
                                 onClick={() => setIsCreateDialogOpen(true)}
@@ -1090,7 +1135,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     {booking.client?.isFirstTime && (
-                                                        <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] h-4 sm:h-5 min-w-0 bg-blue-500 border-2 border-background shadow-sm">
+                                                        <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-xs h-4 sm:h-5 min-w-0 bg-blue-500 border-2 border-background shadow-sm">
                                                             {t("status.new", "New")}
                                                         </Badge>
                                                     )}
@@ -1156,6 +1201,21 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                     {getStatusIcon(booking.status)}
                                                     <span className="ml-1.5">{t(`status.${booking.status}`, booking.status)}</span>
                                                 </Badge>
+
+                                                {/* Payment Status Badge */}
+                                                {booking.status !== 'cancelled' && booking.status !== 'blocked' && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={`
+                                                          capitalize whitespace-nowrap px-2 py-0.5 h-6 sm:h-7 flex items-center gap-1
+                                                          ${getPaymentStatusColor(booking.paymentStatus || 'pending')}
+                                                        `}
+                                                        title={`Payment: ${getPaymentStatusLabel(booking.paymentStatus || 'pending')}`}
+                                                    >
+                                                        {getPaymentStatusIcon(booking.paymentStatus || 'pending')}
+                                                        <span className="hidden sm:inline ml-1">{getPaymentStatusLabel(booking.paymentStatus || 'pending')}</span>
+                                                    </Badge>
+                                                )}
 
                                                 {/* Action Buttons */}
                                                 <div className="flex items-center gap-1">
@@ -1324,6 +1384,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     asTab={true}
                                     defaultView="week"
                                     workingHours={fullEntity?.workingHours || { start: "08:00", end: "23:00" }}
+                                    onCreateBooking={() => setIsCreateDialogOpen(true)}
                                     onEditBooking={(booking) => {
                                         // Map the booking object to the flat structure expected by EditBookingDialog
                                         const mappedBooking: any = {
@@ -1413,8 +1474,18 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     {/* Live Activity Widget - Moved to Top */}
                     <LiveActivityWidget entityId={entityId} />
 
-                    {/* Usage Limits */}
-                    <UsageCard />
+                    {/* Pending Booking Payments - Replacement for UsageCard (For non-simple plans) */}
+                    {!isSimplePlan ? (
+                        <PendingPaymentsWidget
+                            bookings={bookings}
+                            onProcessPayment={(booking) => {
+                                setSelectedBookingForPayment(booking);
+                                setPaymentDialogOpen(true);
+                            }}
+                        />
+                    ) : (
+                        <UsageCard />
+                    )}
 
                     {/* Quick Actions - Compact Sidebar Version */}
                     <Card>
@@ -1473,6 +1544,24 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             </Button>
                         </CardContent>
                     </Card>
+
+                    {/* Direct Booking Link Generator */}
+                    <DirectBookingLinkGenerator
+                        entitySlug={(fullEntity as any)?.slug || (fullEntity as any)?.id || entityId}
+                        entityId={entityId}
+                        professionals={professionalsList.map((p: any) => ({
+                            id: p.id || p._id,
+                            name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim()
+                        }))}
+                        services={services.map((s: any) => ({
+                            id: s._id || s.id || "",
+                            name: s.name,
+                            duration: s.duration,
+                            price: s.pricing?.basePrice
+                        }))}
+                        open={isDirectBookingLinkOpen}
+                        onOpenChange={setIsDirectBookingLinkOpen}
+                    />
 
                     {/* Recent Activities Widget */}
                     <RecentActivitiesWidget
@@ -1581,15 +1670,15 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     {selectedBookingForPayment.paymentStatus === 'paid' || selectedBookingForPayment.paymentStatus === 'refunded' ? (
                                         <span className={`text-3xl font-bold ${selectedBookingForPayment.paymentStatus === 'refunded' ? 'text-orange-600 line-through' : 'text-green-600'
                                             }`}>
-                                            €{selectedBookingForPayment.payment?.paidAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
+                                            €{((selectedBookingForPayment.payment?.paidAmount || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) / 100).toFixed(2)}
                                         </span>
                                     ) : selectedBookingForPayment.paymentStatus === 'partial' ? (
                                         <div className="text-right">
                                             <span className="text-3xl font-bold text-blue-600">
-                                                €{(selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) - (selectedBookingForPayment.payment?.paidAmount || 0)}
+                                                €{(((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) - (selectedBookingForPayment.payment?.paidAmount || 0)) / 100).toFixed(2)}
                                             </span>
                                             <div className="text-xs text-muted-foreground">
-                                                of €{selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0} total
+                                                of €{((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) / 100).toFixed(2)} total
                                             </div>
                                         </div>
                                     ) : isEditingAmount ? (
@@ -1652,7 +1741,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         <div className="flex flex-col items-start gap-1">
                                             <span className="text-muted-foreground text-xs uppercase tracking-wider">Refund Amount</span>
                                             <span className="font-medium text-orange-700">
-                                                €{selectedBookingForPayment.payment?.refundAmount || selectedBookingForPayment.payment?.paidAmount || 0}
+                                                €{((selectedBookingForPayment.payment?.refundAmount || selectedBookingForPayment.payment?.paidAmount || 0) / 100).toFixed(2)}
                                             </span>
                                         </div>
                                         <div className="flex flex-col items-start gap-1">
@@ -1738,7 +1827,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-blue-700">Payment Progress</span>
                                                 <span className="font-medium text-blue-800">
-                                                    €{selectedBookingForPayment.payment?.paidAmount || 0} of €{selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0}
+                                                    €{((selectedBookingForPayment.payment?.paidAmount || 0) / 100).toFixed(2)} of €{((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) / 100).toFixed(2)}
                                                 </span>
                                             </div>
                                             <div className="w-full bg-blue-200 rounded-full h-3">
@@ -1754,7 +1843,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                     {Math.round(((selectedBookingForPayment.payment?.paidAmount || 0) / (selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 1)) * 100)}% paid
                                                 </span>
                                                 <span>
-                                                    €{(selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) - (selectedBookingForPayment.payment?.paidAmount || 0)} remaining
+                                                    €{(((selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0) - (selectedBookingForPayment.payment?.paidAmount || 0)) / 100).toFixed(2)} remaining
                                                 </span>
                                             </div>
                                         </div>
@@ -1967,14 +2056,14 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         <h4 className="font-semibold mb-2">Price Breakdown</h4>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Base Price</span>
-                                            <span>€{(selectedBookingForPayment.pricing?.basePrice ?? selectedBookingForPayment.service?.price ?? 0).toFixed(2)}</span>
+                                            <span>{formatCurrency(selectedBookingForPayment.pricing?.basePrice ?? selectedBookingForPayment.service?.price ?? 0)}</span>
                                         </div>
 
                                         {/* Discounts */}
                                         {selectedBookingForPayment.pricing?.discountAmount > 0 && (
                                             <div className="flex justify-between text-green-600">
                                                 <span>Discount {selectedBookingForPayment.pricing?.discountReason ? `(${selectedBookingForPayment.pricing.discountReason})` : ''}</span>
-                                                <span>-€{Number(selectedBookingForPayment.pricing.discountAmount).toFixed(2)}</span>
+                                                <span>-{formatCurrency(Number(selectedBookingForPayment.pricing.discountAmount))}</span>
                                             </div>
                                         )}
 
@@ -1982,13 +2071,17 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         {Array.isArray(selectedBookingForPayment.pricing?.additionalCharges) && selectedBookingForPayment.pricing.additionalCharges.length > 0 && (
                                             <div className="flex justify-between text-orange-600">
                                                 <span>Additional Charges</span>
-                                                <span>+€{(selectedBookingForPayment.pricing.additionalCharges.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0)).toFixed(2)}</span>
+                                                <span>+{formatCurrency(selectedBookingForPayment.pricing.additionalCharges.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0))}</span>
                                             </div>
                                         )}
 
                                         <div className="border-t pt-2 flex justify-between font-bold">
                                             <span>Total</span>
-                                            <span>€{(parseFloat(customPaymentAmount) || selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0).toFixed(2)}</span>
+                                            <span>
+                                                {formatCurrency(
+                                                    customPaymentAmount ? parseFloat(customPaymentAmount) * 100 : (selectedBookingForPayment.pricing?.totalPrice || selectedBookingForPayment.service?.price || 0)
+                                                )}
+                                            </span>
                                         </div>
 
                                         {/* Internal Info - Commission (Separate section or clearly marked) */}
@@ -1996,7 +2089,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             <div className="mt-2 pt-2 border-t border-dashed text-xs text-muted-foreground">
                                                 <div className="flex justify-between">
                                                     <span>Professional Commission {selectedBookingForPayment.commission?.commissionPercentage ? `(${selectedBookingForPayment.commission.commissionPercentage}%)` : ''}</span>
-                                                    <span>€{Number(selectedBookingForPayment.commission.commissionAmount).toFixed(2)}</span>
+                                                    <span>{formatCurrency(Number(selectedBookingForPayment.commission.commissionAmount))}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -2072,7 +2165,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                                                                 // Only send custom amount if it was edited
                                                                 if (customPaymentAmount && parseFloat(customPaymentAmount) > 0) {
-                                                                    payload.amount = parseFloat(customPaymentAmount);
+                                                                    payload.amount = Math.round(parseFloat(customPaymentAmount) * 100);
                                                                 }
                                                                 // Call API to complete booking
                                                                 console.log('[Payment] Calling completeBooking API with payload:', payload);
@@ -2101,7 +2194,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                         status: 'completed',
                                                                         payment: {
                                                                             status: 'paid',
-                                                                            paidAmount: parseFloat(customPaymentAmount) || responseData?.pricing?.totalPrice || selectedBookingForPayment.pricing?.totalPrice,
+                                                                            paidAmount: (customPaymentAmount && !isNaN(parseFloat(customPaymentAmount))) ? Math.round(parseFloat(customPaymentAmount) * 100) : (responseData?.pricing?.totalPrice || selectedBookingForPayment.pricing?.totalPrice),
                                                                             method: paymentMethod,
                                                                             paidAt: new Date().toISOString(),
                                                                             transactionIds: responseData?.payment?.transactionIds || [],
@@ -2240,8 +2333,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         {selectedBookingDetails.service?.name || "N/A"}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {selectedBookingDetails.service?.duration || 0} min • €
-                                        {selectedBookingDetails.service?.price || 0}
+                                        {selectedBookingDetails.service?.duration || 0} min • {formatCurrency(selectedBookingDetails.pricing?.totalPrice || selectedBookingDetails.service?.price || 0)}
                                     </p>
                                 </div>
                                 <div>

@@ -10,7 +10,9 @@
     "subscribe": "Subscrever",
     "unsubscribe": "Anular Subscrição",
     "unsubscribing": "A anular subscrição...",
-    "processing": "A processar..."
+    "processing": "A processar...",
+    "upgradeToUnlimited": "Upgrade para Agendamentos Ilimitados",
+    "removeAddOn": "Remover Agendamentos Ilimitados"
   },
   "plan": {
     "plan": "Plano",
@@ -24,8 +26,11 @@
     "status": {
       "active": "Ativo",
       "inactive": "Inativo",
-      "cancelled": "Cancelado"
-    }
+      "cancelled": "Cancelado",
+      "trialing": "Experimental"
+    },
+    "trialDaysLeft": "Trial: {{days}} dias restantes",
+    "trialEndsOn": "Teste termina em"
   },
   "usage": {
     "title": "Visão Geral de Utilização",
@@ -57,6 +62,10 @@
       "name": "Simple",
       "description": "Perfeito para começar"
     },
+    "simple_unlimited": {
+      "name": "Simple Unlimited",
+      "description": "Plano Simple sem limites de agendamentos"
+    },
     "individual": {
       "name": "Individual",
       "description": "Funcionalidades melhoradas para negócios em crescimento"
@@ -76,6 +85,17 @@
         "predictive": "Análises preditivas",
         "clientBehavior": "Insights de comportamento do cliente",
         "optimization": "Dicas de otimização do negócio"
+      },
+      "confirmTrialEnd": "Ao assinar o AI Business Insights, o seu período experimental terminará imediatamente e será cobrado o valor do plano + add-on. Deseja continuar?"
+    },
+    "unlimitedBookings": {
+      "name": "Agendamentos Ilimitados",
+      "description": "Remova os limites de agendamento do seu plano Simple",
+      "features": {
+        "unlimited": "Agendamentos ilimitados",
+        "keepFeatures": "Mantenha as funcionalidades atuais",
+        "noAi": "Sem funcionalidades de IA",
+        "cancel": "Cancele a qualquer momento"
       }
     }
   },

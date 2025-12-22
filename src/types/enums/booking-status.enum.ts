@@ -16,5 +16,8 @@ export enum BookingStatus {
 
     /** Cliente não compareceu no horário agendado */
     NO_SHOW = 'no_show',
+
+    /** Horário bloqueado pelo profissional */
+    BLOCKED = 'blocked',
 }
 

@@ -20,6 +20,7 @@ import {
   DollarSign,
   Maximize2,
   Minimize2,
+  Plus,
 } from "lucide-react";
 import {
   Select,
@@ -41,6 +42,7 @@ interface CalendarViewProps {
   asTab?: boolean; // If true, render without Dialog wrapper
   defaultView?: ViewMode;
   onEditBooking?: (booking: Booking) => void;
+  onCreateBooking?: () => void;
 }
 
 type ViewMode = "month" | "week" | "day";
@@ -55,6 +57,7 @@ export function CalendarView({
   asTab = false,
   defaultView = "week",
   onEditBooking,
+  onCreateBooking,
 }: CalendarViewProps) {
   // Helper to get range for a specific date or overall
   const getHoursRange = (date?: Date) => {
@@ -161,7 +164,8 @@ export function CalendarView({
     );
   };
   useTranslation(["common", "bookings"]);
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency: rawFormatCurrency } = useCurrency();
+  const formatCurrency = (amount: number) => rawFormatCurrency(amount);
   const { isSimplePlan } = usePlanRestrictions();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>(defaultView);
@@ -172,6 +176,7 @@ export function CalendarView({
     Booking[] | null
   >(null);
   const [showBookingsGroupDialog, setShowBookingsGroupDialog] = useState(false);
+  const [groupBy, setGroupBy] = useState<"professional" | "service">("professional");
 
   // Debug: log bookings
   console.log("[CalendarView] Received bookings:", bookings.length, bookings);
@@ -391,106 +396,108 @@ export function CalendarView({
     return (
       <div className="space-y-4">
         {/* Desktop view: Grid layout */}
-        <div className="hidden md:block space-y-4">
+        <div className="hidden md:block border rounded-lg overflow-hidden bg-background shadow-sm">
           {/* Day headers */}
-          <div className="grid grid-cols-8 gap-2">
-            <div className="text-sm font-medium text-muted-foreground"></div>
-            {weekDays.map((day) => {
-              const isToday = day.toDateString() === new Date().toDateString();
-              const dayBookings = getBookingsForDate(day);
-              return (
-                <div
-                  key={day.toISOString()}
-                  className={cn(
-                    "text-center p-2 rounded-lg",
-                    isToday && "bg-primary/10 border-2 border-primary"
-                  )}
-                >
-                  <div className="text-sm font-medium text-muted-foreground">
-                    {day.toLocaleDateString("en-US", { weekday: "short" })}
-                  </div>
+          <div className="flex border-b bg-muted/40 divide-x sticky top-0 z-20 shadow-sm">
+            <div className="w-16 flex-shrink-0 p-3 text-[10px] font-semibold text-muted-foreground flex items-center justify-end bg-muted/40 uppercase sticky left-0 z-30 border-r">
+              Time
+            </div>
+            <div className="flex-1 grid grid-cols-7 divide-x">
+              {weekDays.map((day) => {
+                const isToday = day.toDateString() === new Date().toDateString();
+                const dayBookings = getBookingsForDate(day);
+                return (
                   <div
+                    key={day.toISOString()}
                     className={cn(
-                      "text-2xl font-bold",
-                      isToday && "text-primary"
+                      "text-center p-2",
+                      isToday && "bg-primary/[0.03]"
                     )}
                   >
-                    {day.getDate()}
+                    <div className="text-[10px] font-medium text-muted-foreground uppercase opacity-70">
+                      {day.toLocaleDateString("en-US", { weekday: "short" })}
+                    </div>
+                    <div
+                      className={cn(
+                        "text-sm font-bold",
+                        isToday && "text-primary"
+                      )}
+                    >
+                      {day.getDate()}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                      {dayBookings.length} {dayBookings.length === 1 ? "bk" : "bks"}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {dayBookings.length}{" "}
-                    {dayBookings.length === 1 ? "booking" : "bookings"}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           {/* Time grid */}
-          <div className="h-[600px] overflow-y-auto border rounded-lg">
+          <div className="h-[600px] overflow-y-auto relative">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="grid grid-cols-8 gap-2 border-b last:border-b-0 h-20"
+                className="flex divide-x border-b border-muted/20 last:border-b-0 h-[80px]"
               >
-                <div className="text-sm font-medium text-muted-foreground p-3 text-right bg-muted/30 sticky left-0">
+                <div className="w-16 flex-shrink-0 text-sm font-medium text-muted-foreground p-3 text-right bg-muted/30 sticky left-0 z-10 border-r">
                   {hour.toString().padStart(2, "0")}:00
                 </div>
-                {weekDays.map((day) => {
-                  const dayBookings = getBookingsForDate(day).filter(
-                    (booking) => {
-                      const bookingHour = new Date(
-                        booking.startTime
-                      ).getHours();
-                      return bookingHour === hour;
-                    }
-                  );
+                <div className="flex-1 grid grid-cols-7 divide-x">
+                  {weekDays.map((day) => {
+                    const dayBookings = getBookingsForDate(day).filter(
+                      (booking) => {
+                        const bookingHour = new Date(
+                          booking.startTime
+                        ).getHours();
+                        return bookingHour === hour;
+                      }
+                    );
 
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className="p-1 h-full hover:bg-muted/20 transition-colors overflow-hidden"
-                    >
-                      <div className="space-y-1 h-full">
-                        {dayBookings.length > 1 ? (
-                          <div
-                            onClick={() => {
-                              setSelectedBookingsGroup(dayBookings);
-                              setShowBookingsGroupDialog(true);
-                            }}
-                            className="h-full w-full bg-primary/5 border border-primary/20 rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-primary/10 transition-colors p-1 text-center"
-                          >
-                            <span className="font-bold text-primary text-sm">
-                              {dayBookings.length} bookings
-                            </span>
-                            <span className="text-[10px] text-primary underline mt-0.5">
-                              See them
-                            </span>
-                          </div>
-                        ) : (
-                          dayBookings.map((booking) => (
+                    return (
+                      <div
+                        key={day.toISOString()}
+                        className="p-1 h-full hover:bg-muted/20 transition-colors overflow-hidden"
+                      >
+                        <div className="space-y-1 h-full">
+                          {dayBookings.length > 1 ? (
                             <div
-                              key={booking.id}
-                              onClick={() => handleBookingClick(booking)}
-                              className={cn(
-                                "relative p-1.5 rounded-md cursor-pointer hover:shadow-lg transition-all border-l-4 h-full flex flex-col justify-between group overflow-hidden",
-                                booking.status === "confirmed" &&
-                                "bg-blue-50 border-blue-500 hover:bg-blue-100",
-                                booking.status === "completed" &&
-                                "bg-green-50 border-green-500 hover:bg-green-100",
-                                booking.status === "pending" &&
-                                "bg-amber-50 border-amber-500 hover:bg-amber-100",
-                                booking.status === "cancelled" &&
-                                "bg-red-50 border-red-500 hover:bg-red-100",
-                                booking.status === "blocked" &&
-                                "bg-gray-100 border-gray-500 hover:bg-gray-200"
-                              )}
+                              onClick={() => {
+                                setSelectedBookingsGroup(dayBookings);
+                                setShowBookingsGroupDialog(true);
+                              }}
+                              className="h-full w-full bg-primary/5 border border-primary/20 rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-primary/10 transition-colors p-1 text-center"
                             >
-                              {/* Time Badge */}
-                              <div className="flex items-center justify-between mb-0.5">
+                              <span className="font-bold text-primary text-sm">
+                                {dayBookings.length} bookings
+                              </span>
+                              <span className="text-[10px] text-primary underline mt-0.5">
+                                See them
+                              </span>
+                            </div>
+                          ) : (
+                            dayBookings.map((booking) => (
+                              <div
+                                key={booking.id}
+                                onClick={() => handleBookingClick(booking)}
+                                className={cn(
+                                  "relative p-1.5 rounded-md cursor-pointer hover:shadow-lg transition-all border-l-4 h-full flex flex-col justify-between group overflow-hidden",
+                                  booking.status === "confirmed" &&
+                                  "bg-blue-600 border-blue-700 text-white hover:bg-blue-700",
+                                  booking.status === "completed" &&
+                                  "bg-emerald-600 border-emerald-700 text-white hover:bg-emerald-700",
+                                  booking.status === "pending" &&
+                                  "bg-amber-500 border-amber-600 text-white hover:bg-amber-600",
+                                  booking.status === "cancelled" &&
+                                  "bg-red-500 border-red-600 text-white opacity-80 hover:bg-red-600",
+                                  booking.status === "blocked" &&
+                                  "bg-gray-600 border-gray-700 text-white hover:bg-gray-700"
+                                )}
+                              >
                                 <div
                                   className={cn(
-                                    "text-[10px] font-bold px-1 py-0.5 rounded",
+                                    "text-xs font-bold px-1.5 py-0.5 rounded",
                                     booking.status === "confirmed" &&
                                     "bg-blue-200 text-blue-900",
                                     booking.status === "completed" &&
@@ -511,43 +518,44 @@ export function CalendarView({
                                     hour12: false,
                                   })}
                                 </div>
-                              </div>
 
-                              {/* Client Name - Most Important */}
-                              <div className="font-bold text-[10px] leading-tight truncate mb-0.5 text-gray-900">
-                                {booking.status === 'blocked'
-                                  ? (booking.internalNotes || "Blocked Time")
-                                  : (typeof booking.client === "object"
-                                    ? booking.client?.name
-                                    : booking.client || "Client")
-                                }
-                              </div>
-
-                              {/* Service Name */}
-                              <div className="text-[9px] leading-tight truncate text-gray-700 mb-0.5">
-                                {booking.status === 'blocked'
-                                  ? ""
-                                  : (typeof booking.service === "object"
-                                    ? booking.service?.name
-                                    : "Service")
-                                }
-                              </div>
-
-                              {/* Professional - Small text at bottom */}
-                              {booking.professional && (
-                                <div className="text-[8px] leading-tight truncate text-gray-500 mt-auto">
-                                  {typeof booking.professional === "object"
-                                    ? booking.professional?.name
-                                    : booking.professional}
+                                {/* Client Name - Most Important */}
+                                <div className="font-bold text-xs leading-tight truncate mb-0.5 text-inherit">
+                                  {
+                                    booking.status === 'blocked'
+                                      ? (booking.internalNotes || "Blocked Time")
+                                      : (typeof booking.client === "object"
+                                        ? booking.client?.name
+                                        : booking.client || "Client")
+                                  }
                                 </div>
-                              )}
-                            </div>
-                          ))
-                        )}
+
+                                {/* Service Name */}
+                                <div className="text-[11px] leading-tight truncate text-inherit opacity-90 mb-0.5">
+                                  {booking.status === 'blocked'
+                                    ? ""
+                                    : (typeof booking.service === "object"
+                                      ? booking.service?.name
+                                      : "Service")
+                                  }
+                                </div>
+
+                                {/* Professional - Small text at bottom */}
+                                {booking.professional && (
+                                  <div className="text-[10px] leading-tight truncate text-inherit opacity-75 mt-auto">
+                                    {typeof booking.professional === "object"
+                                      ? booking.professional?.name
+                                      : booking.professional}
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
@@ -555,458 +563,409 @@ export function CalendarView({
 
         {/* Mobile view: Vertical list of days */}
         <div className="md:hidden space-y-3">
-          {weekDays.map((day) => {
-            const isToday = day.toDateString() === new Date().toDateString();
-            const dayBookings = getBookingsForDate(day).sort(
-              (a, b) =>
-                new Date(a.startTime).getTime() -
-                new Date(b.startTime).getTime()
-            );
+          {
+            weekDays.map((day) => {
+              const isToday = day.toDateString() === new Date().toDateString();
+              const dayBookings = getBookingsForDate(day).sort(
+                (a, b) =>
+                  new Date(a.startTime).getTime() -
+                  new Date(b.startTime).getTime()
+              );
 
-            return (
-              <div
-                key={day.toISOString()}
-                className={cn(
-                  "border rounded-lg overflow-hidden",
-                  isToday && "border-primary border-2"
-                )}
-              >
-                {/* Day header */}
+              return (
                 <div
+                  key={day.toISOString()}
                   className={cn(
-                    "p-3 border-b",
-                    isToday ? "bg-primary/10" : "bg-muted/30"
+                    "border rounded-lg overflow-hidden",
+                    isToday && "border-primary border-2"
                   )}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground">
-                        {day.toLocaleDateString("en-US", { weekday: "long" })}
+                  {/* Day header */}
+                  <div
+                    className={cn(
+                      "p-3 border-b",
+                      isToday ? "bg-primary/10" : "bg-muted/30"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground">
+                          {day.toLocaleDateString("en-US", { weekday: "long" })}
+                        </div>
+                        <div
+                          className={cn(
+                            "text-lg font-bold",
+                            isToday && "text-primary"
+                          )}
+                        >
+                          {day.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </div>
                       </div>
-                      <div
-                        className={cn(
-                          "text-lg font-bold",
-                          isToday && "text-primary"
-                        )}
-                      >
-                        {day.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-primary">
-                        {dayBookings.length}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {dayBookings.length === 1 ? "booking" : "bookings"}
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-primary">
+                          {dayBookings.length}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {dayBookings.length === 1 ? "booking" : "bookings"}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Bookings list */}
-                <div className="divide-y">
-                  {dayBookings.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground italic">
-                      No bookings scheduled
-                    </div>
-                  ) : (
-                    dayBookings.map((booking) => (
-                      <div
-                        key={booking.id}
-                        onClick={() => handleBookingClick(booking)}
-                        className={cn(
-                          "p-3 cursor-pointer hover:bg-muted/50 transition-colors",
-                          booking.status === "confirmed" && "bg-blue-50/50",
-                          booking.status === "completed" && "bg-green-50/50",
-                          booking.status === "pending" && "bg-yellow-50/50",
-                          booking.status === "cancelled" && "bg-red-50/50",
-                          booking.status === "blocked" && "bg-gray-100/50"
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          {/* Time indicator */}
-                          <div className="flex-shrink-0">
-                            <div className="text-sm font-semibold">
-                              {new Date(booking.startTime).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: false,
-                                }
+                  {/* Bookings list */}
+                  <div className="divide-y">
+                    {dayBookings.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground italic">
+                        No bookings scheduled
+                      </div>
+                    ) : (
+                      dayBookings.map((booking) => (
+                        <div
+                          key={booking.id}
+                          onClick={() => handleBookingClick(booking)}
+                          className={cn(
+                            "p-3 cursor-pointer hover:bg-muted/50 transition-colors",
+                            booking.status === "confirmed" && "bg-blue-50/50",
+                            booking.status === "completed" && "bg-green-50/50",
+                            booking.status === "pending" && "bg-yellow-50/50",
+                            booking.status === "cancelled" && "bg-red-50/50",
+                            booking.status === "blocked" && "bg-gray-100/50"
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Time indicator */}
+                            <div className="flex-shrink-0">
+                              <div className="text-sm font-semibold">
+                                {new Date(booking.startTime).toLocaleTimeString(
+                                  "en-US",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  }
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {Math.round(
+                                  (new Date(booking.endTime).getTime() -
+                                    new Date(booking.startTime).getTime()) /
+                                  60000
+                                )}{" "}
+                                min
+                              </div>
+                            </div>
+
+                            {/* Booking info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold truncate">
+                                {typeof booking.service === "object"
+                                  ? booking.service?.name
+                                  : "Service"}
+                              </div>
+                              <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground truncate">
+                                <User className="h-3 w-3" />
+                                {typeof booking.client === "object"
+                                  ? booking.client?.name
+                                  : booking.client || "Client"}
+                              </div>
+                              {booking.professional && (
+                                <div className="text-xs text-muted-foreground truncate mt-0.5">
+                                  {typeof booking.professional === "object"
+                                    ? booking.professional?.name
+                                    : booking.professional}
+                                </div>
                               )}
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                              {Math.round(
-                                (new Date(booking.endTime).getTime() -
-                                  new Date(booking.startTime).getTime()) /
-                                60000
-                              )}{" "}
-                              min
-                            </div>
-                          </div>
 
-                          {/* Booking info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold truncate">
-                              {typeof booking.service === "object"
-                                ? booking.service?.name
-                                : "Service"}
-                            </div>
-                            <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground truncate">
-                              <User className="h-3 w-3" />
-                              {typeof booking.client === "object"
-                                ? booking.client?.name
-                                : booking.client || "Client"}
-                            </div>
-                            {booking.professional && (
-                              <div className="text-xs text-muted-foreground truncate mt-0.5">
-                                {typeof booking.professional === "object"
-                                  ? booking.professional?.name
-                                  : booking.professional}
-                              </div>
-                            )}
+                            {/* Status badge */}
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "flex-shrink-0",
+                                booking.status === "confirmed" &&
+                                "bg-blue-100 text-blue-800 border-blue-200",
+                                booking.status === "completed" &&
+                                "bg-green-100 text-green-800 border-green-200",
+                                booking.status === "pending" &&
+                                "bg-yellow-100 text-yellow-800 border-yellow-200",
+                                booking.status === "cancelled" &&
+                                "bg-red-100 text-red-800 border-red-200",
+                                booking.status === "blocked" &&
+                                "bg-gray-200 text-gray-800 border-gray-400"
+                              )}
+                            >
+                              {booking.status}
+                            </Badge>
                           </div>
-
-                          {/* Status badge */}
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "flex-shrink-0",
-                              booking.status === "confirmed" &&
-                              "bg-blue-100 text-blue-800 border-blue-200",
-                              booking.status === "completed" &&
-                              "bg-green-100 text-green-800 border-green-200",
-                              booking.status === "pending" &&
-                              "bg-yellow-100 text-yellow-800 border-yellow-200",
-                              booking.status === "cancelled" &&
-                              "bg-red-100 text-red-800 border-red-200",
-                              booking.status === "blocked" &&
-                              "bg-gray-200 text-gray-800 border-gray-400"
-                            )}
-                          >
-                            {booking.status}
-                          </Badge>
                         </div>
-                      </div>
-                    ))
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          }
         </div>
       </div>
     );
   };
 
-  // Render day view
   const renderDayView = () => {
     const dayBookings = getBookingsForDate(currentDate).sort(
       (a, b) =>
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
 
-    // Generate hours based on working hours for THIS specific day
-    const hours = getHoursRange(currentDate);
+    // Generate hours based on working hours (Union of the week to stay consistent with Week view)
+    const hours = getHoursRange();
+
+    // Extract unique columns based on grouping mode
+    const colMap = new Map<string, any>();
+    dayBookings.forEach((b) => {
+      if (groupBy === "service") {
+        const s = b.service as any;
+        const id = s ? (typeof s === "object" ? (s._id || s.id) : s) : "unassigned";
+        const name = s ? (typeof s === "object" ? (s.name || "Unknown") : "Service") : "No Service";
+        colMap.set(String(id), { id, name });
+      } else {
+        const p = b.professional as any;
+        const id = p ? (typeof p === "object" ? (p._id || p.id) : p) : "unassigned";
+        const name = p ? (typeof p === "object" ? (p.name || "Unknown") : "Professional") : "Unassigned";
+        colMap.set(String(id), { id, name });
+      }
+    });
+
+    // Sort columns by name
+    const columns = Array.from(colMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+    // Fallback if no columns found
+    if (columns.length === 0) {
+      columns.push({
+        id: "default",
+        name: currentDate.toLocaleDateString("en-US", { weekday: "long" })
+      });
+    }
 
     return (
       <div className="space-y-4">
-        {/* Day Summary */}
-        <div className="grid grid-cols-3 gap-2 md:gap-4 p-3 md:p-4 bg-muted/30 rounded-lg">
-          <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-primary">
-              {dayBookings.length}
+        {/* Desktop: Matrix View (Compact, 1px per min) */}
+        <div className="hidden md:block border rounded-lg overflow-hidden bg-background shadow-sm flex-1 flex flex-col min-h-0 h-[600px] md:h-auto">
+          <div className="flex border-b bg-muted/40 divide-x sticky top-0 z-20 shadow-sm">
+            <div className="w-16 flex-shrink-0 p-3 text-[10px] font-semibold text-muted-foreground flex items-center justify-end bg-muted/40 uppercase sticky left-0 z-30 border-r">
+              Time
             </div>
-            <div className="text-xs md:text-sm text-muted-foreground">
-              Total
-            </div>
+            {columns.map((col) => (
+              <div key={col.id} className="flex-1 p-2 text-center min-w-[150px] truncate">
+                <div className="text-[10px] font-medium text-muted-foreground uppercase opacity-70">Schedule</div>
+                <div className="text-xs font-bold text-foreground/80">{col.name}</div>
+              </div>
+            ))}
           </div>
-          <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-green-600">
-              {dayBookings.filter((b) => b.status === "completed").length}
-            </div>
-            <div className="text-xs md:text-sm text-muted-foreground">
-              Completed
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-blue-600">
-              {dayBookings.filter((b) => b.status === "confirmed").length}
-            </div>
-            <div className="text-xs md:text-sm text-muted-foreground">
-              Confirmed
+
+          <div className="flex-1 overflow-y-auto relative bg-background">
+            <div className="flex relative" style={{ height: (hours.length * 80) }}>
+              {/* Time Scale Column */}
+              <div className="w-16 flex-shrink-0 border-r bg-muted/20 relative z-10">
+                {hours.map((h, i) => (
+                  <div key={h} className="absolute w-full border-t text-sm font-medium text-muted-foreground p-3 text-right bg-muted/30"
+                    style={{ top: i * 80, height: 80 }}>
+                    {h.toString().padStart(2, '0')}:00
+                  </div>
+                ))}
+              </div>
+
+              {/* Columns */}
+              {columns.map((col) => {
+                // Filter bookings for this column
+                const colBookings = dayBookings.filter((b) => {
+                  let itemId;
+                  if (groupBy === "service") {
+                    const s = b.service as any;
+                    itemId = s ? (typeof s === "object" ? (s._id || s.id) : s) : "unassigned";
+                  } else {
+                    const p = b.professional as any;
+                    itemId = p ? (typeof p === "object" ? (p._id || p.id) : p) : "unassigned";
+                  }
+                  return String(itemId) === String(col.id);
+                });
+
+                return (
+                  <div key={col.id} className="flex-1 border-r relative min-w-[150px] group/col">
+                    {/* Grid Lines (Background) */}
+                    {hours.map((h, i) => (
+                      <div key={h} className="absolute w-full border-t border-muted/20"
+                        style={{ top: i * 80, height: 80 }}>
+                      </div>
+                    ))}
+
+                    {/* Hover Effect for Column */}
+                    <div className="absolute inset-0 bg-primary/0 group-hover/col:bg-primary/[0.02] pointer-events-none transition-colors" />
+
+                    {/* Bookings */}
+                    {colBookings.map((booking) => {
+                      const start = new Date(booking.startTime);
+                      const end = new Date(booking.endTime);
+
+                      // Calculate Position
+                      const startHour = hours[0];
+                      const bookingStartMin = (start.getHours() * 60) + start.getMinutes();
+                      const dayStartMin = startHour * 60;
+                      const offsetMin = Math.max(0, bookingStartMin - dayStartMin);
+                      const durationMin = (end.getTime() - start.getTime()) / 60000;
+
+                      return (
+                        <div
+                          key={booking.id}
+                          onClick={(e) => { e.stopPropagation(); handleBookingClick(booking); }}
+                          className={cn(
+                            "absolute inset-x-1 rounded-md border cursor-pointer hover:shadow-lg transition-all shadow-sm flex flex-col justify-start overflow-hidden p-1 z-10",
+                            booking.status === "confirmed" && "bg-blue-600 border-blue-700 text-white shadow-sm",
+                            booking.status === "completed" && "bg-emerald-600 border-emerald-700 text-white shadow-sm",
+                            booking.status === "pending" && "bg-amber-500 border-amber-600 text-white shadow-sm",
+                            booking.status === "cancelled" && "bg-red-500 border-red-600 text-white opacity-80"
+                          )}
+                          style={{
+                            top: offsetMin * 1, // 1px per min
+                            height: Math.max(20, durationMin * 1)
+                          }}
+                        >
+                          <div className="font-bold text-xs leading-tight truncate">
+                            {groupBy === "service"
+                              ? (typeof booking.professional === "object" ? booking.professional?.name : "Unassigned")
+                              : (typeof booking.service === "object" ? booking.service?.name : "Service")
+                            }
+                          </div>
+                          {(durationMin >= 30) && (
+                            <div className="flex items-center gap-1 text-[11px] opacity-90 mt-0.5 truncate">
+                              <User className="h-3 w-3" />
+                              <span className="truncate">{typeof booking.client === "object" ? booking.client?.name : booking.client}</span>
+                            </div>
+                          )}
+                          {(durationMin >= 60) && (
+                            <div className="text-[10px] opacity-80 mt-auto">
+                              {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
 
-        {dayBookings.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">No appointments scheduled</p>
-            <p className="text-sm">Enjoy your free day!</p>
-          </div>
-        ) : (
-          <div className="space-y-2 h-[600px] overflow-y-auto">
-            {/* Desktop: Timeline view */}
-            <div className="hidden md:block space-y-2">
-              {hours.map((hour) => {
-                const hourBookings = dayBookings.filter((booking) => {
-                  const bookingHour = new Date(booking.startTime).getHours();
-                  return bookingHour === hour;
-                });
-
-                return (
-                  <div key={hour} className="flex gap-4 h-20">
-                    {/* Time column */}
-                    <div className="w-20 flex-shrink-0 text-right pt-1">
-                      <div className="text-sm font-semibold text-muted-foreground">
-                        {hour.toString().padStart(2, "0")}:00
-                      </div>
-                    </div>
-
-                    {/* Bookings column */}
-                    <div className="flex-1 border-l-2 border-muted pl-4 pb-4 h-full overflow-hidden">
-                      {hourBookings.length === 0 ? (
-                        <div className="h-full flex items-center text-sm text-muted-foreground italic">
-                          Free time
-                        </div>
-                      ) : hourBookings.length > 1 ? (
-                        <div
-                          onClick={() => {
-                            setSelectedBookingsGroup(hourBookings);
-                            setShowBookingsGroupDialog(true);
-                          }}
-                          className="h-full w-full bg-primary/5 border border-primary/20 rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-primary/10 transition-colors p-4 text-center"
-                        >
-                          <span className="font-bold text-primary text-lg">
-                            {hourBookings.length} bookings
-                          </span>
-                          <span className="text-xs text-primary underline mt-1">
-                            See them
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="h-full">
-                          {hourBookings.map((booking) => (
-                            <div
-                              key={booking.id}
-                              onClick={() => handleBookingClick(booking)}
-                              className={cn(
-                                "relative border-l-4 rounded-lg p-2.5 cursor-pointer hover:shadow-xl transition-all h-full flex items-center justify-between group",
-                                booking.status === "confirmed" &&
-                                "bg-blue-50 border-blue-500 hover:bg-blue-100",
-                                booking.status === "completed" &&
-                                "bg-green-50 border-green-500 hover:bg-green-100",
-                                booking.status === "pending" &&
-                                "bg-amber-50 border-amber-500 hover:bg-amber-100",
-                                booking.status === "cancelled" &&
-                                "bg-red-50 border-red-500 hover:bg-red-100",
-                                booking.status === "blocked" &&
-                                "bg-gray-100 border-gray-500 hover:bg-gray-200"
-                              )}
-                            >
-                              {/* Left: Time with Icon */}
-                              <div className="flex items-center gap-2.5">
-                                <div
-                                  className={cn(
-                                    "flex items-center justify-center w-14 h-14 rounded-lg",
-                                    booking.status === "confirmed" &&
-                                    "bg-blue-100",
-                                    booking.status === "completed" &&
-                                    "bg-green-100",
-                                    booking.status === "pending" &&
-                                    "bg-amber-100",
-                                    booking.status === "cancelled" &&
-                                    "bg-red-100"
-                                  )}
-                                >
-                                  <div className="text-center">
-                                    <div className="text-base font-bold text-gray-900 leading-tight">
-                                      {new Date(
-                                        booking.startTime
-                                      ).toLocaleTimeString("en-US", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        hour12: false,
-                                      })}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Center: Main Info */}
-                                <div className="flex-1 min-w-0">
-                                  {/* Service Name */}
-                                  <div className="font-bold text-sm text-gray-900 truncate">
-                                    {typeof booking.service === "object"
-                                      ? booking.service?.name
-                                      : "Service"}
-                                  </div>
-
-                                  {/* Client */}
-                                  <div className="flex items-center gap-1.5 text-xs text-gray-700 mt-0.5">
-                                    <User className="h-3.5 w-3.5 text-gray-500 flex-shrink-0" />
-                                    <span className="font-medium truncate">
-                                      {typeof booking.client === "object"
-                                        ? booking.client?.name
-                                        : booking.client || "Client"}
-                                    </span>
-                                  </div>
-
-                                  {/* Professional */}
-                                  {booking.professional && (
-                                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5">
-                                      <span>Por:</span>
-                                      <span className="truncate">
-                                        {typeof booking.professional ===
-                                          "object"
-                                          ? booking.professional?.name
-                                          : booking.professional}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Right: Status Badge */}
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "flex-shrink-0 text-[10px] h-5",
-                                  booking.status === "confirmed" &&
-                                  "bg-blue-100 text-blue-800 border-blue-300",
-                                  booking.status === "completed" &&
-                                  "bg-green-100 text-green-800 border-green-300",
-                                  booking.status === "pending" &&
-                                  "bg-amber-100 text-amber-800 border-amber-300",
-                                  booking.status === "cancelled" &&
-                                  "bg-red-100 text-red-800 border-red-300"
-                                )}
-                              >
-                                {booking.status}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+        {/* Mobile: Simple list view */}
+        <div className="md:hidden space-y-2">
+          {dayBookings.map((booking) => (
+            <div
+              key={booking.id}
+              onClick={() => handleBookingClick(booking)}
+              className={cn(
+                "border-l-4 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all",
+                booking.status === "confirmed" &&
+                "bg-blue-50 border-blue-500",
+                booking.status === "completed" &&
+                "bg-green-50 border-green-500",
+                booking.status === "pending" &&
+                "bg-yellow-50 border-yellow-500",
+                booking.status === "cancelled" && "bg-red-50 border-red-500"
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0 space-y-2">
+                  {/* Time */}
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <Clock className="h-4 w-4" />
+                    {new Date(booking.startTime).toLocaleTimeString(
+                      "en-US",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      }
+                    )}{" "}
+                    -{" "}
+                    {new Date(booking.endTime).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
+                    <span className="text-xs text-muted-foreground font-normal">
+                      (
+                      {Math.round(
+                        (new Date(booking.endTime).getTime() -
+                          new Date(booking.startTime).getTime()) /
+                        60000
+                      )}{" "}
+                      min)
+                    </span>
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Mobile: Simple list view */}
-            <div className="md:hidden space-y-2">
-              {dayBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  onClick={() => handleBookingClick(booking)}
+                  {/* Service */}
+                  <div className="font-semibold text-base truncate">
+                    {typeof booking.service === "object"
+                      ? booking.service?.name
+                      : "Service"}
+                  </div>
+
+                  {/* Client */}
+                  {booking.client && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      <span className="truncate">
+                        {typeof booking.client === "object"
+                          ? booking.client.name
+                          : booking.client}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Professional */}
+                  {booking.professional && (
+                    <div className="text-xs text-muted-foreground truncate">
+                      with{" "}
+                      {typeof booking.professional === "object"
+                        ? booking.professional?.name
+                        : booking.professional}
+                    </div>
+                  )}
+
+                  {/* Price */}
+                  {!isSimplePlan && typeof booking.service === "object" &&
+                    (booking.service?.price || 0) > 0 && (
+                      <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
+                        <DollarSign className="h-4 w-4" />€
+                        {booking.service.price}
+                      </div>
+                    )}
+                </div>
+
+                {/* Status Badge */}
+                <Badge
+                  variant="outline"
                   className={cn(
-                    "border-l-4 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all",
+                    "flex-shrink-0",
                     booking.status === "confirmed" &&
-                    "bg-blue-50 border-blue-500",
+                    "bg-blue-100 text-blue-800 border-blue-200",
                     booking.status === "completed" &&
-                    "bg-green-50 border-green-500",
+                    "bg-green-100 text-green-800 border-green-200",
                     booking.status === "pending" &&
-                    "bg-yellow-50 border-yellow-500",
-                    booking.status === "cancelled" && "bg-red-50 border-red-500"
+                    "bg-yellow-100 text-yellow-800 border-yellow-200",
+                    booking.status === "cancelled" &&
+                    "bg-red-100 text-red-800 border-red-200"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0 space-y-2">
-                      {/* Time */}
-                      <div className="flex items-center gap-2 text-sm font-semibold">
-                        <Clock className="h-4 w-4" />
-                        {new Date(booking.startTime).toLocaleTimeString(
-                          "en-US",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          }
-                        )}{" "}
-                        -{" "}
-                        {new Date(booking.endTime).toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })}
-                        <span className="text-xs text-muted-foreground font-normal">
-                          (
-                          {Math.round(
-                            (new Date(booking.endTime).getTime() -
-                              new Date(booking.startTime).getTime()) /
-                            60000
-                          )}{" "}
-                          min)
-                        </span>
-                      </div>
-
-                      {/* Service */}
-                      <div className="font-semibold text-base truncate">
-                        {typeof booking.service === "object"
-                          ? booking.service?.name
-                          : "Service"}
-                      </div>
-
-                      {/* Client */}
-                      {booking.client && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <User className="h-4 w-4" />
-                          <span className="truncate">
-                            {typeof booking.client === "object"
-                              ? booking.client.name
-                              : booking.client}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Professional */}
-                      {booking.professional && (
-                        <div className="text-xs text-muted-foreground truncate">
-                          with{" "}
-                          {typeof booking.professional === "object"
-                            ? booking.professional?.name
-                            : booking.professional}
-                        </div>
-                      )}
-
-                      {/* Price */}
-                      {!isSimplePlan && typeof booking.service === "object" &&
-                        (booking.service?.price || 0) > 0 && (
-                          <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
-                            <DollarSign className="h-4 w-4" />€
-                            {booking.service.price}
-                          </div>
-                        )}
-                    </div>
-
-                    {/* Status Badge */}
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "flex-shrink-0",
-                        booking.status === "confirmed" &&
-                        "bg-blue-100 text-blue-800 border-blue-200",
-                        booking.status === "completed" &&
-                        "bg-green-100 text-green-800 border-green-200",
-                        booking.status === "pending" &&
-                        "bg-yellow-100 text-yellow-800 border-yellow-200",
-                        booking.status === "cancelled" &&
-                        "bg-red-100 text-red-800 border-red-200"
-                      )}
-                    >
-                      {booking.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+                  {booking.status}
+                </Badge>
+              </div>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     );
   };
@@ -1070,6 +1029,21 @@ export function CalendarView({
         </div>
 
         <div className="flex items-center gap-2 hidden md:flex">
+          {viewMode === "day" && (
+            <Select
+              value={groupBy}
+              onValueChange={(value) => setGroupBy(value as any)}
+            >
+              <SelectTrigger className="w-36 h-9">
+                <SelectValue placeholder="Group By" />
+              </SelectTrigger>
+              <SelectContent className="z-[105]">
+                <SelectItem value="professional">By Professional</SelectItem>
+                <SelectItem value="service">By Service</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
           <Select
             value={viewMode}
             onValueChange={(value) => setViewMode(value as ViewMode)}
@@ -1096,52 +1070,65 @@ export function CalendarView({
               <Maximize2 className="h-4 w-4" />
             )}
           </Button>
+
+          {isFullscreen && onCreateBooking && (
+            <Button onClick={onCreateBooking} size="sm" className="hidden md:flex gap-1 ml-1 h-9">
+              <Plus className="h-4 w-4" />
+              <span>Create</span>
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Fullscreen Summary */}
-      {isFullscreen && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 bg-muted/30 rounded-lg border mb-4">
-          <div className="flex flex-col items-center justify-center p-2 bg-background rounded shadow-sm">
-            <span className="text-xs text-muted-foreground uppercase font-semibold">Total</span>
-            <span className="text-xl font-bold">{bookings.length}</span>
-          </div>
-          <div className="flex flex-col items-center justify-center p-2 bg-background rounded shadow-sm border-l-4 border-blue-500">
-            <span className="text-xs text-muted-foreground uppercase font-semibold">Confirmed</span>
-            <span className="text-xl font-bold text-blue-600">
-              {bookings.filter((b) => b.status === "confirmed").length}
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center p-2 bg-background rounded shadow-sm border-l-4 border-yellow-500">
-            <span className="text-xs text-muted-foreground uppercase font-semibold">Pending</span>
-            <span className="text-xl font-bold text-yellow-600">
-              {bookings.filter((b) => b.status === "pending").length}
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center p-2 bg-background rounded shadow-sm border-l-4 border-green-500">
-            <span className="text-xs text-muted-foreground uppercase font-semibold">Completed</span>
-            <span className="text-xl font-bold text-green-600">
-              {bookings.filter((b) => b.status === "completed").length}
-            </span>
-          </div>
-          {!isSimplePlan && (
-            <div className="flex flex-col items-center justify-center p-2 bg-background rounded shadow-sm col-span-2 md:col-span-1">
-              <span className="text-xs text-muted-foreground uppercase font-semibold">Est. Revenue</span>
-              <span className="text-xl font-bold text-primary">
+      <div className="flex flex-wrap items-center justify-center gap-4 py-1 px-4 bg-muted/10 border-b mb-2 text-[10px] md:text-xs">
+        <div className="flex items-center gap-1">
+          <span className="font-bold text-muted-foreground uppercase">Total</span>
+          <span className="font-black text-lg text-foreground leading-none">{bookings.length}</span>
+        </div>
+        <div className="w-px h-4 bg-border mx-1" />
+        <div className="flex items-center gap-1 text-blue-700">
+          <span className="font-bold uppercase">Confirmed</span>
+          <span className="font-black text-lg leading-none">
+            {bookings.filter((b) => b.status === "confirmed").length}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 text-yellow-700">
+          <span className="font-bold uppercase">Pending</span>
+          <span className="font-black text-lg leading-none">
+            {bookings.filter((b) => b.status === "pending").length}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 text-green-700">
+          <span className="font-bold uppercase">Completed</span>
+          <span className="font-black text-lg leading-none">
+            {bookings.filter((b) => b.status === "completed").length}
+          </span>
+        </div>
+        {!isSimplePlan && (
+          <>
+            <div className="w-px h-4 bg-border mx-1" />
+            <div className="flex items-center gap-1 text-primary">
+              <span className="font-bold uppercase">Revenue</span>
+              <span className="font-black text-lg leading-none">
                 {formatCurrency(
                   bookings.reduce((sum, b) => {
-                    const price =
-                      typeof b.service === "object"
-                        ? (b.service as any)?.price || 0
-                        : 0;
-                    return sum + price;
+                    // Only count completed bookings or those that are paid
+                    const isRealized = b.status === "completed" || b.paymentStatus === "paid" || b.paymentStatus === "partial";
+                    if (!isRealized) return sum;
+
+                    // Use payment paidAmount if partial/paid, otherwise use totalPrice
+                    const amount = (b.paymentStatus === 'paid' || b.paymentStatus === 'partial')
+                      ? (b.payment?.paidAmount || 0)
+                      : (b.pricing?.totalPrice || (typeof b.service === "object" ? (b.service as any)?.price : 0) || 0);
+
+                    return sum + amount;
                   }, 0)
                 )}
               </span>
             </div>
-          )}
-        </div>
-      )}
+          </>
+        )}
+      </div>
 
       {/* Calendar content */}
       <div>
@@ -1155,19 +1142,19 @@ export function CalendarView({
       <div className="flex items-center gap-4 flex-wrap text-sm border-t pt-4 mt-auto">
         <span className="font-medium">Status:</span>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-yellow-100 border border-yellow-200 rounded"></div>
+          <div className="w-3 h-3 bg-amber-500 border border-amber-600 rounded"></div>
           <span>Pending</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
+          <div className="w-3 h-3 bg-blue-600 border border-blue-700 rounded"></div>
           <span>Confirmed</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
+          <div className="w-3 h-3 bg-emerald-600 border border-emerald-700 rounded"></div>
           <span>Completed</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
+          <div className="w-3 h-3 bg-red-500 border border-red-600 rounded"></div>
           <span>Cancelled</span>
         </div>
       </div>

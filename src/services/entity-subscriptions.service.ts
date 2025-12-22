@@ -1,10 +1,10 @@
 import { apiClient } from "@/lib/api-client";
-import { EntityPlan } from "@/types/enums";
+import { EntityPlan, PlanType } from "@/types/enums";
 
 export interface Subscription {
     id: string;
     entityId: string;
-    plan: EntityPlan;
+    plan: EntityPlan | string;
     status: 'active' | 'canceled' | 'past_due' | 'trialing';
     interval: 'month' | 'year';
     currentPeriodStart: string;
@@ -12,8 +12,10 @@ export interface Subscription {
     nextBillingDate?: string;
     cancelAtPeriodEnd: boolean;
     aiInsightsSubscribed: boolean;
+    unlimitedBookings: boolean;
     stripeSubscriptionId?: string;
     stripeCustomerId?: string;
+    region?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -21,7 +23,7 @@ export interface Subscription {
 export interface SubscriptionPlan {
     id: string;
     name: string;
-    plan: EntityPlan;
+    plan: PlanType | string;
     interval: 'month' | 'year';
     price: number;
     currency: string;
@@ -87,6 +89,14 @@ export const entitySubscriptionsService = {
 
     unsubscribeFromAiInsights: async () => {
         return apiClient.post("/api/entity-subscriptions/ai-insights/unsubscribe");
+    },
+
+    subscribeToUnlimitedBookings: async () => {
+        return apiClient.post("/api/entity-subscriptions/unlimited-bookings/subscribe");
+    },
+
+    unsubscribeFromUnlimitedBookings: async () => {
+        return apiClient.post("/api/entity-subscriptions/unlimited-bookings/unsubscribe");
     },
 
     updatePaymentMethod: async (paymentMethodId: string) => {

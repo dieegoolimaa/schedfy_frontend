@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { Link2 } from "lucide-react";
+import { DirectBookingLinkGenerator } from "@/components/booking/DirectBookingLinkGenerator";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useCurrency } from "../../hooks/useCurrency";
@@ -80,7 +82,7 @@ import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 
 const ServicesAndPackages: React.FC = () => {
   const { t } = useTranslation("services");
-  const { user } = useAuth();
+  const { user, entity } = useAuth();
   const { formatCurrency } = useCurrency();
   const { isSimplePlan } = usePlanRestrictions();
   const navigate = useNavigate();
@@ -93,6 +95,7 @@ const ServicesAndPackages: React.FC = () => {
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [subscriptions, setSubscriptions] = useState<PackageSubscription[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [professionals, setProfessionals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -132,6 +135,7 @@ const ServicesAndPackages: React.FC = () => {
     useState(false);
   const [isServiceEditModalOpen, setIsServiceEditModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [selectedServiceForLink, setSelectedServiceForLink] = useState<Service | null>(null);
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [serviceFormData, setServiceFormData] = useState({
     name: "",
@@ -160,6 +164,22 @@ const ServicesAndPackages: React.FC = () => {
       );
       console.log("[DEBUG] Services loaded:", servicesRes.data?.length || 0);
       setServices(servicesRes.data || []);
+
+      // Fetch professionals for Direct Booking Link
+      try {
+        const profRes: any = await apiClient.get(`/api/users/entity/${user?.entityId}/professionals`);
+        const profData = profRes?.data || [];
+        const mappedProfs = Array.isArray(profData)
+          ? profData.map((u: any) => ({
+            id: u.id || u._id,
+            name: u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
+          }))
+          : [];
+        setProfessionals(mappedProfs);
+      } catch (profError) {
+        console.error("Error fetching professionals:", profError);
+        setProfessionals([]);
+      }
 
       // Only fetch packages if user has access
       if (hasPackageAccess) {
@@ -1066,8 +1086,9 @@ const ServicesAndPackages: React.FC = () => {
                     {/* VAT Alert for Non-Simple Plans */}
                     {!isSimplePlan && (
                       <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
-                        <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm">
-                          💡 {t("services.form.vatAlert", "The price you set already includes VAT/IVA. This is the final amount that will be charged to clients.")}
+                        <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm font-medium">
+                          <span className="font-bold block mb-1">📢 {t("services.form.vatIncluded", "Price includes VAT/IVA")}</span>
+                          {t("services.form.vatAlert", "The price you set already includes VAT/IVA. This is the final amount that will be charged to clients.")}
                         </AlertDescription>
                       </Alert>
                     )}
@@ -1252,6 +1273,8 @@ const ServicesAndPackages: React.FC = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
+
+
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -2457,7 +2480,22 @@ const ServicesAndPackages: React.FC = () => {
         )
       }
 
-    </div >
+      <DirectBookingLinkGenerator
+        entitySlug={(entity as any)?.slug || entity?.id || user?.entityId || ""}
+        entityId={entity?.id || user?.entityId}
+        professionals={professionals}
+        services={services.map(s => ({
+          id: s._id || s.id || "",
+          name: s.name,
+          duration: typeof s.duration === 'object' ? s.duration.duration : s.duration,
+          price: s.pricing?.basePrice
+        }))}
+        initialServiceId={selectedServiceForLink?._id || selectedServiceForLink?.id}
+        open={!!selectedServiceForLink}
+        onOpenChange={(open) => !open && setSelectedServiceForLink(null)}
+      />
+
+    </div>
   );
 };
 

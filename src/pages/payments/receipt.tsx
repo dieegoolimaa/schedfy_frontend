@@ -79,7 +79,7 @@ export function ReceiptPage() {
             const newAmount = parseFloat(editAmount.replace(',', '.'));
 
             // If the display divides by 100, we must multiply by 100 to save
-            const amountToSave = newAmount;
+            const amountToSave = Math.round(newAmount * 100);
 
             await paymentsService.update(payment.id, { amount: amountToSave });
 
@@ -170,7 +170,7 @@ export function ReceiptPage() {
                                             size="sm"
                                             className="absolute -right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity print:hidden"
                                             onClick={() => {
-                                                setEditAmount((payment.amount).toString());
+                                                setEditAmount((payment.amount / 100).toString());
                                                 setIsEditing(true);
                                             }}
                                         >
@@ -194,14 +194,14 @@ export function ReceiptPage() {
                                 </p>
                                 {/* NIF/Tax ID Display */}
                                 <p className="text-muted-foreground text-sm mt-1">
-                                    NIF/Tax ID: {
+                                    {t("receipt.taxId")}: {
                                         // @ts-ignore
                                         payment.metadata?.clientTaxId ||
                                         // @ts-ignore
                                         (payment.bookingId?.clientInfo?.taxId) ||
                                         // @ts-ignore
                                         (payment.bookingId?.clientId?.taxId) ||
-                                        "N/A"
+                                        t("common:na", { defaultValue: "N/A" })
                                     }
                                 </p>
                             </div>

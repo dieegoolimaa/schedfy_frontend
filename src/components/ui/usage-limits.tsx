@@ -42,7 +42,7 @@ export function UsageLimitBar({ type, showUpgradeButton = true, compact = false,
 
     if (usageItem.unlimited) {
         return (
-            <div className={compact ? 'text-sm' : ''}>
+            <div className={compact ? 'text-xs' : 'text-sm'}>
                 <div className="flex justify-between items-center mb-1">
                     <span className="text-muted-foreground">{labels[type]}</span>
                     <Badge variant="secondary" className="text-xs">
@@ -58,7 +58,7 @@ export function UsageLimitBar({ type, showUpgradeButton = true, compact = false,
     const isAtLimit = usageItem.percentage >= 100;
 
     return (
-        <div className={compact ? 'text-sm' : ''}>
+        <div className={compact ? 'text-xs' : 'text-sm'}>
             <div className="flex justify-between items-center mb-1">
                 <span className="text-muted-foreground">{labels[type]}</span>
                 <span className={`font-medium ${isAtLimit ? 'text-red-500' : isNearLimit ? 'text-yellow-500' : ''}`}>

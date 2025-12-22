@@ -61,10 +61,14 @@ export function SubscriptionDetails() {
     // If subscription is loading, these will be recalculated later.
     const getTrialInfo = (sub: any) => {
         if (!sub) return { isOnTrial: false, daysRemaining: 0, trialEndDate: new Date() };
+
+        // Trust the backend status first
+        const isTrial = sub.status === 'trialing';
+
         const createdAt = new Date(sub.createdAt || Date.now());
         const end = new Date(createdAt.getTime() + trialDays * 24 * 60 * 60 * 1000);
         const days = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-        const isTrial = sub.plan !== EntityPlan.SIMPLE && days > 0 && days <= trialDays;
+
         return { isOnTrial: isTrial, daysRemaining: days, trialEndDate: end };
     };
     const { data: subscription, isLoading: isLoadingSubscription } = useQuery({
@@ -182,29 +186,42 @@ export function SubscriptionDetails() {
     const { isOnTrial, daysRemaining, trialEndDate } = getTrialInfo(subscription);
 
     // Logic: If on trial, next billing is trial end date.
-    const nextBillingDate = isOnTrial ? trialEndDate : (subscription?.nextBillingDate ? new Date(subscription.nextBillingDate) : null);
+    const nextBillingDate = isOnTrial
+        ? trialEndDate
+        : (subscription?.nextBillingDate
+            ? new Date(subscription.nextBillingDate)
+            : (subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null));
 
     // AI Insights pricing - fetch from API (monthly only)
     const aiInsightsPriceDisplay = getPriceDisplay("ai_insights", "monthly");
     const aiInsightsNumericPrice = (() => {
         const match = aiInsightsPriceDisplay.match(/[\d,.]+/);
         if (match) return parseFloat(match[0].replace(",", "."));
-        return 9.90; // Fallback
+        return 0; // Better to show 0/calculating than a hardcoded wrong value
     })();
-    const currentAddOnPrice = aiInsightsNumericPrice;
-    const totalCurrentPrice = (currentPlan?.price || 0) + (subscription?.aiInsightsSubscribed ? currentAddOnPrice : 0);
+    const totalCurrentPrice = (currentPlan?.price || 0) +
+        (subscription?.aiInsightsSubscribed ? aiInsightsNumericPrice : 0);
 
     // Filter plans: 
     // If current plan is Business, show no other plans (or maybe just Business to confirm).
     // If current plan is Individual, show Business.
     // If current plan is Simple, show Individual and Business.
-    // Actually, user said "Available Plans should only show the plans that can be upgraded".
-    // So if I am on Business, I see nothing? Or maybe just a message "You are on the highest plan".
     const availablePlans = Array.isArray(plans) ? plans.filter(p => {
         if (p.interval !== billingPeriod) return false;
-        if (subscription?.plan === EntityPlan.BUSINESS) return false; // Hide all if on business
+
+        // Hide current plan
+        if (subscription?.plan === p.plan) return false;
+
+        // Special logic for simple_unlimited
+        if (p.plan === 'simple_unlimited') {
+            // Only show to Simple users
+            return subscription?.plan === EntityPlan.SIMPLE;
+        }
+
+        if (subscription?.plan === EntityPlan.BUSINESS) return false; // Hide individual/simple if on business
         if (subscription?.plan === EntityPlan.INDIVIDUAL && p.plan === EntityPlan.SIMPLE) return false; // Hide simple if on individual
-        if (subscription?.plan === p.plan) return false; // Hide current plan
+        if (subscription?.plan === EntityPlan.SIMPLE_UNLIMITED && p.plan === EntityPlan.SIMPLE) return false; // Hide simple if on unlimited
+
         return true;
     }) : [];
 
@@ -250,7 +267,7 @@ export function SubscriptionDetails() {
                             {isOnTrial && (
                                 <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
                                     <Clock className="h-3 w-3 mr-1" />
-                                    Trial: {daysRemaining} days left
+                                    {t("plan.trialDaysLeft", { days: daysRemaining, defaultValue: `Trial: ${daysRemaining} days left` })}
                                 </Badge>
                             )}
                             <Badge
@@ -262,7 +279,7 @@ export function SubscriptionDetails() {
                       ${subscription?.cancelAtPeriodEnd ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : ''}
                     `}
                             >
-                                {isOnTrial ? "Trialing" : (subscription?.cancelAtPeriodEnd ? t("plan.cancellingSoon") : t(`plan.status.${subscription?.status}`, { defaultValue: subscription?.status || "" }))}
+                                {isOnTrial ? t("plan.status.trialing") : (subscription?.cancelAtPeriodEnd ? t("plan.accessUntil") : t(`plan.status.${subscription?.status}`, { defaultValue: subscription?.status || "" }))}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -278,14 +295,14 @@ export function SubscriptionDetails() {
                                         : t("billing.perYear", "per year")}
                                     {subscription?.aiInsightsSubscribed && (
                                         <span className="ml-2 text-xs">
-                                            ({formatCurrency(currentPlan?.price || 0)} Plan + {formatCurrency(currentAddOnPrice)} Add-ons)
+                                            ({formatCurrency(currentPlan?.price || 0)} Plan + {formatCurrency(aiInsightsNumericPrice)} Add-ons)
                                         </span>
                                     )}
                                 </div>
                             </div>
                             <div className="text-right">
                                 <div className="text-sm font-medium text-muted-foreground">
-                                    {isOnTrial ? "Trial Ends On" : (subscription?.cancelAtPeriodEnd ? t("plan.accessUntil") : t("billing.nextBilling", "Next billing date"))}
+                                    {isOnTrial ? t("plan.trialEndsOn") : (subscription?.cancelAtPeriodEnd ? t("plan.accessUntil") : t("billing.nextBilling", "Next billing date"))}
                                 </div>
                                 <div className="text-lg font-semibold">
                                     {nextBillingDate ? nextBillingDate.toLocaleDateString() : "-"}
@@ -320,12 +337,12 @@ export function SubscriptionDetails() {
                                             <Brain className="h-4 w-4 text-purple-600" />
                                         </div>
                                         <div>
-                                            <div className="font-medium text-sm">AI Business Insights</div>
-                                            <div className="text-xs text-muted-foreground">Advanced analytics & recommendations</div>
+                                            <div className="font-medium text-sm">{t("addOns.aiInsights.name")}</div>
+                                            <div className="text-xs text-muted-foreground">{t("addOns.aiInsights.description")}</div>
                                         </div>
                                     </div>
                                     <div className="font-medium text-sm">
-                                        {formatCurrency(currentAddOnPrice)}/{subscription?.interval === 'year' ? 'yr' : 'mo'}
+                                        {formatCurrency(aiInsightsNumericPrice)}/{subscription?.interval === 'year' ? t("billing.yearly").toLowerCase() : t("billing.monthly").toLowerCase()}
                                     </div>
                                 </div>
                             </div>
@@ -556,13 +573,12 @@ export function SubscriptionDetails() {
                                         disabled={aiInsightsMutation.isPending || unsubscribeAiInsightsMutation.isPending}
                                         onClick={() => {
                                             if (subscription?.aiInsightsSubscribed) {
-                                                // Using browser native confirm since translated confirm isn't straightforward without a dialog
-                                                if (confirm(t("dialog.cancel.desc"))) { // Reusing cancel desc as "Are you sure..."
+                                                if (confirm(t("dialog.cancel.desc"))) {
                                                     unsubscribeAiInsightsMutation.mutate();
                                                 }
                                             } else {
                                                 if (isOnTrial) {
-                                                    if (confirm("Subscribing to AI Business Insights will end your free trial immediately and you will be charged for the plan + add-on. Do you want to continue?")) {
+                                                    if (confirm(t("addOns.aiInsights.confirmTrialEnd"))) {
                                                         aiInsightsMutation.mutate();
                                                     }
                                                 } else {
@@ -579,6 +595,8 @@ export function SubscriptionDetails() {
                                     </Button>
                                 </CardContent>
                             </Card>
+
+                            {/* AI Insights Add-on stays here as it's a true add-on */}
                         </div>
                     </div>
                 </TabsContent>

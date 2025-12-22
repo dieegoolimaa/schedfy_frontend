@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { format, isToday } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/hooks/useCurrency";
@@ -48,6 +48,7 @@ export function PublicEntityProfilePage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
+  const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [, setLoadingSlots] = useState(false);
@@ -188,6 +189,36 @@ export function PublicEntityProfilePage() {
 
     fetchEntityData();
   }, [slug]);
+
+  // Handle direct booking params
+  useEffect(() => {
+    if (!loading && services.length > 0) {
+      const serviceId = searchParams.get("service");
+      const professionalId = searchParams.get("professional");
+      const dateStr = searchParams.get("date");
+
+      if (serviceId) {
+        const serviceExists = services.find(s => s.id === serviceId);
+        if (serviceExists) {
+          setSelectedService(serviceId);
+        }
+      }
+
+      if (professionalId && professionals.length > 0) {
+        const professionalExists = professionals.find(p => p.id === professionalId);
+        if (professionalExists) {
+          setSelectedProfessional(professionalId);
+        }
+      }
+
+      if (dateStr) {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          setSelectedDate(date);
+        }
+      }
+    }
+  }, [loading, services, professionals, searchParams]);
 
   // Check if a slot is in the past
   const isSlotInPast = (date: Date, time: string) => {

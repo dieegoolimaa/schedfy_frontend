@@ -189,6 +189,7 @@
     "paidBy": "Pago por",
     "company": "Empresa",
     "client": "Cliente",
+    "taxId": "NIF / CPF",
     "transactionDetails": "Detalhes da Transação",
     "transactionId": "ID da Transação",
     "paymentMethod": "Método de Pagamento",

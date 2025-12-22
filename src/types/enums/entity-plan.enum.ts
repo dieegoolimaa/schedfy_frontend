@@ -9,6 +9,9 @@ export enum EntityPlan {
     /** Plano simples - profissional individual sem equipe */
     SIMPLE = 'simple',
 
+    /** Plano simples com agendamentos ilimitados */
+    SIMPLE_UNLIMITED = 'simple_unlimited',
+
     /** Plano individual - profissional individual com recursos avançados */
     INDIVIDUAL = 'individual',
 
@@ -21,6 +24,14 @@ export enum EntityPlan {
  */
 export const PLAN_LIMITS = {
     [EntityPlan.SIMPLE]: {
+        maxProfessionals: 1,
+        maxServices: 10,
+        maxClients: 100,
+        hasTeamManagement: false,
+        hasAdvancedReports: false,
+        hasCustomBranding: false,
+    },
+    [EntityPlan.SIMPLE_UNLIMITED]: {
         maxProfessionals: 1,
         maxServices: 10,
         maxClients: 100,

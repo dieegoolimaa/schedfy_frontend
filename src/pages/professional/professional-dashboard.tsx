@@ -86,7 +86,8 @@ const getLatestWorkingHour = (workingHours?: WorkingHours): string => {
 export function ProfessionalDashboardPage() {
   const { t: _t } = useTranslation();
   const navigate = useNavigate();
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency: rawFormatCurrency } = useCurrency();
+  const formatCurrency = (amount: number) => rawFormatCurrency(amount);
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
   const [entityStats, setEntityStats] = useState<EntityStats | null>(null);
   const [, setStatsLoading] = useState(false);
@@ -240,7 +241,7 @@ export function ProfessionalDashboardPage() {
     clientSatisfaction: 0,
     averageSessionTime: 45,
     noShowRate: monthlyBookings.length > 0
-      ? Math.round((monthlyBookings.filter(b => b.status === "no-show").length / monthlyBookings.length) * 100)
+      ? Math.round((monthlyBookings.filter(b => b.status === "no_show").length / monthlyBookings.length) * 100)
       : 0,
   };
 
@@ -478,11 +479,11 @@ export function ProfessionalDashboardPage() {
                   {canViewFinancialReports && (
                     <div className="text-right">
                       <p className="text-sm font-medium">
-                        €
-                        {typeof booking.service === "object" &&
-                          booking.service?.price
-                          ? booking.service.price
-                          : 0}
+                        {formatCurrency(
+                          typeof booking.service === "object" && booking.service?.price
+                            ? booking.service.price
+                            : 0
+                        )}
                       </p>
                       <Badge variant="outline" className="text-xs">
                         {booking.status}

@@ -108,19 +108,19 @@ const getPaymentStatusVariant = (
   return "destructive";
 };
 
-const getPaymentStatusLabel = (status: string): string => {
-  if (status === "succeeded" || status === "completed") return "Pago";
-  if (status === "pending") return "Pendente";
-  if (status === "refunded") return "Reembolsado";
-  return "Falhou";
+const getPaymentStatusLabel = (status: string, t: any): string => {
+  if (status === "succeeded" || status === "completed") return t("status.paid", "Pago");
+  if (status === "pending") return t("status.pending", "Pendente");
+  if (status === "refunded") return t("status.refunded", "Reembolsado");
+  return t("status.failed", "Falhou");
 };
 
-const PAYMENT_METHODS = [
-  { value: "cash", label: "Dinheiro", icon: Wallet },
-  { value: "pix", label: "PIX", icon: DollarSign },
-  { value: "credit_card", label: "Cartão de Crédito", icon: CreditCard },
-  { value: "debit_card", label: "Cartão de Débito", icon: CreditCard },
-  { value: "bank_transfer", label: "Transferência", icon: Banknote },
+const getPaymentMethods = (t: any) => [
+  { value: "cash", label: t("paymentMethods.cash", "Dinheiro"), icon: Wallet },
+  { value: "pix", label: t("paymentMethods.pix", "PIX"), icon: DollarSign },
+  { value: "credit_card", label: t("paymentMethods.creditCard", "Cartão de Crédito"), icon: CreditCard },
+  { value: "debit_card", label: t("paymentMethods.debitCard", "Cartão de Débito"), icon: CreditCard },
+  { value: "bank_transfer", label: t("paymentMethods.bankTransfer", "Transferência"), icon: Banknote },
 ];
 
 // Quick Action Card Component - Mobile Optimized
@@ -282,7 +282,7 @@ function LoadingState({ message }: { message?: string }) {
           <CreditCard className="h-6 w-6 text-primary" />
         </div>
       </div>
-      <p className="text-muted-foreground">{message || "Carregando..."}</p>
+      <p className="text-muted-foreground">{message || "A carregar..."}</p>
     </div>
   );
 }
@@ -489,12 +489,12 @@ export default function UnifiedPaymentManagement() {
   };
 
   const getPaymentMethodLabel = (method: string) => {
-    const found = PAYMENT_METHODS.find((m) => m.value === method);
+    const found = getPaymentMethods(t).find((m) => m.value === method);
     return found?.label || method;
   };
 
   const getPaymentMethodIcon = (method: string) => {
-    const found = PAYMENT_METHODS.find((m) => m.value === method);
+    const found = getPaymentMethods(t).find((m) => m.value === method);
     const Icon = found?.icon || Receipt;
     return <Icon className="h-4 w-4" />;
   };
@@ -710,7 +710,7 @@ export default function UnifiedPaymentManagement() {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">{t("filters.all", "Todos")}</SelectItem>
-                        {PAYMENT_METHODS.map(m => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
+                        {getPaymentMethods(t).map(m => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -770,7 +770,7 @@ export default function UnifiedPaymentManagement() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={getPaymentStatusVariant(payment.status)}>{getPaymentStatusLabel(payment.status)}</Badge>
+                            <Badge variant={getPaymentStatusVariant(payment.status)}>{getPaymentStatusLabel(payment.status, t)}</Badge>
                           </TableCell>
                           <TableCell className="text-right text-muted-foreground">
                             {plan === 'business' ? formatDate(payment.paidAt) : ""}

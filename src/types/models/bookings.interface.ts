@@ -44,6 +44,13 @@ export interface Booking {
         stripePaymentIntentId?: string;
         transactionIds?: string[];
     };
+    // Commission information
+    commission?: {
+        professionalEarnings: number;
+        commissionAmount: number;
+        commissionPercentage: number;
+        ruleId?: string;
+    };
     // Additional computed/display properties
     date?: string;
     time?: string;

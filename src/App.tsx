@@ -116,6 +116,7 @@ function App() {
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
                 <Route
                   path="/change-password"
                   element={

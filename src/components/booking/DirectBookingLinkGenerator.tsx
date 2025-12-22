@@ -46,52 +46,76 @@ interface Service {
     price?: number;
 }
 
+import { apiClient } from "@/lib/api";
+import { useAuth } from "@/contexts/auth-context";
+
 interface DirectBookingLinkGeneratorProps {
     entitySlug: string;
-    professionals: Professional[];
-    services: Service[];
+    entityId?: string;
+    professionals?: Professional[];
+    services?: Service[];
     onSendEmail?: (email: string, link: string, clientName?: string) => Promise<void>;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    initialServiceId?: string;
+    initialProfessionalId?: string;
 }
 
 export function DirectBookingLinkGenerator({
     entitySlug,
-    professionals,
-    services,
+    entityId,
+    professionals = [],
+    services = [],
     onSendEmail,
+    open: externalOpen,
+    onOpenChange: externalOnOpenChange,
+    initialServiceId,
+    initialProfessionalId,
 }: DirectBookingLinkGeneratorProps) {
     const { t } = useTranslation("bookings");
+    const { entity: authEntity } = useAuth();
 
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
+    const setIsOpen = externalOnOpenChange || setInternalOpen;
+
     const [copied, setCopied] = useState(false);
     const [sending, setSending] = useState(false);
 
-    // Form state
-    const [selectedProfessional, setSelectedProfessional] = useState<string>("");
-    const [selectedService, setSelectedService] = useState<string>("");
+    // Form state with initialization from props if available
+    const [selectedProfessional, setSelectedProfessional] = useState<string>(initialProfessionalId || "");
+    const [selectedService, setSelectedService] = useState<string>(initialServiceId || "");
     const [selectedDate, setSelectedDate] = useState<string>("");
     const [clientEmail, setClientEmail] = useState<string>("");
     const [clientName, setClientName] = useState<string>("");
 
-    // Generate the booking link with query parameters
-    const generateLink = () => {
-        const baseUrl = window.location.origin;
-        const params = new URLSearchParams();
+    // Initialize/Update state when initial props change
+    useState(() => {
+        if (initialServiceId) setSelectedService(initialServiceId);
+        if (initialProfessionalId) setSelectedProfessional(initialProfessionalId);
+    });
 
-        if (selectedProfessional) {
-            params.set("professional", selectedProfessional);
-        }
-        if (selectedService) {
-            params.set("service", selectedService);
-        }
-        if (selectedDate) {
-            params.set("date", selectedDate);
-        }
+    // Update state when initial values change physically
+    if (initialServiceId && selectedService !== initialServiceId && !selectedService) {
+        setSelectedService(initialServiceId);
+    }
+    if (initialProfessionalId && selectedProfessional !== initialProfessionalId && !selectedProfessional) {
+        setSelectedProfessional(initialProfessionalId);
+    }
 
-        const queryString = params.toString();
-        return `${baseUrl}/book/${entitySlug}${queryString ? `?${queryString}` : ""}`;
-    };
+    // Logic for link generation
+    const baseUrl = window.location.origin;
+    const bookingPath = "/book"; // Or whatever path creates the link
+    const queryParams = new URLSearchParams();
+    queryParams.set("entity", entitySlug);
+    if (selectedService) queryParams.set("service", selectedService);
+    if (selectedProfessional) queryParams.set("professional", selectedProfessional);
+    if (selectedDate) queryParams.set("date", selectedDate);
 
-    const generatedLink = generateLink();
+    // Additional params if needed (e.g. source=invite)
+    queryParams.set("source", "invite");
+
+    const generatedLink = `${baseUrl}${bookingPath}?${queryParams.toString()}`;
 
     const handleCopy = async () => {
         try {
@@ -120,22 +144,40 @@ export function DirectBookingLinkGenerator({
             if (onSendEmail) {
                 await onSendEmail(clientEmail, generatedLink, clientName);
             } else {
-                // Fallback: open mailto link
-                const subject = encodeURIComponent(
-                    t("directLink.emailSubject", "Book your appointment")
-                );
-                const body = encodeURIComponent(
-                    t("directLink.emailBody", {
+                // Default backend handler
+                // Need entityId for backend
+                const targetEntityId = entityId || ""; // logic to get entityId if missing? 
+
+                if (!targetEntityId) {
+                    // Try to get from localStorage or context if possible, or error
+                    // For now, assume it's passed or fail
+                    if (!entityId) {
+                        throw new Error("Entity ID missing for sending invite");
+                    }
+                }
+
+                await apiClient.post('/api/bookings/invite', {
+                    email: clientEmail,
+                    link: generatedLink,
+                    clientName: clientName || "Client",
+                    serviceName: selectedServiceData?.name,
+                    professionalName: selectedProfessionalData?.name,
+                    date: selectedDate,
+                    entityName: authEntity?.name,
+                    subject: t("directLink.emailSubject", "Book your appointment"),
+                    message: t("directLink.emailBody", {
                         clientName: clientName || "there",
                         link: generatedLink,
                         defaultValue: `Hi ${clientName || "there"},\n\nClick the link below to book your appointment:\n\n${generatedLink}\n\nSee you soon!`,
-                    })
-                );
-                window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`);
+                    }),
+                    entityId: targetEntityId,
+                });
+                toast.success(t("emailSent", "Invitation sent successfully"));
             }
-            toast.success(t("directLink.emailSent", "Booking link sent!"));
-            resetForm();
-            setOpen(false);
+            setClientEmail("");
+            setClientName("");
+            // Don't auto-close to allow sending to another person? Or maybe close.
+            setIsOpen(false);
         } catch (error) {
             console.error("Failed to send email:", error);
             toast.error(t("directLink.sendError", "Failed to send email"));
@@ -145,8 +187,8 @@ export function DirectBookingLinkGenerator({
     };
 
     const resetForm = () => {
-        setSelectedProfessional("");
-        setSelectedService("");
+        setSelectedProfessional(initialProfessionalId || "");
+        setSelectedService(initialServiceId || "");
         setSelectedDate("");
         setClientEmail("");
         setClientName("");
@@ -160,7 +202,7 @@ export function DirectBookingLinkGenerator({
     const selectedServiceData = services.find((s) => s.id === selectedService);
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
                     <Link2 className="h-4 w-4" />
@@ -219,14 +261,17 @@ export function DirectBookingLinkGenerator({
                                 {t("directLink.optional", "Optional")}
                             </Badge>
                         </Label>
-                        <Select value={selectedService} onValueChange={setSelectedService}>
+                        <Select
+                            value={selectedService || "all"}
+                            onValueChange={(val) => setSelectedService(val === "all" ? "" : val)}
+                        >
                             <SelectTrigger>
                                 <SelectValue
                                     placeholder={t("directLink.selectService", "Any service")}
                                 />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">
+                                <SelectItem value="all">
                                     {t("directLink.anyService", "Any service")}
                                 </SelectItem>
                                 {services.map((service) => (
@@ -378,7 +423,7 @@ export function DirectBookingLinkGenerator({
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setOpen(false)}>
+                    <Button variant="outline" onClick={() => setIsOpen(false)}>
                         {t("directLink.close", "Close")}
                     </Button>
                 </DialogFooter>
