@@ -128,8 +128,12 @@ export function Navigation() {
         ],
         financial: [
           {
-            path: "/entity/payments",
-            label: t("nav.payments", "Payment Management"),
+            path: "/entity/connect-onboarding",
+            label: "Payment Setup",
+          },
+          {
+            path: "/entity/financials",
+            label: "Payouts & Balance",
           },
           {
             path: "/entity/commissions-management",

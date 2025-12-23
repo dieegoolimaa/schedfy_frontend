@@ -67,6 +67,11 @@ class SubscriptionsService {
         const response = await apiClient.get('/api/entity-subscriptions/invoices');
         return response.data as any[];
     }
+
+    async getPortalUrl(): Promise<{ url: string }> {
+        const response = await apiClient.post('/api/entity-subscriptions/portal');
+        return response.data as { url: string };
+    }
 }
 
 export const subscriptionsService = new SubscriptionsService();

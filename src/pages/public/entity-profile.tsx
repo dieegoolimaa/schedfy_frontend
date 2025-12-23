@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import type {
   PublicEntity,
@@ -96,6 +97,7 @@ export function PublicEntityProfilePage() {
     phone: "",
     notes: "",
   });
+  const [saveMyData, setSaveMyData] = useState(false);
 
   // Voucher state
   const [voucherCode, setVoucherCode] = useState("");
@@ -379,6 +381,7 @@ export function PublicEntityProfilePage() {
             startDateTime: startDateTime.toISOString(),
             endDateTime: endDateTime.toISOString(),
             status: "pending",
+            saveClient: saveMyData,
             notes: clientData.notes || undefined,
             pricing: {
               basePrice: service.price || 0,
@@ -427,6 +430,7 @@ export function PublicEntityProfilePage() {
           startDateTime: startDateTime.toISOString(),
           endDateTime: endDateTime.toISOString(),
           status: "pending",
+          saveClient: saveMyData,
           notes: clientData.notes || undefined,
           pricing: {
             basePrice: service.price || 0,
@@ -1306,6 +1310,16 @@ export function PublicEntityProfilePage() {
                           }
                         />
                       </div>
+                      <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox
+                          id="pkg-save-data"
+                          checked={saveMyData}
+                          onCheckedChange={(checked) => setSaveMyData(checked as boolean)}
+                        />
+                        <Label htmlFor="pkg-save-data" className="text-sm font-normal cursor-pointer text-muted-foreground">
+                          {t("profile.form.saveMyData", "Save my information for future bookings")}
+                        </Label>
+                      </div>
                     </div>
 
                     {/* Book All Package Services Button */}
@@ -1523,6 +1537,16 @@ export function PublicEntityProfilePage() {
                             })
                           }
                         />
+                      </div>
+                      <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox
+                          id="save-data"
+                          checked={saveMyData}
+                          onCheckedChange={(checked) => setSaveMyData(checked as boolean)}
+                        />
+                        <Label htmlFor="save-data" className="text-sm font-normal cursor-pointer text-muted-foreground">
+                          {t("profile.form.saveMyData", "Save my information for future bookings")}
+                        </Label>
                       </div>
                     </div>
 

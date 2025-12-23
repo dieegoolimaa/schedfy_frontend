@@ -99,6 +99,11 @@ export const paymentsService = {
         return apiClient.get(`/api/payments/business/${entityId}/summary`, params);
     },
 
+    // Connect Embedded
+    createAccountSession: async (entityId: string) => {
+        return apiClient.post<{ clientSecret: string }>(`/api/payments/connect/${entityId}/account-session`, {});
+    },
+
     createBusinessPayment: async (data: {
         entityId: string;
         amount: number;

@@ -49,6 +49,8 @@ import { NotificationsPage } from "./pages/common/notifications-page";
 import { CommissionsManagementPage } from "./pages/business/commissions-management";
 import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
 import { AIPremiumPage } from "./pages/business/ai-premium";
+import ConnectFinancialsPage from "./pages/business/connect-financials";
+import ConnectOnboardingPage from "./pages/business/connect-onboarding";
 
 // Simple plan pages
 import SimpleCommandCenter from "./pages/simple/command-center";
@@ -588,6 +590,26 @@ function App() {
                     <EntityRoute>
                       <Layout>
                         <UnifiedPaymentManagement />
+                      </Layout>
+                    </EntityRoute>
+                  }
+                />
+                <Route
+                  path="/entity/connect-onboarding"
+                  element={
+                    <EntityRoute>
+                      <Layout>
+                        <ConnectOnboardingPage />
+                      </Layout>
+                    </EntityRoute>
+                  }
+                />
+                <Route
+                  path="/entity/financials"
+                  element={
+                    <EntityRoute>
+                      <Layout>
+                        <ConnectFinancialsPage />
                       </Layout>
                     </EntityRoute>
                   }

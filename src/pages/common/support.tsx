@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import {
     Card,
     CardContent,
@@ -87,8 +89,9 @@ import { formatDateTime } from "../../lib/region-config";
 import { EntityPlan, PLAN_LIMITS } from "../../types/enums/entity-plan.enum";
 
 export function SupportPage() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { toast } = useToast();
+    const [activeTab, setActiveTab] = useState("manual");
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPriority, setSelectedPriority] = useState<string>("all");
     const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -508,7 +511,7 @@ export function SupportPage() {
             </div>
 
             {/* Main Content */}
-            <Tabs defaultValue="manual" className="space-y-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="manual">
                         {t("platform.support.tabs.manual", "User Manual")}
@@ -526,7 +529,7 @@ export function SupportPage() {
                                 {t("platform.support.manual.themes", "Themes")}
                             </h3>
                             {Array.from(new Set(knowledgeBaseArticles
-                                .filter(a => a.category.startsWith("Manual:"))
+                                .filter(a => a.category.startsWith("Manual:") && a.language === (i18n.language?.split('-')[0] || 'en'))
                                 .map(a => a.category)
                             )).sort().map(category => (
                                 <Button
@@ -557,7 +560,7 @@ export function SupportPage() {
                         {/* Manual Content Area */}
                         <div className="md:col-span-3 space-y-8 animate-in fade-in duration-500">
                             {knowledgeBaseArticles
-                                .filter(a => a.category === activeManualTheme)
+                                .filter(a => a.category === activeManualTheme && a.language === (i18n.language?.split('-')[0] || 'en'))
                                 .map(article => (
                                     <div key={article._id} className="space-y-6">
                                         <div className="space-y-4">
@@ -570,10 +573,11 @@ export function SupportPage() {
 
                                         <Separator />
 
-                                        <div
-                                            className="prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed bg-muted/30 p-6 rounded-xl border border-border/50"
-                                            dangerouslySetInnerHTML={{ __html: article.content }}
-                                        />
+                                        <Separator />
+
+                                        <div className="prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed bg-muted/30 p-6 rounded-xl border border-border/50">
+                                            <ReactMarkdown rehypePlugins={[rehypeRaw]}>{article.content}</ReactMarkdown>
+                                        </div>
 
                                         {/* Dynamic Modeling/Details for specific themes could go here */}
                                         {activeManualTheme.includes("Planos") || activeManualTheme.includes("Plans") ? (
@@ -615,7 +619,7 @@ export function SupportPage() {
                                     <p className="text-sm text-muted-foreground">
                                         {t("platform.support.manual.helpLink", "Our support team is ready to help you directly via tickets.")}
                                     </p>
-                                    <Button variant="link" className="p-0 h-auto mt-2 text-primary" onClick={() => (document.querySelector('[value="tickets"]') as HTMLElement)?.click()}>
+                                    <Button variant="link" className="p-0 h-auto mt-2 text-primary" onClick={() => setActiveTab("tickets")}>
                                         {t("platform.support.manual.goToTickets", "Go to my tickets")} <ChevronRight className="h-3 w-3 ml-1" />
                                     </Button>
                                 </div>

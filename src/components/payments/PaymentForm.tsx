@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
-  CardElement,
+  PaymentElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
@@ -11,75 +11,47 @@ import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { usePayments } from "../../hooks/usePayments";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
 );
 
 function InnerPaymentForm({
-  bookingId,
   onSuccess,
   onCancel,
-  clientName,
-  amount,
-  entityId,
-  currency = "BRL",
-  description,
-}: any) {
+  returnUrl,
+}: {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  returnUrl?: string;
+}) {
   const stripe = useStripe();
   const elements = useElements();
-  const { createPaymentIntent } = usePayments();
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [notes, setNotes] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await createPaymentIntent({
-          bookingId: String(bookingId),
-          description: description || "Booking payment",
-        });
-        if (mounted) setClientSecret(res?.clientSecret || null);
-      } catch (err: any) {
-        console.error("Error creating payment intent:", err);
-        toast.error(`Failed to initiate payment: ${err?.message || 'Unknown error'}`);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [bookingId, amount, entityId, currency, description, createPaymentIntent]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleSubmit = async () => {
-    if (!stripe || !elements || !clientSecret) return;
+    if (!stripe || !elements) return;
+
     setProcessing(true);
-    try {
-      const card = elements.getElement(CardElement);
-      if (!card) throw new Error("Card element not found");
 
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card,
-          billing_details: {
-            name: clientName || "Customer",
-          },
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: returnUrl || window.location.href,
         },
+        redirect: "if_required",
       });
 
-      console.log("Stripe confirm result:", result);
-
-      if (result.error) {
-        toast.error(result.error.message || "Payment failed");
-      } else if (
-        result.paymentIntent &&
-        (result.paymentIntent.status === "succeeded" || result.paymentIntent.status === "processing")
-      ) {
+      if (error) {
+        toast.error(error.message || "Payment failed");
+      } else {
         toast.success("Payment successful");
         if (onSuccess) await onSuccess();
-      } else {
-        toast.error("Payment was not completed");
       }
     } catch (err: any) {
       console.error(err);
@@ -90,41 +62,106 @@ function InnerPaymentForm({
   };
 
   return (
-    <div className="space-y-4">
-      <Label>Card details</Label>
-      <div className="p-3 border rounded">
-        <CardElement options={{ hidePostalCode: true }} />
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
 
       <div className="space-y-2">
         <Label>Notes (optional)</Label>
         <Textarea
           value={notes}
           onChange={(e: any) => setNotes(e.target.value)}
+          placeholder="Add any special instructions..."
         />
       </div>
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
+      <div className="flex justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={!clientSecret || processing}>
-          {processing ? "Processing…" : "Pay now"}
+        <Button type="submit" disabled={!stripe || processing}>
+          {processing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Pay now"
+          )}
         </Button>
-        {!clientSecret && (
-          <p className="text-xs text-red-500 mt-2">
-            Unable to initialize payment. Please try again.
-          </p>
-        )}
       </div>
-    </div>
+    </form>
   );
 }
 
-export default function PaymentForm(props: any) {
+export default function PaymentForm({
+  bookingId,
+  onSuccess,
+  onCancel,
+  amount,
+  description,
+  returnUrl,
+}: any) {
+  const { createPaymentIntent } = usePayments();
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await createPaymentIntent({
+          bookingId: String(bookingId),
+          description: description || "Booking payment",
+        });
+        if (mounted && res?.clientSecret) {
+          setClientSecret(res.clientSecret);
+        }
+      } catch (err: any) {
+        console.error("Error creating payment intent:", err);
+        toast.error(`Failed to initiate payment: ${err?.message || 'Unknown error'}`);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [bookingId, description, createPaymentIntent]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!clientSecret) {
+    return (
+      <div className="text-center py-4 text-destructive">
+        Unable to initialize payment system. Please try again.
+      </div>
+    );
+  }
+
   return (
-    <Elements stripe={stripePromise}>
-      <InnerPaymentForm {...props} />
+    <Elements
+      stripe={stripePromise}
+      options={{
+        clientSecret,
+        appearance: {
+          theme: 'stripe',
+          variables: {
+            colorPrimary: '#0f172a',
+          },
+        },
+      }}
+    >
+      <InnerPaymentForm
+        onSuccess={onSuccess}
+        onCancel={onCancel}
+        returnUrl={returnUrl}
+      />
     </Elements>
   );
 }

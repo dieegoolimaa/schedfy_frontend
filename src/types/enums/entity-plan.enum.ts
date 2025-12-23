@@ -24,17 +24,17 @@ export enum EntityPlan {
  */
 export const PLAN_LIMITS = {
     [EntityPlan.SIMPLE]: {
-        maxProfessionals: 1,
+        maxProfessionals: Infinity,
         maxServices: 10,
-        maxClients: 100,
-        hasTeamManagement: false,
+        maxClients: 0,
+        hasTeamManagement: true,
         hasAdvancedReports: false,
         hasCustomBranding: false,
     },
     [EntityPlan.SIMPLE_UNLIMITED]: {
         maxProfessionals: 1,
         maxServices: 10,
-        maxClients: 100,
+        maxClients: Infinity,
         hasTeamManagement: false,
         hasAdvancedReports: false,
         hasCustomBranding: false,

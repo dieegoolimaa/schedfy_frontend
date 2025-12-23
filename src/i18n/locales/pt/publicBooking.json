@@ -86,7 +86,8 @@
       "phone": "Telefone",
       "notes": "Notas",
       "voucher": "Código Voucher",
-      "apply": "Aplicar"
+      "apply": "Aplicar",
+      "saveMyData": "Salvar as minhas informações para agendamentos futuros"
     },
     "validation": {
       "fillAll": "Por favor preencha todos os campos obrigatórios",
