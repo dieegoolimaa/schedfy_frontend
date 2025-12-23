@@ -16,24 +16,32 @@ interface UserPermission {
     requiresPlan?: string;
 }
 
+interface PermissionsResponse {
+    success: boolean;
+    data: UserPermission[];
+    flatPermissions: string[];
+}
+
 /**
  * Hook to check if current user has permission
- * Fetches permissions from backend API
+ * Fetches EFFECTIVE permissions from backend API
+ * Effective = Role Defaults + User Extras - User Denied
  */
 export function usePermissions() {
     const { user } = useAuth();
     const [permissions, setPermissions] = useState<Record<string, string[]>>({});
+    const [flatPermissions, setFlatPermissions] = useState<string[]>([]);
 
-    // Fetch user's permissions from backend
-    const { data: apiPermissions, isLoading } = useQuery({
-        queryKey: ['user-permissions', user?.role, user?.plan],
+    // Fetch user's EFFECTIVE permissions from backend
+    const { data: apiResponse, isLoading, refetch } = useQuery({
+        queryKey: ['user-permissions', user?.id, user?.role, user?.plan],
         queryFn: async () => {
             try {
-                const response = await apiClient.get<{ success: boolean; data: UserPermission[] }>('/api/role-permissions/me');
-                return response.data?.data || [];
+                const response = await apiClient.get<PermissionsResponse>('/api/role-permissions/me');
+                return response.data;
             } catch (error) {
                 console.warn('Failed to fetch permissions from API, using fallback');
-                return [];
+                return null;
             }
         },
         enabled: !!user,
@@ -42,17 +50,19 @@ export function usePermissions() {
 
     // Convert API permissions to lookup map
     useEffect(() => {
-        if (apiPermissions && apiPermissions.length > 0) {
+        if (apiResponse?.data && apiResponse.data.length > 0) {
             const permissionsMap: Record<string, string[]> = {};
-            apiPermissions.forEach(perm => {
+            apiResponse.data.forEach(perm => {
                 permissionsMap[perm.page] = perm.actions;
             });
             setPermissions(permissionsMap);
+            setFlatPermissions(apiResponse.flatPermissions || []);
         } else if (user) {
             // Fallback to client-side permissions
             setPermissions(getRolePermissions(user.role));
+            setFlatPermissions([]);
         }
-    }, [apiPermissions, user]);
+    }, [apiResponse, user]);
 
     /**
      * Check if user has specific permission
@@ -138,7 +148,8 @@ export function usePermissions() {
     };
 
     /**
-     * Check if user has a direct permission string (e.g. 'canManageSubscription')
+     * Check if user has a direct permission string (e.g. 'bookings:view')
+     * Uses the flat permissions list from API
      */
     const hasDirectPermission = (permission: string): boolean => {
         if (!user) return false;
@@ -147,15 +158,26 @@ export function usePermissions() {
         if (user.role === 'owner' || user.role === 'platform_admin') return true;
 
         // Admin in Simple Plan has full access (same as Owner)
-        // In Business Plan, Admin has specific permissions
         if (user.role === 'admin' && user.plan === 'simple') return true;
 
+        // Check in flatPermissions from API first
+        if (flatPermissions.includes(permission)) return true;
+
+        // Fallback to user.permissions (legacy)
         return (user.permissions || []).includes(permission);
+    };
+
+    /**
+     * Check if a permission is in the flat list (page:action format)
+     */
+    const hasFlatPermission = (page: string, action: string): boolean => {
+        return flatPermissions.includes(`${page}:${action}`);
     };
 
     return {
         hasPermission,
         hasDirectPermission,
+        hasFlatPermission,
         canViewPage,
         canCreate,
         canUpdate,
@@ -163,7 +185,9 @@ export function usePermissions() {
         hasAllPermissions,
         hasAnyPermission,
         isLoading,
-        permissions: apiPermissions || [],
+        permissions: apiResponse?.data || [],
+        flatPermissions,
+        refetch,
     };
 }
 
@@ -188,12 +212,11 @@ function getRolePermissions(role: string): Record<string, string[]> {
             users: ['view', 'create', 'update'],
             reports: ['view', 'export'],
             settings: ['view', 'update'],
-            // Note: In simple plan, this should be treated as 'manage' everywhere
         },
         professional: {
-            bookings: ['view'], // Own bookings only
-            clients: ['view'], // Clients they serve
-            reports: ['view'], // Own metrics only
+            bookings: ['view'],
+            clients: ['view'],
+            reports: ['view'],
         },
     };
 

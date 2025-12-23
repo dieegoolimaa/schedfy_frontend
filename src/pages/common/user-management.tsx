@@ -81,6 +81,7 @@ interface User {
         bio?: string;
     };
     permissions?: string[];
+    deniedPermissions?: string[];
     createdAt?: string;
 }
 
@@ -293,10 +294,14 @@ export default function TeamManagementPage() {
         await handleUpdateUser(userId, updates);
     };
 
-    const handleSavePermissions = async (userId: string, permissions: string[]) => {
+    const handleSavePermissions = async (
+        userId: string,
+        permissions: string[],
+        deniedPermissions: string[]
+    ) => {
         try {
             toast.loading(t("loading.permissions"), { id: "update-permissions" });
-            await usersService.updateUserPermissions(userId, permissions);
+            await usersService.updateUserPermissions(userId, permissions, deniedPermissions);
             toast.success(t("messages.permissionsUpdated"), { id: "update-permissions" });
             fetchUsers();
         } catch (error: any) {

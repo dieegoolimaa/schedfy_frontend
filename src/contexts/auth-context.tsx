@@ -87,6 +87,7 @@ export function transformBackendUser(backendUser: any, entity?: any): User {
     createdAt: backendUser.createdAt || new Date().toISOString(),
     updatedAt: backendUser.updatedAt || new Date().toISOString(),
     permissions: backendUser.permissions || [],
+    deniedPermissions: backendUser.deniedPermissions || [],
     mustChangePassword: backendUser.mustChangePassword, // Mapped property
   };
 }

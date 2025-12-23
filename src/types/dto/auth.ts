@@ -33,6 +33,7 @@ export interface User {
     createdAt: string;
     updatedAt: string;
     permissions?: string[];
+    deniedPermissions?: string[];
     mustChangePassword?: boolean;
 }
 

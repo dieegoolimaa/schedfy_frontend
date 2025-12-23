@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { Entity } from "@/types/models/entities.interface";
 
 /**
@@ -16,6 +17,7 @@ export type AIInsightType = 'operational' | 'financial' | 'management' | 'demand
 
 export function useAIFeatures() {
     const { user, entity } = useAuth();
+    const { hasPermission: checkPermission } = usePermissions();
     const currentEntity = entity as unknown as Entity;
 
     // 1. Check if user has subscribed to AI Insights add-on
@@ -25,10 +27,9 @@ export function useAIFeatures() {
     // Default to true if they have subscription
     const isToggleEnabled = currentEntity?.aiInsightsEnabled !== false;
 
-    // 3. Check user permissions
+    // 3. Check user permissions (using effective permissions)
     const isOwner = user?.role === 'owner';
-    const userPermissions = Array.isArray(user?.permissions) ? user.permissions : [];
-    const hasPermission = isOwner || userPermissions.includes('canViewAIInsights');
+    const hasPermission = isOwner || checkPermission('canViewAIInsights');
 
     // 4. Calculate what they can access based on plan
     const plan = currentEntity?.plan || 'simple';

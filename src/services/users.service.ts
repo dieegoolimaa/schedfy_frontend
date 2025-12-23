@@ -110,11 +110,16 @@ export const usersService = {
     },
 
     /**
-     * Update user permissions
+     * Update user permissions (extras and denied)
      */
-    updateUserPermissions: async (userId: string, permissions: string[]): Promise<User> => {
+    updateUserPermissions: async (
+        userId: string,
+        permissions: string[],
+        deniedPermissions?: string[]
+    ): Promise<User> => {
         const response = await apiClient.patch<User>(`/api/users/${userId}/permissions`, {
             permissions,
+            deniedPermissions,
         });
         return response.data as User;
     },
