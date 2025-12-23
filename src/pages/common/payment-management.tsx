@@ -359,10 +359,19 @@ export default function UnifiedPaymentManagement() {
 
     try {
       const fetchClientSecret = async () => {
-        const entityId = user?.entityId;
-        if (!entityId) throw new Error('No entityId available');
-        const response = await paymentsService.createAccountSession(entityId);
-        return response.data.clientSecret;
+        try {
+          const entityId = user?.entityId;
+          if (!entityId) throw new Error('No entityId available');
+          const response = await paymentsService.createAccountSession(entityId);
+          if (!response.data?.clientSecret) {
+             console.error("Invalid response from createAccountSession:", response);
+             throw new Error("Failed to retrieve client secret");
+          }
+          return response.data.clientSecret;
+        } catch (err) {
+          console.error("Error fetching client secret:", err);
+          throw err;
+        }
       };
 
       const isDark = getEffectiveTheme() === 'dark';

@@ -139,10 +139,6 @@ export const paymentsService = {
         return apiClient.post<{ url: string }>(`/api/payments/connect/${entityId}/onboarding`);
     },
 
-    createAccountSession: async (entityId: string) => {
-        return apiClient.post<{ clientSecret: string }>(`/api/payments/connect/${entityId}/account-session`);
-    },
-
     getConnectLoginLink: async (entityId: string) => {
         return apiClient.get<{ url: string }>(`/api/payments/connect/${entityId}/login-link`);
     },

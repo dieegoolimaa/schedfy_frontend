@@ -132,7 +132,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const effectiveProfessionalId = forcedProfessionalId || (user?.role === 'professional' ? user?.id : undefined);
 
 
-
     // Use the bookings hook with real API
     const {
         bookings,
