@@ -12,6 +12,7 @@ import { Badge } from "../components/ui/badge";
 import { TiltCard } from "../components/ui/tilt-card";
 import { Navigation } from "../components/layout/navigation";
 import { useRegion } from "../contexts/region-context";
+import { usePublicTestimonials } from "../hooks/usePlatformSettings";
 import {
   Calendar,
   Users,
@@ -26,8 +27,9 @@ import {
 } from "lucide-react";
 
 export function HomePage() {
-  const { t } = useTranslation("home");
+  const { t, i18n } = useTranslation("home");
   const { getPriceDisplay } = useRegion();
+  const { testimonials: dynamicTestimonials = [] } = usePublicTestimonials(6, i18n.language);
 
   // No automatic redirect - users can view the home page even when authenticated
 
@@ -82,7 +84,8 @@ export function HomePage() {
     },
   ];
 
-  const testimonials = [
+  // Use dynamic testimonials from API, fallback to static ones
+  const fallbackTestimonials = [
     {
       name: t("testimonials.items.0.name", "Maria Santos"),
       role: t("testimonials.items.0.role", "Salon Owner, Lisbon"),
@@ -114,6 +117,22 @@ export function HomePage() {
       avatar: "AC",
     },
   ];
+
+  // Map dynamic testimonials to component format
+  const testimonials = dynamicTestimonials.length > 0
+    ? dynamicTestimonials.map((testimonial) => ({
+        name: testimonial.authorName,
+        role: testimonial.authorRole || "",
+        content: testimonial.content,
+        rating: testimonial.rating,
+        avatar: testimonial.authorName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2),
+      }))
+    : fallbackTestimonials;
 
   const faqItems = [
     {

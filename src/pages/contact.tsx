@@ -11,6 +11,7 @@ import {
   SupportedRegion,
   type RegionalConfig,
 } from "../lib/regions.config";
+import { usePlatformSettings } from "../hooks/usePlatformSettings";
 import {
   Card,
   CardContent,
@@ -67,6 +68,7 @@ export function ContactPage() {
   const [regionalConfig, setRegionalConfig] = useState<RegionalConfig | null>(
     null
   );
+  const { contact, supportHours } = usePlatformSettings();
 
   const {
     register,
@@ -181,7 +183,7 @@ export function ContactPage() {
                     <div>
                       <p className="font-medium">Email</p>
                       <p className="text-sm text-muted-foreground">
-                        support@schedfy.com
+                        {contact?.email || "support@schedfy.com"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Response within 24 hours
@@ -193,10 +195,10 @@ export function ContactPage() {
                     <div>
                       <p className="font-medium">Phone</p>
                       <p className="text-sm text-muted-foreground">
-                        +351 XXX XXX XXX
+                        {contact?.phone || "Contact via email"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Mon-Fri 9AM-6PM CET
+                        {supportHours?.weekdays ? `Mon-Fri ${supportHours.weekdays.start}-${supportHours.weekdays.end} ${supportHours.timezone || "CET"}` : "Mon-Fri 9AM-6PM CET"}
                       </p>
                     </div>
                   </div>
@@ -205,9 +207,8 @@ export function ContactPage() {
                     <div>
                       <p className="font-medium">Address</p>
                       <p className="text-sm text-muted-foreground">
-                        Schedfy Headquarters
-                        <br />
-                        Lisbon, Portugal
+                        {contact?.address?.street ? `${contact.address.street}, ` : ""}
+                        {contact?.address?.city || "Lisbon"}, {contact?.address?.country || "Portugal"}
                       </p>
                     </div>
                   </div>

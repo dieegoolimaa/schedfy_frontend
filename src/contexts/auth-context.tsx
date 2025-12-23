@@ -96,7 +96,6 @@ interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<User>;
   logout: () => void;
   refreshToken: () => Promise<void>;
-  oauthLogin: (provider: string) => Promise<void>;
   requires2FA?: boolean;
   tempToken?: string | null;
   verify2FA: (code: string) => Promise<User>;
@@ -355,19 +354,6 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
     }
   };
 
-  const oauthLogin = async (provider: string) => {
-    try {
-      // Redirect to OAuth provider
-      globalThis.location.href = `/api/auth/oauth/${provider}`;
-    } catch (error) {
-      dispatch({
-        type: "AUTH_ERROR",
-        payload: error instanceof Error ? error.message : "OAuth login failed",
-      });
-      throw error;
-    }
-  };
-
   const updateUser = (user: User) => {
     dispatch({ type: "UPDATE_USER", payload: user });
   };
@@ -382,7 +368,6 @@ export function AuthProvider({ children }: Readonly<AuthProviderProps>) {
       login,
       logout,
       refreshToken,
-      oauthLogin,
       verify2FA,
       requires2FA,
       tempToken,

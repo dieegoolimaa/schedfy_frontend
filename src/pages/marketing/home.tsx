@@ -15,6 +15,7 @@ import { Navigation } from "../../components/layout/navigation";
 import { useRegion } from "../../contexts/region-context";
 import { useAuth } from "../../contexts/auth-context";
 import { getDashboardRoute } from "../../lib/utils";
+import { usePublicTestimonials } from "../../hooks/usePlatformSettings";
 import {
   Calendar,
   Users,
@@ -29,9 +30,10 @@ import {
 } from "lucide-react";
 
 export function HomePage() {
-  const { t } = useTranslation("home");
+  const { t, i18n } = useTranslation("home");
   const { getPriceDisplay } = useRegion();
   const { user } = useAuth();
+  const { testimonials: dynamicTestimonials = [] } = usePublicTestimonials(6, i18n.language);
 
   const dashboardRoute = user ? getDashboardRoute(user) : "/";
 
@@ -88,7 +90,8 @@ export function HomePage() {
     },
   ];
 
-  const testimonials = [
+  // Use dynamic testimonials from API, fallback to static ones
+  const fallbackTestimonials = [
     {
       name: t("testimonials.items.0.name", "Maria Santos"),
       role: t("testimonials.items.0.role", "Salon Owner, Lisbon"),
@@ -120,6 +123,22 @@ export function HomePage() {
       avatar: "AC",
     },
   ];
+
+  // Map dynamic testimonials to component format
+  const testimonials = dynamicTestimonials.length > 0
+    ? dynamicTestimonials.map((testimonial) => ({
+        name: testimonial.authorName,
+        role: testimonial.authorRole || "",
+        content: testimonial.content,
+        rating: testimonial.rating,
+        avatar: testimonial.authorName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2),
+      }))
+    : fallbackTestimonials;
 
   const faqItems = [
     {

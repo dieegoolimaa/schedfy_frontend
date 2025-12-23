@@ -16,8 +16,11 @@ import {
   Database,
   Globe,
 } from "lucide-react";
+import { usePlatformSettings } from "../hooks/usePlatformSettings";
 
 export function PrivacyPage() {
+  const { contact } = usePlatformSettings();
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -405,14 +408,16 @@ export function PrivacyPage() {
                     privacy@schedfy.com
                   </p>
                   <p>
-                    <strong>General Inquiries:</strong> support@schedfy.com
+                    <strong>General Inquiries:</strong> {contact?.email || "support@schedfy.com"}
                   </p>
                   <p>
-                    <strong>Address:</strong> Schedfy, Lisbon, Portugal
+                    <strong>Address:</strong> Schedfy, {contact?.address?.city || "Lisbon"}, {contact?.address?.country || "Portugal"}
                   </p>
-                  <p>
-                    <strong>Phone:</strong> +351 XXX XXX XXX
-                  </p>
+                  {contact?.phone && (
+                    <p>
+                      <strong>Phone:</strong> {contact.phone}
+                    </p>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   For EU users: You also have the right to lodge a complaint

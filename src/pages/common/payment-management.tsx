@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useTheme } from "../../components/theme-provider";
+import { usePaymentMethods } from "../../hooks/usePlatformSettings";
 import {
   Filter,
   Download,
@@ -115,7 +116,21 @@ const getPaymentStatusLabel = (status: string, t: any): string => {
   return t("status.failed", "Falhou");
 };
 
-const getPaymentMethods = (t: any) => [
+// Icon mapping for payment method types
+const PAYMENT_METHOD_ICONS: Record<string, any> = {
+  cash: Wallet,
+  pix: DollarSign,
+  credit_card: CreditCard,
+  debit_card: CreditCard,
+  card: CreditCard,
+  bank_transfer: Banknote,
+  mbway: CreditCard,
+  multibanco: CreditCard,
+  boleto: Receipt,
+};
+
+// Fallback hardcoded methods (only used if API fails)
+const getFallbackPaymentMethods = (t: any) => [
   { value: "cash", label: t("paymentMethods.cash", "Dinheiro"), icon: Wallet },
   { value: "pix", label: t("paymentMethods.pix", "PIX"), icon: DollarSign },
   { value: "credit_card", label: t("paymentMethods.creditCard", "Cartão de Crédito"), icon: CreditCard },
@@ -322,6 +337,21 @@ export default function UnifiedPaymentManagement() {
   const navigate = useNavigate();
   const plan = user?.plan || "simple";
 
+  // Dynamic payment methods from API
+  const { methods: dynamicPaymentMethods, isLoading: loadingPaymentMethods } = usePaymentMethods();
+
+  // Build payment methods list from API or fallback
+  const paymentMethodsList = useMemo(() => {
+    if (dynamicPaymentMethods.length > 0) {
+      return dynamicPaymentMethods.map(m => ({
+        value: m.id,
+        label: typeof m.name === 'string' ? m.name : (m.name as any)?.[t('language', 'en')] || (m.name as any)?.en || m.id,
+        icon: PAYMENT_METHOD_ICONS[m.type] || CreditCard,
+      }));
+    }
+    return getFallbackPaymentMethods(t);
+  }, [dynamicPaymentMethods, t]);
+
   // State
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -498,12 +528,12 @@ export default function UnifiedPaymentManagement() {
   };
 
   const getPaymentMethodLabel = (method: string) => {
-    const found = getPaymentMethods(t).find((m) => m.value === method);
+    const found = paymentMethodsList.find((m) => m.value === method);
     return found?.label || method;
   };
 
   const getPaymentMethodIcon = (method: string) => {
-    const found = getPaymentMethods(t).find((m) => m.value === method);
+    const found = paymentMethodsList.find((m) => m.value === method);
     const Icon = found?.icon || Receipt;
     return <Icon className="h-4 w-4" />;
   };
@@ -719,7 +749,7 @@ export default function UnifiedPaymentManagement() {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">{t("filters.all", "Todos")}</SelectItem>
-                        {getPaymentMethods(t).map(m => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
+                        {paymentMethodsList.map(m => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
