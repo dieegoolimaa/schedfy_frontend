@@ -47,6 +47,12 @@ export interface Service {
         cancellationDeadlineHours?: number;
         requiresManualConfirmation?: boolean;
     };
+    onlineMeeting?: {
+        meetingType?: 'in-person' | 'online';
+        onlineProvider?: string;
+        customMeetingLink?: string;
+        autoCreateMeeting?: boolean;
+    };
     availability?: Array<{
         day: number;
         isAvailable: boolean;
@@ -134,6 +140,12 @@ export interface CreateServiceDto {
         cancellationDeadlineHours?: number;
         requiresManualConfirmation?: boolean; // For Individual/Business plans
     };
+    onlineMeeting?: {
+        meetingType?: 'in-person' | 'online';
+        onlineProvider?: string;
+        customMeetingLink?: string;
+        autoCreateMeeting?: boolean;
+    };
     images?: string[];
     coverImage?: string;
     tags?: string[];
@@ -176,6 +188,12 @@ export interface UpdateServiceDto {
         cancellationPolicy?: string;
         cancellationDeadlineHours?: number;
         requiresManualConfirmation?: boolean;
+    };
+    onlineMeeting?: {
+        meetingType?: 'in-person' | 'online';
+        onlineProvider?: string;
+        customMeetingLink?: string;
+        autoCreateMeeting?: boolean;
     };
     availability?: Array<{
         day: number;

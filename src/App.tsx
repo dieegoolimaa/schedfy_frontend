@@ -162,6 +162,7 @@ function App() {
                 <Route path="/upgrade" element={<UpgradePage />} />
                 <Route path="/upgrade/checkout" element={<ProtectedRoute><UpgradeCheckoutPage /></ProtectedRoute>} />
 
+
                 {/* Simple Plan Routes */}
                 <Route
                   path="/simple/dashboard"
@@ -332,6 +333,19 @@ function App() {
                     </IndividualPlusRoute>
                   }
                 />
+                <Route
+                  path="/individual/financial-reports"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <EntityFinancialReportsPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+
                 <Route
                   path="/individual/client-profile"
                   element={

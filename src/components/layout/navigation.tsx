@@ -198,7 +198,13 @@ export function Navigation() {
             label: t("nav.reports", "Reports"),
           },
         ],
-        financial: [],
+        financial: [
+          {
+            path: "/individual/financial-reports",
+            label: t("nav.financialReports", "Financial Reports"),
+          },
+        ],
+
         settings: [
           {
             path: "/settings/integrations",

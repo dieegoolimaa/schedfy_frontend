@@ -41,6 +41,7 @@ import {
   Calendar as CalendarIcon,
   AlertCircle,
   Save,
+  ArrowLeft,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -334,8 +335,17 @@ export default function ProfessionalSchedulePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t("common:back", "Back")}
+          </Button>
           <h1 className="text-3xl font-bold tracking-tight">{t("schedule.title")}</h1>
           <p className="text-muted-foreground mt-1">
             {t("schedule.description")}

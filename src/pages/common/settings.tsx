@@ -23,7 +23,7 @@ import {
 } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import { BusinessProfileManager } from "../../components/business-profile-manager";
-import { User, Shield, Save, Building2, Clock } from "lucide-react";
+import { User, Shield, Save, Building2, Clock, ArrowLeft } from "lucide-react";
 
 /**
  * Unified Settings Page - Adapts to user's plan (Simple, Individual, Business)
@@ -258,6 +258,15 @@ export default function UnifiedSettingsPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t("common.back", "Back")}
+          </Button>
           <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>

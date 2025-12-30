@@ -42,6 +42,8 @@ import {
   Calendar as CalendarIcon,
   ExternalLink,
   Store,
+  Video,
+  ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
@@ -355,7 +357,8 @@ export function ProfessionalDashboardPage() {
             </Button>
           </AlertDescription>
         </Alert>
-      )}
+      )
+      }
 
       {/* Live Activity Widget */}
       <LiveActivityWidget entityId={user?.entityId || ""} />
@@ -475,6 +478,19 @@ export function ProfessionalDashboardPage() {
                         ? booking.service
                         : booking.service?.name || "N/A"}
                     </p>
+                    {booking.onlineMeeting?.meetingLink && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 h-5 px-1.5 flex items-center gap-1 cursor-pointer"
+                          onClick={() => booking.onlineMeeting?.meetingLink && window.open(booking.onlineMeeting.meetingLink, '_blank')}
+                        >
+                          <Video className="h-3 w-3" />
+                          <span className="text-[10px]">Google Meet</span>
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                   {canViewFinancialReports && (
                     <div className="text-right">

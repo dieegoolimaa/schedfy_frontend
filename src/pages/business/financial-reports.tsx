@@ -6,7 +6,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { useBookings } from "../../hooks/useBookings";
 import { useGoals } from "../../hooks/useGoals";
 import { useClients } from "../../hooks/useClients";
-import { PlanGate, UpgradePrompt } from "../../hooks/use-plan-restrictions";
+import { usePlanRestrictions, PlanGate, UpgradePrompt } from "../../hooks/use-plan-restrictions";
 import {
   Card,
   CardContent,
@@ -78,6 +78,9 @@ export function FinancialReportsPage() {
   const formatCurrency = (amount: number) => rawFormatCurrency(amount);
   const { user, entity } = useAuth();
   const navigate = useNavigate();
+
+  const { currentPlan } = usePlanRestrictions();
+  const isBusiness = currentPlan === 'business';
 
   // Get entityId with multiple fallbacks
   const entityId = user?.entityId || entity?.id || (entity as any)?._id || user?.id || "";
@@ -716,7 +719,7 @@ export function FinancialReportsPage() {
         </div>
 
         {/* Summary Cards */}
-        <StatsGrid columns={4}>
+        <StatsGrid columns={isBusiness ? 4 : 3}>
           <StatCard
             title={t("summary.totalRevenue", "Total Revenue")}
             value={formatCurrency(financialSummary.totalRevenue)}
@@ -728,19 +731,21 @@ export function FinancialReportsPage() {
             subtitle={t("summary.vsLastPeriod", "vs last period")}
           />
 
-          <StatCard
-            title={t("summary.totalCommissions", "Total Commissions")}
-            value={formatCurrency(financialSummary.totalCommissions)}
-            subtitle={t("summary.ofRevenue", "10% of revenue")}
-            icon={ArrowDownRight}
-            variant="danger"
-          />
+          {isBusiness && (
+            <StatCard
+              title={t("summary.totalCommissions", "Total Commissions")}
+              value={formatCurrency(financialSummary.totalCommissions)}
+              subtitle={t("summary.ofRevenue", "10% of revenue")}
+              icon={ArrowDownRight}
+              variant="danger"
+            />
+          )}
 
           <StatCard
-            title={t("summary.vouchersUsed", "Vouchers Used")}
+            title={t("summary.vouchersUsed", "Discounts Used")}
             value={formatCurrency(financialSummary.totalVouchers)}
             subtitle={`${(
-              (financialSummary.totalVouchers / financialSummary.totalRevenue) *
+              (financialSummary.totalVouchers / (financialSummary.totalRevenue || 1)) *
               100
             ).toFixed(1)}% ${t("summary.ofRevenue", "of revenue")}`}
             icon={Gift}
@@ -750,7 +755,7 @@ export function FinancialReportsPage() {
           <StatCard
             title={t("summary.netRevenue", "Net Revenue")}
             value={formatCurrency(financialSummary.netRevenue)}
-            subtitle={t("summary.afterDeductions", "After all deductions")}
+            subtitle={isBusiness ? t("summary.afterDeductions", "After all deductions") : t("summary.finalRevenue", "Final Revenue")}
             icon={TrendingUp}
             variant="success"
           />
@@ -768,21 +773,27 @@ export function FinancialReportsPage() {
               <TabsTrigger value="overview" className="whitespace-nowrap">
                 {t("tabs.overview", "Overview")}
               </TabsTrigger>
-              <TabsTrigger value="professionals" className="whitespace-nowrap">
-                {t("tabs.professionals", "Professionals")}
-              </TabsTrigger>
+              {isBusiness && (
+                <TabsTrigger value="professionals" className="whitespace-nowrap">
+                  {t("tabs.professionals", "Professionals")}
+                </TabsTrigger>
+              )}
               <TabsTrigger value="goals" className="whitespace-nowrap">
                 {t("tabs.goals", "Goals & Targets")}
               </TabsTrigger>
-              <TabsTrigger value="commissions" className="whitespace-nowrap">
-                {t("tabs.commissions", "Commissions")}
-              </TabsTrigger>
+              {isBusiness && (
+                <TabsTrigger value="commissions" className="whitespace-nowrap">
+                  {t("tabs.commissions", "Commissions")}
+                </TabsTrigger>
+              )}
               <TabsTrigger value="vouchers" className="whitespace-nowrap">
-                {t("tabs.vouchers", "Vouchers")}
+                {isBusiness ? t("tabs.vouchers", "Vouchers") : t("tabs.discounts", "Discounts")}
               </TabsTrigger>
-              <TabsTrigger value="promotions-impact" className="whitespace-nowrap">
-                {t("tabs.impact")}
-              </TabsTrigger>
+              {isBusiness && (
+                <TabsTrigger value="promotions-impact" className="whitespace-nowrap">
+                  {t("tabs.impact")}
+                </TabsTrigger>
+              )}
               <TabsTrigger value="transactions" className="whitespace-nowrap">
                 {t("tabs.transactions", "Transactions")}
               </TabsTrigger>
@@ -1449,10 +1460,10 @@ export function FinancialReportsPage() {
                     <TableRow>
                       <TableHead>{t("transactions.table.transaction")}</TableHead>
                       <TableHead>{t("transactions.table.clientService")}</TableHead>
-                      <TableHead>{t("transactions.table.professional")}</TableHead>
+                      {isBusiness && <TableHead>{t("transactions.table.professional")}</TableHead>}
                       <TableHead>{t("transactions.table.payment")}</TableHead>
                       <TableHead className="text-right">{t("transactions.table.gross")}</TableHead>
-                      <TableHead className="text-right">{t("transactions.table.commission")}</TableHead>
+                      {isBusiness && <TableHead className="text-right">{t("transactions.table.commission")}</TableHead>}
                       <TableHead className="text-right">{t("transactions.table.voucher")}</TableHead>
                       <TableHead className="text-right">{t("transactions.table.net")}</TableHead>
                       <TableHead>{t("transactions.table.status")}</TableHead>
@@ -1482,9 +1493,11 @@ export function FinancialReportsPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {transaction.professional}
-                        </TableCell>
+                        {isBusiness && (
+                          <TableCell className="text-sm">
+                            {transaction.professional}
+                          </TableCell>
+                        )}
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {getPaymentMethodIcon(transaction.paymentMethod)}
@@ -1500,9 +1513,11 @@ export function FinancialReportsPage() {
                         <TableCell className="text-right font-medium">
                           {formatCurrency(transaction.gross)}
                         </TableCell>
-                        <TableCell className="text-right text-red-600">
-                          -{formatCurrency(transaction.commission)}
-                        </TableCell>
+                        {isBusiness && (
+                          <TableCell className="text-right text-red-600">
+                            -{formatCurrency(transaction.commission)}
+                          </TableCell>
+                        )}
                         <TableCell className="text-right text-orange-600">
                           {transaction.voucher > 0
                             ? `-${formatCurrency(transaction.voucher)}`
@@ -1553,14 +1568,16 @@ export function FinancialReportsPage() {
                                       {transaction.client}
                                     </p>
                                   </div>
-                                  <div>
-                                    <Label className="text-sm font-medium">
-                                      {t("transactions.dialog.professional")}
-                                    </Label>
-                                    <p className="text-sm">
-                                      {transaction.professional}
-                                    </p>
-                                  </div>
+                                  {isBusiness && (
+                                    <div>
+                                      <Label className="text-sm font-medium">
+                                        {t("transactions.dialog.professional")}
+                                      </Label>
+                                      <p className="text-sm">
+                                        {transaction.professional}
+                                      </p>
+                                    </div>
+                                  )}
                                   <div>
                                     <Label className="text-sm font-medium">
                                       {t("transactions.dialog.service")}
@@ -1591,11 +1608,15 @@ export function FinancialReportsPage() {
                                       </span>
                                     </div>
                                     <div className="flex justify-between text-red-600">
-                                      <span>{t("transactions.dialog.commission")}</span>
-                                      <span>
-                                        -
-                                        {formatCurrency(transaction.commission)}
-                                      </span>
+                                      {isBusiness && (
+                                        <>
+                                          <span>{t("transactions.dialog.commission")}</span>
+                                          <span>
+                                            -
+                                            {formatCurrency(transaction.commission)}
+                                          </span>
+                                        </>
+                                      )}
                                     </div>
                                     {transaction.voucher > 0 && (
                                       <div className="flex justify-between text-orange-600">

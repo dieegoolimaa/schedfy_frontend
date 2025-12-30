@@ -123,7 +123,7 @@ export function PendingPaymentsWidget({ bookings, onProcessPayment }: PendingPay
                                         size="sm"
                                         className="h-7 text-[11px] px-2 h-7 gap-1 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
                                     >
-                                        Process <ArrowRight className="h-3 w-3" />
+                                        Record <ArrowRight className="h-3 w-3" />
                                     </Button>
                                 </div>
                             </div>
@@ -133,7 +133,7 @@ export function PendingPaymentsWidget({ bookings, onProcessPayment }: PendingPay
                 <div className="p-3 border-t bg-muted/20">
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                         <AlertCircle className="h-3 w-3" />
-                        <span>Click on a booking to record payment</span>
+                        <span>Click on a booking to record payment for history</span>
                     </div>
                 </div>
             </CardContent>

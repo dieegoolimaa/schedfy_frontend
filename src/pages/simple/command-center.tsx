@@ -79,6 +79,8 @@ import {
     Play,
     Hourglass,
     Eye,
+    Video,
+    ExternalLink,
 } from "lucide-react";
 
 interface CommandCenterProps {
@@ -1434,6 +1436,34 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 </div>
 
                             </div>
+
+                            {selectedBookingDetails.onlineMeeting?.meetingLink && (
+                                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                                    <Label className="text-sm font-semibold text-primary flex items-center gap-2 mb-2">
+                                        <Video className="h-4 w-4" />
+                                        {t('details.onlineMeeting', 'Online Meeting')}
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            readOnly
+                                            value={selectedBookingDetails.onlineMeeting.meetingLink}
+                                            className="bg-background text-xs h-8"
+                                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                                        />
+                                        <Button
+                                            size="sm"
+                                            className="h-8 shrink-0"
+                                            onClick={() => window.open(selectedBookingDetails.onlineMeeting.meetingLink, '_blank')}
+                                        >
+                                            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                                            {t('details.joinMeeting', 'Join')}
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground mt-2">
+                                        Provider: {selectedBookingDetails.onlineMeeting.provider === 'google-meet' ? 'Google Meet' : 'Online Call'}
+                                    </p>
+                                </div>
+                            )}
 
                             {selectedBookingDetails.notes && (
                                 <div>

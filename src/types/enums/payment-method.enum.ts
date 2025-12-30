@@ -4,9 +4,6 @@
  * @enum {string}
  */
 export enum PaymentMethod {
-    /** Pagamento online via Stripe */
-    STRIPE = 'stripe',
-
     /** Dinheiro */
     CASH = 'cash',
 
@@ -30,11 +27,9 @@ export enum PaymentMethod {
 }
 
 /**
- * Métodos que requerem processamento online
+ * Métodos que requerem processamento online (Nenhum no momento)
  */
-export const ONLINE_PAYMENT_METHODS = [
-    PaymentMethod.STRIPE,
-];
+export const ONLINE_PAYMENT_METHODS: PaymentMethod[] = [];
 
 /**
  * Métodos manuais (registrados manualmente pelo profissional)

@@ -9,6 +9,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { useClients } from "../../hooks/useClients";
 import { useBookings } from "../../hooks/useBookings";
 import { toast } from "sonner";
+import { usePlanRestrictions } from "../../hooks/use-plan-restrictions";
 import { formatDate, formatDateTime } from "../../lib/region-config";
 import {
   Card,
@@ -92,6 +93,7 @@ export function ClientProfilePage() {
 
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();
+  const { isSimplePlan } = usePlanRestrictions();
   const entityId = user?.entityId || user?.id || "";
 
   const {
@@ -837,20 +839,24 @@ export function ClientProfilePage() {
             icon={Calendar}
             variant="info"
           />
-          <StatCard
-            title={t("stats.revenue", "Revenue")}
-            value={formatCurrency(stats.totalRevenue)}
-            subtitle={t("stats.totalSub", "Total")}
-            icon={Euro}
-            variant="success"
-          />
-          <StatCard
-            title={t("stats.avgSpent", "Avg. Spent")}
-            value={formatCurrency(stats.averageSpent)}
-            subtitle={t("stats.perClient", "Per Client")}
-            icon={Euro}
-            variant="warning"
-          />
+          {!isSimplePlan && (
+            <>
+              <StatCard
+                title={t("stats.revenue", "Revenue")}
+                value={formatCurrency(stats.totalRevenue)}
+                subtitle={t("stats.totalSub", "Total")}
+                icon={Euro}
+                variant="success"
+              />
+              <StatCard
+                title={t("stats.avgSpent", "Avg. Spent")}
+                value={formatCurrency(stats.averageSpent)}
+                subtitle={t("stats.perClient", "Per Client")}
+                icon={Euro}
+                variant="warning"
+              />
+            </>
+          )}
         </StatsGrid>
       )}
 
@@ -923,7 +929,7 @@ export function ClientProfilePage() {
                     <TableHead>{t("table.client", "Client")}</TableHead>
                     <TableHead>{t("table.contact", "Contact")}</TableHead>
                     <TableHead>{t("table.activity", "Activity")}</TableHead>
-                    <TableHead>{t("table.spending", "Spending")}</TableHead>
+                    {!isSimplePlan && <TableHead>{t("table.spending", "Spending")}</TableHead>}
                     <TableHead>{t("table.status", "Status")}</TableHead>
                     <TableHead className="w-[100px]">
                       {t("table.actions", "Actions")}
@@ -943,17 +949,16 @@ export function ClientProfilePage() {
                         <TableCell>
                           <Skeleton className="h-4 w-20" />
                         </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-16" />
-                        </TableCell>
+                        {!isSimplePlan && (
+                          <TableCell>
+                            <Skeleton className="h-4 w-16" />
+                          </TableCell>
+                        )}
                         <TableCell>
                           <Skeleton className="h-4 w-16" />
                         </TableCell>
                         <TableCell>
                           <Skeleton className="h-4 w-12" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-6 w-20" />
                         </TableCell>
                       </TableRow>
                     ))
@@ -1021,16 +1026,18 @@ export function ClientProfilePage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="font-medium">
-                                {formatCurrency(totalSpent)}
+                          {!isSimplePlan && (
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="font-medium">
+                                  {formatCurrency(totalSpent)}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Avg: {formatCurrency(averageSpent)}
+                                </div>
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                Avg: {formatCurrency(averageSpent)}
-                              </div>
-                            </div>
-                          </TableCell>
+                            </TableCell>
+                          )}
                           <TableCell>
                             <Badge
                               variant="outline"
@@ -1127,9 +1134,11 @@ export function ClientProfilePage() {
                       <TableHead>
                         {t("activity.tableDateTime", "Date & Time")}
                       </TableHead>
-                      <TableHead>
-                        {t("activity.tableAmount", "Amount")}
-                      </TableHead>
+                      {!isSimplePlan && (
+                        <TableHead>
+                          {t("activity.tableAmount", "Amount")}
+                        </TableHead>
+                      )}
                       <TableHead>
                         {t("activity.tableStatus", "Status")}
                       </TableHead>
@@ -1196,10 +1205,9 @@ export function ClientProfilePage() {
                   {t("analytics.topClients", "Top Clients")}
                 </CardTitle>
                 <CardDescription>
-                  {t(
-                    "analytics.topClientsDescription",
-                    "Clients with highest spending"
-                  )}
+                  {isSimplePlan
+                    ? t("analytics.topClientsDescriptionSimple", "Clients with most bookings")
+                    : t("analytics.topClientsDescription", "Clients with highest spending")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1221,7 +1229,9 @@ export function ClientProfilePage() {
                     .map(ensureClientName)
                     .sort(
                       (a, b) =>
-                        (b.stats?.totalSpent || 0) - (a.stats?.totalSpent || 0)
+                        isSimplePlan
+                          ? (b.stats?.totalBookings || 0) - (a.stats?.totalBookings || 0)
+                          : (b.stats?.totalSpent || 0) - (a.stats?.totalSpent || 0)
                     )
                     .slice(0, 5)
                     .map((client, index) => {
@@ -1257,12 +1267,16 @@ export function ClientProfilePage() {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">
-                              {formatCurrency(totalSpent)}
+                              {isSimplePlan
+                                ? `${totalBookings} ${t("analytics.bookings", "bookings")}`
+                                : formatCurrency(totalSpent)}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {totalBookings}{" "}
-                              {t("analytics.bookings", "bookings")}
-                            </p>
+                            {!isSimplePlan && (
+                              <p className="text-xs text-muted-foreground">
+                                {totalBookings}{" "}
+                                {t("analytics.bookings", "bookings")}
+                              </p>
+                            )}
                           </div>
                         </div>
                       );
@@ -1315,46 +1329,50 @@ export function ClientProfilePage() {
                         % of total
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <Euro className="h-4 w-4 mr-2 text-blue-500" />
-                        <span className="text-sm font-medium">
-                          Avg. Lifetime Value
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold">
-                        €
-                        {(
-                          Number(clients.reduce(
-                            (sum: number, c: any) =>
-                              sum + (c.stats?.totalSpent || 0),
-                            0
-                          ) / (clients.length || 1)) || 0
-                        ).toFixed(0)}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Per client
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <Heart className="h-4 w-4 mr-2 text-red-500" />
-                        <span className="text-sm font-medium">
-                          Total Revenue
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold">
-                        €
-                        {clients
-                          .reduce(
-                            (sum: number, c: any) =>
-                              sum + Number(c.stats?.totalSpent || 0),
-                            0
-                          )
-                          .toFixed(2)}
-                      </div>
-                      <p className="text-xs text-muted-foreground">All time</p>
-                    </div>
+                    {!isSimplePlan && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center">
+                            <Euro className="h-4 w-4 mr-2 text-blue-500" />
+                            <span className="text-sm font-medium">
+                              Avg. Lifetime Value
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold">
+                            €
+                            {(
+                              Number(clients.reduce(
+                                (sum: number, c: any) =>
+                                  sum + (c.stats?.totalSpent || 0),
+                                0
+                              ) / (clients.length || 1)) || 0
+                            ).toFixed(0)}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Per client
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center">
+                            <Heart className="h-4 w-4 mr-2 text-red-500" />
+                            <span className="text-sm font-medium">
+                              Total Revenue
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold">
+                            €
+                            {clients
+                              .reduce(
+                                (sum: number, c: any) =>
+                                  sum + Number(c.stats?.totalSpent || 0),
+                                0
+                              )
+                              .toFixed(2)}
+                          </div>
+                          <p className="text-xs text-muted-foreground">All time</p>
+                        </div>
+                      </>
+                    )}
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-2 text-purple-500" />
@@ -1460,28 +1478,32 @@ export function ClientProfilePage() {
                       </div>
                     </CardContent>
                   </Card>
-                  <Card>
-                    <CardContent className="p-4 pt-6">
-                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                        <Euro className="h-4 w-4" />
-                        <span className="text-xs font-medium uppercase">Total Spent</span>
-                      </div>
-                      <div className="text-2xl font-bold text-green-600">
-                        {formatCurrency(selectedClient.stats?.totalSpent || selectedClient.totalSpent || 0)}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 pt-6">
-                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                        <TrendingUp className="h-4 w-4" />
-                        <span className="text-xs font-medium uppercase">Avg. Value</span>
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {formatCurrency(selectedClient.stats?.averageBookingValue || selectedClient.averageSpent || 0)}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {!isSimplePlan && (
+                    <>
+                      <Card>
+                        <CardContent className="p-4 pt-6">
+                          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                            <Euro className="h-4 w-4" />
+                            <span className="text-xs font-medium uppercase">Total Spent</span>
+                          </div>
+                          <div className="text-2xl font-bold text-green-600">
+                            {formatCurrency(selectedClient.stats?.totalSpent || selectedClient.totalSpent || 0)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 pt-6">
+                          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                            <TrendingUp className="h-4 w-4" />
+                            <span className="text-xs font-medium uppercase">Avg. Value</span>
+                          </div>
+                          <div className="text-2xl font-bold">
+                            {formatCurrency(selectedClient.stats?.averageBookingValue || selectedClient.averageSpent || 0)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </>
+                  )}
                   <Card>
                     <CardContent className="p-4 pt-6">
                       <div className="flex items-center gap-2 text-muted-foreground mb-2">
@@ -1545,7 +1567,7 @@ export function ClientProfilePage() {
                           <TableHead>Service</TableHead>
                           <TableHead>Professional</TableHead>
                           <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
+                          {!isSimplePlan && <TableHead className="text-right">Amount</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1571,9 +1593,11 @@ export function ClientProfilePage() {
                                   {booking.status}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-right">
-                                {formatCurrency(booking.totalPrice || booking.price || 0)}
-                              </TableCell>
+                              {!isSimplePlan && (
+                                <TableCell className="text-right">
+                                  {formatCurrency(booking.totalPrice || booking.price || 0)}
+                                </TableCell>
+                              )}
                             </TableRow>
                           ))
                         ) : (

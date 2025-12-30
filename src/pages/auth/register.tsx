@@ -148,8 +148,8 @@ export function RegisterPage() {
     resolver: zodResolver(registerSchema),
     mode: "onChange",
     defaultValues: {
-      plan: initialData.savedData?.plan || planFromUrl || undefined,
-      billingPeriod: initialData.savedData?.billingPeriod || billingFromUrl || "month",
+      plan: planFromUrl || initialData.savedData?.plan || undefined,
+      billingPeriod: billingFromUrl || initialData.savedData?.billingPeriod || "month",
       firstName: initialData.savedData?.firstName || "",
       lastName: initialData.savedData?.lastName || "",
       email: initialData.savedData?.email || "",
@@ -182,7 +182,7 @@ export function RegisterPage() {
   const formValues = watch();
   useEffect(() => {
     if (isRestoringData) return;
-    
+
     const { password, confirmPassword, ...dataToSave } = formValues;
     storage.setRegistrationData(dataToSave);
     storage.setRegistrationStep(currentStep);
@@ -361,10 +361,10 @@ export function RegisterPage() {
       });
 
       console.log("[Register] Account created successfully!");
-      
+
       // Clear registration data from localStorage on success
       storage.clearRegistrationFlow();
-      
+
       toast.success("Account created successfully! Welcome to Schedfy!");
 
       // Redirect to onboarding
@@ -409,7 +409,7 @@ export function RegisterPage() {
 
   const renderStepContent = () => {
     const billingPeriod = watch("billingPeriod");
-    
+
     switch (currentStep) {
       case 1:
         // Plan Selection

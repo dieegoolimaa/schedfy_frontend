@@ -53,7 +53,7 @@ export default function Integrations() {
         t("integrations.apple.feature4", "Siri integration"),
         t("integrations.apple.feature5", "Family calendar sharing"),
       ],
-      availability: "all-plans",
+      availability: "coming-soon",
     },
   ];
 
@@ -106,7 +106,7 @@ export default function Integrations() {
       title: t("integrations.setup.step2.title", "Authorize Access"),
       description: t(
         "integrations.setup.step2.desc",
-        "Sign in with your Google or Apple account to grant permission"
+        "Sign in with your Google account to grant permission"
       ),
     },
     {
@@ -143,7 +143,7 @@ export default function Integrations() {
             <p className="text-xl text-muted-foreground mb-8">
               {t(
                 "integrations.hero.subtitle",
-                "Keep all your appointments in sync across Google Calendar and Apple Calendar with automatic two-way synchronization."
+                "Keep all your appointments in sync across Google Calendar with automatic two-way synchronization."
               )}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -194,7 +194,7 @@ export default function Integrations() {
                           {integration.name}
                         </CardTitle>
                         <Badge variant="secondary">
-                          {t(
+                          {integration.availability === "coming-soon" ? "Coming Soon" : t(
                             `integrations.availability.${integration.availability}`,
                             "All Plans"
                           )}
@@ -317,7 +317,7 @@ export default function Integrations() {
                 <p className="text-muted-foreground">
                   {t(
                     "integrations.faq.a1",
-                    "Yes! Calendar synchronization with Google Calendar and Apple Calendar is available on all subscription plans, including the Simple plan."
+                    "Yes! Calendar synchronization with Google Calendar is available on all subscription plans, including the Simple plan."
                   )}
                 </p>
               </CardContent>
@@ -355,7 +355,7 @@ export default function Integrations() {
                 <p className="text-muted-foreground">
                   {t(
                     "integrations.faq.a3",
-                    "Yes, you can connect both Google Calendar and Apple Calendar simultaneously, and sync with multiple calendars within each service."
+                    "Yes, you can connect multiple Google Calendars and sync with multiple calendars within the service."
                   )}
                 </p>
               </CardContent>

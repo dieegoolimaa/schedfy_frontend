@@ -12,16 +12,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Video,
   Calendar,
   Check,
-  X,
   ExternalLink,
   Loader2,
   RefreshCw,
   Unlink,
+  ArrowLeft,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -74,14 +73,14 @@ export default function IntegrationsPage() {
         toast.error(`Failed to connect ${integration}. Please try again.`);
       }
       // Clean URL
-      window.history.replaceState({}, "", "/integrations");
+      window.history.replaceState({}, "", "/settings/integrations");
     }
   }, [searchParams]);
 
   // Fetch integration status
   const fetchStatus = async () => {
     try {
-      const response = await apiClient.get("/api/integrations/status");
+      const response = await apiClient.get<IntegrationStatus>("/api/integrations/status");
       setStatus(response.data);
     } catch (error) {
       console.error("Failed to fetch integration status:", error);
@@ -97,7 +96,7 @@ export default function IntegrationsPage() {
   const handleConnect = async (integrationId: string) => {
     setConnecting(integrationId);
     try {
-      const response = await apiClient.get(`/api/integrations/connect/${integrationId}`);
+      const response = await apiClient.get<{ url: string }>(`/api/integrations/connect/${integrationId}`);
       window.location.href = response.data.url;
     } catch (error) {
       console.error(`Failed to connect ${integrationId}:`, error);
@@ -141,6 +140,15 @@ export default function IntegrationsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+          onClick={() => window.history.back()}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t("common.back", "Back")}
+        </Button>
         <h1 className="text-3xl font-bold tracking-tight">
           {t("integrations.title", "Integrations")}
         </h1>
@@ -165,7 +173,7 @@ export default function IntegrationsPage() {
             <p className="text-sm text-muted-foreground mt-1">
               {t(
                 "integrations.howItWorksDesc",
-                "When you connect an integration, you can configure your services to automatically create meeting links. When a client books a service marked as 'Online' or 'Hybrid', the meeting link is automatically generated and sent to both parties."
+                "When you connect an integration, you can configure your services to automatically create meeting links. When a client books a service marked as 'Online', the meeting link is automatically generated and sent to both parties."
               )}
             </p>
           </div>
@@ -193,7 +201,7 @@ export default function IntegrationsPage() {
                     </div>
 
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold">{integration.name}</h3>
                         {isConnected ? (
                           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -306,7 +314,7 @@ export default function IntegrationsPage() {
               </div>
               <h4 className="font-medium mb-1">Configure Services</h4>
               <p className="text-sm text-muted-foreground">
-                Go to Services and set meeting type to "Online" or "Hybrid"
+                Go to Services and set meeting type to "Online"
               </p>
             </div>
             <div className="p-4 border rounded-lg">

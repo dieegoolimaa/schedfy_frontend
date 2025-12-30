@@ -131,17 +131,17 @@ export function HomePage() {
   // Map dynamic testimonials to component format
   const testimonials = dynamicTestimonials.length > 0
     ? dynamicTestimonials.map((testimonial) => ({
-        name: testimonial.authorName,
-        role: testimonial.authorRole || "",
-        content: testimonial.content,
-        rating: testimonial.rating,
-        avatar: testimonial.authorName
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2),
-      }))
+      name: testimonial.authorName,
+      role: testimonial.authorRole || "",
+      content: testimonial.content,
+      rating: testimonial.rating,
+      avatar: testimonial.authorName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2),
+    }))
     : fallbackTestimonials;
 
   const faqItems = [
@@ -356,7 +356,7 @@ export function HomePage() {
                 "Start free and scale as you grow. No hidden fees."
               )}
             </p>
-            
+
             {/* Billing Toggle */}
             <div className="flex items-center justify-center gap-4 mt-8">
               <Label htmlFor="billing-toggle-home" className={`text-sm ${billingPeriod === "month" ? "font-semibold" : "text-muted-foreground"}`}>
@@ -409,7 +409,7 @@ export function HomePage() {
                     <li className="flex items-center">
                       <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t("plans.simple.features.appointments", "Up to 50 appointments/month")}
+                        {t("plans.simple.features.appointments", "Up to 150 appointments/month")}
                       </span>
                     </li>
                     <li className="flex items-center">

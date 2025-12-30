@@ -17,8 +17,11 @@ import {
     ArrowLeft,
     Loader2,
     Building2,
+    Video,
+    ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import {
     Card,
@@ -107,16 +110,16 @@ export function PublicBookingManagementPage() {
         setRescheduling(true);
         try {
             const [time, professionalId] = selectedSlot.split('|');
-            
+
             // Validate time format
             if (!time || !time.includes(':')) {
                 throw new Error(`Invalid time format: ${time}`);
             }
-            
+
             const timeParts = time.split(':');
             const hours = parseInt(timeParts[0], 10);
             const minutes = parseInt(timeParts[1], 10);
-            
+
             // Validate parsed values
             if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
                 throw new Error(`Invalid time values: hours=${hours}, minutes=${minutes}`);
@@ -126,14 +129,14 @@ export function PublicBookingManagementPage() {
             const year = selectedDate.getFullYear();
             const month = selectedDate.getMonth();
             const day = selectedDate.getDate();
-            
+
             // Validate date components
             if (isNaN(year) || isNaN(month) || isNaN(day)) {
                 throw new Error(`Invalid date components: year=${year}, month=${month}, day=${day}`);
             }
-            
+
             const startDateTime = new Date(year, month, day, hours, minutes, 0, 0);
-            
+
             // Validate the date
             if (isNaN(startDateTime.getTime())) {
                 throw new Error('Invalid startDateTime created');
@@ -141,9 +144,9 @@ export function PublicBookingManagementPage() {
 
             // Calculate end time based on service duration (assuming 60 mins if not available)
             const duration = typeof booking.serviceId?.duration === 'number' ? booking.serviceId.duration : 60;
-            
+
             const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
-            
+
             // Validate end date
             if (isNaN(endDateTime.getTime())) {
                 throw new Error('Invalid endDateTime created');
@@ -365,6 +368,35 @@ export function PublicBookingManagementPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {booking.onlineMeeting?.meetingLink && (
+                                <div className="sm:col-span-2 bg-primary/5 p-4 rounded-lg border border-primary/20 mt-2">
+                                    <Label className="text-sm font-semibold text-primary flex items-center gap-2 mb-2">
+                                        <Video className="w-4 h-4" />
+                                        {t('onlineMeeting', 'Online Meeting Link')}
+                                    </Label>
+                                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                                        <div className="flex-1 w-full">
+                                            <Input
+                                                readOnly
+                                                value={booking.onlineMeeting.meetingLink}
+                                                className="bg-background text-sm h-10"
+                                                onClick={(e) => (e.target as HTMLInputElement).select()}
+                                            />
+                                        </div>
+                                        <Button
+                                            className="w-full sm:w-auto h-10 shrink-0"
+                                            onClick={() => window.open(booking.onlineMeeting!.meetingLink, '_blank')}
+                                        >
+                                            <ExternalLink className="h-4 w-4 mr-2" />
+                                            {t('joinMeeting', 'Join Meeting')}
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground mt-2">
+                                        {t('meetingProvider', 'Provider')}: {booking.onlineMeeting.provider === 'google-meet' ? 'Google Meet' : 'Online Call'}
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {booking.notes && (
@@ -396,8 +428,8 @@ export function PublicBookingManagementPage() {
 
                     <CardFooter className="bg-muted/40 border-t p-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
                         <div className="flex flex-wrap gap-2">
-                            <Button variant="outline" onClick={() => navigate("/")}>
-                                <ArrowLeft className="w-4 h-4 mr-2" /> {t("notFound.goHome", "Back to Home")}
+                            <Button variant="outline" onClick={() => navigate(-1)}>
+                                <ArrowLeft className="w-4 h-4 mr-2" /> {t("backToPrevious", "Back")}
                             </Button>
                             <Button variant="outline" onClick={() => {
                                 const slug = booking.entityId?.publicProfile?.slug || booking.entityId?.slug || booking.entityId?.username;
@@ -428,7 +460,7 @@ export function PublicBookingManagementPage() {
                                                 <Calendar
                                                     mode="single"
                                                     selected={selectedDate}
-                                                    onSelect={(date: Date | undefined) => {
+                                                    onSelect={(date: any) => {
                                                         setSelectedDate(date);
                                                         setSelectedSlot(null); // Reset slot when date changes
                                                     }}

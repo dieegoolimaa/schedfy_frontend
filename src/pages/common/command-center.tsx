@@ -96,6 +96,9 @@ import {
     X,
     Lock,
     Building,
+    Video,
+    ExternalLink,
+    MapPin,
 } from "lucide-react";
 import { LiveActivityWidget } from "../../components/dashboard/LiveActivityWidget";
 import { RecentActivitiesWidget } from "../../components/dashboard/RecentActivitiesWidget";
@@ -186,7 +189,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
     // Dialog state
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-    const [isDirectBookingLinkOpen, setIsDirectBookingLinkOpen] = useState(false);
     const [selectedBookingDetails, setSelectedBookingDetails] =
         useState<any>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -1089,6 +1091,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="p-4 sm:p-6 bg-transparent">
+
                                 <div className="space-y-3">
                                     {filteredBookings.map((booking) => (
                                         <div
@@ -1141,6 +1144,17 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                 <div className="flex flex-col">
                                                     <div className="font-medium text-sm sm:text-base text-foreground flex items-center gap-2">
                                                         {booking.service?.name}
+                                                        {booking.onlineMeeting ? (
+                                                            <Badge variant="outline" className="text-[10px] h-5 px-1 bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                                                                <Video className="h-3 w-3" />
+                                                                Online
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="outline" className="text-[10px] h-5 px-1 bg-slate-50 text-slate-700 border-slate-200 gap-1">
+                                                                <MapPin className="h-3 w-3" />
+                                                                In Person
+                                                            </Badge>
+                                                        )}
                                                         {(booking as any).recurrence?.isRecurring && (
                                                             <Badge
                                                                 variant="secondary"
@@ -1274,11 +1288,25 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                                                             {booking.status === 'confirmed' && (
                                                                 <DropdownMenuItem
-                                                                    onClick={() => handleUpdateStatus(booking.id, 'in_progress')}
-                                                                    className="text-blue-600"
+                                                                    onClick={() => {
+                                                                        if (booking.onlineMeeting?.meetingLink) {
+                                                                            window.open(booking.onlineMeeting.meetingLink, '_blank');
+                                                                        }
+                                                                        handleUpdateStatus(booking.id, 'in_progress');
+                                                                    }}
+                                                                    className="text-blue-600 font-semibold"
                                                                 >
-                                                                    <Play className="mr-2 h-4 w-4" />
-                                                                    {t("actions.startAppointment", "Start Appointment")}
+                                                                    {booking.onlineMeeting ? (
+                                                                        <>
+                                                                            <Video className="mr-2 h-4 w-4" />
+                                                                            {t("actions.joinMeeting", "Join Meeting")}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Play className="mr-2 h-4 w-4" />
+                                                                            {t("actions.startAppointment", "Start Appointment")}
+                                                                        </>
+                                                                    )}
                                                                 </DropdownMenuItem>
                                                             )}
 
@@ -1539,6 +1567,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     <RecentActivitiesWidget
                         bookings={displayBookings.slice(0, 20)}
                         maxItems={15}
+                        showFinancials={!isSimplePlan}
                     />
                 </div>
             </div >
@@ -1562,10 +1591,10 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             selectedBookingForPayment?.paymentStatus === 'failed' ? 'text-red-600' :
                                                 'text-primary'
                                     }`} />
-                                Payment Management
+                                Payment Registry
                             </DialogTitle>
                             <DialogDescription className="text-muted-foreground">
-                                Process payment for booking #{selectedBookingForPayment?.id?.slice(-6)}
+                                Record payment details for booking #{selectedBookingForPayment?.id?.slice(-6)} (Historical Record)
                             </DialogDescription>
                         </DialogHeader>
                     </div>
@@ -1823,7 +1852,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                                     {/* Payment Method Selection for remaining amount */}
                                     <div className="space-y-3">
-                                        <Label className="text-base font-medium">Complete Remaining Payment</Label>
+                                        <Label className="text-base font-medium">Record Remaining Payment</Label>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                             {[
                                                 { id: 'card', label: 'Card', icon: CreditCard },
@@ -1894,7 +1923,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                             ) : (
                                                 <>
                                                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                                                    Complete Payment
+                                                    Record Payment
                                                 </>
                                             )}
                                         </Button>
@@ -2124,10 +2153,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                         disabled={paymentLoading}
                                                         onClick={async () => {
                                                             setPaymentLoading(true);
-                                                            console.log('[Payment] Starting payment process...');
-                                                            console.log('[Payment] Booking ID:', selectedBookingForPayment.id);
-                                                            console.log('[Payment] Tax ID:', taxId);
-                                                            console.log('[Payment] Payment Method:', paymentMethod);
+
 
                                                             try {
                                                                 const payload: any = {
@@ -2140,23 +2166,17 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                     payload.amount = Math.round(parseFloat(customPaymentAmount) * 100);
                                                                 }
                                                                 // Call API to complete booking
-                                                                console.log('[Payment] Calling completeBooking API with payload:', payload);
                                                                 const response = await apiClient.patch(`/api/bookings/${selectedBookingForPayment.id}/complete`, payload);
-                                                                console.log('[Payment] API Response:', response);
 
                                                                 // Reload bookings
-                                                                console.log('[Payment] Fetching updated bookings...');
                                                                 await fetchBookings();
-                                                                console.log('[Payment] Bookings refreshed successfully');
 
                                                                 // Show success
                                                                 toast.success("Payment recorded successfully");
 
                                                                 // Update local state to show success view instead of closing
-                                                                console.log('[Payment] Updating local state for success view...');
 
                                                                 if (response.data) {
-                                                                    console.log('[Payment] Response data:', response.data);
 
                                                                     // Update the selected booking with fresh data from backend
                                                                     const responseData = response.data as any;
@@ -2184,7 +2204,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                     });
                                                                 }
 
-                                                                console.log('[Payment] Payment process completed successfully');
+
                                                             } catch (err: any) {
                                                                 console.error('[Payment] Payment process failed:', err);
                                                                 console.error('[Payment] Error details:', {
@@ -2305,7 +2325,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                         {selectedBookingDetails.service?.name || "N/A"}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {selectedBookingDetails.service?.duration || 0} min • {formatCurrency(selectedBookingDetails.pricing?.totalPrice || selectedBookingDetails.service?.price || 0)}
+                                        {selectedBookingDetails.service?.duration || 0} min {!isSimplePlan && `• ${formatCurrency(selectedBookingDetails.pricing?.totalPrice || selectedBookingDetails.service?.price || 0)}`}
                                     </p>
                                 </div>
                                 <div>
@@ -2383,6 +2403,34 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     )}
                                 </div>
                             </div>
+
+                            {selectedBookingDetails.onlineMeeting?.meetingLink && (
+                                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                                    <Label className="text-sm font-semibold text-primary flex items-center gap-2 mb-2">
+                                        <Video className="h-4 w-4" />
+                                        {t('details.onlineMeeting', 'Online Meeting')}
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            readOnly
+                                            value={selectedBookingDetails.onlineMeeting.meetingLink}
+                                            className="bg-background text-xs h-8"
+                                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                                        />
+                                        <Button
+                                            size="sm"
+                                            className="h-8 shrink-0"
+                                            onClick={() => window.open(selectedBookingDetails.onlineMeeting.meetingLink, '_blank')}
+                                        >
+                                            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                                            {t('details.joinMeeting', 'Join')}
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground mt-2">
+                                        Provider: {selectedBookingDetails.onlineMeeting.provider === 'google-meet' ? 'Google Meet' : 'Online Call'}
+                                    </p>
+                                </div>
+                            )}
 
                             {
                                 selectedBookingDetails.notes && (

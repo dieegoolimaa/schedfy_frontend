@@ -16,6 +16,7 @@ interface RecentActivitiesProps {
     bookings: any[];
     maxItems?: number;
     className?: string;
+    showFinancials?: boolean;
 }
 
 type ActivityType = 'created' | 'confirmed' | 'completed' | 'cancelled' | 'payment' | 'rejected';
@@ -31,7 +32,7 @@ interface Activity {
     bgColor: string;
 }
 
-export function RecentActivitiesWidget({ bookings, maxItems = 10, className }: RecentActivitiesProps) {
+export function RecentActivitiesWidget({ bookings, maxItems = 10, className, showFinancials = true }: RecentActivitiesProps) {
     const activities: Activity[] = useMemo(() => {
         const acts: Activity[] = [];
 
@@ -105,7 +106,7 @@ export function RecentActivitiesWidget({ bookings, maxItems = 10, className }: R
             }
 
             // Payment
-            if (booking.paymentStatus === 'paid' && booking.payment) {
+            if (showFinancials && booking.paymentStatus === 'paid' && booking.payment) {
                 acts.push({
                     id: `${booking.id}-payment`,
                     type: 'payment',

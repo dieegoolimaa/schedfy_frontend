@@ -37,7 +37,7 @@ export default function Features() {
         t("features.smartScheduling.benefit1", "Automatic conflict detection"),
         t("features.smartScheduling.benefit2", "Drag & drop interface"),
         t("features.smartScheduling.benefit3", "Recurring appointments"),
-        t("features.smartScheduling.benefit4", "Calendar sync (Google, Apple)"),
+        t("features.smartScheduling.benefit4", "Calendar sync (Google & Apple Calendar)"),
       ],
     },
     {

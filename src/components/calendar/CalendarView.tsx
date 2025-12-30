@@ -14,13 +14,15 @@ import { Badge } from "../ui/badge";
 import {
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   Clock,
   User,
   DollarSign,
   Maximize2,
   Minimize2,
   Plus,
+  Video,
+  MapPin,
+  ExternalLink,
 } from "lucide-react";
 import {
   Select,
@@ -536,7 +538,8 @@ export function CalendarView({
                                 </div>
 
                                 {/* Client Name - Most Important */}
-                                <div className="font-bold text-xs leading-tight truncate mb-0.5 text-inherit">
+                                <div className="font-bold text-xs leading-tight truncate mb-0.5 text-inherit flex items-center gap-1">
+                                  {booking.onlineMeeting && <Video className="h-2.5 w-2.5 shrink-0" />}
                                   {
                                     booking.status === 'blocked'
                                       ? (booking.internalNotes || "Blocked Time")
@@ -680,6 +683,11 @@ export function CalendarView({
                                 {typeof booking.service === "object"
                                   ? booking.service?.name
                                   : "Service"}
+                                {booking.onlineMeeting && (
+                                  <Badge variant="outline" className="ml-2 text-[10px] h-4 bg-blue-50 text-blue-700 border-blue-200 p-1 capitalize">
+                                    Online
+                                  </Badge>
+                                )}
                               </div>
                               <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground truncate">
                                 <User className="h-3 w-3" />
@@ -817,8 +825,8 @@ export function CalendarView({
                         return bookingHour === h;
                       });
                       return (
-                        <div 
-                          key={h} 
+                        <div
+                          key={h}
                           className={cn(
                             "absolute w-full border-t border-muted/20",
                             !hasBookingAtHour && onSlotClick && "cursor-pointer hover:bg-primary/5"
@@ -1228,12 +1236,25 @@ export function CalendarView({
 
                 {/* Service Information */}
                 <div className="space-y-2">
-                  <h3 className="font-semibold">Service</h3>
-                  <p className="text-sm">
-                    {typeof selectedBooking.service === "object"
-                      ? selectedBooking.service?.name
-                      : selectedBooking.service || "N/A"}
-                  </p>
+                  <h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Service</h3>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">
+                      {typeof selectedBooking.service === "object"
+                        ? selectedBooking.service?.name
+                        : selectedBooking.service || "N/A"}
+                    </p>
+                    {selectedBooking.onlineMeeting ? (
+                      <Badge variant="outline" className="text-[10px] h-5 bg-blue-50 text-blue-700 border-blue-200 gap-1 px-1.5">
+                        <Video className="h-3 w-3" />
+                        Online
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] h-5 bg-slate-50 text-slate-700 border-slate-200 gap-1 px-1.5">
+                        <MapPin className="h-3 w-3" />
+                        In Person
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 {/* Professional Information */}
@@ -1288,23 +1309,47 @@ export function CalendarView({
 
                 {/* Status */}
                 <div className="space-y-2">
-                  <h3 className="font-semibold">Status</h3>
+                  <h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Status</h3>
                   <Badge
                     variant="outline"
                     className={cn(
+                      "font-semibold",
                       selectedBooking.status === "confirmed" &&
-                      "bg-blue-100 text-blue-800",
+                      "bg-blue-100 text-blue-800 border-blue-200",
                       selectedBooking.status === "completed" &&
-                      "bg-green-100 text-green-800",
+                      "bg-green-100 text-green-800 border-green-200",
                       selectedBooking.status === "pending" &&
-                      "bg-yellow-100 text-yellow-800",
+                      "bg-yellow-100 text-yellow-800 border-yellow-200",
                       selectedBooking.status === "cancelled" &&
-                      "bg-red-100 text-red-800"
+                      "bg-red-100 text-red-800 border-red-200"
                     )}
                   >
                     {selectedBooking.status}
                   </Badge>
                 </div>
+
+                {/* Online Meeting Link */}
+                {selectedBooking.onlineMeeting?.meetingLink && (
+                  <div className="space-y-2 p-3 bg-blue-50/50 border border-blue-100 rounded-lg">
+                    <h3 className="font-semibold text-blue-700 text-xs uppercase tracking-wider flex items-center gap-2">
+                      <Video className="h-3.5 w-3.5" />
+                      Online Meeting
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-blue-600 truncate flex-1 font-medium bg-white p-1.5 border border-blue-200 rounded">
+                        {selectedBooking.onlineMeeting.meetingLink}
+                      </p>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-blue-600 hover:bg-blue-100"
+                        onClick={() => selectedBooking.onlineMeeting?.meetingLink && window.open(selectedBooking.onlineMeeting.meetingLink, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Price */}
                 {!isSimplePlan && typeof selectedBooking.service === "object" &&
@@ -1331,9 +1376,20 @@ export function CalendarView({
                 )}
 
                 {/* Actions */}
-                {onEditBooking && (
-                  <div className="pt-4 flex justify-end">
+                <div className="pt-4 flex flex-col gap-2">
+                  {selectedBooking.onlineMeeting?.meetingLink && selectedBooking.status === 'confirmed' && (
                     <Button
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white gap-2 font-bold h-11"
+                      onClick={() => selectedBooking.onlineMeeting?.meetingLink && window.open(selectedBooking.onlineMeeting.meetingLink, '_blank')}
+                    >
+                      <Video className="h-4 w-4" />
+                      Join Online Meeting
+                    </Button>
+                  )}
+                  {onEditBooking && (
+                    <Button
+                      variant="outline"
+                      className="w-full h-11"
                       onClick={() => {
                         onEditBooking(selectedBooking);
                         setShowBookingDetails(false);
@@ -1341,8 +1397,8 @@ export function CalendarView({
                     >
                       Edit Booking
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </DialogContent>
@@ -1395,10 +1451,15 @@ export function CalendarView({
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="font-semibold">
+                      <div className="font-semibold flex items-center gap-2">
                         {typeof booking.service === "object"
                           ? booking.service?.name
                           : "Service"}
+                        {booking.onlineMeeting && (
+                          <Badge variant="outline" className="text-[10px] h-4 bg-blue-50 text-blue-700 border-blue-200 p-1 capitalize px-1.5">
+                            Online
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                         <User className="h-3 w-3" />
@@ -1480,12 +1541,25 @@ export function CalendarView({
 
               {/* Service Information */}
               <div className="space-y-2">
-                <h3 className="font-semibold">Service</h3>
-                <p className="text-sm">
-                  {typeof selectedBooking.service === "object"
-                    ? selectedBooking.service?.name
-                    : selectedBooking.service || "N/A"}
-                </p>
+                <h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Service</h3>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">
+                    {typeof selectedBooking.service === "object"
+                      ? selectedBooking.service?.name
+                      : selectedBooking.service || "N/A"}
+                  </p>
+                  {selectedBooking.onlineMeeting ? (
+                    <Badge variant="outline" className="text-[10px] h-5 bg-blue-50 text-blue-700 border-blue-200 gap-1 px-1.5">
+                      <Video className="h-3 w-3" />
+                      Online
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] h-5 bg-slate-50 text-slate-700 border-slate-200 gap-1 px-1.5">
+                      <MapPin className="h-3 w-3" />
+                      In Person
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               {/* Professional Information */}
@@ -1541,23 +1615,47 @@ export function CalendarView({
 
               {/* Status */}
               <div className="space-y-2">
-                <h3 className="font-semibold">Status</h3>
+                <h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Status</h3>
                 <Badge
                   variant="outline"
                   className={cn(
+                    "font-semibold",
                     selectedBooking.status === "confirmed" &&
-                    "bg-blue-100 text-blue-800",
+                    "bg-blue-100 text-blue-800 border-blue-200",
                     selectedBooking.status === "completed" &&
-                    "bg-green-100 text-green-800",
+                    "bg-green-100 text-green-800 border-green-200",
                     selectedBooking.status === "pending" &&
-                    "bg-yellow-100 text-yellow-800",
+                    "bg-yellow-100 text-yellow-800 border-yellow-200",
                     selectedBooking.status === "cancelled" &&
-                    "bg-red-100 text-red-800"
+                    "bg-red-100 text-red-800 border-red-200"
                   )}
                 >
                   {selectedBooking.status}
                 </Badge>
               </div>
+
+              {/* Online Meeting Link */}
+              {selectedBooking.onlineMeeting?.meetingLink && (
+                <div className="space-y-2 p-3 bg-blue-50/50 border border-blue-100 rounded-lg">
+                  <h3 className="font-semibold text-blue-700 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Video className="h-3.5 w-3.5" />
+                    Online Meeting
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-blue-600 truncate flex-1 font-medium bg-white p-1.5 border border-blue-200 rounded">
+                      {selectedBooking.onlineMeeting.meetingLink}
+                    </p>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-blue-600 hover:bg-blue-100"
+                      onClick={() => selectedBooking.onlineMeeting?.meetingLink && window.open(selectedBooking.onlineMeeting.meetingLink, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Price */}
               {!isSimplePlan && typeof selectedBooking.service === "object" &&
@@ -1584,9 +1682,20 @@ export function CalendarView({
               )}
 
               {/* Actions */}
-              {onEditBooking && (
-                <div className="pt-4 flex justify-end">
+              <div className="pt-4 flex flex-col gap-2">
+                {selectedBooking.onlineMeeting?.meetingLink && selectedBooking.status === 'confirmed' && (
                   <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white gap-2 font-bold h-11"
+                    onClick={() => selectedBooking.onlineMeeting?.meetingLink && window.open(selectedBooking.onlineMeeting.meetingLink, '_blank')}
+                  >
+                    <Video className="h-4 w-4" />
+                    Join Online Meeting
+                  </Button>
+                )}
+                {onEditBooking && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-11"
                     onClick={() => {
                       onEditBooking(selectedBooking);
                       setShowBookingDetails(false);
@@ -1594,8 +1703,8 @@ export function CalendarView({
                   >
                     Edit Booking
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </DialogContent>

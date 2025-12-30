@@ -47,8 +47,10 @@ export interface RegionConfig {
     phonePrefix: string;
     dateFormat: string;
     priceFormat: {
-        simple: string;
-        individual: string;
-        business: string;
+        simple: { monthly: string; yearly: string };
+        simple_unlimited?: { monthly: string; yearly: string };
+        individual: { monthly: string; yearly: string };
+        business: { monthly: string; yearly: string };
+        ai_insights?: { monthly: string; yearly: string };
     };
 }

@@ -148,7 +148,7 @@ const ServicesAndPackages: React.FC = () => {
     isPublic: true,
     requireManualConfirmation: false,
     meetingType: "in-person" as "in-person" | "online",
-    onlineProvider: "" as "" | "google_meet" | "custom",
+    onlineProvider: "" as "" | "google-meet" | "custom",
     customMeetingLink: "",
   });
 
@@ -1216,36 +1216,14 @@ const ServicesAndPackages: React.FC = () => {
                             <Button
                               type="button"
                               size="sm"
-                              variant={serviceFormData.onlineProvider === "google_meet" ? "default" : "outline"}
-                              onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google_meet", customMeetingLink: "" })}
+                              variant={serviceFormData.onlineProvider === "google-meet" ? "default" : "outline"}
+                              onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google-meet", customMeetingLink: "" })}
                             >
                               📹 Google Meet
                             </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant={serviceFormData.onlineProvider === "custom" ? "default" : "outline"}
-                              onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "custom" })}
-                            >
-                              🔗 {t("services.form.customLink", "Custom Link")}
-                            </Button>
                           </div>
 
-                          {/* Custom Link Input */}
-                          {serviceFormData.onlineProvider === "custom" && (
-                            <div className="space-y-2">
-                              <Label htmlFor="custom-meeting-link" className="text-sm">
-                                {t("services.form.customMeetingLink", "Meeting Link")}
-                              </Label>
-                              <Input
-                                id="custom-meeting-link"
-                                type="url"
-                                placeholder="https://meet.example.com/your-room"
-                                value={serviceFormData.customMeetingLink}
-                                onChange={(e) => setServiceFormData({ ...serviceFormData, customMeetingLink: e.target.value })}
-                              />
-                            </div>
-                          )}
+
 
                           {/* Auto-create meeting hint */}
                           {serviceFormData.onlineProvider && serviceFormData.onlineProvider !== "custom" && (
@@ -1671,8 +1649,8 @@ const ServicesAndPackages: React.FC = () => {
                             <Button
                               type="button"
                               size="sm"
-                              variant={serviceFormData.onlineProvider === "google_meet" ? "default" : "outline"}
-                              onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google_meet", customMeetingLink: "" })}
+                              variant={serviceFormData.onlineProvider === "google-meet" ? "default" : "outline"}
+                              onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google-meet", customMeetingLink: "" })}
                             >
                               📹 Google Meet
                             </Button>

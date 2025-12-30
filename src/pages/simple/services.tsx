@@ -970,8 +970,8 @@ const SimpleServicesPage: React.FC = () => {
                         <Button
                           type="button"
                           size="sm"
-                          variant={serviceFormData.onlineProvider === "google_meet" ? "default" : "outline"}
-                          onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google_meet", customMeetingLink: "" })}
+                          variant={serviceFormData.onlineProvider === "google-meet" ? "default" : "outline"}
+                          onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google-meet", customMeetingLink: "" })}
                         >
                           📹 Google Meet
                         </Button>

@@ -60,6 +60,11 @@ export interface Booking {
     client?: ClientInfo;
     professional?: ProfessionalInfo;
     clientInfo?: ClientInfo; // Backend também pode retornar clientInfo
+    onlineMeeting?: {
+        provider: 'google-meet' | 'custom';
+        meetingLink: string;
+        meetingId?: string;
+    };
 }
 
 export interface ServiceInfo {

@@ -128,11 +128,21 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
         }
       }
       // Fallback to static pricing from region config
-      return (
+      const staticPrices =
         regionConfig.priceFormat[
         planType as keyof typeof regionConfig.priceFormat
-        ] || "N/A"
-      );
+        ];
+
+      // Handle the new object structure { monthly: string, yearly: string }
+      if (staticPrices && typeof staticPrices === "object") {
+        return (
+          staticPrices[billingPeriod as "monthly" | "yearly"] ||
+          staticPrices.monthly ||
+          "N/A"
+        );
+      }
+
+      return "N/A";
     },
     [pricing, pricingLoading, getPriceForPlan, region, regionConfig]
   );
