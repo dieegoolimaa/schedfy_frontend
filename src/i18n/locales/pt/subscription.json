@@ -39,8 +39,11 @@
     "comingSoonDesc": "Acompanhe os seus agendamentos, receitas e crescimento de clientes aqui em atualizações futuras.",
     "bookings": "Agendamentos",
     "professionals": "Profissionais",
+    "clients": "Clientes",
     "storage": "Armazenamento",
-    "aiInsights": "Insights de IA"
+    "aiInsights": "Insights de IA",
+    "unlimited": "Ilimitado",
+    "notAvailable": "Não disponível"
   },
   "tabs": {
     "changePlan": "Alterar Plano",
@@ -60,7 +63,7 @@
     "notAvailableSimple": "Não disponível para o Plano Simple",
     "simple": {
       "name": "Simple",
-      "description": "Perfeito para começar"
+      "description": "Para equipas e estabelecimentos"
     },
     "simple_unlimited": {
       "name": "Simple Unlimited",
@@ -68,33 +71,33 @@
     },
     "individual": {
       "name": "Individual",
-      "description": "Funcionalidades melhoradas para negócios em crescimento"
+      "description": "Para profissionais autónomos"
     },
     "business": {
       "name": "Business",
-      "description": "Solução completa para equipas"
+      "description": "Solução completa para grandes empresas"
     }
   },
   "addOns": {
-    "title": "Add-ons Disponíveis",
-    "active": "Ativo",
+    "title": "Funcionalidades Incluídas",
+    "active": "Incluído",
     "aiInsights": {
       "name": "AI Business Insights",
-      "description": "Análises e recomendações avançadas com IA",
+      "description": "Incluído no seu plano - Análises e recomendações avançadas com IA",
       "features": {
         "predictive": "Análises preditivas",
         "clientBehavior": "Insights de comportamento do cliente",
         "optimization": "Dicas de otimização do negócio"
       },
-      "confirmTrialEnd": "Ao assinar o AI Business Insights, o seu período experimental terminará imediatamente e será cobrado o valor do plano + add-on. Deseja continuar?"
+      "included": "Incluído no seu plano"
     },
     "unlimitedBookings": {
       "name": "Agendamentos Ilimitados",
-      "description": "Remova os limites de agendamento do seu plano Simple",
+      "description": "Faça upgrade para Individual para agendamentos ilimitados",
       "features": {
         "unlimited": "Agendamentos ilimitados",
         "keepFeatures": "Mantenha as funcionalidades atuais",
-        "noAi": "Sem funcionalidades de IA",
+        "ai": "Insights de IA incluídos",
         "cancel": "Cancele a qualquer momento"
       }
     }

@@ -254,18 +254,29 @@
     "upgrade": "Upgrade",
     "simple": { 
       "name": "Simple",
+      "description": "For teams and establishments",
       "features": {
-        "email": "Email notifications",
-        "mobile": "Mobile app"
+        "professionals": "Unlimited professionals",
+        "ai": "AI Insights included",
+        "email": "Email notifications"
       }
     },
-    "individual": { "name": "Individual" },
+    "individual": { 
+      "name": "Individual",
+      "description": "For solo professionals",
+      "features": {
+        "appointments": "Unlimited appointments",
+        "clients": "Unlimited clients",
+        "ai": "AI Insights included"
+      }
+    },
     "business": { 
       "name": "Business", 
-      "description": "Complete solution for teams", 
+      "description": "Complete solution for enterprises", 
       "features": { 
-        "team": "Team management", 
-        "support": "Priority support" 
+        "team": "Unlimited professionals", 
+        "support": "Priority support",
+        "ai": "Advanced AI insights"
       } 
     }
   },
@@ -337,12 +348,12 @@
         "theme1": "Theme 1",
         "plansTitle": "Plans & Subscriptions",
         "plansDesc": "Understand how our subscription model works, the limits of each plan, and how to choose the best option for your business.",
-        "simpleTitle": "Entry Level Solution",
-        "simpleText": "Perfect for professionals starting their journey alone. Focus on simplicity and core booking features.",
-        "individualTitle": "Advanced Professional",
-        "individualText": "Designed for established professionals who need more scale, advanced analytics, and a custom brand identity.",
-        "businessTitle": "Enterprise & Clinics",
-        "businessText": "The complete solution for teams. Manage multiple calendars, team permissions, and get unlimited growth potential.",
+        "simpleTitle": "For Teams and Establishments",
+        "simpleText": "Ideal for salons, clinics, and businesses with multiple professionals. Manage your entire team with unlimited professionals, AI insights, and up to 150 appointments per month.",
+        "individualTitle": "For Solo Professionals",
+        "individualText": "Perfect for independent professionals working alone. Unlimited appointments and clients, AI insights included, and all the tools to manage your business.",
+        "businessTitle": "For Enterprises",
+        "businessText": "The complete solution for large businesses. Everything unlimited, priority support, multi-location, and custom integrations.",
         "professional": "Professional",
         "services": "Services",
         "clients": "Clients",

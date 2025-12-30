@@ -84,7 +84,8 @@ export function UpgradePage() {
 
   // Special "Unlimited Bookings" add-on for Simple plan users
   if (user?.plan === "simple") {
-    const unlimitedRawPrice = region === "BR" ? 29.90 : 9.90;
+    // Prices from pricing.service.ts: PT €21.90, BR R$59.90, US $21.90
+    const unlimitedRawPrice = region === "BR" ? 59.90 : 21.90;
     const unlimitedPriceDisplay = new Intl.NumberFormat(regionConfig.locale, {
       style: "currency",
       currency: regionConfig.currency,
@@ -137,9 +138,9 @@ export function UpgradePage() {
             <h1 className="text-3xl font-bold tracking-tight">
               {t("title")}
             </h1>
-            {user && (
+            {user?.plan && (
               <Badge variant="secondary" className="text-sm font-normal py-1">
-                {t("currentPlan", { plan: user.plan })}
+                {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
               </Badge>
             )}
           </div>

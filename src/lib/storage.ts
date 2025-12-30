@@ -8,6 +8,12 @@ export const STORAGE_KEYS = {
     PRICING_CACHE: 'schedfy-pricing-cache',
     REGION: 'schedfy-region',
     LOCALE: 'schedfy-locale',
+    // Registration/Onboarding persistence
+    REGISTRATION_DATA: 'schedfy-registration-data',
+    REGISTRATION_STEP: 'schedfy-registration-step',
+    ONBOARDING_DATA: 'schedfy-onboarding-data',
+    ONBOARDING_STEP: 'schedfy-onboarding-step',
+    PENDING_VERIFICATION: 'schedfy-pending-verification',
 } as const;
 
 export const storage = {
@@ -50,6 +56,65 @@ export const storage = {
     },
     setPricingCache: (data: any) => localStorage.setItem(STORAGE_KEYS.PRICING_CACHE, JSON.stringify(data)),
     removePricingCache: () => localStorage.removeItem(STORAGE_KEYS.PRICING_CACHE),
+
+    // Registration data persistence
+    getRegistrationData: () => {
+        const data = localStorage.getItem(STORAGE_KEYS.REGISTRATION_DATA);
+        return data ? JSON.parse(data) : null;
+    },
+    setRegistrationData: (data: any) => localStorage.setItem(STORAGE_KEYS.REGISTRATION_DATA, JSON.stringify(data)),
+    removeRegistrationData: () => localStorage.removeItem(STORAGE_KEYS.REGISTRATION_DATA),
+
+    getRegistrationStep: () => {
+        const step = localStorage.getItem(STORAGE_KEYS.REGISTRATION_STEP);
+        return step ? parseInt(step, 10) : 1;
+    },
+    setRegistrationStep: (step: number) => localStorage.setItem(STORAGE_KEYS.REGISTRATION_STEP, step.toString()),
+    removeRegistrationStep: () => localStorage.removeItem(STORAGE_KEYS.REGISTRATION_STEP),
+
+    // Onboarding data persistence
+    getOnboardingData: () => {
+        const data = localStorage.getItem(STORAGE_KEYS.ONBOARDING_DATA);
+        return data ? JSON.parse(data) : null;
+    },
+    setOnboardingData: (data: any) => localStorage.setItem(STORAGE_KEYS.ONBOARDING_DATA, JSON.stringify(data)),
+    removeOnboardingData: () => localStorage.removeItem(STORAGE_KEYS.ONBOARDING_DATA),
+
+    getOnboardingStep: () => {
+        const step = localStorage.getItem(STORAGE_KEYS.ONBOARDING_STEP);
+        return step ? parseInt(step, 10) : 1;
+    },
+    setOnboardingStep: (step: number) => localStorage.setItem(STORAGE_KEYS.ONBOARDING_STEP, step.toString()),
+    removeOnboardingStep: () => localStorage.removeItem(STORAGE_KEYS.ONBOARDING_STEP),
+
+    // Pending verification (email + expiry)
+    getPendingVerification: () => {
+        const data = localStorage.getItem(STORAGE_KEYS.PENDING_VERIFICATION);
+        if (!data) return null;
+        const parsed = JSON.parse(data);
+        // Check if expired (10 minutes)
+        if (parsed.expiresAt && new Date(parsed.expiresAt) < new Date()) {
+            localStorage.removeItem(STORAGE_KEYS.PENDING_VERIFICATION);
+            return null;
+        }
+        return parsed;
+    },
+    setPendingVerification: (email: string, step: number) => {
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+        localStorage.setItem(STORAGE_KEYS.PENDING_VERIFICATION, JSON.stringify({ email, step, expiresAt }));
+    },
+    removePendingVerification: () => localStorage.removeItem(STORAGE_KEYS.PENDING_VERIFICATION),
+
+    // Clear registration/onboarding data on completion
+    clearRegistrationFlow: () => {
+        storage.removeRegistrationData();
+        storage.removeRegistrationStep();
+        storage.removePendingVerification();
+    },
+    clearOnboardingFlow: () => {
+        storage.removeOnboardingData();
+        storage.removeOnboardingStep();
+    },
 
     clearAuth: () => {
         storage.removeToken();

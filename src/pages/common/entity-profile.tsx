@@ -188,6 +188,7 @@ export function EntityProfilePage() {
 
   const subscriptionColors = {
     [EntityPlan.SIMPLE]: "bg-blue-100 text-blue-800 border-blue-200",
+    [EntityPlan.SIMPLE_UNLIMITED]: "bg-indigo-100 text-indigo-800 border-indigo-200",
     [EntityPlan.INDIVIDUAL]: "bg-purple-100 text-purple-800 border-purple-200",
     [EntityPlan.BUSINESS]: "bg-gold-100 text-gold-800 border-gold-200",
   };
@@ -875,13 +876,13 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="instagram"
-                        defaultValue={entityData.socialMedia.instagram}
+                        defaultValue={entityData?.socialMedia?.instagram || ''}
                         placeholder="@username"
                         className="flex-1"
                       />
                     ) : (
                       <span className="flex-1">
-                        {entityData.socialMedia.instagram}
+                        {entityData?.socialMedia?.instagram || '-'}
                       </span>
                     )}
                   </div>
@@ -894,13 +895,13 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="facebook"
-                        defaultValue={entityData.socialMedia.facebook}
+                        defaultValue={entityData?.socialMedia?.facebook || ''}
                         placeholder="Page name"
                         className="flex-1"
                       />
                     ) : (
                       <span className="flex-1">
-                        {entityData.socialMedia.facebook}
+                        {entityData?.socialMedia?.facebook || '-'}
                       </span>
                     )}
                   </div>
@@ -913,13 +914,13 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="twitter"
-                        defaultValue={entityData.socialMedia.twitter}
+                        defaultValue={entityData?.socialMedia?.twitter || ''}
                         placeholder="@username"
                         className="flex-1"
                       />
                     ) : (
                       <span className="flex-1">
-                        {entityData.socialMedia.twitter}
+                        {entityData?.socialMedia?.twitter || '-'}
                       </span>
                     )}
                   </div>
@@ -932,13 +933,13 @@ export function EntityProfilePage() {
                     {editMode ? (
                       <Input
                         id="linkedin"
-                        defaultValue={entityData.socialMedia.linkedin}
+                        defaultValue={entityData?.socialMedia?.linkedin || ''}
                         placeholder="Company name"
                         className="flex-1"
                       />
                     ) : (
                       <span className="flex-1">
-                        {entityData.socialMedia.linkedin}
+                        {entityData?.socialMedia?.linkedin || '-'}
                       </span>
                     )}
                   </div>
@@ -967,7 +968,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.onlineBooking}
+                    checked={entityData?.settings?.onlineBooking ?? true}
                     disabled={!editMode}
                   />
                 </div>
@@ -980,7 +981,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.showPrices}
+                    checked={entityData?.settings?.showPrices ?? true}
                     disabled={!editMode}
                   />
                 </div>
@@ -993,7 +994,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.allowCancellation}
+                    checked={entityData?.settings?.allowCancellation ?? true}
                     disabled={!editMode}
                   />
                 </div>
@@ -1006,7 +1007,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.autoConfirm}
+                    checked={entityData?.settings?.autoConfirm ?? false}
                     disabled={!editMode}
                   />
                 </div>
@@ -1019,7 +1020,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.requireDeposit}
+                    checked={entityData?.settings?.requireDeposit ?? false}
                     disabled={!editMode}
                   />
                 </div>
@@ -1042,7 +1043,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.emailNotifications}
+                    checked={entityData?.settings?.emailNotifications ?? true}
                     disabled={!editMode}
                   />
                 </div>
@@ -1055,7 +1056,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.smsNotifications}
+                    checked={entityData?.settings?.smsNotifications ?? false}
                     disabled={!editMode}
                   />
                 </div>
@@ -1078,7 +1079,7 @@ export function EntityProfilePage() {
                     </p>
                   </div>
                   <Switch
-                    checked={entityData.settings.publicProfile}
+                    checked={entityData?.settings?.publicProfile ?? true}
                     disabled={!editMode}
                   />
                 </div>
@@ -1113,28 +1114,17 @@ export function EntityProfilePage() {
                     }}
                   />
                 </div>
-                {!entityData.isPremium && (
-                  <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200">
-                    <strong>AI Insights Add-on required.</strong> Subscribe to AI Insights to unlock intelligent business analytics.
-                    <br />
-                    <span className="text-xs">
-                      • Simple plan: Operational insights (efficiency, capacity, trends)
-                      <br />
-                      • Individual/Business: Full insights (financial, management, demand + operational)
-                    </span>
-                  </div>
-                )}
-                {entityData.isPremium && (
-                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
-                    ✅ AI Insights active. Available features based on your plan:
-                    <br />
-                    <span className="text-xs">
-                      {entityData.plan === 'simple'
-                        ? '• Operational insights (efficiency, capacity, booking trends)'
-                        : '• Full insights (financial analytics, management tips, demand forecasting + operational)'}
-                    </span>
-                  </div>
-                )}
+                <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
+                  ✅ AI Insights incluído no seu plano. Funcionalidades disponíveis:
+                  <br />
+                  <span className="text-xs">
+                    {entityData.plan === 'simple'
+                      ? '• Insights operacionais (eficiência, capacidade, tendências de agendamento)'
+                      : entityData.plan === 'individual'
+                      ? '• Insights completos (análise financeira, dicas de gestão, previsão de procura + operacional)'
+                      : '• Insights avançados (análise financeira, gestão de equipa, multi-local, previsão de procura + operacional)'}
+                  </span>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -1155,25 +1145,26 @@ export function EntityProfilePage() {
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
                       <h3 className="text-lg font-semibold">
-                        {entityData.subscription.plan} Plan
+                        {entityData?.subscription?.plan || 'Free'} Plan
                       </h3>
                       <Badge
                         variant="outline"
                         className={
                           subscriptionColors[
-                          entityData.subscription
-                            .plan as keyof typeof subscriptionColors
-                          ]
+                          entityData?.subscription
+                            ?.plan as keyof typeof subscriptionColors
+                          ] || ''
                         }
                       >
-                        {entityData.subscription.status}
+                        {entityData?.subscription?.status || 'Active'}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Valid until{" "}
-                      {new Date(
-                        entityData.subscription.validUntil
-                      ).toLocaleDateString()}
+                      {entityData?.subscription?.validUntil ? (
+                        <>Valid until {new Date(entityData.subscription.validUntil).toLocaleDateString()}</>
+                      ) : (
+                        'No expiration'
+                      )}
                     </p>
                   </div>
                   <div className="flex space-x-2">
@@ -1188,7 +1179,7 @@ export function EntityProfilePage() {
                 <div className="space-y-4">
                   <h4 className="font-medium">Included Features</h4>
                   <ul className="space-y-2">
-                    {entityData.subscription?.features?.map(
+                    {entityData?.subscription?.features?.map(
                       (feature: string) => (
                         <li
                           key={feature}
@@ -1211,7 +1202,7 @@ export function EntityProfilePage() {
                       <div className="flex justify-between text-sm">
                         <span>Bookings</span>
                         <span>
-                          {entityData.stats.thisMonthBookings} / Unlimited
+                          {entityData?.stats?.thisMonthBookings ?? 0} / Unlimited
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -1225,7 +1216,7 @@ export function EntityProfilePage() {
                       <div className="flex justify-between text-sm">
                         <span>Professionals</span>
                         <span>
-                          {entityData.stats.professionals} / Unlimited
+                          {entityData?.stats?.professionals ?? 0} / Unlimited
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">

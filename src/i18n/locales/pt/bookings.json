@@ -209,6 +209,7 @@
   },
   "directLink": {
     "button": "Gerar Link de Agendamento",
+    "shareLink": "Partilhar Link de Agendamento",
     "title": "Link de Agendamento Direto",
     "description": "Crie um link de agendamento personalizado e envie ao seu cliente. Ele verá apenas os horários disponíveis para as opções selecionadas.",
     "professional": "Profissional",

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui/button";
@@ -12,6 +13,8 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { TiltCard } from "../../components/ui/tilt-card";
 import { Navigation } from "../../components/layout/navigation";
+import { Switch } from "../../components/ui/switch";
+import { Label } from "../../components/ui/label";
 import { useRegion } from "../../contexts/region-context";
 import { useAuth } from "../../contexts/auth-context";
 import { getDashboardRoute } from "../../lib/utils";
@@ -34,6 +37,7 @@ export function HomePage() {
   const { getPriceDisplay } = useRegion();
   const { user } = useAuth();
   const { testimonials: dynamicTestimonials = [] } = usePublicTestimonials(6, i18n.language);
+  const [billingPeriod, setBillingPeriod] = useState<"month" | "year">("month");
 
   const dashboardRoute = user ? getDashboardRoute(user) : "/";
 
@@ -352,6 +356,26 @@ export function HomePage() {
                 "Start free and scale as you grow. No hidden fees."
               )}
             </p>
+            
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <Label htmlFor="billing-toggle-home" className={`text-sm ${billingPeriod === "month" ? "font-semibold" : "text-muted-foreground"}`}>
+                {t("pricing.monthly", "Monthly")}
+              </Label>
+              <Switch
+                id="billing-toggle-home"
+                checked={billingPeriod === "year"}
+                onCheckedChange={(checked) => setBillingPeriod(checked ? "year" : "month")}
+              />
+              <div className="flex items-center gap-2">
+                <Label htmlFor="billing-toggle-home" className={`text-sm ${billingPeriod === "year" ? "font-semibold" : "text-muted-foreground"}`}>
+                  {t("pricing.yearly", "Yearly")}
+                </Label>
+                <Badge variant="secondary" className="text-xs">
+                  {t("pricing.save20", "Save 20%")}
+                </Badge>
+              </div>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -370,10 +394,10 @@ export function HomePage() {
                   </CardDescription>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">
-                      {getPriceDisplay("simple", "monthly")}
+                      {getPriceDisplay("simple", billingPeriod === "month" ? "monthly" : "yearly")}
                     </span>
                     <span className="text-muted-foreground">
-                      {t("pricing.perMonth", "/month")}
+                      {billingPeriod === "month" ? t("pricing.perMonth", "/month") : t("pricing.perYear", "/year")}
                     </span>
                     <p className="text-xs text-muted-foreground mt-1">
                       {t("pricing.taxNotice", "Prices exclude VAT")}
@@ -383,40 +407,34 @@ export function HomePage() {
                 <CardContent className="space-y-4 flex-1">
                   <ul className="space-y-3">
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.simple.features.appointments",
-                          "Up to 50 appointments/mo"
-                        )}
+                        {t("plans.simple.features.appointments", "Up to 50 appointments/month")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.simple.features.calendar",
-                          "Basic calendar integration"
-                        )}
+                        {t("plans.simple.features.calendar", "Google Calendar sync")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
                         {t("plans.simple.features.email", "Email notifications")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t("plans.simple.features.mobile", "Mobile responsive")}
+                        {t("plans.simple.features.ai", "AI Insights included")}
                       </span>
                     </li>
                   </ul>
                 </CardContent>
                 <CardFooter className="p-6 pt-0 w-full mt-auto">
                   <Button variant="outline" className="w-full" asChild>
-                    <Link to="/register?plan=simple">
+                    <Link to={`/register?plan=simple&billing=${billingPeriod}`}>
                       {t("pricing.startFree", "Start Free Trial")}
                     </Link>
                   </Button>
@@ -427,7 +445,7 @@ export function HomePage() {
             {/* Individual Plan */}
             <TiltCard className="h-full">
               <Card className="relative h-full flex flex-col mb-0">
-                <CardHeader className="text-center pb-8 pt-8">
+                <CardHeader className="text-center pb-8">
                   <CardTitle className="text-2xl">
                     {t("plans.individual.name", "Individual")}
                   </CardTitle>
@@ -439,10 +457,10 @@ export function HomePage() {
                   </CardDescription>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">
-                      {getPriceDisplay("individual", "monthly")}
+                      {getPriceDisplay("individual", billingPeriod === "month" ? "monthly" : "yearly")}
                     </span>
                     <span className="text-muted-foreground">
-                      {t("pricing.perMonth", "/month")}
+                      {billingPeriod === "month" ? t("pricing.perMonth", "/month") : t("pricing.perYear", "/year")}
                     </span>
                     <p className="text-xs text-muted-foreground mt-1">
                       {t("pricing.taxNotice", "Prices exclude VAT")}
@@ -452,55 +470,40 @@ export function HomePage() {
                 <CardContent className="space-y-4 flex-1">
                   <ul className="space-y-3">
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.individual.features.appointments",
-                          "Unlimited appointments"
-                        )}
+                        {t("plans.individual.features.appointments", "Unlimited appointments")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.individual.features.calendar",
-                          "Advanced calendar sync"
-                        )}
+                        {t("plans.individual.features.calendar", "Advanced calendar sync")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.individual.features.notifications",
-                          "SMS & Email notifications"
-                        )}
+                        {t("plans.individual.features.notifications", "SMS & Email notifications")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.individual.features.analytics",
-                          "Basic analytics"
-                        )}
+                        {t("plans.individual.features.analytics", "Basic analytics")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.individual.features.forms",
-                          "Custom booking forms"
-                        )}
+                        {t("plans.individual.features.ai", "AI Insights included")}
                       </span>
                     </li>
                   </ul>
                 </CardContent>
                 <CardFooter className="p-6 pt-0 w-full mt-auto">
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link to="/register?plan=individual">
+                  <Button className="w-full" asChild>
+                    <Link to={`/register?plan=individual&billing=${billingPeriod}`}>
                       {t("pricing.startFree", "Start Free Trial")}
                     </Link>
                   </Button>
@@ -520,10 +523,10 @@ export function HomePage() {
                   </CardDescription>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">
-                      {getPriceDisplay("business", "monthly")}
+                      {getPriceDisplay("business", billingPeriod === "month" ? "monthly" : "yearly")}
                     </span>
                     <span className="text-muted-foreground">
-                      {t("pricing.perMonth", "/month")}
+                      {billingPeriod === "month" ? t("pricing.perMonth", "/month") : t("pricing.perYear", "/year")}
                     </span>
                     <p className="text-xs text-muted-foreground mt-1">
                       {t("pricing.taxNotice", "Prices exclude VAT")}
@@ -533,37 +536,31 @@ export function HomePage() {
                 <CardContent className="space-y-4 flex-1">
                   <ul className="space-y-3">
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.business.features.everything",
-                          "Everything in Individual"
-                        )}
+                        {t("plans.business.features.everything", "Everything in Individual")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t("plans.business.features.team", "Team management")}
+                        {t("plans.business.features.team", "Team management (up to 10)")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
-                        {t(
-                          "plans.business.features.analytics",
-                          "Advanced analytics & AI insights"
-                        )}
+                        {t("plans.business.features.analytics", "Advanced analytics & AI insights")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
                         {t("plans.business.features.locations", "Multi-location support")}
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">
                         {t("plans.business.features.support", "Priority support")}
                       </span>
@@ -572,7 +569,7 @@ export function HomePage() {
                 </CardContent>
                 <CardFooter className="p-6 pt-0 w-full mt-auto">
                   <Button variant="outline" className="w-full" asChild>
-                    <Link to="/register?plan=business">
+                    <Link to={`/register?plan=business&billing=${billingPeriod}`}>
                       {t("pricing.startFree", "Start Free Trial")}
                     </Link>
                   </Button>

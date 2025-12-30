@@ -253,18 +253,29 @@
     "upgrade": "Fazer upgrade",
     "simple": { 
       "name": "Simples",
+      "description": "Para equipas e estabelecimentos",
       "features": {
-        "email": "Notificações por email",
-        "mobile": "App móvel"
+        "professionals": "Profissionais ilimitados",
+        "ai": "Insights de IA incluídos",
+        "email": "Notificações por email"
       }
     },
-    "individual": { "name": "Individual" },
+    "individual": { 
+      "name": "Individual",
+      "description": "Para profissionais autónomos",
+      "features": {
+        "appointments": "Agendamentos ilimitados",
+        "clients": "Clientes ilimitados",
+        "ai": "Insights de IA incluídos"
+      }
+    },
     "business": { 
       "name": "Empresarial", 
-      "description": "Solução completa para equipas", 
+      "description": "Solução completa para grandes empresas", 
       "features": { 
-        "team": "Gestão de equipa", 
-        "support": "Suporte prioritário" 
+        "team": "Profissionais ilimitados", 
+        "support": "Suporte prioritário",
+        "ai": "Insights de IA avançados"
       } 
     }
   },
@@ -336,12 +347,12 @@
         "theme1": "Tema 1",
         "plansTitle": "Planos e Assinaturas",
         "plansDesc": "Entenda como funciona o nosso modelo de subscrição, os limites de cada plano e como escolher a melhor opção para o seu negócio.",
-        "simpleTitle": "Solução de Entrada",
-        "simpleText": "Perfeito para profissionais que estão a começar a sua jornada sozinhos. Foco na simplicidade e funcionalidades essenciais de agendamento.",
-        "individualTitle": "Profissional Avançado",
-        "individualText": "Concebido para profissionais estabelecidos que precisam de mais escala, análises avançadas e uma identidade de marca personalizada.",
-        "businessTitle": "Empresas e Clínicas",
-        "businessText": "A solução completa para equipas. Faça a gestão de múltiplos calendários, permissões de equipa e obtenha um potencial de crescimento ilimitado.",
+        "simpleTitle": "Para Equipas e Estabelecimentos",
+        "simpleText": "Ideal para salões, clínicas e negócios com múltiplos profissionais. Gira toda a equipa com profissionais ilimitados, insights de IA e até 150 agendamentos por mês.",
+        "individualTitle": "Para Profissionais Autónomos",
+        "individualText": "Perfeito para profissionais independentes que trabalham sozinhos. Agendamentos e clientes ilimitados, insights de IA incluídos e todas as ferramentas para gerir o seu negócio.",
+        "businessTitle": "Para Grandes Empresas",
+        "businessText": "A solução completa para empresas de grande porte. Tudo ilimitado, suporte prioritário, múltiplas localizações e integrações personalizadas.",
         "professional": "Profissional",
         "services": "Serviços",
         "clients": "Clientes",

@@ -40,9 +40,10 @@ export interface BookingCreatorProps {
    * Plan type for different behaviors
    * @default "business" - Shows all features
    * "simple" - Simplified flow, auto-confirmation
+   * "simple_unlimited" - Simplified flow with unlimited bookings
    * "individual" - Standard flow
    */
-  planType?: "simple" | "individual" | "business";
+  planType?: "simple" | "simple_unlimited" | "individual" | "business";
 
   /**
    * Show pricing information

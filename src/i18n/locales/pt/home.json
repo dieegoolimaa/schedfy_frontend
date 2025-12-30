@@ -46,36 +46,40 @@
     "popular": "Mais Popular",
     "startFree": "Iniciar Teste Grátis",
     "perMonth": "/mês",
+    "perYear": "/ano",
+    "monthly": "Mensal",
+    "yearly": "Anual",
+    "save20": "Poupe 20%",
     "taxNotice": "Os preços não incluem IVA"
   },
   "plans": {
     "simple": {
       "name": "Simples",
-      "description": "Perfeito para profissionais individuais",
+      "description": "Para equipas e estabelecimentos",
       "features": {
         "appointments": "Até 50 agendamentos/mês",
-        "calendar": "Integração básica de calendário",
+        "calendar": "Sincronização Google Calendar",
         "email": "Notificações por email",
-        "mobile": "Responsivo para mobile"
+        "ai": "Insights de IA incluídos"
       }
     },
     "individual": {
       "name": "Individual",
-      "description": "Para profissionais em crescimento",
+      "description": "Para profissionais autónomos",
       "features": {
         "appointments": "Agendamentos ilimitados",
         "calendar": "Sincronização avançada de calendário",
         "notifications": "Notificações por SMS e Email",
         "analytics": "Análises básicas",
-        "forms": "Formulários de reserva personalizados"
+        "ai": "Insights de IA incluídos"
       }
     },
     "business": {
       "name": "Empresarial",
-      "description": "Para equipas e empresas",
+      "description": "Solução completa para grandes empresas",
       "features": {
         "everything": "Tudo do Individual",
-        "team": "Gestão de equipa",
+        "team": "Gestão de equipa (até 10)",
         "analytics": "Análises avançadas e insights de IA",
         "locations": "Suporte multi-local",
         "support": "Suporte prioritário"

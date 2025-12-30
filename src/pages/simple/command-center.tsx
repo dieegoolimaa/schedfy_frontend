@@ -1223,6 +1223,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     asTab={true}
                                     defaultView="week"
                                     workingHours={fullEntity?.workingHours || { start: "08:00", end: "23:00" }}
+                                    onSlotClick={() => setIsCreateDialogOpen(true)}
                                     onEditBooking={(booking) => {
                                         // Map the booking object to the flat structure expected by EditBookingDialog
                                         const mappedBooking: any = {

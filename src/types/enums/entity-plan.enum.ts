@@ -21,6 +21,10 @@ export enum EntityPlan {
 
 /**
  * Limites por plano
+ *
+ * Simple/Simple_Unlimited: Profissionais ilimitados, SEM clientes fidelizados
+ * Individual: 1 profissional, clientes ilimitados
+ * Business: Profissionais ilimitados, clientes ilimitados
  */
 export const PLAN_LIMITS = {
     [EntityPlan.SIMPLE]: {
@@ -30,22 +34,25 @@ export const PLAN_LIMITS = {
         hasTeamManagement: true,
         hasAdvancedReports: false,
         hasCustomBranding: false,
+        hasClientManagement: false,
     },
     [EntityPlan.SIMPLE_UNLIMITED]: {
-        maxProfessionals: 1,
+        maxProfessionals: Infinity,
         maxServices: 10,
-        maxClients: Infinity,
-        hasTeamManagement: false,
+        maxClients: 0,
+        hasTeamManagement: true,
         hasAdvancedReports: false,
         hasCustomBranding: false,
+        hasClientManagement: false,
     },
     [EntityPlan.INDIVIDUAL]: {
         maxProfessionals: 1,
         maxServices: 50,
-        maxClients: 500,
+        maxClients: Infinity,
         hasTeamManagement: false,
         hasAdvancedReports: true,
         hasCustomBranding: true,
+        hasClientManagement: true,
     },
     [EntityPlan.BUSINESS]: {
         maxProfessionals: Infinity,
@@ -54,5 +61,6 @@ export const PLAN_LIMITS = {
         hasTeamManagement: true,
         hasAdvancedReports: true,
         hasCustomBranding: true,
+        hasClientManagement: true,
     },
 };

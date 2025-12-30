@@ -91,13 +91,28 @@ export function PublicEntityProfilePage() {
     }>
   >([]);
 
-  const [clientData, setClientData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    notes: "",
+  const [clientData, setClientData] = useState(() => {
+    // Try to load saved client data from localStorage
+    const savedData = localStorage.getItem('schedfy_client_data');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        return {
+          name: parsed.name || "",
+          email: parsed.email || "",
+          phone: parsed.phone || "",
+          notes: "", // Don't restore notes
+        };
+      } catch {
+        return { name: "", email: "", phone: "", notes: "" };
+      }
+    }
+    return { name: "", email: "", phone: "", notes: "" };
   });
-  const [saveMyData, setSaveMyData] = useState(false);
+  const [saveMyData, setSaveMyData] = useState(() => {
+    // Default to true if we have saved data
+    return !!localStorage.getItem('schedfy_client_data');
+  });
 
   // Voucher state
   const [voucherCode, setVoucherCode] = useState("");
@@ -221,6 +236,13 @@ export function PublicEntityProfilePage() {
       }
     }
   }, [loading, services, professionals, searchParams]);
+
+  // Auto-select the only professional for Individual plan
+  useEffect(() => {
+    if (entity?.plan === 'individual' && professionals.length === 1 && !selectedProfessional) {
+      setSelectedProfessional(professionals[0].id);
+    }
+  }, [entity?.plan, professionals, selectedProfessional]);
 
   // Check if a slot is in the past
   const isSlotInPast = (date: Date, time: string) => {
@@ -446,6 +468,18 @@ export function PublicEntityProfilePage() {
         toast.success(
           t("profile.success.single")
         );
+      }
+
+      // Save client data to localStorage if requested
+      if (saveMyData) {
+        localStorage.setItem('schedfy_client_data', JSON.stringify({
+          name: clientData.name,
+          email: clientData.email,
+          phone: clientData.phone,
+        }));
+      } else {
+        // Remove saved data if user unchecked the option
+        localStorage.removeItem('schedfy_client_data');
       }
 
       // Reset form
@@ -1310,16 +1344,18 @@ export function PublicEntityProfilePage() {
                           }
                         />
                       </div>
-                      <div className="flex items-center space-x-2 pt-2">
-                        <Checkbox
-                          id="pkg-save-data"
-                          checked={saveMyData}
-                          onCheckedChange={(checked) => setSaveMyData(checked as boolean)}
-                        />
-                        <Label htmlFor="pkg-save-data" className="text-sm font-normal cursor-pointer text-muted-foreground">
-                          {t("profile.form.saveMyData", "Save my information for future bookings")}
-                        </Label>
-                      </div>
+                      {entity?.plan !== 'simple' && (
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Checkbox
+                            id="pkg-save-data"
+                            checked={saveMyData}
+                            onCheckedChange={(checked) => setSaveMyData(checked as boolean)}
+                          />
+                          <Label htmlFor="pkg-save-data" className="text-sm font-normal cursor-pointer text-muted-foreground">
+                            {t("profile.form.saveMyData", "Save my information for future bookings")}
+                          </Label>
+                        </div>
+                      )}
                     </div>
 
                     {/* Book All Package Services Button */}
@@ -1355,8 +1391,8 @@ export function PublicEntityProfilePage() {
                   <div className="mt-8 space-y-6 pt-8 border-t">
                     <h3 className="text-xl font-semibold">{t("profile.bookingDetails")}</h3>
 
-                    {/* Professional Selection (optional) */}
-                    {entity?.plan !== 'simple' && availableProfessionals.length > 0 && (
+                    {/* Professional Selection (optional) - Hidden for Simple and Individual */}
+                    {entity?.plan !== 'simple' && entity?.plan !== 'individual' && availableProfessionals.length > 0 && (
                       <div className="space-y-2">
                         <Label>{t("profile.chooseProfessional")}</Label>
                         <div className="grid sm:grid-cols-2 gap-3">
@@ -1538,16 +1574,18 @@ export function PublicEntityProfilePage() {
                           }
                         />
                       </div>
-                      <div className="flex items-center space-x-2 pt-2">
-                        <Checkbox
-                          id="save-data"
-                          checked={saveMyData}
-                          onCheckedChange={(checked) => setSaveMyData(checked as boolean)}
-                        />
-                        <Label htmlFor="save-data" className="text-sm font-normal cursor-pointer text-muted-foreground">
-                          {t("profile.form.saveMyData", "Save my information for future bookings")}
-                        </Label>
-                      </div>
+                      {entity?.plan !== 'simple' && (
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Checkbox
+                            id="save-data"
+                            checked={saveMyData}
+                            onCheckedChange={(checked) => setSaveMyData(checked as boolean)}
+                          />
+                          <Label htmlFor="save-data" className="text-sm font-normal cursor-pointer text-muted-foreground">
+                            {t("profile.form.saveMyData", "Save my information for future bookings")}
+                          </Label>
+                        </div>
+                      )}
                     </div>
 
                     {entity?.plan !== 'simple' && (
@@ -1638,8 +1676,8 @@ export function PublicEntityProfilePage() {
           </div>
           {/* Right Sidebar - Team & Info */}
           <div className="space-y-6">
-            {/* Team */}
-            {entity.plan !== 'simple' && professionals.length > 0 && (
+            {/* Team - Hidden for Simple and Individual plans */}
+            {entity.plan !== 'simple' && entity.plan !== 'individual' && professionals.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>{t("profile.ourTeam")}</CardTitle>

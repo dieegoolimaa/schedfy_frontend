@@ -29,7 +29,7 @@ interface RegionContextType {
   pricing: PricingEntry[];
   pricingLoading: boolean;
   getPriceDisplay: (
-    planType: "simple" | "individual" | "business" | "ai_insights",
+    planType: "simple" | "simple_unlimited" | "individual" | "business" | "ai_insights",
     billingPeriod?: "monthly" | "yearly"
   ) => string;
 }
@@ -96,7 +96,7 @@ export function RegionProvider({ children }: Readonly<RegionProviderProps>) {
       // Try to get price from API first
       if (!pricingLoading && pricing.length > 0) {
         const apiPrice = getPriceForPlan(
-          planType as "simple" | "individual" | "business" | "ai_insights",
+          planType as "simple" | "simple_unlimited" | "individual" | "business" | "ai_insights",
           region,
           billingPeriod as "monthly" | "yearly"
         );

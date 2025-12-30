@@ -107,25 +107,58 @@ export function PublicBookingManagementPage() {
         setRescheduling(true);
         try {
             const [time, professionalId] = selectedSlot.split('|');
-            const [hours, minutes] = time.split(':').map(Number);
+            
+            // Validate time format
+            if (!time || !time.includes(':')) {
+                throw new Error(`Invalid time format: ${time}`);
+            }
+            
+            const timeParts = time.split(':');
+            const hours = parseInt(timeParts[0], 10);
+            const minutes = parseInt(timeParts[1], 10);
+            
+            // Validate parsed values
+            if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                throw new Error(`Invalid time values: hours=${hours}, minutes=${minutes}`);
+            }
 
-            const startDateTime = new Date(selectedDate);
-            startDateTime.setHours(hours, minutes, 0, 0);
+            // Create a new date from selectedDate to avoid mutation issues
+            const year = selectedDate.getFullYear();
+            const month = selectedDate.getMonth();
+            const day = selectedDate.getDate();
+            
+            // Validate date components
+            if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                throw new Error(`Invalid date components: year=${year}, month=${month}, day=${day}`);
+            }
+            
+            const startDateTime = new Date(year, month, day, hours, minutes, 0, 0);
+            
+            // Validate the date
+            if (isNaN(startDateTime.getTime())) {
+                throw new Error('Invalid startDateTime created');
+            }
 
-            // Calculate end time based on service duration (assuming 60 mins if not available, or fetch service details)
-            // Ideally we should have service duration. For now, let's assume the backend handles duration or we use a default.
-            // Better: The backend update usually takes startDateTime and calculates endDateTime if not provided, or we need to provide it.
-            // Let's try to calculate it if we have service duration in booking object.
-            // Note: serviceId is populated, so we might have duration there.
-            const duration = booking.serviceId?.duration || 60;
+            // Calculate end time based on service duration (assuming 60 mins if not available)
+            const duration = typeof booking.serviceId?.duration === 'number' ? booking.serviceId.duration : 60;
+            
             const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
+            
+            // Validate end date
+            if (isNaN(endDateTime.getTime())) {
+                throw new Error('Invalid endDateTime created');
+            }
+
+            // Build notes with reschedule info
+            const previousDate = booking.startDateTime ? format(new Date(booking.startDateTime), 'yyyy-MM-dd HH:mm') : 'unknown';
+            const updatedNotes = `${booking.notes || ''}\n[Rescheduled from ${previousDate}]`.trim();
 
             await publicService.updateBooking(id!, {
                 startDateTime: startDateTime.toISOString(),
                 endDateTime: endDateTime.toISOString(),
                 professionalId: professionalId || (typeof booking.professionalId === 'string' ? booking.professionalId : booking.professionalId?._id),
                 status: 'pending', // Reset to pending for approval if needed
-                notes: `${booking.notes || ''}\n[Rescheduled from ${format(new Date(booking.startDateTime!), 'yyyy-MM-dd HH:mm')}]`.trim()
+                notes: updatedNotes
             });
 
             toast.success("Booking rescheduled successfully");
@@ -240,8 +273,13 @@ export function PublicBookingManagementPage() {
         booking.startDateTime &&
         new Date(booking.startDateTime) > new Date();
 
+    // Check if entity allows client rescheduling (Simple plan does NOT allow client rescheduling)
+    const entityPlan = typeof booking?.entityId === 'object' ? booking?.entityId?.plan : null;
+    const isSimplePlan = entityPlan === 'simple';
+
     const canReschedule =
         booking &&
+        !isSimplePlan && // Simple plan clients cannot reschedule
         ['pending', 'confirmed'].includes(booking.status) &&
         booking.startDateTime &&
         new Date(booking.startDateTime) > new Date();
@@ -390,7 +428,10 @@ export function PublicBookingManagementPage() {
                                                 <Calendar
                                                     mode="single"
                                                     selected={selectedDate}
-                                                    onSelect={setSelectedDate as any}
+                                                    onSelect={(date: Date | undefined) => {
+                                                        setSelectedDate(date);
+                                                        setSelectedSlot(null); // Reset slot when date changes
+                                                    }}
                                                     className="rounded-md border shadow-sm"
                                                     disabled={(date: Date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                                 />

@@ -34,7 +34,9 @@
       "zipCode": "Zip/Postal Code",
       "zipCodePlaceholder": "10001",
       "country": "Country",
-      "countryPlaceholder": "United States"
+      "countryPlaceholder": "United States",
+      "ownerIsProfessional": "I'm also a professional",
+      "ownerIsProfessionalDescription": "Enable if YOU also serve clients (e.g., you're the hairdresser, dentist, trainer). Disable if you only manage the business."
     },
     "contact": {
       "title": "Contact Information",
@@ -77,8 +79,11 @@
       "serviceDescription": "Description",
       "descriptionPlaceholder": "Brief description of the service..."
     }
-  },
-  "messages": {
+  },  "buttons": {
+    "back": "Back",
+    "nextStep": "Next Step",
+    "complete": "Complete"
+  },  "messages": {
     "success": "Onboarding completed successfully!",
     "error": "Failed to complete onboarding"
   }

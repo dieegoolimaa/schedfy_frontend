@@ -43,6 +43,7 @@ interface CalendarViewProps {
   defaultView?: ViewMode;
   onEditBooking?: (booking: Booking) => void;
   onCreateBooking?: () => void;
+  onSlotClick?: (date: Date, hour: number) => void; // Called when clicking an empty slot
 }
 
 type ViewMode = "month" | "week" | "day";
@@ -58,6 +59,7 @@ export function CalendarView({
   defaultView = "week",
   onEditBooking,
   onCreateBooking,
+  onSlotClick,
 }: CalendarViewProps) {
   // Helper to get range for a specific date or overall
   const getHoursRange = (date?: Date) => {
@@ -455,15 +457,29 @@ export function CalendarView({
                       }
                     );
 
+                    // Handler for clicking empty slot
+                    const handleEmptySlotClick = () => {
+                      if (onSlotClick) {
+                        const slotDate = new Date(day);
+                        slotDate.setHours(hour, 0, 0, 0);
+                        onSlotClick(slotDate, hour);
+                      }
+                    };
+
                     return (
                       <div
                         key={day.toISOString()}
-                        className="p-1 h-full hover:bg-muted/20 transition-colors overflow-hidden"
+                        className={cn(
+                          "p-1 h-full hover:bg-muted/20 transition-colors overflow-hidden",
+                          onSlotClick && dayBookings.length === 0 && "cursor-pointer hover:bg-primary/5"
+                        )}
+                        onClick={dayBookings.length === 0 ? handleEmptySlotClick : undefined}
                       >
                         <div className="space-y-1 h-full">
                           {dayBookings.length > 1 ? (
                             <div
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setSelectedBookingsGroup(dayBookings);
                                 setShowBookingsGroupDialog(true);
                               }}
@@ -794,12 +810,30 @@ export function CalendarView({
 
                 return (
                   <div key={col.id} className="flex-1 border-r relative min-w-[150px] group/col">
-                    {/* Grid Lines (Background) */}
-                    {hours.map((h, i) => (
-                      <div key={h} className="absolute w-full border-t border-muted/20"
-                        style={{ top: i * 80, height: 80 }}>
-                      </div>
-                    ))}
+                    {/* Grid Lines (Background) - Clickable for creating bookings */}
+                    {hours.map((h, i) => {
+                      const hasBookingAtHour = colBookings.some((b) => {
+                        const bookingHour = new Date(b.startTime).getHours();
+                        return bookingHour === h;
+                      });
+                      return (
+                        <div 
+                          key={h} 
+                          className={cn(
+                            "absolute w-full border-t border-muted/20",
+                            !hasBookingAtHour && onSlotClick && "cursor-pointer hover:bg-primary/5"
+                          )}
+                          style={{ top: i * 80, height: 80 }}
+                          onClick={() => {
+                            if (!hasBookingAtHour && onSlotClick) {
+                              const slotDate = new Date(currentDate);
+                              slotDate.setHours(h, 0, 0, 0);
+                              onSlotClick(slotDate, h);
+                            }
+                          }}
+                        />
+                      );
+                    })}
 
                     {/* Hover Effect for Column */}
                     <div className="absolute inset-0 bg-primary/0 group-hover/col:bg-primary/[0.02] pointer-events-none transition-colors" />

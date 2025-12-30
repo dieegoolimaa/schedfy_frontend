@@ -20,31 +20,31 @@
   "plans": {
     "simple": {
       "name": "Simple",
-      "description": "Perfect for solo professionals",
+      "description": "For teams and establishments",
       "features": [
-        "Basic booking management",
-        "Simple reporting",
-        "Service management",
+        "Up to 150 appointments/month",
+        "Unlimited professionals",
+        "AI Insights included",
         "Email support"
       ]
     },
     "individual": {
       "name": "Individual",
-      "description": "AI-powered insights for growing businesses",
+      "description": "For solo professionals",
       "features": [
         "Everything in Simple",
-        "AI-powered insights",
-        "Advanced analytics",
-        "Service optimization",
+        "Unlimited appointments",
+        "Unlimited clients",
+        "AI Insights included",
         "Priority support"
       ]
     },
     "business": {
       "name": "Business",
-      "description": "Complete solution for teams",
+      "description": "Complete solution for enterprises",
       "features": [
         "Everything in Individual",
-        "Multi-professional management",
+        "Unlimited professionals",
         "Team collaboration",
         "Advanced role management",
         "Custom integrations",

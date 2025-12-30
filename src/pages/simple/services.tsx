@@ -87,6 +87,9 @@ const SimpleServicesPage: React.FC = () => {
     isActive: true,
     isPublic: true,
     requireManualConfirmation: false,
+    meetingType: "in-person" as "in-person" | "online",
+    onlineProvider: "" as "" | "google-meet" | "custom",
+    customMeetingLink: "",
   });
 
   const fetchData = async () => {
@@ -171,6 +174,12 @@ const SimpleServicesPage: React.FC = () => {
         bookingSettings: {
           requiresManualConfirmation: serviceFormData.requireManualConfirmation,
         },
+        onlineMeeting: serviceFormData.meetingType !== 'in-person' ? {
+          meetingType: serviceFormData.meetingType,
+          onlineProvider: serviceFormData.onlineProvider || undefined,
+          customMeetingLink: serviceFormData.customMeetingLink || undefined,
+          autoCreateMeeting: serviceFormData.onlineProvider !== 'custom' && serviceFormData.onlineProvider !== '',
+        } : undefined,
         createdBy: user?.id!,
       };
 
@@ -222,6 +231,12 @@ const SimpleServicesPage: React.FC = () => {
         bookingSettings: {
           requiresManualConfirmation: serviceFormData.requireManualConfirmation,
         },
+        onlineMeeting: serviceFormData.meetingType !== 'in-person' ? {
+          meetingType: serviceFormData.meetingType,
+          onlineProvider: serviceFormData.onlineProvider || undefined,
+          customMeetingLink: serviceFormData.customMeetingLink || undefined,
+          autoCreateMeeting: serviceFormData.onlineProvider !== 'custom' && serviceFormData.onlineProvider !== '',
+        } : undefined,
         updatedBy: user?.id!,
       };
 
@@ -275,6 +290,9 @@ const SimpleServicesPage: React.FC = () => {
       isPublic: service.seo?.isPublic !== false,
       requireManualConfirmation:
         service.bookingSettings?.requiresManualConfirmation || false,
+      meetingType: (service as any).onlineMeeting?.meetingType || "in-person",
+      onlineProvider: (service as any).onlineMeeting?.onlineProvider || "",
+      customMeetingLink: (service as any).onlineMeeting?.customMeetingLink || "",
     });
     setShowCustomCategory(false);
     setIsServiceEditModalOpen(true);
@@ -290,6 +308,9 @@ const SimpleServicesPage: React.FC = () => {
       isActive: true,
       isPublic: true,
       requireManualConfirmation: false,
+      meetingType: "in-person",
+      onlineProvider: "",
+      customMeetingLink: "",
     });
     setShowCustomCategory(false);
     setEditingService(null);
@@ -584,6 +605,79 @@ const SimpleServicesPage: React.FC = () => {
 
 
                     </div>
+
+                    {/* Meeting Type Section */}
+                    <div className="space-y-3 pt-4 border-t">
+                      <Label className="text-sm font-medium">
+                        {t("services.form.meetingType", "Meeting Type")}
+                      </Label>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          type="button"
+                          variant={serviceFormData.meetingType === "in-person" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setServiceFormData({ ...serviceFormData, meetingType: "in-person", onlineProvider: "", customMeetingLink: "" })}
+                        >
+                          🏢 {t("services.form.inPerson", "In Person")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={serviceFormData.meetingType === "online" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setServiceFormData({ ...serviceFormData, meetingType: "online" })}
+                        >
+                          💻 {t("services.form.online", "Online")}
+                        </Button>
+                      </div>
+
+                      {/* Online Provider Selection */}
+                      {serviceFormData.meetingType === "online" && (
+                        <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                          <Label className="text-sm">
+                            {t("services.form.onlineProvider", "Video Platform")}
+                          </Label>
+                          <div className="flex gap-2 flex-wrap">
+                            <Button
+                              type="button"
+                              variant={serviceFormData.onlineProvider === "google-meet" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google-meet", customMeetingLink: "" })}
+                            >
+                              Google Meet
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={serviceFormData.onlineProvider === "custom" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "custom" })}
+                            >
+                              {t("services.form.customLink", "Custom Link")}
+                            </Button>
+                          </div>
+
+                          {serviceFormData.onlineProvider === "custom" && (
+                            <div className="space-y-2">
+                              <Label htmlFor="custom-link" className="text-xs text-muted-foreground">
+                                {t("services.form.customMeetingLink", "Meeting Link (optional - will be added to all bookings)")}
+                              </Label>
+                              <Input
+                                id="custom-link"
+                                type="url"
+                                placeholder="https://meet.google.com/abc-defg-hij"
+                                value={serviceFormData.customMeetingLink}
+                                onChange={(e) => setServiceFormData({ ...serviceFormData, customMeetingLink: e.target.value })}
+                              />
+                            </div>
+                          )}
+
+                          {serviceFormData.onlineProvider && serviceFormData.onlineProvider !== "custom" && (
+                            <p className="text-xs text-muted-foreground">
+                              ✨ {t("services.form.autoCreateMeeting", "Meeting links will be created automatically for each booking")}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <DialogFooter>
@@ -840,6 +934,81 @@ const SimpleServicesPage: React.FC = () => {
                   </div>
 
 
+                </div>
+
+                {/* Meeting Type Section */}
+                <div className="space-y-3 pt-4 border-t">
+                  <Label className="text-sm font-medium">
+                    {t("services.form.meetingType", "Meeting Type")}
+                  </Label>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={serviceFormData.meetingType === "in-person" ? "default" : "outline"}
+                      onClick={() => setServiceFormData({ ...serviceFormData, meetingType: "in-person", onlineProvider: "" })}
+                    >
+                      🏢 {t("services.form.inPerson", "In Person")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={serviceFormData.meetingType === "online" ? "default" : "outline"}
+                      onClick={() => setServiceFormData({ ...serviceFormData, meetingType: "online" })}
+                    >
+                      💻 {t("services.form.online", "Online")}
+                    </Button>
+                  </div>
+
+                  {/* Online Meeting Provider Selection */}
+                  {serviceFormData.meetingType === "online" && (
+                    <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                      <Label className="text-sm text-muted-foreground">
+                        {t("services.form.selectProvider", "Select video platform")}
+                      </Label>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={serviceFormData.onlineProvider === "google_meet" ? "default" : "outline"}
+                          onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "google_meet", customMeetingLink: "" })}
+                        >
+                          📹 Google Meet
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={serviceFormData.onlineProvider === "custom" ? "default" : "outline"}
+                          onClick={() => setServiceFormData({ ...serviceFormData, onlineProvider: "custom" })}
+                        >
+                          🔗 {t("services.form.customLink", "Custom Link")}
+                        </Button>
+                      </div>
+
+                      {/* Custom Link Input */}
+                      {serviceFormData.onlineProvider === "custom" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-custom-meeting-link" className="text-sm">
+                            {t("services.form.customMeetingLink", "Meeting Link")}
+                          </Label>
+                          <Input
+                            id="edit-custom-meeting-link"
+                            type="url"
+                            placeholder="https://meet.example.com/your-room"
+                            value={serviceFormData.customMeetingLink}
+                            onChange={(e) => setServiceFormData({ ...serviceFormData, customMeetingLink: e.target.value })}
+                          />
+                        </div>
+                      )}
+
+                      {/* Auto-create meeting hint */}
+                      {serviceFormData.onlineProvider && serviceFormData.onlineProvider !== "custom" && (
+                        <p className="text-xs text-muted-foreground">
+                          ✨ {t("services.form.autoCreateMeeting", "Meeting link will be automatically created for each booking")}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

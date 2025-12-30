@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
+import { useCurrency } from "../../hooks/useCurrency";
 import { entitiesService } from "../../services/entities.service";
 import { getDashboardRoute } from "../../lib/utils";
+import { storage } from "../../lib/storage";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -44,43 +46,74 @@ const STEPS = [
   },
 ];
 
+// Default form data
+const defaultFormData = {
+  // Step 1
+  address: {
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+  },
+  ownerIsProfessional: true, // Default to true - owner will provide services
+  // Step 2
+  phone: "",
+  whatsapp: "",
+  workingHours: {
+    monday: { enabled: true, start: "09:00", end: "18:00" },
+    tuesday: { enabled: true, start: "09:00", end: "18:00" },
+    wednesday: { enabled: true, start: "09:00", end: "18:00" },
+    thursday: { enabled: true, start: "09:00", end: "18:00" },
+    friday: { enabled: true, start: "09:00", end: "18:00" },
+    saturday: { enabled: true, start: "09:00", end: "13:00" },
+    sunday: { enabled: false, start: "09:00", end: "13:00" },
+  } as WorkingHours,
+  defaultSlotDuration: 30,
+  // Step 3
+  firstService: {
+    name: "",
+    duration: "60",
+    price: "",
+    description: "",
+  },
+  // Step 4
+  paymentMethodId: "",
+};
+
 export function OnboardingPage() {
   const { t } = useTranslation("onboarding");
   const { user, logout } = useAuth();
-  const [activeStep, setActiveStep] = useState(1);
+  const { getCurrencySymbol } = useCurrency();
+  
+  // Restore saved data from localStorage
+  const savedData = storage.getOnboardingData();
+  const savedStep = storage.getOnboardingStep();
+  
+  const [activeStep, setActiveStep] = useState(savedStep > 0 ? savedStep : 1);
+  const [isRestoringData, setIsRestoringData] = useState(true);
 
-  const [formData, setFormData] = useState({
-    // Step 1
-    address: {
-      street: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      country: "",
-    },
-    // Step 2
-    phone: "",
-    whatsapp: "",
-    workingHours: {
-      monday: { enabled: true, start: "09:00", end: "18:00" },
-      tuesday: { enabled: true, start: "09:00", end: "18:00" },
-      wednesday: { enabled: true, start: "09:00", end: "18:00" },
-      thursday: { enabled: true, start: "09:00", end: "18:00" },
-      friday: { enabled: true, start: "09:00", end: "18:00" },
-      saturday: { enabled: true, start: "09:00", end: "13:00" },
-      sunday: { enabled: false, start: "09:00", end: "13:00" },
-    } as WorkingHours,
-    defaultSlotDuration: 30,
-    // Step 3
-    firstService: {
-      name: "",
-      duration: "60",
-      price: "",
-      description: "",
-    },
-    // Step 4
-    paymentMethodId: "",
+  const [formData, setFormData] = useState(() => {
+    if (savedData) {
+      return { ...defaultFormData, ...savedData };
+    }
+    return defaultFormData;
   });
+
+  // Show restore message on mount if data was restored
+  useEffect(() => {
+    if (savedData && savedStep > 1) {
+      toast.info("Your previous progress has been restored.");
+    }
+    setIsRestoringData(false);
+  }, []);
+
+  // Save form data on every change
+  useEffect(() => {
+    if (isRestoringData) return;
+    storage.setOnboardingData(formData);
+    storage.setOnboardingStep(activeStep);
+  }, [formData, activeStep, isRestoringData]);
 
   const handleNext = () => {
     if (activeStep < STEPS.length) {
@@ -106,6 +139,7 @@ export function OnboardingPage() {
         workingHours: formData.workingHours,
         defaultSlotDuration: formData.defaultSlotDuration,
         paymentMethodId: formData.paymentMethodId,
+        ownerIsProfessional: formData.ownerIsProfessional,
       };
 
       // Only add first service if name is provided
@@ -121,6 +155,9 @@ export function OnboardingPage() {
       console.log("Submitting onboarding data:", payload);
       await entitiesService.completeOnboarding(payload);
 
+      // Clear onboarding data from localStorage on success
+      storage.clearOnboardingFlow();
+      
       toast.success("Onboarding completed successfully!");
 
       // Force reload user profile to update state
@@ -280,6 +317,25 @@ export function OnboardingPage() {
                 </div>
               </div>
 
+              {/* Owner is Professional Toggle */}
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="ownerIsProfessional" className="text-base font-medium">
+                    {t("steps.address.ownerIsProfessional")}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t("steps.address.ownerIsProfessionalDescription")}
+                  </p>
+                </div>
+                <Switch
+                  id="ownerIsProfessional"
+                  checked={formData.ownerIsProfessional}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, ownerIsProfessional: checked })
+                  }
+                />
+              </div>
+
               <div className="flex justify-end pt-4">
                 <Button onClick={handleNext} disabled={!isStep1Valid}>
                   {t("nextStep")}
@@ -422,14 +478,14 @@ export function OnboardingPage() {
           {activeStep === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Create Your First Service</h2>
+                <h2 className="text-xl font-semibold">{t("steps.service.title", "Create Your First Service")}</h2>
                 <p className="text-muted-foreground">
-                  Add a service to start accepting bookings. You can add more later.
+                  {t("steps.service.description", "Add a service to start accepting bookings. You can add more later.")}
                 </p>
 
                 <div className="grid gap-4 max-w-xl">
                   <div className="space-y-2">
-                    <Label htmlFor="serviceName">Service Name *</Label>
+                    <Label htmlFor="serviceName">{t("steps.service.name", "Service Name")} *</Label>
                     <Input
                       id="serviceName"
                       value={formData.firstService.name}
@@ -439,13 +495,13 @@ export function OnboardingPage() {
                           firstService: { ...formData.firstService, name: e.target.value },
                         })
                       }
-                      placeholder="e.g., Haircut, Consultation, Massage"
+                      placeholder={t("steps.service.namePlaceholder", "e.g., Haircut, Consultation, Massage")}
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="duration">Duration (min) *</Label>
+                      <Label htmlFor="duration">{t("steps.service.duration", "Duration (min)")} *</Label>
                       <Input
                         id="duration"
                         type="number"
@@ -465,10 +521,10 @@ export function OnboardingPage() {
                     </div>
                     {user?.plan !== 'simple' && (
                       <div className="space-y-2">
-                        <Label htmlFor="price">Price *</Label>
+                        <Label htmlFor="price">{t("steps.service.price", "Price")} *</Label>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                            $
+                            {getCurrencySymbol()}
                           </span>
                           <Input
                             id="price"
@@ -493,7 +549,7 @@ export function OnboardingPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">{t("steps.service.serviceDescription", "Description")}</Label>
                     <Textarea
                       id="description"
                       value={formData.firstService.description}
@@ -506,7 +562,7 @@ export function OnboardingPage() {
                           },
                         })
                       }
-                      placeholder="Brief description of the service..."
+                      placeholder={t("steps.service.descriptionPlaceholder", "Brief description of the service...")}
                     />
                   </div>
                 </div>
@@ -514,10 +570,10 @@ export function OnboardingPage() {
 
               <div className="flex justify-between pt-4">
                 <Button variant="outline" onClick={handleBack}>
-                  Back
+                  {t("buttons.back", "Back")}
                 </Button>
                 <Button onClick={handleNext} disabled={!isStep3Valid}>
-                  Next Step
+                  {t("buttons.nextStep", "Next Step")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>

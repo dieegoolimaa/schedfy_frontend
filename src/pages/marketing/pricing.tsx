@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { MarketingHeader } from "@/components/layout/marketing-header";
@@ -12,183 +13,76 @@ import {
 } from "@/components/ui/card";
 import { CheckCircle2, X } from "lucide-react";
 import { useRegion } from "@/contexts/region-context";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 export default function Pricing() {
   const { t } = useTranslation("pricing");
-  const { getPriceDisplay, pricing } = useRegion();
+  const { getPriceDisplay } = useRegion();
+  const [billingPeriod, setBillingPeriod] = useState<"month" | "year">("month");
 
-  // Helper to find pricing entry by plan type
-  const getPlanData = (type: string) => pricing.find(p => p.planType === type);
-
-  // Dynamic plans
+  // Dynamic plans - 3 plans only (Simple Unlimited is internal upgrade)
   const plans = [
     {
       id: "simple",
-      name: t("pricing.simple.name", "Simple"),
+      name: t("simple.name", "Simple"),
       type: "simple",
-      price: getPriceDisplay("simple", "monthly"),
-      period: t("pricing.period", "/month"),
-      description: t(
-        "pricing.simple.description",
-        "Perfect for individual professionals starting their journey"
-      ),
+      price: getPriceDisplay("simple", billingPeriod === "month" ? "monthly" : "yearly"),
+      period: billingPeriod === "month" ? t("perMonth", "/month") : t("perYear", "/year"),
+      description: t("simple.description", "For teams and establishments"),
       popular: false,
       features: [
-        {
-          name: t("pricing.simple.feature1", "Up to {{count}} bookings/month", { count: getPlanData("simple")?.maxBookings || 50 }),
-          included: true,
-        },
-        {
-          name: t("pricing.simple.feature2", "Basic calendar management"),
-          included: true,
-        },
-        {
-          name: t("pricing.simple.feature3", "Client management"),
-          included: true,
-        },
-        {
-          name: t("pricing.simple.feature4", "Email notifications"),
-          included: true,
-        },
-        {
-          name: t("pricing.simple.feature5", "Mobile app access"),
-          included: true,
-        },
-        {
-          name: t("pricing.simple.feature6", "Basic reporting"),
-          included: true,
-        },
-        {
-          name: t("pricing.simple.feature7", "Team management"),
-          included: false,
-        },
-        { name: t("pricing.simple.feature8", "AI analytics"), included: false },
-        {
-          name: t("pricing.simple.feature9", "Advanced integrations"),
-          included: false,
-        },
-        {
-          name: t("pricing.simple.feature10", "Priority support"),
-          included: false,
-        },
+        { name: t("simple.feature1", "Up to 150 bookings/month"), included: true },
+        { name: t("simple.feature2", "Unlimited professionals"), included: true },
+        { name: t("simple.feature3", "Email notifications"), included: true },
+        { name: t("simple.feature4", "Mobile responsive"), included: true },
+        { name: t("simple.feature5", "Basic reports"), included: true },
+        { name: t("simple.feature6", "AI Insights included"), included: true },
+        { name: t("simple.feature9", "No client management"), included: false },
       ],
-      cta: t("pricing.simple.cta", "Start Free Trial"),
-      link: "/register?plan=simple",
+      cta: t("simple.cta", "Start Free"),
+      link: `/register?plan=simple&billing=${billingPeriod}`,
     },
     {
       id: "individual",
-      name: t("pricing.individual.name", "Individual"),
+      name: t("individual.name", "Individual"),
       type: "individual",
-      price: getPriceDisplay("individual", "monthly"),
-      period: t("pricing.period", "/month"),
-      description: t(
-        "pricing.individual.description",
-        "Ideal for growing professionals with expanding client base"
-      ),
+      price: getPriceDisplay("individual", billingPeriod === "month" ? "monthly" : "yearly"),
+      period: billingPeriod === "month" ? t("perMonth", "/month") : t("perYear", "/year"),
+      description: t("individual.description", "For solo professionals"),
       popular: false,
       features: [
-        {
-          name: t("pricing.individual.feature1", "Up to {{count}} bookings/month", { count: getPlanData("individual")?.maxBookings || 200 }),
-          included: true,
-        },
-        {
-          name: t("pricing.individual.feature2", "Advanced calendar features"),
-          included: true,
-        },
-        {
-          name: t("pricing.individual.feature3", "Client CRM"),
-          included: true,
-        },
-        {
-          name: t("pricing.individual.feature4", "SMS + Email notifications"),
-          included: true,
-        },
-        {
-          name: t("pricing.individual.feature5", "Mobile app access"),
-          included: true,
-        },
-        {
-          name: t("pricing.individual.feature6", "Advanced reporting"),
-          included: true,
-        },
-        {
-          name: t(
-            "pricing.individual.feature7",
-            "Calendar sync (Google, Apple)"
-          ),
-          included: true,
-        },
-        {
-          name: t("pricing.individual.feature8", "Basic AI insights"),
-          included: true,
-        },
-        {
-          name: t("pricing.individual.feature9", "Team management"),
-          included: false,
-        },
-        {
-          name: t("pricing.individual.feature10", "Priority support"),
-          included: false,
-        },
+        { name: t("individual.feature1", "Unlimited bookings"), included: true },
+        { name: t("individual.feature2", "1 professional"), included: true },
+        { name: t("individual.feature3", "SMS & Email notifications"), included: true },
+        { name: t("individual.feature4", "AI Insights included"), included: true },
+        { name: t("individual.feature5", "Unlimited client management"), included: true },
+        { name: t("individual.feature6", "Custom branding"), included: true },
+        { name: t("individual.feature9", "Advanced reporting"), included: true },
       ],
-      cta: t("pricing.individual.cta", "Start Free Trial"),
-      link: "/register?plan=individual",
+      cta: t("individual.cta", "Start Free Trial"),
+      link: `/register?plan=individual&billing=${billingPeriod}`,
     },
     {
       id: "business",
-      name: t("pricing.business.name", "Business"),
+      name: t("business.name", "Business"),
       type: "business",
-      price: getPriceDisplay("business", "monthly"),
-      period: t("pricing.period", "/month"),
-      description: t(
-        "pricing.business.description",
-        "Complete solution for businesses with multiple professionals"
-      ),
+      price: getPriceDisplay("business", billingPeriod === "month" ? "monthly" : "yearly"),
+      period: billingPeriod === "month" ? t("perMonth", "/month") : t("perYear", "/year"),
+      description: t("business.description", "Complete solution for enterprises"),
       popular: false,
       features: [
-        {
-          name: t("pricing.business.feature1", "Unlimited bookings"),
-          included: !getPlanData("business")?.maxBookings, // Included (true) if maxBookings is null/undefined (unlimited)
-        },
-        {
-          name: t("pricing.business.feature2", "Multi-location support"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature3", "Team management"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature4", "Role-based permissions"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature5", "Commission tracking"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature6", "Advanced AI analytics"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature7", "Custom integrations"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature8", "Priority support"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature9", "Financial reports"),
-          included: true,
-        },
-        {
-          name: t("pricing.business.feature10", "White-label option"),
-          included: true,
-        },
+        { name: t("business.feature1", "Everything in Individual"), included: true },
+        { name: t("business.feature2", "Unlimited professionals"), included: true },
+        { name: t("business.feature3", "Advanced AI analytics"), included: true },
+        { name: t("business.feature4", "Multi-location support"), included: true },
+        { name: t("business.feature5", "Priority support"), included: true },
+        { name: t("business.feature6", "Custom integrations"), included: true },
+        { name: t("business.feature10", "Unlimited clients"), included: true },
       ],
-      cta: t("pricing.business.cta", "Start Free Trial"),
-      link: "/register?plan=business",
+      cta: t("business.cta", "Contact Sales"),
+      link: `/register?plan=business&billing=${billingPeriod}`,
     },
   ];
 
@@ -248,14 +142,30 @@ export default function Pricing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-              {t("pricing.hero.title", "Simple, Transparent Pricing")}
+              {t("hero.title", "Simple, Transparent Pricing")}
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              {t(
-                "pricing.hero.subtitle",
-                "Choose the perfect plan for your business. All plans include a 14-day free trial."
-              )}
+              {t("hero.subtitle", "Choose the perfect plan for your business. All plans include a 14-day free trial.")}
             </p>
+            {/* Billing Period Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <Label htmlFor="billing-period" className={`text-sm font-medium ${billingPeriod === "month" ? "text-primary" : "text-muted-foreground"}`}>
+                {t("billing.monthly", "Monthly")}
+              </Label>
+              <Switch
+                id="billing-period"
+                checked={billingPeriod === "year"}
+                onCheckedChange={(checked) => setBillingPeriod(checked ? "year" : "month")}
+              />
+              <div className="flex items-center gap-2">
+                <Label htmlFor="billing-period" className={`text-sm font-medium ${billingPeriod === "year" ? "text-primary" : "text-muted-foreground"}`}>
+                  {t("billing.yearly", "Yearly")}
+                </Label>
+                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                  {t("billing.save", "Save 20%")}
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
       </section>

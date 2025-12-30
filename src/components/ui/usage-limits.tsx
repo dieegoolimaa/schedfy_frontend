@@ -24,7 +24,7 @@ interface UsageLimitBarProps {
  * Displays a single usage limit bar
  */
 export function UsageLimitBar({ type, showUpgradeButton = true, compact = false, usageItem }: UsageLimitBarProps) {
-    const { t } = useTranslation();
+    const { t } = useTranslation(['subscription', 'common']);
 
     if (!usageItem) return null;
 
@@ -39,6 +39,20 @@ export function UsageLimitBar({ type, showUpgradeButton = true, compact = false,
         if (percentage >= 70) return 'bg-yellow-500';
         return 'bg-primary';
     };
+
+    // Handle case where limit is 0 (not available for this plan)
+    if (usageItem.limit === 0 && !usageItem.unlimited) {
+        return (
+            <div className={compact ? 'text-xs' : 'text-sm'}>
+                <div className="flex justify-between items-center mb-1">
+                    <span className="text-muted-foreground">{labels[type]}</span>
+                    <Badge variant="outline" className="text-xs text-muted-foreground">
+                        {t('usage.notAvailable', 'Not available')}
+                    </Badge>
+                </div>
+            </div>
+        );
+    }
 
     if (usageItem.unlimited) {
         return (
@@ -96,7 +110,7 @@ export function UsageLimitBar({ type, showUpgradeButton = true, compact = false,
  * Full usage card with all limits displayed
  */
 export function UsageCard() {
-    const { t } = useTranslation();
+    const { t } = useTranslation(['subscription', 'common']);
     const { user } = useAuth();
     const { usage, loading } = useUsageLimits();
 

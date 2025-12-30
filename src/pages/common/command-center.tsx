@@ -114,13 +114,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     const { user, entity: authEntity } = useAuth();
     const navigate = useNavigate();
 
-    // Check for stripe requirements
-    const showStripeAlert = useMemo(() => {
-        if (!authEntity) return false;
-        if (authEntity.plan === EntityPlan.SIMPLE) return false;
-        return !authEntity.onboardingStatus?.hasPaymentMethods;
-    }, [authEntity]);
-
     const {
         entity: fullEntity,
     } = useEntity({ autoFetch: true }); // Fetch full entity profile
@@ -742,20 +735,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
     return (
         <div className="space-y-6">
-            {showStripeAlert && (
-                <Alert className="border-amber-500 bg-amber-50">
-                    <AlertCircle className="h-4 w-4 text-amber-600" />
-                    <AlertTitle className="text-amber-800">Setup Payments Required</AlertTitle>
-                    <AlertDescription className="text-amber-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span>Your plan requires payment processing configuration. Please setup Stripe to accept payments.</span>
-                        <Button variant="outline" size="sm" className="border-amber-600 text-amber-900 hover:bg-amber-100" onClick={() => navigate(authEntity?.plan === EntityPlan.INDIVIDUAL ? '/individual/payment-management' : '/entity/payment-management')}>
-                            Configure Now
-                        </Button>
-                    </AlertDescription>
-                </Alert>
-            )}
-
-            {/* Modern Header with Gradient */}
             {/* Modern Header - Dark Theme Optimized */}
             <div className="relative overflow-hidden rounded-xl border bg-card p-6">
                 <div className="relative z-10">
@@ -815,12 +794,15 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 <span className="hidden sm:inline">Block Time</span>
                             </Button>
 
-                            <DirectBookingLinkGenerator
-                                entityId={entityId}
-                                entitySlug={fullEntity?.slug || ""}
-                                professionals={professionalsList}
-                                services={services}
-                            />
+                            {/* Only show DirectBookingLinkGenerator for Simple and Business plans */}
+                            {user?.plan !== 'individual' && (
+                                <DirectBookingLinkGenerator
+                                    entityId={entityId}
+                                    entitySlug={(fullEntity as any)?.slug || ""}
+                                    professionals={professionalsList}
+                                    services={services}
+                                />
+                            )}
                             <Button
                                 size="sm"
                                 onClick={() => setIsCreateDialogOpen(true)}
@@ -1201,8 +1183,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                     <span className="ml-1.5">{t(`status.${booking.status}`, booking.status)}</span>
                                                 </Badge>
 
-                                                {/* Payment Status Badge */}
-                                                {booking.status !== 'cancelled' && booking.status !== 'blocked' && (
+                                                {/* Payment Status Badge - Hidden for Simple plan */}
+                                                {!isSimplePlan && booking.status !== 'cancelled' && booking.status !== 'blocked' && (
                                                     <Badge
                                                         variant="outline"
                                                         className={`
@@ -1384,6 +1366,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     defaultView="week"
                                     workingHours={fullEntity?.workingHours || { start: "08:00", end: "23:00" }}
                                     onCreateBooking={() => setIsCreateDialogOpen(true)}
+                                    onSlotClick={() => setIsCreateDialogOpen(true)}
                                     onEditBooking={(booking) => {
                                         // Map the booking object to the flat structure expected by EditBookingDialog
                                         const mappedBooking: any = {
@@ -1497,7 +1480,15 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <Button
                                 variant="outline"
                                 className="w-full justify-start h-auto py-2"
-                                onClick={() => navigate('/entity/profile')}
+                                onClick={() => {
+                                    // Use publicProfile.slug, then username as fallback (same logic as business-profile-manager)
+                                    const slug = (fullEntity as any)?.publicProfile?.slug || (fullEntity as any)?.username;
+                                    if (slug) {
+                                        window.open(`/book/${slug}`, '_blank');
+                                    } else {
+                                        toast.error(t("errors.noSlug", "Public page not configured"));
+                                    }
+                                }}
                             >
                                 <Building2 className="mr-2 h-4 w-4 text-primary" />
                                 <div className="flex flex-col items-start">
@@ -1543,24 +1534,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             </Button>
                         </CardContent>
                     </Card>
-
-                    {/* Direct Booking Link Generator */}
-                    <DirectBookingLinkGenerator
-                        entitySlug={(fullEntity as any)?.slug || (fullEntity as any)?.id || entityId}
-                        entityId={entityId}
-                        professionals={professionalsList.map((p: any) => ({
-                            id: p.id || p._id,
-                            name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim()
-                        }))}
-                        services={services.map((s: any) => ({
-                            id: s._id || s.id || "",
-                            name: s.name,
-                            duration: s.duration,
-                            price: s.pricing?.basePrice
-                        }))}
-                        open={isDirectBookingLinkOpen}
-                        onOpenChange={setIsDirectBookingLinkOpen}
-                    />
 
                     {/* Recent Activities Widget */}
                     <RecentActivitiesWidget

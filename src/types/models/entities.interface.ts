@@ -146,4 +146,5 @@ export interface CompleteOnboardingDto {
         description?: string;
     };
     paymentMethodId?: string;
+    ownerIsProfessional?: boolean;
 }

@@ -36,8 +36,11 @@
     "comingSoonDesc": "Track your bookings, revenue, and client growth here in future updates.",
     "bookings": "Bookings",
     "professionals": "Professionals",
+    "clients": "Clients",
     "storage": "Storage",
-    "aiInsights": "AI Insights"
+    "aiInsights": "AI Insights",
+    "unlimited": "Unlimited",
+    "notAvailable": "Not available"
   },
   "tabs": {
     "changePlan": "Change Plan",
@@ -57,36 +60,37 @@
     "notAvailableSimple": "Not available for Simple Plan",
     "simple": {
       "name": "Simple",
-      "description": "Perfect for getting started"
+      "description": "For teams and establishments"
     },
     "individual": {
       "name": "Individual",
-      "description": "Enhanced features for growing businesses"
+      "description": "For solo professionals"
     },
     "business": {
       "name": "Business",
-      "description": "Complete solution for teams"
+      "description": "Complete solution for enterprises"
     }
   },
   "addOns": {
-    "title": "Available Add-ons",
-    "active": "Active",
+    "title": "Included Features",
+    "active": "Included",
     "aiInsights": {
       "name": "AI Business Insights",
-      "description": "Advanced AI-powered analytics and recommendations",
+      "description": "Included in your plan - Advanced AI-powered analytics and recommendations",
       "features": {
         "predictive": "Predictive analytics",
         "clientBehavior": "Client behavior insights",
         "optimization": "Business optimization tips"
-      }
+      },
+      "included": "Included in your plan"
     },
     "unlimitedBookings": {
       "name": "Unlimited Bookings",
-      "description": "Remove booking limits from your Simple plan",
+      "description": "Upgrade to Individual for unlimited bookings",
       "features": {
         "unlimited": "Unlimited bookings",
         "keepFeatures": "Keep current features",
-        "noAi": "No AI features",
+        "ai": "AI insights included",
         "cancel": "Cancel anytime"
       }
     }

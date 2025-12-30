@@ -34,7 +34,9 @@
       "zipCode": "Código Postal",
       "zipCodePlaceholder": "1000-001",
       "country": "País",
-      "countryPlaceholder": "Portugal"
+      "countryPlaceholder": "Portugal",
+      "ownerIsProfessional": "Também sou profissional",
+      "ownerIsProfessionalDescription": "Ative se VOCÊ também atende clientes (ex: você é a cabeleireira, o dentista, o personal). Desative se você só administra o negócio."
     },
     "contact": {
       "title": "Informação de Contacto",
@@ -77,6 +79,11 @@
       "serviceDescription": "Descrição",
       "descriptionPlaceholder": "Breve descrição do serviço..."
     }
+  },
+  "buttons": {
+    "back": "Voltar",
+    "nextStep": "Próximo Passo",
+    "complete": "Concluir"
   },
   "messages": {
     "success": "Configuração concluída com sucesso!",

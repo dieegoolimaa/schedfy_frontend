@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useForm, Controller } from "react-hook-form";
@@ -9,6 +9,7 @@ import { useAuth } from "../../contexts/auth-context";
 import { useRegion } from "../../contexts/region-context";
 import { REGIONS, RegionCode } from "../../lib/region-config";
 import { authService } from "../../services/auth.service";
+import { storage } from "../../lib/storage";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -28,6 +29,8 @@ import {
 } from "../../components/ui/select";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Progress } from "../../components/ui/progress";
+import { Switch } from "../../components/ui/switch";
+import { Badge } from "../../components/ui/badge";
 
 import {
   Eye,
@@ -46,9 +49,10 @@ import {
 
 const registerSchema = z
   .object({
-    plan: z.enum(["simple", "individual", "business"], {
+    plan: z.enum(["simple", "simple_unlimited", "individual", "business"], {
       errorMap: () => ({ message: "Please select a plan" }),
     }),
+    billingPeriod: z.enum(["month", "year"]).default("month"),
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
     email: z
@@ -111,14 +115,25 @@ export function RegisterPage() {
   const [isCodeVerified, setIsCodeVerified] = useState(false);
   const [isVerifyingCode, setIsVerifyingCode] = useState(false);
   const [codeExpiresIn, setCodeExpiresIn] = useState(0);
+  const [isRestoringData, setIsRestoringData] = useState(true);
   const totalSteps = 5; // Plan, Personal, Password, Company, Verification
 
-  // Get plan from URL params
+  // Get plan and billing from URL params
   const planFromUrl = searchParams.get("plan") as
     | "simple"
+    | "simple_unlimited"
     | "individual"
     | "business"
     | null;
+  const billingFromUrl = searchParams.get("billing") as "month" | "year" | null;
+
+  // Restore saved data from localStorage - use useMemo to avoid recalculating on every render
+  const initialData = useMemo(() => {
+    const savedData = storage.getRegistrationData();
+    const savedStep = storage.getRegistrationStep();
+    const pendingVerification = storage.getPendingVerification();
+    return { savedData, savedStep, pendingVerification };
+  }, []); // Empty deps = only calculate once on mount
 
   const {
     register,
@@ -128,23 +143,50 @@ export function RegisterPage() {
     setValue,
     trigger,
     control,
+    getValues,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     mode: "onChange",
     defaultValues: {
-      plan: planFromUrl || undefined,
-      firstName: "",
-      lastName: "",
-      email: "",
+      plan: initialData.savedData?.plan || planFromUrl || undefined,
+      billingPeriod: initialData.savedData?.billingPeriod || billingFromUrl || "month",
+      firstName: initialData.savedData?.firstName || "",
+      lastName: initialData.savedData?.lastName || "",
+      email: initialData.savedData?.email || "",
       password: "",
       confirmPassword: "",
-      businessName: "",
-      businessType: "",
-      region: "",
-      acceptTerms: false,
-      acceptMarketing: false,
+      businessName: initialData.savedData?.businessName || "",
+      businessType: initialData.savedData?.businessType || "",
+      region: initialData.savedData?.region || "",
+      acceptTerms: initialData.savedData?.acceptTerms || false,
+      acceptMarketing: initialData.savedData?.acceptMarketing || false,
     },
   });
+
+  // Restore step and pending verification on mount
+  useEffect(() => {
+    const { savedData, savedStep, pendingVerification } = initialData;
+    if (pendingVerification && savedData?.email === pendingVerification.email) {
+      // User left during verification step, restore to verification
+      setCurrentStep(5);
+      toast.info("Continuing from where you left off. Please request a new verification code.");
+    } else if (savedStep > 1 && savedData) {
+      // Restore to saved step (but not verification step since code expired)
+      setCurrentStep(Math.min(savedStep, 4));
+      toast.info("Your previous progress has been restored.");
+    }
+    setIsRestoringData(false);
+  }, [initialData]);
+
+  // Save form data on every change (except passwords)
+  const formValues = watch();
+  useEffect(() => {
+    if (isRestoringData) return;
+    
+    const { password, confirmPassword, ...dataToSave } = formValues;
+    storage.setRegistrationData(dataToSave);
+    storage.setRegistrationStep(currentStep);
+  }, [formValues, currentStep, isRestoringData]);
 
   const password = watch("password");
   const email = watch("email");
@@ -216,6 +258,9 @@ export function RegisterPage() {
       const response = await authService.sendVerificationCode(email);
 
       console.log("[Register] Code sent successfully");
+
+      // Save pending verification state (so user can continue if they leave the page)
+      storage.setPendingVerification(email, 5);
 
       // If in development mode and code is returned, auto-fill it and show in toast
       if (response.data?.code) {
@@ -308,6 +353,7 @@ export function RegisterPage() {
         businessName: data.businessName,
         businessType: data.businessType,
         plan: data.plan, // Include selected plan
+        billingPeriod: data.billingPeriod, // Include billing period (month/year)
         region: data.region, // Include region code (e.g., 'BR', 'PT', 'US')
         timezone: selectedRegion.timezone,
         locale: selectedRegion.locale,
@@ -315,6 +361,10 @@ export function RegisterPage() {
       });
 
       console.log("[Register] Account created successfully!");
+      
+      // Clear registration data from localStorage on success
+      storage.clearRegistrationFlow();
+      
       toast.success("Account created successfully! Welcome to Schedfy!");
 
       // Redirect to onboarding
@@ -358,6 +408,8 @@ export function RegisterPage() {
   };
 
   const renderStepContent = () => {
+    const billingPeriod = watch("billingPeriod");
+    
     switch (currentStep) {
       case 1:
         // Plan Selection
@@ -372,41 +424,68 @@ export function RegisterPage() {
               </p>
             </div>
 
+            {/* Billing Period Toggle */}
+            <div className="flex items-center justify-center gap-4 py-4 border rounded-lg bg-muted/30">
+              <Label className={`text-sm font-medium ${billingPeriod === "month" ? "text-primary" : "text-muted-foreground"}`}>
+                {t("pricing.billing.monthly", "Monthly")}
+              </Label>
+              <Controller
+                name="billingPeriod"
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value === "year"}
+                    onCheckedChange={(checked) => field.onChange(checked ? "year" : "month")}
+                  />
+                )}
+              />
+              <div className="flex items-center gap-2">
+                <Label className={`text-sm font-medium ${billingPeriod === "year" ? "text-primary" : "text-muted-foreground"}`}>
+                  {t("pricing.billing.yearly", "Yearly")}
+                </Label>
+                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                  {t("pricing.billing.save", "Save 20%")}
+                </Badge>
+              </div>
+            </div>
+
             <Controller
               name="plan"
               control={control}
               render={({ field }) => (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   {/* Simple Plan */}
                   <button
                     type="button"
                     onClick={() => field.onChange("simple")}
-                    className={`p-6 border-2 rounded-lg text-left transition-all ${field.value === "simple"
-                      ? "border-primary bg-primary/5"
+                    className={`p-4 border-2 rounded-xl text-left transition-all hover:shadow-md min-w-0 ${field.value === "simple"
+                      ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border hover:border-primary/50"
                       }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h4 className="font-semibold text-lg">
+                    <div className="flex flex-col h-full">
+                      <div className="flex items-start justify-between mb-1">
+                        <h4 className="font-bold text-base">
                           {t("register.steps.plan.simple.name")}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {t("register.steps.plan.simple.description")}
-                        </p>
-                        <p className="text-2xl font-bold mt-2">
-                          {getPriceDisplay("simple", "monthly")}
-                          <span className="text-sm font-normal text-muted-foreground">
-                            {t("register.steps.plan.simple.perMonth")}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        {field.value === "simple" && (
+                          <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-3 flex-grow line-clamp-2">
+                        {t("register.steps.plan.simple.description")}
+                      </p>
+                      <div className="mt-auto">
+                        <div className="text-2xl font-bold text-primary">
+                          {getPriceDisplay("simple", billingPeriod === "month" ? "monthly" : "yearly")}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {billingPeriod === "month" ? t("pricing.perMonth", "/month") : t("pricing.perYear", "/year")}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
                           {t("pricing.taxNotice", "Prices exclude VAT")}
                         </p>
                       </div>
-                      {field.value === "simple" && (
-                        <CheckCircle2 className="h-6 w-6 text-primary" />
-                      )}
                     </div>
                   </button>
 
@@ -414,68 +493,72 @@ export function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => field.onChange("individual")}
-                    className={`p-6 border-2 rounded-lg text-left transition-all relative ${field.value === "individual"
-                      ? "border-primary bg-primary/5"
+                    className={`p-4 border-2 rounded-xl text-left transition-all hover:shadow-md min-w-0 ${field.value === "individual"
+                      ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border hover:border-primary/50"
                       }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h4 className="font-semibold text-lg">
+                    <div className="flex flex-col h-full">
+                      <div className="flex items-start justify-between mb-1">
+                        <h4 className="font-bold text-base">
                           {t("register.steps.plan.individual.name")}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {t("register.steps.plan.individual.description")}
-                        </p>
-                        <p className="text-2xl font-bold mt-2">
-                          {getPriceDisplay("individual", "monthly")}
-                          <span className="text-sm font-normal text-muted-foreground">
-                            {t("register.steps.plan.individual.perMonth")}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        {field.value === "individual" && (
+                          <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-3 flex-grow line-clamp-2">
+                        {t("register.steps.plan.individual.description")}
+                      </p>
+                      <div className="mt-auto">
+                        <div className="text-2xl font-bold text-primary">
+                          {getPriceDisplay("individual", billingPeriod === "month" ? "monthly" : "yearly")}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {billingPeriod === "month" ? t("pricing.perMonth", "/month") : t("pricing.perYear", "/year")}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
                           {t("pricing.taxNotice", "Prices exclude VAT")}
                         </p>
                       </div>
                     </div>
-                    {field.value === "individual" && (
-                      <CheckCircle2 className="h-6 w-6 text-primary" />
-                    )}
                   </button>
 
                   {/* Business Plan */}
                   <button
                     type="button"
                     onClick={() => field.onChange("business")}
-                    className={`p-6 border-2 rounded-lg text-left transition-all ${field.value === "business"
-                      ? "border-primary bg-primary/5"
+                    className={`p-4 border-2 rounded-xl text-left transition-all hover:shadow-md min-w-0 ${field.value === "business"
+                      ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border hover:border-primary/50"
                       }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h4 className="font-semibold text-lg">
+                    <div className="flex flex-col h-full">
+                      <div className="flex items-start justify-between mb-1">
+                        <h4 className="font-bold text-base">
                           {t("register.steps.plan.business.name")}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {t("register.steps.plan.business.description")}
-                        </p>
-                        <p className="text-2xl font-bold mt-2">
-                          {getPriceDisplay("business", "monthly")}
-                          <span className="text-sm font-normal text-muted-foreground">
-                            {t("register.steps.plan.business.perMonth")}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        {field.value === "business" && (
+                          <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-3 flex-grow line-clamp-2">
+                        {t("register.steps.plan.business.description")}
+                      </p>
+                      <div className="mt-auto">
+                        <div className="text-2xl font-bold text-primary">
+                          {getPriceDisplay("business", billingPeriod === "month" ? "monthly" : "yearly")}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {billingPeriod === "month" ? t("pricing.perMonth", "/month") : t("pricing.perYear", "/year")}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
                           {t("pricing.taxNotice", "Prices exclude VAT")}
                         </p>
                       </div>
-                      {field.value === "business" && (
-                        <CheckCircle2 className="h-6 w-6 text-primary" />
-                      )}
                     </div>
                   </button>
-                </div >
+                </div>
               )
               }
             />
@@ -511,6 +594,7 @@ export function RegisterPage() {
                     id="firstName"
                     placeholder={t("register.firstNamePlaceholder")}
                     className="pl-10"
+                    autoComplete="given-name"
                     {...register("firstName")}
                     aria-invalid={errors.firstName ? "true" : "false"}
                   />
@@ -533,6 +617,7 @@ export function RegisterPage() {
                       "Enter your last name"
                     )}
                     className="pl-10"
+                    autoComplete="family-name"
                     {...register("lastName")}
                     aria-invalid={errors.lastName ? "true" : "false"}
                   />
@@ -554,6 +639,7 @@ export function RegisterPage() {
                   type="email"
                   placeholder={t("auth.emailPlaceholder", "Enter your email")}
                   className="pl-10"
+                  autoComplete="email"
                   {...register("email")}
                   aria-invalid={errors.email ? "true" : "false"}
                 />
@@ -583,6 +669,7 @@ export function RegisterPage() {
                     "Create a strong password"
                   )}
                   className="pl-10 pr-10"
+                  autoComplete="new-password"
                   {...register("password")}
                   aria-invalid={errors.password ? "true" : "false"}
                 />
@@ -690,6 +777,7 @@ export function RegisterPage() {
                     "Confirm your password"
                   )}
                   className="pl-10 pr-10"
+                  autoComplete="new-password"
                   {...register("confirmPassword")}
                   aria-invalid={errors.confirmPassword ? "true" : "false"}
                 />
@@ -733,6 +821,7 @@ export function RegisterPage() {
                     "Enter your business name"
                   )}
                   className="pl-10"
+                  autoComplete="organization"
                   {...register("businessName")}
                   aria-invalid={errors.businessName ? "true" : "false"}
                 />

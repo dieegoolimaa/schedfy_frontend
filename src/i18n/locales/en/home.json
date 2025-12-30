@@ -46,36 +46,40 @@
     "popular": "Most Popular",
     "startFree": "Start Free Trial",
     "perMonth": "/month",
+    "perYear": "/year",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save20": "Save 20%",
     "taxNotice": "Prices exclude VAT"
   },
   "plans": {
     "simple": {
       "name": "Simple",
-      "description": "Perfect for individual professionals",
+      "description": "For teams and establishments",
       "features": {
         "appointments": "Up to 50 appointments/month",
-        "calendar": "Basic calendar integration",
+        "calendar": "Google Calendar sync",
         "email": "Email notifications",
-        "mobile": "Mobile responsive"
+        "ai": "AI Insights included"
       }
     },
     "individual": {
       "name": "Individual",
-      "description": "For growing professionals",
+      "description": "For solo professionals",
       "features": {
         "appointments": "Unlimited appointments",
         "calendar": "Advanced calendar sync",
         "notifications": "SMS and Email notifications",
         "analytics": "Basic analytics",
-        "forms": "Custom booking forms"
+        "ai": "AI Insights included"
       }
     },
     "business": {
       "name": "Business",
-      "description": "For teams and enterprises",
+      "description": "Complete solution for enterprises",
       "features": {
         "everything": "Everything in Individual",
-        "team": "Team management",
+        "team": "Team management (up to 10)",
         "analytics": "Advanced analytics and AI insights",
         "locations": "Multi-location support",
         "support": "Priority support"

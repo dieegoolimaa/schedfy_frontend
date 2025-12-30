@@ -128,10 +128,6 @@ export function Navigation() {
         ],
         financial: [
           {
-            path: "/entity/payment-management",
-            label: t("nav.payments", "Payment Management"),
-          },
-          {
             path: "/entity/commissions-management",
             label: t("nav.commissions", "Commissions"),
           },
@@ -144,6 +140,10 @@ export function Navigation() {
           {
             path: "/entity/notification-center",
             label: t("nav.notifications", "Notifications"),
+          },
+          {
+            path: "/settings/integrations",
+            label: t("nav.integrations", "Integrations"),
           },
           ...(features.aiPremiumEnabled
             ? [
@@ -198,13 +198,12 @@ export function Navigation() {
             label: t("nav.reports", "Reports"),
           },
         ],
-        financial: [
-          {
-            path: "/individual/payment-management",
-            label: t("nav.payments", "Payments"),
-          },
-        ],
+        financial: [],
         settings: [
+          {
+            path: "/settings/integrations",
+            label: t("nav.integrations", "Integrations"),
+          },
           ...(hasDirectPermission('canManageSubscription') ? [{
             path: "/individual/subscription",
             label: t("nav.subscription", "Subscription"),
@@ -293,6 +292,10 @@ export function Navigation() {
           },
         ],
         settings: [
+          {
+            path: "/settings/integrations",
+            label: t("nav.integrations", "Integrations"),
+          },
           ...(hasDirectPermission('canManageSubscription') ? [{
             path: "/simple/subscription",
             label: t("nav.subscription", "Subscription"),

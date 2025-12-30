@@ -7,6 +7,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
 import { getDashboardRoute } from "../../lib/utils";
+import { storage } from "../../lib/storage";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -57,6 +58,9 @@ export function LoginPage() {
     try {
       const user = await login(data);
       toast.success(t("auth.loginSuccess", "Welcome back!"));
+
+      // Email verification is no longer required on login
+      // The verification flow is handled separately during onboarding
 
       // Check for forced password change
       if (user.mustChangePassword) {

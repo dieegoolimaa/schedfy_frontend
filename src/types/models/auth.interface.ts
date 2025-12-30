@@ -21,6 +21,7 @@ export interface RegisterWithVerificationPayload extends RegisterPayload {
     businessName?: string;
     businessType?: string;
     plan?: string;
+    billingPeriod?: 'month' | 'year';
     region?: string;
     timezone?: string;
     locale?: string;

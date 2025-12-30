@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useRegion } from "@/contexts/region-context";
 import { entitySubscriptionsService } from "@/services/entity-subscriptions.service";
+import { useUsageLimits } from "@/hooks/useUsageLimits";
 import { EntityPlan } from "@/types/enums";
 import {
     Card,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import {
     CreditCard,
     Crown,
@@ -36,6 +38,8 @@ import {
     Loader2,
     AlertTriangle,
     Clock,
+    Zap,
+    CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -54,6 +58,10 @@ export function SubscriptionDetails() {
     const queryClient = useQueryClient();
     const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+    const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
+
+    // Usage limits hook
+    const { usage, loading: isLoadingUsage } = useUsageLimits();
 
     // Trial Calculation (Frontend-side fallback if status is not explicitly 'trialing')
     const trialDays = 14;
@@ -108,6 +116,11 @@ export function SubscriptionDetails() {
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || t("messages.error.upgrade"));
+            setUpgradingPlanId(null);
+        },
+        onSettled: () => {
+            // Clear the upgrading state when mutation is done (if not redirected)
+            // Note: This won't run if window.location.href redirects
         },
     });
 
@@ -192,15 +205,8 @@ export function SubscriptionDetails() {
             ? new Date(subscription.nextBillingDate)
             : (subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null));
 
-    // AI Insights pricing - fetch from API (monthly only)
-    const aiInsightsPriceDisplay = getPriceDisplay("ai_insights", "monthly");
-    const aiInsightsNumericPrice = (() => {
-        const match = aiInsightsPriceDisplay.match(/[\d,.]+/);
-        if (match) return parseFloat(match[0].replace(",", "."));
-        return 0; // Better to show 0/calculating than a hardcoded wrong value
-    })();
-    const totalCurrentPrice = (currentPlan?.price || 0) +
-        (subscription?.aiInsightsSubscribed ? aiInsightsNumericPrice : 0);
+    // AI Insights is now included in all plans, no extra pricing needed
+    const totalCurrentPrice = currentPlan?.price || 0;
 
     // Filter plans: 
     // If current plan is Business, show no other plans (or maybe just Business to confirm).
@@ -293,11 +299,6 @@ export function SubscriptionDetails() {
                                     {subscription?.interval === "month"
                                         ? t("billing.perMonth", "per month")
                                         : t("billing.perYear", "per year")}
-                                    {subscription?.aiInsightsSubscribed && (
-                                        <span className="ml-2 text-xs">
-                                            ({formatCurrency(currentPlan?.price || 0)} Plan + {formatCurrency(aiInsightsNumericPrice)} Add-ons)
-                                        </span>
-                                    )}
                                 </div>
                             </div>
                             <div className="text-right">
@@ -326,27 +327,26 @@ export function SubscriptionDetails() {
                             </div>
                         </div>
 
-                        {subscription?.aiInsightsSubscribed && (
-                            <div className="space-y-4 pt-4 border-t">
-                                <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                                    {t("plan.activeAddOns", "Active Add-ons")}
-                                </h4>
-                                <div className="flex items-center justify-between p-3 border rounded-lg bg-purple-50/50 border-purple-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-purple-100 p-2 rounded-md">
-                                            <Brain className="h-4 w-4 text-purple-600" />
-                                        </div>
-                                        <div>
-                                            <div className="font-medium text-sm">{t("addOns.aiInsights.name")}</div>
-                                            <div className="text-xs text-muted-foreground">{t("addOns.aiInsights.description")}</div>
-                                        </div>
+                        {/* AI Insights - Always included */}
+                        <div className="space-y-4 pt-4 border-t">
+                            <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+                                {t("addOns.title", "Included Features")}
+                            </h4>
+                            <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50/50 border-green-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-green-100 p-2 rounded-md">
+                                        <Brain className="h-4 w-4 text-green-600" />
                                     </div>
-                                    <div className="font-medium text-sm">
-                                        {formatCurrency(aiInsightsNumericPrice)}/{subscription?.interval === 'year' ? t("billing.yearly").toLowerCase() : t("billing.monthly").toLowerCase()}
+                                    <div>
+                                        <div className="font-medium text-sm">{t("addOns.aiInsights.name")}</div>
+                                        <div className="text-xs text-muted-foreground">{t("addOns.aiInsights.included", "Included in your plan")}</div>
                                     </div>
                                 </div>
+                                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                                    {t("addOns.active", "Included")}
+                                </Badge>
                             </div>
-                        )}
+                        </div>
                     </CardContent>
                     <CardFooter className="bg-muted/20 border-t p-6 flex justify-between items-center">
                         {subscription?.status === 'active' && !subscription.cancelAtPeriodEnd ? (
@@ -393,13 +393,86 @@ export function SubscriptionDetails() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                            <TrendingUp className="h-16 w-16 mb-4 opacity-10" />
-                            <p className="text-sm font-medium">{t("usage.comingSoon")}</p>
-                            <p className="text-xs text-center mt-2 max-w-[200px]">
-                                {t("usage.comingSoonDesc")}
-                            </p>
-                        </div>
+                        {isLoadingUsage || !usage ? (
+                            <div className="flex flex-col items-center justify-center py-8">
+                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {/* Bookings */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                            <span>{t("usage.bookings", "Bookings")}</span>
+                                        </div>
+                                        {usage.bookings.unlimited ? (
+                                            <Badge variant="secondary" className="text-xs">
+                                                <Zap className="h-3 w-3 mr-1" />
+                                                {t("usage.unlimited", "Unlimited")}
+                                            </Badge>
+                                        ) : (
+                                            <span className="font-medium">
+                                                {usage.bookings.used}/{usage.bookings.limit}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {!usage.bookings.unlimited && (
+                                        <Progress value={usage.bookings.percentage} className="h-2" />
+                                    )}
+                                </div>
+
+                                {/* Professionals */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <Users className="h-4 w-4 text-muted-foreground" />
+                                            <span>{t("usage.professionals", "Professionals")}</span>
+                                        </div>
+                                        {usage.professionals.unlimited ? (
+                                            <Badge variant="secondary" className="text-xs">
+                                                <Zap className="h-3 w-3 mr-1" />
+                                                {t("usage.unlimited", "Unlimited")}
+                                            </Badge>
+                                        ) : (
+                                            <span className="font-medium">
+                                                {usage.professionals.used}/{usage.professionals.limit}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {!usage.professionals.unlimited && (
+                                        <Progress value={usage.professionals.percentage} className="h-2" />
+                                    )}
+                                </div>
+
+                                {/* Clients */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <Building className="h-4 w-4 text-muted-foreground" />
+                                            <span>{t("usage.clients", "Clients")}</span>
+                                        </div>
+                                        {usage.clients.limit === 0 ? (
+                                            <Badge variant="outline" className="text-xs text-muted-foreground">
+                                                {t("usage.notAvailable", "Not available")}
+                                            </Badge>
+                                        ) : usage.clients.unlimited ? (
+                                            <Badge variant="secondary" className="text-xs">
+                                                <Zap className="h-3 w-3 mr-1" />
+                                                {t("usage.unlimited", "Unlimited")}
+                                            </Badge>
+                                        ) : (
+                                            <span className="font-medium">
+                                                {usage.clients.used}/{usage.clients.limit}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {usage.clients.limit !== 0 && !usage.clients.unlimited && (
+                                        <Progress value={usage.clients.percentage} className="h-2" />
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -485,10 +558,16 @@ export function SubscriptionDetails() {
                                             className="w-full"
                                             disabled={upgradeMutation.isPending}
                                             onClick={() => {
+                                                setUpgradingPlanId(plan.plan);
                                                 upgradeMutation.mutate({ planId: plan.plan, interval: billingPeriod });
                                             }}
                                         >
-                                            {upgradeMutation.isPending ? t("actions.processing") : t("plans.upgradeTo", { plan: plan.name })}
+                                            {upgradeMutation.isPending && upgradingPlanId === plan.plan ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    {t("actions.processing")}
+                                                </>
+                                            ) : t("plans.upgradeTo", { plan: plan.name })}
                                         </Button>
                                     </CardFooter>
                                 </Card>
@@ -505,39 +584,38 @@ export function SubscriptionDetails() {
                     )}
                 </TabsContent>
 
-                {/* Add-ons Tab */}
+                {/* Included Features Tab (formerly Add-ons) */}
                 <TabsContent value="addons">
                     <div className="space-y-6">
                         <h3 className="text-lg font-medium">
-                            {t("addOns.title", "Available Add-ons")}
+                            {t("addOns.title", "Included Features")}
                         </h3>
                         <div className="grid gap-6 lg:grid-cols-2">
-                            <Card>
+                            <Card className="border-green-200 bg-green-50/30">
                                 <CardHeader>
                                     <div className="flex items-center space-x-3">
-                                        <div className="bg-purple-100 p-2 rounded-lg">
-                                            <Brain className="h-6 w-6 text-purple-600" />
+                                        <div className="bg-green-100 p-2 rounded-lg">
+                                            <Brain className="h-6 w-6 text-green-600" />
                                         </div>
                                         <div>
-                                            <CardTitle>
-                                                {t("addOns.aiInsights.name", "AI Business Insights")}
-                                            </CardTitle>
+                                            <div className="flex items-center gap-2">
+                                                <CardTitle>
+                                                    {t("addOns.aiInsights.name", "AI Business Insights")}
+                                                </CardTitle>
+                                                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                                                    {t("addOns.active", "Included")}
+                                                </Badge>
+                                            </div>
                                             <CardDescription>
                                                 {t(
-                                                    "addOns.aiInsights.description",
-                                                    "Advanced AI-powered analytics and recommendations"
+                                                    "addOns.aiInsights.included",
+                                                    "Included in your plan"
                                                 )}
                                             </CardDescription>
                                         </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="text-2xl font-bold">
-                                        {aiInsightsPriceDisplay}
-                                        <span className="text-sm font-normal text-muted-foreground ml-1">
-                                            {t("billing.perMonth", "/month")}
-                                        </span>
-                                    </div>
                                     <ul className="space-y-2">
                                         <li className="flex items-center space-x-2">
                                             <TrendingUp className="h-4 w-4 text-green-500" />
@@ -567,36 +645,8 @@ export function SubscriptionDetails() {
                                             </span>
                                         </li>
                                     </ul>
-                                    <Button
-                                        className="w-full"
-                                        variant={subscription?.aiInsightsSubscribed ? "destructive" : "default"}
-                                        disabled={aiInsightsMutation.isPending || unsubscribeAiInsightsMutation.isPending}
-                                        onClick={() => {
-                                            if (subscription?.aiInsightsSubscribed) {
-                                                if (confirm(t("dialog.cancel.desc"))) {
-                                                    unsubscribeAiInsightsMutation.mutate();
-                                                }
-                                            } else {
-                                                if (isOnTrial) {
-                                                    if (confirm(t("addOns.aiInsights.confirmTrialEnd"))) {
-                                                        aiInsightsMutation.mutate();
-                                                    }
-                                                } else {
-                                                    aiInsightsMutation.mutate();
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        {subscription?.aiInsightsSubscribed ? (
-                                            unsubscribeAiInsightsMutation.isPending ? t("actions.unsubscribing") : t("actions.unsubscribe")
-                                        ) : (
-                                            aiInsightsMutation.isPending ? t("actions.processing") : t("actions.subscribe")
-                                        )}
-                                    </Button>
                                 </CardContent>
                             </Card>
-
-                            {/* AI Insights Add-on stays here as it's a true add-on */}
                         </div>
                     </div>
                 </TabsContent>

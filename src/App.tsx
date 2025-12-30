@@ -11,6 +11,7 @@ import { ResetPasswordPage } from "./pages/auth/reset-password";
 import { ForgotPasswordPage } from "./pages/auth/forgot-password";
 import { ChangePasswordPage } from "./pages/auth/change-password";
 import { AcceptInvitationPage } from "./pages/auth/accept-invitation";
+import { VerifyEmailPage } from "./pages/auth/verify-email";
 
 // Marketing pages
 import { HomePage } from "./pages/marketing/home";
@@ -22,6 +23,7 @@ import { DiscoverPage } from "./pages/marketing/discover";
 import PricingPage from "./pages/marketing/pricing";
 import IntegrationsPage from "./pages/marketing/integrations";
 import AboutPage from "./pages/marketing/about";
+import IntegrationsSettingsPage from "./pages/common/integrations";
 
 // Error pages
 import { NotFoundPage } from "./pages/errors/not-found";
@@ -37,7 +39,6 @@ import { EntityProfilePage } from "./pages/common/entity-profile";
 import { OperationalReportsPage } from "./pages/common/operational-reports";
 import UnifiedSettingsPage from "./pages/common/settings";
 import CommandCenter from "./pages/common/command-center";
-import UnifiedPaymentManagement from "./pages/common/payment-management";
 import NotificationPreferences from "./pages/common/notification-preferences";
 import ServicesAndPackagesPage from "./pages/common/services-packages";
 import ReviewsManagementPage from "./pages/common/reviews-management";
@@ -70,9 +71,8 @@ import ProfessionalEarningsPage from "./pages/professional/earnings";
 import { PublicEntityProfilePage } from "./pages/public/entity-profile";
 import { PublicBookingManagementPage } from "./pages/public/public-booking-management";
 
-// Payments pages
+// Payments success page (for subscription checkout return)
 import PaymentsSuccessPage from "./pages/payments/success";
-import ReceiptPage from "./pages/payments/receipt";
 
 // Route protection components
 import {
@@ -109,6 +109,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route
                   path="/accept-invitation"
                   element={<AcceptInvitationPage />}
@@ -332,18 +333,6 @@ function App() {
                   }
                 />
                 <Route
-                  path="/individual/payment-management"
-                  element={
-                    <IndividualPlusRoute>
-                      <OnboardingGuard>
-                        <Layout>
-                          <UnifiedPaymentManagement />
-                        </Layout>
-                      </OnboardingGuard>
-                    </IndividualPlusRoute>
-                  }
-                />
-                <Route
                   path="/individual/client-profile"
                   element={
                     <IndividualPlusRoute>
@@ -470,14 +459,10 @@ function App() {
                   }
                 />
 
-                {/* Payments return handler (Stripe Checkout) */}
+                {/* Payments return handler (Stripe Subscription Checkout) */}
                 <Route
                   path="/payments/success"
                   element={<PaymentsSuccessPage />}
-                />
-                <Route
-                  path="/payments/:id/receipt"
-                  element={<ReceiptPage />}
                 />
                 <Route
                   path="/entity/commissions-management"
@@ -580,29 +565,6 @@ function App() {
                         <UnifiedSettingsPage />
                       </Layout>
                     </EntityRoute>
-                  }
-                />
-                <Route
-                  path="/entity/payment-management"
-                  element={
-                    <EntityRoute>
-                      <Layout>
-                        <UnifiedPaymentManagement />
-                      </Layout>
-                    </EntityRoute>
-                  }
-                />
-                <Route
-                  path="/entity/payments"
-                  element={
-                    <ProtectedRoute
-                      allowedPlans={["simple", "individual", "business"]}
-                      allowedRoles={["owner", "admin", "manager"]}
-                    >
-                      <Layout>
-                        <UnifiedPaymentManagement />
-                      </Layout>
-                    </ProtectedRoute>
                   }
                 />
                 <Route
@@ -737,6 +699,17 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <UnifiedSettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/settings/integrations"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <IntegrationsSettingsPage />
                       </Layout>
                     </ProtectedRoute>
                   }

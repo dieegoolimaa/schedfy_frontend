@@ -79,7 +79,7 @@ export function PlanGate({
   feature,
 }: Readonly<{
   children: React.ReactNode;
-  requiredPlan?: "simple" | "individual" | "business";
+  requiredPlan?: "simple" | "simple_unlimited" | "individual" | "business";
   fallback?: React.ReactNode;
   feature?: "financial" | "analytics" | "team";
 }>) {
