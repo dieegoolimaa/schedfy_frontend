@@ -154,11 +154,17 @@ export function FinancialReportsPage() {
   // Filter bookings by date range
   const filteredBookings = useMemo(() => {
     const startDate = getDateRangeFilter();
+    const isIndividual = user?.plan === "individual";
     return bookings.filter((b) => {
       const bookingDate = new Date(b.createdAt);
-      return bookingDate >= startDate;
+      const matchesDate = bookingDate >= startDate;
+      
+      if (isIndividual) {
+        return matchesDate && b.professionalId === user?.id;
+      }
+      return matchesDate;
     });
-  }, [bookings, dateRange]);
+  }, [bookings, dateRange, user]);
 
   // Helper to calculate commission for a single booking
   const calculateCommission = (booking: any, _commissionsList: Commission[]) => {
@@ -768,9 +774,11 @@ export function FinancialReportsPage() {
               <TabsTrigger value="overview" className="whitespace-nowrap">
                 {t("tabs.overview", "Overview")}
               </TabsTrigger>
-              <TabsTrigger value="professionals" className="whitespace-nowrap">
-                {t("tabs.professionals", "Professionals")}
-              </TabsTrigger>
+              {user?.plan === "business" && (
+                <TabsTrigger value="professionals" className="whitespace-nowrap">
+                  {t("tabs.professionals", "Professionals")}
+                </TabsTrigger>
+              )}
               <TabsTrigger value="goals" className="whitespace-nowrap">
                 {t("tabs.goals", "Goals & Targets")}
               </TabsTrigger>
@@ -880,69 +888,71 @@ export function FinancialReportsPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="professionals" className="space-y-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>{t("professionals.title")}</CardTitle>
-                  <CardDescription>
-                    {t("professionals.description")}
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate("/operational-reports")}
-                >
-                  {t("professionals.viewOperational")}
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("professionals.table.professional")}</TableHead>
-                      <TableHead className="text-right">{t("professionals.table.revenue")}</TableHead>
-                      <TableHead className="text-right">{t("professionals.table.percentOfTotal")}</TableHead>
-                      <TableHead className="text-right">{t("professionals.table.bookings")}</TableHead>
-                      <TableHead className="text-right">{t("professionals.table.avgTicket")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {revenueByProfessional.map((prof) => (
-                      <TableRow key={prof.name}>
-                        <TableCell className="font-medium">
-                          {prof.name}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(prof.revenue)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              {prof.percentage.toFixed(1)}%
-                            </span>
-                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary"
-                                style={{ width: `${prof.percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {prof.bookings}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(prof.averageTicket)}
-                        </TableCell>
+          {user?.plan === "business" && (
+            <TabsContent value="professionals" className="space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>{t("professionals.title")}</CardTitle>
+                    <CardDescription>
+                      {t("professionals.description")}
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/operational-reports")}
+                  >
+                    {t("professionals.viewOperational")}
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("professionals.table.professional")}</TableHead>
+                        <TableHead className="text-right">{t("professionals.table.revenue")}</TableHead>
+                        <TableHead className="text-right">{t("professionals.table.percentOfTotal")}</TableHead>
+                        <TableHead className="text-right">{t("professionals.table.bookings")}</TableHead>
+                        <TableHead className="text-right">{t("professionals.table.avgTicket")}</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    </TableHeader>
+                    <TableBody>
+                      {revenueByProfessional.map((prof) => (
+                        <TableRow key={prof.name}>
+                          <TableCell className="font-medium">
+                            {prof.name}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(prof.revenue)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-sm text-muted-foreground">
+                                {prof.percentage.toFixed(1)}%
+                              </span>
+                              <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-primary"
+                                  style={{ width: `${prof.percentage}%` }}
+                                />
+                               </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {prof.bookings}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(prof.averageTicket)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           <TabsContent value="goals" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -1449,7 +1459,7 @@ export function FinancialReportsPage() {
                     <TableRow>
                       <TableHead>{t("transactions.table.transaction")}</TableHead>
                       <TableHead>{t("transactions.table.clientService")}</TableHead>
-                      <TableHead>{t("transactions.table.professional")}</TableHead>
+                      {user?.plan === "business" && <TableHead>{t("transactions.table.professional")}</TableHead>}
                       <TableHead>{t("transactions.table.payment")}</TableHead>
                       <TableHead className="text-right">{t("transactions.table.gross")}</TableHead>
                       <TableHead className="text-right">{t("transactions.table.commission")}</TableHead>
@@ -1482,9 +1492,11 @@ export function FinancialReportsPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {transaction.professional}
-                        </TableCell>
+                        {user?.plan === "business" && (
+                          <TableCell className="text-sm">
+                            {transaction.professional}
+                          </TableCell>
+                        )}
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {getPaymentMethodIcon(transaction.paymentMethod)}
@@ -1553,14 +1565,16 @@ export function FinancialReportsPage() {
                                       {transaction.client}
                                     </p>
                                   </div>
-                                  <div>
-                                    <Label className="text-sm font-medium">
-                                      {t("transactions.dialog.professional")}
-                                    </Label>
-                                    <p className="text-sm">
-                                      {transaction.professional}
-                                    </p>
-                                  </div>
+                                  {user?.plan === "business" && (
+                                    <div>
+                                      <Label className="text-sm font-medium">
+                                        {t("transactions.dialog.professional")}
+                                      </Label>
+                                      <p className="text-sm">
+                                        {transaction.professional}
+                                      </p>
+                                    </div>
+                                  )}
                                   <div>
                                     <Label className="text-sm font-medium">
                                       {t("transactions.dialog.service")}

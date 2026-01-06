@@ -53,10 +53,7 @@
       "price": "Preço",
       "isActive": "Ativo",
       "isPublic": "Visível publicamente",
-      "requireManualConfirmation": "Confirmação manual",
-      "vatIncluded": "Preço já inclui IVA",
-      "vatAlert": "O preço que definir já inclui IVA. Este será o valor final cobrado aos clientes.",
-      "simplePlanAlert": "O plano Simple não processa pagamentos. Os preços são apenas informativos."
+      "requireManualConfirmation": "Confirmação manual"
     },
     "status": {
       "active": "Ativo",

@@ -12,3 +12,4 @@ export * from './professionals.service';
 export * from './payments.service';
 export * from './public.service';
 export * from './contacts.service';
+export * from './ai.service';

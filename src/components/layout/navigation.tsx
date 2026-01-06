@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
-import { useFeatureFlags } from "../../contexts/feature-flags-context";
+import { UserRole } from "../../types/enums";
 import { usePermissions } from "../../hooks/use-permissions";
 import { Button } from "../ui/button";
 import { Logo } from "../ui/logo";
@@ -24,7 +24,6 @@ import { useState } from "react";
 export function Navigation() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
-  const { features } = useFeatureFlags();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,7 +40,7 @@ export function Navigation() {
 
   // Role-based navigation items - now organized in dropdown groups
   const getNavItems = () => {
-    if (user?.role === "platform_admin") {
+    if (user?.role === UserRole.PLATFORM_SUPER_ADMIN || user?.role === UserRole.PLATFORM_MANAGER) {
       return {
         main: [
           { path: "/admin/dashboard", label: t("nav.commandCenter", "Command Center") },
@@ -73,14 +72,6 @@ export function Navigation() {
             path: "/admin/feature-management",
             label: t("nav.featureManagement", "Feature Management"),
           },
-          ...(features.aiPremiumEnabled
-            ? [
-              {
-                path: "/admin/ai-premium-management",
-                label: t("nav.ai", "AI Premium"),
-              },
-            ]
-            : []),
         ],
         settings: [
           {
@@ -98,9 +89,8 @@ export function Navigation() {
     // Business plan users (full entity management)
     if (
       user?.plan === "business" &&
-      (user?.role === "owner" ||
-        user?.role === "admin" ||
-        user?.role === "manager")
+      (user?.role === UserRole.ENTITY_OWNER ||
+        user?.role === UserRole.ENTITY_ADMIN)
     ) {
       return {
         main: [
@@ -128,10 +118,6 @@ export function Navigation() {
         ],
         financial: [
           {
-            path: "/entity/payment-management",
-            label: t("nav.payments", "Payment Management"),
-          },
-          {
             path: "/entity/commissions-management",
             label: t("nav.commissions", "Commissions"),
           },
@@ -145,14 +131,6 @@ export function Navigation() {
             path: "/entity/notification-center",
             label: t("nav.notifications", "Notifications"),
           },
-          ...(features.aiPremiumEnabled
-            ? [
-              {
-                path: "/entity/ai-premium",
-                label: t("nav.ai", "AI Premium"),
-              },
-            ]
-            : []),
           ...(hasDirectPermission('canManageSubscription') ? [{
             path: "/entity/subscription-management",
             label: t("nav.subscription", "Subscription"),
@@ -183,8 +161,6 @@ export function Navigation() {
             path: "/individual/services",
             label: t("nav.services", "Services"),
           },
-        ],
-        clients: [
           {
             path: "/individual/clients",
             label: t("nav.clients", "Clients"),
@@ -195,13 +171,17 @@ export function Navigation() {
           },
           {
             path: "/individual/reports",
-            label: t("nav.reports", "Reports"),
+            label: t("nav.operationalReports", "Operational Analysis"),
           },
         ],
         financial: [
           {
-            path: "/individual/payment-management",
-            label: t("nav.payments", "Payments"),
+            path: "/individual/financial-reports",
+            label: t("nav.financialReports", "Financial Reports"),
+          },
+          {
+            path: "/individual/promotions",
+            label: t("nav.promotions", "Promotions"),
           },
         ],
         settings: [
@@ -210,8 +190,7 @@ export function Navigation() {
             label: t("nav.subscription", "Subscription"),
           }] : []),
           ...(hasDirectPermission('canEditEntitySettings') ? [{
-            path: "/simple/settings", // Note: The original code points to /simple/settings for individual?? Check consistent path or use /individual/settings if exists? Original code used /simple/settings so keeping it or fixing it? 
-            // Original code at line 204 says /simple/settings. I will trust existing code for that line but append support.
+            path: "/individual/settings",
             label: t("nav.settings", "Settings"),
           }] : []),
           {
@@ -223,7 +202,7 @@ export function Navigation() {
     }
 
     // PROFESSIONAL users - DYNAMIC based on permissions
-    if (user?.role === "professional") {
+    if (user?.role === UserRole.ENTITY_PROFESSIONAL) {
       const navItems: any = {
         main: [
           {
@@ -252,19 +231,10 @@ export function Navigation() {
       }
 
       // Allow professionals to view operational reports
-      // Using generic /reports route or /professional/reports if created
       navItems.operations.push({
         path: "/professional/reports",
         label: t("nav.operationalReports", "Operational Analysis"),
       });
-
-      // Financial section hidden for professionals as requested
-      // if (canViewPage("earnings") || canViewPage("reports")) {
-      //   navItems.financial.push({
-      //     path: "/professional/earnings",
-      //     label: t("nav.earnings", "Earnings"),
-      //   });
-      // }
 
       return navItems;
     }
@@ -653,7 +623,7 @@ export function Navigation() {
 
   // Get dashboard path based on user role
   const getDashboardPath = () => {
-    if (user?.role === "platform_admin") return "/admin/dashboard";
+    if (user?.role === UserRole.PLATFORM_SUPER_ADMIN || user?.role === UserRole.PLATFORM_MANAGER) return "/admin/dashboard";
     if (user?.plan === "business") return "/entity/dashboard";
     if (user?.plan === "individual") return "/individual/dashboard";
     if (user?.plan === "simple") return "/simple/dashboard";
@@ -676,19 +646,6 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Dev Tools Badge - Only in development */}
-            {import.meta.env.DEV && (
-              <Link to="/test-pages">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden sm:flex items-center gap-1 text-xs border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950"
-                >
-                  🧪 Dev Tools
-                </Button>
-              </Link>
-            )}
-
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"

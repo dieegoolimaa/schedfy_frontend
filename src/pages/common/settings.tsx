@@ -33,7 +33,7 @@ export default function UnifiedSettingsPage() {
   const { t } = useTranslation("settings");
   const { user, updateEntity } = useAuth();
   const plan = user?.plan || EntityPlan.SIMPLE;
-  const isOwnerOrManager = user?.role === UserRole.OWNER || user?.role === UserRole.MANAGER || user?.role === UserRole.ADMIN;
+  const isOwnerOrManager = user?.role === UserRole.ENTITY_OWNER || user?.role === UserRole.PLATFORM_MANAGER || user?.role === UserRole.ENTITY_ADMIN || user?.role === UserRole.PLATFORM_SUPER_ADMIN;
 
   const [activeTab, setActiveTab] = useState(
     (plan === EntityPlan.BUSINESS || plan === EntityPlan.INDIVIDUAL || plan === EntityPlan.SIMPLE) ? "business" : "profile"

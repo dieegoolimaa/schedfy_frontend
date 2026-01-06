@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 export function UpgradePage() {
   const { t } = useTranslation("upgrade");
   const { user } = useAuth();
-  const { getPriceDisplay, region, regionConfig } = useRegion();
+  const { getPriceDisplay, region, regionConfig, pricingLoading } = useRegion();
   const [isLoading, _setIsLoading] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ export function UpgradePage() {
     {
       id: "simple",
       name: "Simple",
-      price: getPriceDisplay("simple", "monthly"),
+      price: pricingLoading ? "..." : getPriceDisplay("simple", "monthly"),
       period: "/month",
       description: "Perfect for solo professionals",
       features: [
@@ -47,7 +47,7 @@ export function UpgradePage() {
     {
       id: "individual",
       name: "Individual",
-      price: getPriceDisplay("individual", "monthly"),
+      price: pricingLoading ? "..." : getPriceDisplay("individual", "monthly"),
       period: "/month",
       description: "AI-powered insights for growing businesses",
       features: [
@@ -63,7 +63,7 @@ export function UpgradePage() {
     {
       id: "business",
       name: "Business",
-      price: getPriceDisplay("business", "monthly"),
+      price: pricingLoading ? "..." : getPriceDisplay("business", "monthly"),
       period: "/month",
       description: "Complete solution for teams",
       features: [
@@ -84,11 +84,7 @@ export function UpgradePage() {
 
   // Special "Unlimited Bookings" add-on for Simple plan users
   if (user?.plan === "simple") {
-    const unlimitedRawPrice = region === "BR" ? 29.90 : 9.90;
-    const unlimitedPriceDisplay = new Intl.NumberFormat(regionConfig.locale, {
-      style: "currency",
-      currency: regionConfig.currency,
-    }).format(unlimitedRawPrice);
+    const unlimitedPriceDisplay = pricingLoading ? "..." : getPriceDisplay("simple_unlimited", "monthly");
 
     const simpleUnlimitedPlan = {
       id: "simple_unlimited",
@@ -231,7 +227,11 @@ export function UpgradePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline">{t("contactSupport")}</Button>
+            <Button variant="outline" asChild>
+              <Link to="/support">
+                {t("contactSupport")}
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

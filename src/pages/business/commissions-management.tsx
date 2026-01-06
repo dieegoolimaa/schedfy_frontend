@@ -262,7 +262,7 @@ export function CommissionsManagementPage() {
         isActive: true,
         validFrom: newCommission.validFrom || undefined,
         validUntil: newCommission.validUntil || undefined,
-        serviceCategoryIds: [], // TODO: Add UI for this
+        serviceCategoryIds: (newCommission as any).serviceCategoryIds || [],
         createdBy: user?.id || "",
       });
 
@@ -309,7 +309,7 @@ export function CommissionsManagementPage() {
           newVoucher.applicableServiceIds.length > 0
             ? newVoucher.applicableServiceIds
             : undefined,
-        applicableDays: [], // TODO: Add UI for this
+        applicableDays: (newVoucher as any).applicableDays || [],
       };
 
       console.log('Creating voucher payload:', payload);
@@ -350,8 +350,8 @@ export function CommissionsManagementPage() {
           newDiscount.serviceIds.length > 0
             ? newDiscount.serviceIds
             : undefined,
-        serviceCategoryIds: [], // TODO: Add UI for this
-        applicableDays: [], // TODO: Add UI for this
+        serviceCategoryIds: (newDiscount as any).serviceCategoryIds || [],
+        applicableDays: (newDiscount as any).applicableDays || [],
         applicableTimeStart: undefined,
         applicableTimeEnd: undefined,
         autoApply: !!newDiscount.autoApply,

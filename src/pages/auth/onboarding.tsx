@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useAuth } from "../../contexts/auth-context";
 import { entitiesService } from "../../services/entities.service";
+import { usersService } from "../../services/users.service";
 import { getDashboardRoute } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -120,6 +121,11 @@ export function OnboardingPage() {
 
       console.log("Submitting onboarding data:", payload);
       await entitiesService.completeOnboarding(payload);
+
+      // Automate "provides services" flag for Individual plan
+      if (user?.plan === "individual" && user?.id) {
+        await usersService.updateProfessionalStatus(user.id, true);
+      }
 
       toast.success("Onboarding completed successfully!");
 
@@ -552,7 +558,15 @@ export function OnboardingPage() {
                   }
 
                   entitiesService.completeOnboarding(payload)
-                    .then(() => {
+                    .then(async () => {
+                      // Automate "provides services" flag for Individual plan
+                      if (user?.plan === "individual" && user?.id) {
+                        try {
+                          await usersService.updateProfessionalStatus(user.id, true);
+                        } catch (err) {
+                          console.error("Failed to set professional status:", err);
+                        }
+                      }
                       toast.success("Onboarding completed successfully!");
                       window.location.href = getDashboardRoute(user?.plan || 'simple');
                     })

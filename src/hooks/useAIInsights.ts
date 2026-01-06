@@ -41,11 +41,11 @@ async function fetchAIInsights(
 }
 
 export function useAIInsights(context: AIInsightsContext) {
-    const { user, entity } = useAuth();
+    const { user } = useAuth();
     const entityId = user?.entityId || '';
 
-    // Check if entity has AI subscription (isPremium)
-    const hasAISubscription = (entity as any)?.isPremium === true;
+    // AI Features are now included for all plans
+    const hasAISubscription = true;
 
     const query = useQuery({
         queryKey: ['ai-insights', entityId, context.pageType, context.period],
@@ -68,13 +68,6 @@ export function useAIInsights(context: AIInsightsContext) {
 
 // Hook for generating insights locally (fallback when API is not available)
 export function useLocalAIInsights(context: AIInsightsContext): AIInsight[] {
-    const { entity } = useAuth();
-    const hasAISubscription = (entity as any)?.isPremium === true;
-
-    if (!hasAISubscription) {
-        return [];
-    }
-
     const insights: AIInsight[] = [];
 
     // Generate contextual insights based on the data provided

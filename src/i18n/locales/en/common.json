@@ -320,45 +320,6 @@
     "description": "You don't have permission to access this page. Please contact your administrator if you believe this is an error.",
     "goHome": "Go to Home",
     "goBack": "Go Back"
-  },
-  "platform": {
-    "support": {
-      "tabs": {
-        "manual": "User Manual",
-        "tickets": "My Tickets",
-        "knowledge": "Knowledge Base"
-      },
-      "manual": {
-        "themes": "Themes",
-        "plans": "Plans & Subscriptions",
-        "bookings": "Bookings",
-        "payments": "Payments",
-        "settings": "Account Configuration",
-        "theme1": "Theme 1",
-        "plansTitle": "Plans & Subscriptions",
-        "plansDesc": "Understand how our subscription model works, the limits of each plan, and how to choose the best option for your business.",
-        "simpleTitle": "Entry Level Solution",
-        "simpleText": "Perfect for professionals starting their journey alone. Focus on simplicity and core booking features.",
-        "individualTitle": "Advanced Professional",
-        "individualText": "Designed for established professionals who need more scale, advanced analytics, and a custom brand identity.",
-        "businessTitle": "Enterprise & Clinics",
-        "businessText": "The complete solution for teams. Manage multiple calendars, team permissions, and get unlimited growth potential.",
-        "professional": "Professional",
-        "services": "Services",
-        "clients": "Clients",
-        "basicReports": "Basic Reports",
-        "customBranding": "Custom Branding",
-        "advReports": "Advanced Financial Reports",
-        "unlimitedProf": "Unlimited Professionals",
-        "unlimitedServ": "Unlimited Services",
-        "unlimitedClients": "Unlimited Clients",
-        "teamManagement": "Team Management & Roles",
-        "stillConfused": "Still confused about something?",
-        "helpLink": "Our support team is ready to help you directly via tickets.",
-        "goToTickets": "Go to my tickets",
-        "selectTheme": "Select a theme to view the manual"
-      }
-    }
   }
 }
 

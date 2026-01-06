@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/auth-context";
 import { useEntity } from "../../hooks/useEntity";
@@ -8,7 +8,7 @@ import { useClients } from "../../hooks/useClients";
 import { useServices } from "../../hooks/useServices";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
-import { BookingCreator } from "../../components/booking";
+
 import {
     Card,
     CardContent,
@@ -112,6 +112,8 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
         autoFetch: true,
     });
 
+    const navigate = useNavigate();
+
     const [searchTerm, setSearchTerm] = useState("");
     const [searchParams, setSearchParams] = useSearchParams();
     const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
@@ -132,7 +134,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     }, [viewMode]);
 
     // Dialog state
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
     const [selectedBookingDetails, setSelectedBookingDetails] =
         useState<any>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -637,11 +639,11 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
 
                             <Button
                                 size="sm"
-                                onClick={() => setIsCreateDialogOpen(true)}
+                                onClick={() => navigate(`/book/${(fullEntity as any)?.slug || entityId}`)}
                                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                             >
                                 <Plus className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">New Booking</span>
+                                <span className="hidden sm:inline">{t("newBooking")}</span>
                             </Button>
                         </div>
                     </div>
@@ -724,12 +726,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     />
                 )}
 
-                <StatCard
-                    title={t("stats.confirmed", "Confirmed")}
-                    value={stats.confirmed}
-                    icon={CheckCircle}
-                    variant="success"
-                />
+
 
                 <StatCard
                     title={t("stats.pending", "Pending")}
@@ -1616,23 +1613,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
             </Dialog >
 
             {/* Create Booking Dialog */}
-            < BookingCreator
-                open={isCreateDialogOpen}
-                onOpenChange={setIsCreateDialogOpen}
-                services={
-                    services.map(s => ({
-                        ...s,
-                        id: s.id || '',
-                        duration: typeof s.duration === 'object' ? (s.duration as any).duration : s.duration,
-                        price: (s as any).pricing?.basePrice || (s as any).price || 0
-                    }))
-                }
-                planType="simple"
-                defaultSlotDuration={fullEntity?.defaultSlotDuration || 30}
-                onSuccess={async () => {
-                    await fetchBookings();
-                }}
-            />
+
 
             {/* Recurring Series Dialog */}
             <Dialog

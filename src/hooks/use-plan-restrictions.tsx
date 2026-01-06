@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/auth-context";
 export function usePlanRestrictions() {
   const { user } = useAuth();
 
-  const isSimplePlan = user?.plan === "simple";
+  const isSimplePlan = user?.plan === "simple" || user?.plan === "simple_unlimited";
   const isIndividualPlan = user?.plan === "individual";
   const isBusinessPlan = user?.plan === "business";
 
@@ -19,7 +19,8 @@ export function usePlanRestrictions() {
   const canViewTransactionDetails = !isSimplePlan;
 
   // Advanced business features
-  const canViewAdvancedAnalytics = isBusinessPlan;
+  // AI Insights are now available for all plans
+  const canViewAdvancedAnalytics = true;
   const canManageMultipleLocations = isBusinessPlan;
   const canViewTeamReports = isBusinessPlan;
 
@@ -48,10 +49,7 @@ export function usePlanRestrictions() {
     // Helper function to get upgrade message
     getUpgradeMessage: () => {
       if (isSimplePlan) {
-        return "Upgrade to Individual or Business plan to access financial features and detailed reports.";
-      }
-      if (isIndividualPlan) {
-        return "Upgrade to Business plan to access advanced analytics and team management features.";
+        return "Upgrade to Individual or Business plan to access financial reports and analytics.";
       }
       return "";
     },
@@ -60,8 +58,8 @@ export function usePlanRestrictions() {
     getRequiredPlan: (feature: string) => {
       switch (feature) {
         case "financial":
-          return "individual";
         case "analytics":
+          return "individual";
         case "team":
           return "business";
         default:
@@ -79,7 +77,7 @@ export function PlanGate({
   feature,
 }: Readonly<{
   children: React.ReactNode;
-  requiredPlan?: "simple" | "individual" | "business";
+  requiredPlan?: "simple" | "simple_unlimited" | "individual" | "business";
   fallback?: React.ReactNode;
   feature?: "financial" | "analytics" | "team";
 }>) {
@@ -90,9 +88,9 @@ export function PlanGate({
     canViewTeamReports,
   } = usePlanRestrictions();
 
-  const planHierarchy = { simple: 0, individual: 1, business: 2 };
+  const planHierarchy: Record<string, number> = { simple: 0, simple_unlimited: 0, individual: 1, business: 2 };
   const userPlanLevel = planHierarchy[currentPlan] || 0;
-  const requiredPlanLevel = planHierarchy[requiredPlan];
+  const requiredPlanLevel = planHierarchy[requiredPlan] ?? 0;
 
   // Feature-specific checks
   if (feature === "financial" && !canViewFinancialReports) {

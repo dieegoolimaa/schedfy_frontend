@@ -1,9 +1,9 @@
 {
   "hero": {
     "badge": "Trusted by 10,000+ businesses",
-    "title": "Simplify your",
-    "highlight": "scheduling",
-    "subtitle": "Professional scheduling platform designed for businesses. Powered by AI.",
+    "title": "Simplify Your",
+    "highlight": "Scheduling",
+    "subtitle": "Professional scheduling platform designed for businesses in Portugal, Brazil and USA. Powered by AI.",
     "feature1": "No setup fees",
     "feature2": "Cancel anytime",
     "feature3": "Free migration"
@@ -45,8 +45,7 @@
     "subtitle": "Start free and scale as you grow. No hidden fees.",
     "popular": "Most Popular",
     "startFree": "Start Free Trial",
-    "perMonth": "/month",
-    "taxNotice": "Prices exclude VAT"
+    "perMonth": "/month"
   },
   "plans": {
     "simple": {
@@ -133,7 +132,6 @@
     "description": "Modern scheduling platform for businesses worldwide",
     "product": "Product",
     "features": "Features",
-    "discover": "Discover",
     "pricing": "Pricing",
     "integrations": "Integrations",
     "company": "Company",

@@ -10,16 +10,10 @@
     "apply": "Aplicar",
     "learnMore": "Saber Mais"
   },
-  "mock": {
-    "rec1": "Aumentar preços de serviços premium em 15%",
-    "rec2": "Oferecer pacotes durante períodos de baixa procura",
-    "rec3": "Implementar preços dinâmicos para horas de ponta",
-    "suggestedSchedule": "Adicionar 2 horas aos fins de semana"
-  },
   "gate": {
-    "title": "AI Premium em Breve",
-    "description": "As nossas funcionalidades AI Premium estão atualmente em desenvolvimento e estarão disponíveis para compra em breve. Fique atento a insights e automação poderosos impulsionados por IA!",
-    "badge": "Funcionalidade Ainda Não Disponível",
+    "title": "Insights de IA",
+    "description": "Utilize o poder da inteligência artificial para otimizar os seus agendamentos, preços e retenção de clientes.",
+    "badge": "Funcionalidade Ativa",
     "expect": {
       "title": "O Que Esperar",
       "description": "O AI Premium irá revolucionar a forma como gere o seu negócio",

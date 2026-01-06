@@ -65,5 +65,18 @@ export const supportService = {
     getStats: async () => {
         const response = await apiClient.get('/api/support/tickets/stats');
         return response.data;
+    },
+
+    uploadAttachment: async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        // Using entities endpoint as it's already set up for file uploads with Multer
+        // but it usually expects to update an entity. 
+        // We might need a more generic endpoint or just let backend handle it via Support controller if we add it there.
+        // For now, let's keep it as a placeholder or use the current generic upload if exists.
+        const response = await apiClient.post<{ url: string }>('/api/entities/upload-logo', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data.url;
     }
 };

@@ -10,9 +10,7 @@
     "subscribe": "Subscribe",
     "unsubscribe": "Unsubscribe",
     "unsubscribing": "Unsubscribing...",
-    "processing": "Processing...",
-    "upgradeToUnlimited": "Upgrade to Unlimited Bookings",
-    "removeAddOn": "Remove Unlimited Bookings"
+    "processing": "Processing..."
   },
   "plan": {
     "plan": "Plan",
@@ -79,16 +77,6 @@
         "clientBehavior": "Client behavior insights",
         "optimization": "Business optimization tips"
       }
-    },
-    "unlimitedBookings": {
-      "name": "Unlimited Bookings",
-      "description": "Remove booking limits from your Simple plan",
-      "features": {
-        "unlimited": "Unlimited bookings",
-        "keepFeatures": "Keep current features",
-        "noAi": "No AI features",
-        "cancel": "Cancel anytime"
-      }
     }
   },
   "billing": {
@@ -97,7 +85,6 @@
     "monthly": "Monthly",
     "yearly": "Yearly",
     "save20": "Save 20%",
-    "taxNotice": "Prices exclude VAT",
     "nextBilling": "Next billing",
     "paymentMethod": {
       "title": "Payment Method",

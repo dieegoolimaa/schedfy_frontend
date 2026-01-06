@@ -101,12 +101,13 @@ export function OperationalReportsPage() {
     });
 
     // Apply Professional Filter
-    const currentPeriod = user?.role === "professional"
-      ? currentPeriodRaw.filter((b) => b.professionalId === user.id)
+    const isIndividual = user?.plan === "individual";
+    const currentPeriod = (user?.role === "professional" || isIndividual)
+      ? currentPeriodRaw.filter((b) => b.professionalId === user?.id)
       : currentPeriodRaw;
 
-    const previousPeriod = user?.role === "professional"
-      ? previousPeriodRaw.filter((b) => b.professionalId === user.id)
+    const previousPeriod = (user?.role === "professional" || isIndividual)
+      ? previousPeriodRaw.filter((b) => b.professionalId === user?.id)
       : previousPeriodRaw;
 
     const currentTotal = currentPeriod.length;

@@ -20,8 +20,9 @@ export function useAIFeatures() {
     const { hasPermission: checkPermission } = usePermissions();
     const currentEntity = entity as unknown as Entity;
 
-    // 1. Check if user has subscribed to AI Insights add-on
-    const hasSubscription = currentEntity?.isPremium === true || currentEntity?.aiFeaturesEnabled === true;
+    // 1. Check if user has AI features enabled
+    // Now included for all plans, so we default to true
+    const hasSubscription = true; // AI Features are now included for all plans
 
     // 2. Check if toggle is enabled (user preference to show/hide AI components)
     // Default to true if they have subscription
@@ -29,7 +30,7 @@ export function useAIFeatures() {
 
     // 3. Check user permissions (using effective permissions)
     const isOwner = user?.role === 'owner';
-    const hasPermission = isOwner || checkPermission('canViewAIInsights');
+    const hasPermission = isOwner || checkPermission('canViewAIInsights' as any);
 
     // 4. Calculate what they can access based on plan
     const plan = currentEntity?.plan || 'simple';

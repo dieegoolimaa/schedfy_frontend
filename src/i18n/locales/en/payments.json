@@ -1,7 +1,9 @@
 {
   "title": "Payment Management",
-  "subtitle": "Management & Payouts",
-
+  "subtitle": {
+    "business": "Track and manage all payment transactions",
+    "individual": "Manage and record manual payments"
+  },
   "upgrade": {
     "title": "Payment Management",
     "description": "Advanced payment management is available on Individual and Business plans. Upgrade your plan to track and manage payment transactions."

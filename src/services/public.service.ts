@@ -110,10 +110,11 @@ export const publicService = {
 
     /**
      * Update booking (public/client)
-     * Uses: PATCH /api/bookings/:id
+     * Uses: PATCH /api/bookings/:id?clientReschedule=true
      */
     updateBooking: async (bookingId: string, data: any) => {
-        return apiClient.patch(`/api/bookings/${bookingId}`, data);
+        // Mark as client reschedule so backend can validate plan restrictions
+        return apiClient.patch(`/api/bookings/${bookingId}?clientReschedule=true`, data);
     },
 
     /**

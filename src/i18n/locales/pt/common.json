@@ -19,8 +19,8 @@
   "status": "Estado",
   "state": "Estado",
   "plan": "Plano",
+  "token": "Token",
   "redirect": "Redirecionar",
-  "na": "N/A",
   "actions": {
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -319,44 +319,5 @@
     "description": "Não tem permissão para aceder a esta página. Por favor, contacte o seu administrador se acredita que isto é um erro.",
     "goHome": "Ir para o Início",
     "goBack": "Voltar"
-  },
-  "platform": {
-    "support": {
-      "tabs": {
-        "manual": "Manual do Utilizador",
-        "tickets": "Meus Pedidos",
-        "knowledge": "Central de Ajuda"
-      },
-      "manual": {
-        "themes": "Temas",
-        "plans": "Planos e Assinaturas",
-        "bookings": "Agendamentos",
-        "payments": "Pagamentos",
-        "settings": "Configuração da Conta",
-        "theme1": "Tema 1",
-        "plansTitle": "Planos e Assinaturas",
-        "plansDesc": "Entenda como funciona o nosso modelo de subscrição, os limites de cada plano e como escolher a melhor opção para o seu negócio.",
-        "simpleTitle": "Solução de Entrada",
-        "simpleText": "Perfeito para profissionais que estão a começar a sua jornada sozinhos. Foco na simplicidade e funcionalidades essenciais de agendamento.",
-        "individualTitle": "Profissional Avançado",
-        "individualText": "Concebido para profissionais estabelecidos que precisam de mais escala, análises avançadas e uma identidade de marca personalizada.",
-        "businessTitle": "Empresas e Clínicas",
-        "businessText": "A solução completa para equipas. Faça a gestão de múltiplos calendários, permissões de equipa e obtenha um potencial de crescimento ilimitado.",
-        "professional": "Profissional",
-        "services": "Serviços",
-        "clients": "Clientes",
-        "basicReports": "Relatórios Básicos",
-        "customBranding": "Identidade Visual (Branding)",
-        "advReports": "Relatórios Financeiros Avançados",
-        "unlimitedProf": "Profissionais Ilimitados",
-        "unlimitedServ": "Serviços Ilimitados",
-        "unlimitedClients": "Clientes Ilimitados",
-        "teamManagement": "Gestão de Equipa e Permissões",
-        "stillConfused": "Ainda tem dúvidas sobre algum ponto?",
-        "helpLink": "A nossa equipa de suporte está pronta para ajudar diretamente via tickets.",
-        "goToTickets": "Ir para os meus pedidos",
-        "selectTheme": "Selecione um tema para visualizar o manual"
-      }
-    }
   }
 }

@@ -44,7 +44,7 @@ import type {
   PublicTimeSlot as TimeSlot,
 } from "@/types/models/public.interface";
 
-export function PublicEntityProfilePage() {
+export function PublicBookingPage() {
   const { t } = useTranslation(["publicBooking", "common"]);
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();

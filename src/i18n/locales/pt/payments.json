@@ -1,7 +1,9 @@
 {
   "title": "Gestão de Pagamentos",
-  "subtitle": "Gestão e Extrato de Pagamentos",
-
+  "subtitle": {
+    "business": "Rastreie e gerencie todas as transações de pagamento",
+    "individual": "Gerencie e registre pagamentos manuais"
+  },
   "upgrade": {
     "title": "Gestão de Pagamentos",
     "description": "A gestão avançada de pagamentos está disponível nos planos Individual e Business. Faça upgrade do seu plano para rastrear e gerenciar transações de pagamento."
@@ -189,7 +191,6 @@
     "paidBy": "Pago por",
     "company": "Empresa",
     "client": "Cliente",
-    "taxId": "NIF / CPF",
     "transactionDetails": "Detalhes da Transação",
     "transactionId": "ID da Transação",
     "paymentMethod": "Método de Pagamento",

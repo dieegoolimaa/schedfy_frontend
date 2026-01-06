@@ -11,8 +11,7 @@ import { useServices } from "../../hooks/useServices";
 import { useCurrency } from "../../hooks/useCurrency";
 import { apiClient } from "../../lib/api-client";
 import { toast } from "sonner";
-import { BookingCreator } from "../../components/booking";
-import { DirectBookingLinkGenerator } from "../../components/booking/DirectBookingLinkGenerator";
+
 import {
     Card,
     CardContent,
@@ -192,8 +191,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
     }, [entityId]);
 
     // Dialog state
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-    const [isDirectBookingLinkOpen, setIsDirectBookingLinkOpen] = useState(false);
+
     const [selectedBookingDetails, setSelectedBookingDetails] =
         useState<any>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -480,7 +478,6 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
         };
     }, [entityId]);
 
-    // USE REAL DATA FROM API (not mocks!)
     const services = servicesFromApi || [];
 
     // Load entity data to get working hours
@@ -815,15 +812,9 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                 <span className="hidden sm:inline">Block Time</span>
                             </Button>
 
-                            <DirectBookingLinkGenerator
-                                entityId={entityId}
-                                entitySlug={fullEntity?.slug || ""}
-                                professionals={professionalsList}
-                                services={services}
-                            />
                             <Button
                                 size="sm"
-                                onClick={() => setIsCreateDialogOpen(true)}
+                                onClick={() => navigate(`/book/${(fullEntity as any)?.slug || entityId}`)}
                             >
                                 <Plus className="h-4 w-4 sm:mr-2" />
                                 <span className="hidden sm:inline">{t("newBooking")}</span>
@@ -884,12 +875,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     />
                 )}
 
-                <StatCard
-                    title={t("stats.confirmed", "Confirmed")}
-                    value={stats.confirmed}
-                    icon={CheckCircle}
-                    variant="success"
-                />
+
 
                 <StatCard
                     title={t("stats.pending", "Pending")}
@@ -904,6 +890,15 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                     icon={Clock}
                     variant="info"
                 />
+
+                {!isSimplePlan && (
+                    <StatCard
+                        title={t("stats.revenue", "Revenue")}
+                        value={formatCurrency(stats.revenue)}
+                        icon={Banknote}
+                        variant="success"
+                    />
+                )}
 
                 <StatCard
                     title={t("stats.cancelled", "Cancelled")}
@@ -951,7 +946,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <SelectItem value="past">{t("filters.past")}</SelectItem>
                         </SelectContent>
                     </Select>
-                    {canViewPaymentDetails && (
+                    {canViewPaymentDetails && !isSimplePlan && (
                         <Select value={paymentFilter} onValueChange={setPaymentFilter}>
                             <SelectTrigger className="w-[150px]">
                                 <SelectValue />
@@ -1202,7 +1197,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                 </Badge>
 
                                                 {/* Payment Status Badge */}
-                                                {booking.status !== 'cancelled' && booking.status !== 'blocked' && (
+                                                {booking.status !== 'cancelled' && booking.status !== 'blocked' && !isSimplePlan && (
                                                     <Badge
                                                         variant="outline"
                                                         className={`
@@ -1320,7 +1315,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                                 </DropdownMenuItem>
                                                             )}
 
-                                                            {canViewPaymentDetails && (
+                                                            {canViewPaymentDetails && !isSimplePlan && (
                                                                 <>
                                                                     <DropdownMenuSeparator />
                                                                     <DropdownMenuItem
@@ -1383,7 +1378,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                     asTab={true}
                                     defaultView="week"
                                     workingHours={fullEntity?.workingHours || { start: "08:00", end: "23:00" }}
-                                    onCreateBooking={() => setIsCreateDialogOpen(true)}
+                                    onCreateBooking={() => navigate(`/book/${(fullEntity as any)?.slug || entityId}`)}
                                     onEditBooking={(booking) => {
                                         // Map the booking object to the flat structure expected by EditBookingDialog
                                         const mappedBooking: any = {
@@ -1497,7 +1492,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                             <Button
                                 variant="outline"
                                 className="w-full justify-start h-auto py-2"
-                                onClick={() => navigate('/entity/profile')}
+                                onClick={() => navigate(`/book/${(fullEntity as any)?.slug || entityId}`)}
                             >
                                 <Building2 className="mr-2 h-4 w-4 text-primary" />
                                 <div className="flex flex-col items-start">
@@ -1544,23 +1539,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                         </CardContent>
                     </Card>
 
-                    {/* Direct Booking Link Generator */}
-                    <DirectBookingLinkGenerator
-                        entitySlug={(fullEntity as any)?.slug || (fullEntity as any)?.id || entityId}
-                        entityId={entityId}
-                        professionals={professionalsList.map((p: any) => ({
-                            id: p.id || p._id,
-                            name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim()
-                        }))}
-                        services={services.map((s: any) => ({
-                            id: s._id || s.id || "",
-                            name: s.name,
-                            duration: s.duration,
-                            price: s.pricing?.basePrice
-                        }))}
-                        open={isDirectBookingLinkOpen}
-                        onOpenChange={setIsDirectBookingLinkOpen}
-                    />
+
 
                     {/* Recent Activities Widget */}
                     <RecentActivitiesWidget
@@ -2390,7 +2369,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                 : "N/A"}
                                         </p>
                                     </div>
-                                    {canViewPaymentDetails && selectedBookingDetails.status?.toLowerCase() !== 'blocked' && (
+                                    {canViewPaymentDetails && !isSimplePlan && selectedBookingDetails.status?.toLowerCase() !== 'blocked' && (
                                         <div>
                                             <Label className="text-sm font-medium text-muted-foreground">
                                                 {t("details.paymentStatus", "Payment Status")}
@@ -2406,6 +2385,16 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                                                     {getPaymentStatusLabel(selectedBookingDetails.paymentStatus)}
                                                 </Badge>
                                             </div>
+                                        </div>
+                                    )}
+                                    {canViewPaymentDetails && !isSimplePlan && (
+                                        <div>
+                                            <Label className="text-sm font-medium text-muted-foreground">
+                                                Price
+                                            </Label>
+                                            <p className="text-sm font-medium">
+                                                {formatCurrency(selectedBookingDetails.price || 0)}
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -2597,24 +2586,7 @@ export function CommandCenter({ forcedProfessionalId }: CommandCenterProps) {
                 </DialogContent >
             </Dialog >
 
-            {/* Create Booking Dialog */}
-            < BookingCreator
-                open={isCreateDialogOpen}
-                onOpenChange={setIsCreateDialogOpen}
-                services={
-                    services.map(s => ({
-                        ...s,
-                        id: s.id || '',
-                        duration: typeof s.duration === 'object' ? (s.duration as any).duration : s.duration,
-                        price: (s as any).pricing?.basePrice || (s as any).price || 0
-                    }))
-                }
-                planType={(user?.plan as 'simple' | 'individual' | 'business') || 'business'}
-                showPricing={!isSimplePlan}
-                onSuccess={async () => {
-                    await fetchBookings();
-                }}
-            />
+
 
             {/* Recurring Series Dialog */}
             <Dialog

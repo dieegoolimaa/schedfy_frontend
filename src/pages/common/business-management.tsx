@@ -58,7 +58,7 @@ import {
   Clock,
 } from "lucide-react";
 
-export function EntityProfilePage() {
+export function BusinessManagementPage() {
   const { t } = useTranslation();
   const { formatCurrency } = useCurrency();
   const { user } = useAuth();

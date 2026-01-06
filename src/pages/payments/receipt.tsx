@@ -217,9 +217,11 @@ export function ReceiptPage() {
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">{t("receipt.paymentMethod")}</span>
                                     <span className="capitalize">
-                                        {/* @ts-ignore */}
-                                        {payment.paymentMethod?.brand || payment.paymentMethod?.type || t("paymentMethods.card")} •••• {/* @ts-ignore */}
-                                        {payment.paymentMethod?.last4 || "****"}
+                                        {/* generic payment type only */}
+                                        {(payment as any).type === 'manual' 
+                                            ? (payment as any).paymentSource || t("paymentMethods.manual")
+                                            : t("paymentMethods.online")
+                                        }
                                     </span>
                                 </div>
                                 <div className="flex justify-between">

@@ -220,9 +220,21 @@ export function SupportPage() {
         }
 
         try {
-            // TODO: Upload attachments to backend
-            // const attachmentUrls = await Promise.all(ticketAttachments.map(file => uploadFile(file)));
-            await supportService.createTicket(newTicket);
+            // Upload attachments if any
+            let attachmentUrls: string[] = [];
+            if (ticketAttachments.length > 0) {
+                attachmentUrls = await Promise.all(
+                    ticketAttachments.map(file => supportService.uploadAttachment(file))
+                );
+            }
+            
+            await supportService.createTicket({
+                ...newTicket,
+                description: attachmentUrls.length > 0 
+                    ? `${newTicket.description}\n\nAttachments:\n${attachmentUrls.join('\n')}`
+                    : newTicket.description
+            });
+            
             toast({
                 title: t("platform.support.ticketCreated", "Ticket Created"),
                 description: t("platform.support.ticketCreatedDesc", "Your support ticket has been created successfully."),

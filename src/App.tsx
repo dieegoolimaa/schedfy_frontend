@@ -11,6 +11,7 @@ import { ResetPasswordPage } from "./pages/auth/reset-password";
 import { ForgotPasswordPage } from "./pages/auth/forgot-password";
 import { ChangePasswordPage } from "./pages/auth/change-password";
 import { AcceptInvitationPage } from "./pages/auth/accept-invitation";
+import { VerifyEmailPage } from "./pages/auth/verify-email";
 
 // Marketing pages
 import { HomePage } from "./pages/marketing/home";
@@ -22,6 +23,7 @@ import { DiscoverPage } from "./pages/marketing/discover";
 import PricingPage from "./pages/marketing/pricing";
 import IntegrationsPage from "./pages/marketing/integrations";
 import AboutPage from "./pages/marketing/about";
+import IntegrationsSettingsPage from "./pages/common/integrations";
 
 // Error pages
 import { NotFoundPage } from "./pages/errors/not-found";
@@ -33,11 +35,10 @@ import { UpgradeCheckoutPage } from "./pages/upgrade/upgrade-checkout";
 
 // Common pages
 import { ClientProfilePage } from "./pages/common/client-profile";
-import { EntityProfilePage } from "./pages/common/entity-profile";
+import { BusinessManagementPage } from "./pages/common/business-management";
 import { OperationalReportsPage } from "./pages/common/operational-reports";
 import UnifiedSettingsPage from "./pages/common/settings";
 import CommandCenter from "./pages/common/command-center";
-import UnifiedPaymentManagement from "./pages/common/payment-management";
 import NotificationPreferences from "./pages/common/notification-preferences";
 import ServicesAndPackagesPage from "./pages/common/services-packages";
 import ReviewsManagementPage from "./pages/common/reviews-management";
@@ -48,7 +49,6 @@ import { NotificationsPage } from "./pages/common/notifications-page";
 // Business pages
 import { CommissionsManagementPage } from "./pages/business/commissions-management";
 import { FinancialReportsPage as EntityFinancialReportsPage } from "./pages/business/financial-reports";
-import { AIPremiumPage } from "./pages/business/ai-premium";
 
 // Simple plan pages
 import SimpleCommandCenter from "./pages/simple/command-center";
@@ -67,12 +67,11 @@ import ProfessionalSchedulePage from "./pages/professional/schedule";
 import ProfessionalEarningsPage from "./pages/professional/earnings";
 
 // Public pages
-import { PublicEntityProfilePage } from "./pages/public/entity-profile";
+import { PublicBookingPage } from "./pages/public/public-booking-page";
 import { PublicBookingManagementPage } from "./pages/public/public-booking-management";
 
-// Payments pages
+// Payments success page (for subscription checkout return)
 import PaymentsSuccessPage from "./pages/payments/success";
-import ReceiptPage from "./pages/payments/receipt";
 
 // Route protection components
 import {
@@ -109,6 +108,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route
                   path="/accept-invitation"
                   element={<AcceptInvitationPage />}
@@ -127,7 +127,7 @@ function App() {
                 />
                 <Route
                   path="/book/:slug"
-                  element={<PublicEntityProfilePage />}
+                  element={<PublicBookingPage />}
                 />
                 <Route
                   path="/bookings/:id"
@@ -160,6 +160,7 @@ function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
                 <Route path="/upgrade/checkout" element={<ProtectedRoute><UpgradeCheckoutPage /></ProtectedRoute>} />
+
 
                 {/* Simple Plan Routes */}
                 <Route
@@ -332,17 +333,66 @@ function App() {
                   }
                 />
                 <Route
-                  path="/individual/payment-management"
+                  path="/individual/financial-reports"
                   element={
                     <IndividualPlusRoute>
                       <OnboardingGuard>
                         <Layout>
-                          <UnifiedPaymentManagement />
+                          <EntityFinancialReportsPage />
                         </Layout>
                       </OnboardingGuard>
                     </IndividualPlusRoute>
                   }
                 />
+                <Route
+                  path="/individual/clients"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <ClientProfilePage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+                <Route
+                  path="/individual/reviews"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <ReviewsManagementPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+                <Route
+                  path="/individual/promotions"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <CommissionsManagementPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+                <Route
+                  path="/individual/settings"
+                  element={
+                    <IndividualPlusRoute>
+                      <OnboardingGuard>
+                        <Layout>
+                          <UnifiedSettingsPage />
+                        </Layout>
+                      </OnboardingGuard>
+                    </IndividualPlusRoute>
+                  }
+                />
+
                 <Route
                   path="/individual/client-profile"
                   element={
@@ -393,8 +443,6 @@ function App() {
                     </IndividualPlusRoute>
                   }
                 />
-
-                {/* Business/Entity Plan Routes */}
                 <Route
                   path="/entity/dashboard"
                   element={
@@ -470,14 +518,10 @@ function App() {
                   }
                 />
 
-                {/* Payments return handler (Stripe Checkout) */}
+                {/* Payments return handler (Stripe Subscription Checkout) */}
                 <Route
                   path="/payments/success"
                   element={<PaymentsSuccessPage />}
-                />
-                <Route
-                  path="/payments/:id/receipt"
-                  element={<ReceiptPage />}
                 />
                 <Route
                   path="/entity/commissions-management"
@@ -515,7 +559,7 @@ function App() {
                   element={
                     <EntityRoute>
                       <Layout>
-                        <EntityProfilePage />
+                        <BusinessManagementPage />
                       </Layout>
                     </EntityRoute>
                   }
@@ -583,29 +627,6 @@ function App() {
                   }
                 />
                 <Route
-                  path="/entity/payment-management"
-                  element={
-                    <EntityRoute>
-                      <Layout>
-                        <UnifiedPaymentManagement />
-                      </Layout>
-                    </EntityRoute>
-                  }
-                />
-                <Route
-                  path="/entity/payments"
-                  element={
-                    <ProtectedRoute
-                      allowedPlans={["simple", "individual", "business"]}
-                      allowedRoles={["owner", "admin", "manager"]}
-                    >
-                      <Layout>
-                        <UnifiedPaymentManagement />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path="/entity/services-packages"
                   element={
                     <EntityRoute>
@@ -625,18 +646,6 @@ function App() {
                     </EntityRoute>
                   }
                 />
-                <Route
-                  path="/entity/ai-premium"
-                  element={
-                    <EntityRoute>
-                      <Layout>
-                        <AIPremiumPage />
-                      </Layout>
-                    </EntityRoute>
-                  }
-                />
-
-                {/* Professional Routes */}
                 <Route
                   path="/professional/dashboard"
                   element={
@@ -737,6 +746,17 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <UnifiedSettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/settings/integrations"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <IntegrationsSettingsPage />
                       </Layout>
                     </ProtectedRoute>
                   }

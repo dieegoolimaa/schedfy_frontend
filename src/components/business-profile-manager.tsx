@@ -52,7 +52,7 @@ interface BusinessProfileData {
 }
 
 interface BusinessProfileManagerProps {
-  entityType: "simple" | "individual" | "business";
+  entityType: "simple" | "simple_unlimited" | "individual" | "business";
   entityId: string;
   initialData?: Partial<BusinessProfileData>;
   onSave?: (data: BusinessProfileData) => void;

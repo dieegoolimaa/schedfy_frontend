@@ -73,6 +73,13 @@ export const authService = {
     },
 
     /**
+     * Verify email with token (from verification link)
+     */
+    verifyEmail: async (token: string): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+        return await apiClient.post('/api/auth/verify-email', { token });
+    },
+
+    /**
      * Register new user with verified email code
      */
     registerWithVerification: async (data: RegisterWithVerificationPayload): Promise<ApiResponse<AuthResponseData>> => {
@@ -86,6 +93,7 @@ export const authService = {
             verificationCode: data.verificationCode,
             businessType: data.businessType || 'other',
             plan: data.plan || 'simple', // Include plan
+            billingPeriod: data.billingPeriod || 'month', // Include billing period
             region: data.region || 'BR', // Include region code
             timezone: data.timezone || 'America/Sao_Paulo',
             locale: data.locale || 'pt-BR',
